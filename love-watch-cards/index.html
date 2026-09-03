@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09080d">
+  <title>Love Watch card study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: #09080d; }
+    button, input, textarea { font: inherit; }
+    button, input[type="range"] { cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    .prototype-stage { min-height: 100vh; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .proto-picker {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.82);
+      -webkit-backdrop-filter: blur(12px) saturate(1.4);
+      backdrop-filter: blur(12px) saturate(1.4);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 8px 24px rgba(0, 0, 0, 0.24),
+        0 2px 6px rgba(0, 0, 0, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .proto-picker-highlight {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      will-change: transform;
+    }
+
+    /* The slide is enabled only after first paint (data-ready), so load doesn't animate. */
+    .proto-picker[data-ready] .proto-picker-highlight {
+      transition:
+        transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+        width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+    }
+
+    .proto-picker-item {
+      position: relative; /* sits above the highlight */
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.55);
+      font: inherit;
+      cursor: pointer;
+      transition: color 150ms ease-out;
+    }
+
+    .proto-picker-item:hover {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .proto-picker-item:active {
+      transform: scale(0.97);
+    }
+
+    .proto-picker-item:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.4);
+      outline-offset: 2px;
+    }
+
+    .proto-picker-item[data-active] {
+      color: #fff;
+    }
+
+    .proto-picker-divider {
+      width: 1px;
+      height: 16px;
+      margin: 0 4px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .proto-picker-replay {
+      padding: 0 10px;
+      font-size: 14px;
+    }
+
+    .proto-picker[data-position="top"] {
+      bottom: auto;
+      top: 24px;
+    }
+
+    /* Portrait stack */
+    .stack-page { --pink: #ff3d8d; --warm: #ffbc65; min-height: 100vh; padding: 0 16px 116px; color: #f8f2f7; background: radial-gradient(circle at 20% -10%, rgba(255,61,141,.2), transparent 35%), radial-gradient(circle at 90% 45%, rgba(110,74,255,.15), transparent 32%), #08070b; font-family: "DM Sans", sans-serif; }
+    .stack-shell { width: min(100%, 680px); margin: 0 auto; }
+    .stack-head { position: sticky; top: 0; z-index: 4; display: flex; justify-content: space-between; align-items: center; height: 68px; background: rgba(8,7,11,.76); backdrop-filter: blur(22px); border-bottom: 1px solid rgba(255,255,255,.09); }
+    .stack-brand { font-family: Anton, sans-serif; font-size: 24px; text-transform: uppercase; letter-spacing: .04em; text-shadow: 0 0 16px rgba(255,61,141,.65); }
+    .stack-brand span { color: #ffd5a0; text-shadow: 0 0 14px rgba(255,188,101,.7); }
+    .stack-profile { display: flex; align-items: center; gap: 9px; color: #bcb2c3; font-size: 13px; }
+    .stack-avatar { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; background: rgba(255,255,255,.08); }
+    .stack-intro { display: flex; justify-content: space-between; align-items: end; gap: 20px; padding: 30px 2px 20px; }
+    .stack-kicker { color: #ff91bd; font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    .stack-intro h1 { margin: 5px 0 0; font: 42px/1 Instrument Serif, serif; }
+    .stack-round { flex: none; padding: 7px 11px; border-radius: 999px; background: rgba(255,61,141,.12); color: #ff9bc3; font-size: 12px; font-weight: 700; }
+    .stack-list { display: grid; gap: 14px; }
+    .stack-card { position: relative; padding: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,.12); border-radius: 26px; background: linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.035)); box-shadow: inset 0 1px rgba(255,255,255,.08), 0 18px 50px rgba(0,0,0,.28); animation: card-in 220ms cubic-bezier(.22,1,.36,1) both; }
+    .stack-card:nth-child(2) { animation-delay: 45ms; }
+    .stack-card:nth-child(3) { animation-delay: 90ms; }
+    @keyframes card-in { from { opacity: 0; transform: translateY(10px); } }
+    .stack-card-head { display: flex; align-items: center; gap: 14px; }
+    .stack-faces { display: flex; flex: none; }
+    .stack-faces img { width: 62px; height: 62px; object-fit: cover; border: 3px solid #201b24; border-radius: 50%; }
+    .stack-faces img + img { margin-left: -17px; }
+    .stack-name { min-width: 0; flex: 1; }
+    .stack-name h2 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+    .stack-name p { margin: 3px 0 0; color: #a99fac; font-size: 12px; }
+    .stack-score { flex: none; text-align: right; }
+    .stack-score output { display: block; font: 34px/1 Anton, sans-serif; letter-spacing: .02em; text-shadow: 0 0 13px rgba(255,61,141,.72); }
+    .stack-score span { color: #a99fac; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+    .stack-range { width: 100%; height: 36px; margin: 12px 0 4px; appearance: none; background: transparent; --p: 72%; }
+    .stack-range::-webkit-slider-runnable-track { height: 6px; border-radius: 9px; background: linear-gradient(90deg, var(--pink) var(--p), rgba(255,255,255,.14) var(--p)); }
+    .stack-range::-webkit-slider-thumb { width: 24px; height: 24px; margin-top: -9px; appearance: none; border: 2px solid var(--pink); border-radius: 50%; background: #fff8fb; box-shadow: 0 0 15px rgba(255,61,141,.65); }
+    .stack-predictions { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+    .stack-predictions h3 { margin: 0 0 9px; color: #8f8693; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; }
+    .stack-predict-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; min-height: 42px; }
+    .stack-predict-row + .stack-predict-row { border-top: 1px solid rgba(255,255,255,.06); }
+    .stack-predict-row span { font-size: 13px; }
+    .binary { display: flex; gap: 3px; padding: 3px; border-radius: 11px; background: rgba(0,0,0,.28); }
+    .binary button { min-width: 45px; height: 30px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: #8f8693; font-size: 12px; font-weight: 700; }
+    .binary button.is-active[data-value="yes"] { background: #2b9b63; color: #f3fff8; }
+    .binary button.is-active[data-value="no"] { background: #c94b61; color: #fff5f6; }
+    .stack-comment { margin: 12px 0 0; color: #c9c0cc; font: italic 16px/1.35 Instrument Serif, serif; }
+    .stack-mini { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px; min-height: 96px; }
+    .stack-mini .stack-faces img { width: 48px; height: 48px; }
+    .stack-mini output { font: 27px/1 Anton, sans-serif; }
+
+    /* Editorial split */
+    .editorial-page { min-height: 100vh; padding: 0 20px 116px; color: #241817; background: #f3eadb; font-family: Manrope, sans-serif; }
+    .editorial-shell { width: min(100%, 940px); margin: 0 auto; }
+    .editorial-head { display: flex; align-items: center; justify-content: space-between; min-height: 76px; border-bottom: 1px solid #c8b8a5; }
+    .editorial-brand { font: italic 27px/1 Instrument Serif, serif; }
+    .editorial-brand b { color: #b82f4c; font-weight: 400; }
+    .editorial-head span { font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+    .editorial-title { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 22px; padding: 40px 0 22px; }
+    .editorial-title h1 { max-width: 660px; margin: 0; font: 52px/.94 Instrument Serif, serif; letter-spacing: -.035em; }
+    .editorial-title p { width: 155px; margin: 0; color: #735f5a; font-size: 12px; line-height: 1.45; }
+    .editorial-card { display: grid; grid-template-columns: minmax(280px, .86fr) 1.14fr; min-height: 510px; border: 1px solid #bfae99; background: #faf4e9; box-shadow: 9px 9px 0 #d84260; animation: editorial-in 240ms cubic-bezier(.22,1,.36,1) both; }
+    @keyframes editorial-in { from { opacity: 0; transform: translateY(8px); } }
+    .editorial-image { position: relative; min-height: 360px; overflow: hidden; background: #7d2639; }
+    .editorial-image img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) contrast(1.04); }
+    .editorial-image img + img { position: absolute; inset: 0 0 0 50%; width: 50%; object-position: 58% center; mix-blend-mode: normal; }
+    .editorial-image > img:first-child { width: 50%; object-position: 46% center; }
+    .editorial-image::after { content: "EPISOD 04"; position: absolute; left: 15px; bottom: 14px; padding: 6px 8px; background: #f3eadb; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+    .editorial-content { display: flex; flex-direction: column; padding: clamp(24px, 5vw, 48px); }
+    .editorial-pair { display: flex; align-items: start; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid #d7c8b6; }
+    .editorial-pair h2 { margin: 0; font: 42px/.95 Instrument Serif, serif; letter-spacing: -.03em; }
+    .editorial-pair p { margin: 8px 0 0; color: #7c6760; font-size: 12px; }
+    .editorial-number { color: #b82f4c; text-align: right; }
+    .editorial-number output { display: block; font: 62px/.8 Anton, sans-serif; }
+    .editorial-number span { font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .editorial-range { width: 100%; height: 44px; margin: 18px 0 10px; appearance: none; background: transparent; --p: 72%; }
+    .editorial-range::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, #b82f4c var(--p), #cbbcac var(--p)); }
+    .editorial-range::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -8px; appearance: none; border: 0; border-radius: 0; background: #b82f4c; transform: rotate(45deg); }
+    .editorial-question { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; min-height: 58px; border-top: 1px solid #ded0bf; }
+    .editorial-question span { font-size: 13px; font-weight: 600; }
+    .editorial-question .binary { background: #eadfce; border-radius: 0; }
+    .editorial-question .binary button { border-radius: 0; color: #75615c; }
+    .editorial-question .binary button.is-active[data-value="yes"] { background: #2f7651; }
+    .editorial-question .binary button.is-active[data-value="no"] { background: #b82f4c; }
+    .editorial-note { margin-top: auto; padding-top: 20px; color: #745f5a; font: italic 17px/1.3 Instrument Serif, serif; }
+    .editorial-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 28px; background: #bfae99; border: 1px solid #bfae99; }
+    .editorial-strip article { padding: 16px; background: #f3eadb; }
+    .editorial-strip strong { display: block; font: 22px/1 Instrument Serif, serif; }
+    .editorial-strip span { color: #806c64; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+
+    /* Live table */
+    .live-page { --lime: #d9ff5c; min-height: 100vh; padding: 0 14px 116px; color: #f0f3e9; background: linear-gradient(rgba(217,255,92,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(217,255,92,.025) 1px, transparent 1px), #11130f; background-size: 32px 32px; font-family: Manrope, sans-serif; }
+    .live-shell { width: min(100%, 820px); margin: 0 auto; }
+    .live-head { display: flex; align-items: center; justify-content: space-between; min-height: 66px; border-bottom: 1px solid #31362a; }
+    .live-brand { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 12px rgba(217,255,92,.7); animation: live-pulse 1.5s ease-in-out infinite; }
+    @keyframes live-pulse { 50% { opacity: .35; } }
+    .live-head time { color: #8e9780; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+    .live-intro { display: grid; grid-template-columns: 1fr auto; gap: 20px; padding: 28px 2px 17px; }
+    .live-intro h1 { margin: 0; font-size: clamp(28px, 5vw, 44px); line-height: 1; letter-spacing: -.055em; }
+    .live-intro p { margin: 8px 0 0; color: #8f9784; font-size: 12px; }
+    .live-people { display: flex; align-items: center; }
+    .live-people span { display: grid; place-items: center; width: 30px; height: 30px; margin-left: -7px; border: 2px solid #11130f; border-radius: 50%; background: #30372a; font-size: 12px; }
+    .live-board { border: 1px solid #34392e; border-radius: 15px; background: rgba(21,24,18,.94); overflow: hidden; animation: live-in 180ms cubic-bezier(.22,1,.36,1) both; }
+    @keyframes live-in { from { opacity: 0; transform: translateY(6px); } }
+    .live-row { display: grid; grid-template-columns: minmax(190px, 1.25fr) minmax(180px, 1fr) 86px; align-items: center; min-height: 104px; padding: 13px 16px; border-bottom: 1px solid #2b3027; }
+    .live-row:last-child { border-bottom: 0; }
+    .live-pair { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .live-faces { display: flex; flex: none; }
+    .live-faces img { width: 44px; height: 44px; border: 2px solid #343b2f; border-radius: 8px; object-fit: cover; }
+    .live-faces img + img { margin-left: -9px; }
+    .live-pair strong { display: block; font-size: 15px; letter-spacing: -.02em; }
+    .live-pair small { color: #7f8875; font-size: 10px; }
+    .live-control { padding: 0 16px; border-left: 1px solid #2b3027; border-right: 1px solid #2b3027; }
+    .live-control label { display: flex; justify-content: space-between; color: #89917d; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .live-control label output { color: var(--lime); font-size: 11px; }
+    .live-range { width: 100%; height: 30px; appearance: none; background: transparent; --p: 72%; }
+    .live-range::-webkit-slider-runnable-track { height: 5px; background: linear-gradient(90deg, var(--lime) var(--p), #343a30 var(--p)); }
+    .live-range::-webkit-slider-thumb { width: 16px; height: 16px; margin-top: -5.5px; appearance: none; border: 3px solid #171a14; border-radius: 50%; background: var(--lime); }
+    .live-score { text-align: right; }
+    .live-score output { display: block; color: var(--lime); font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -.05em; }
+    .live-score span { color: #747d6b; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+    .live-row.is-focus { background: linear-gradient(90deg, rgba(217,255,92,.06), transparent 58%); }
+    .live-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .live-panel { padding: 18px; border: 1px solid #34392e; border-radius: 15px; background: rgba(21,24,18,.94); }
+    .live-panel h2 { margin: 0 0 14px; color: #8f9784; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
+    .live-bet { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 47px; border-top: 1px solid #2b3027; }
+    .live-bet:first-of-type { border-top: 0; }
+    .live-bet span { font-size: 12px; }
+    .live-bet .binary { background: #252a21; }
+    .live-bet .binary button { min-width: 40px; }
+    .live-feed { display: grid; gap: 10px; }
+    .live-message { display: grid; grid-template-columns: 26px 1fr; gap: 9px; }
+    .live-message i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #31372c; font-style: normal; font-size: 11px; }
+    .live-message p { margin: 0; color: #b8bfaf; font-size: 12px; line-height: 1.35; }
+    .live-message b { color: #eef1e8; }
+    .live-comment-form { display: flex; gap: 7px; margin-top: 13px; }
+    .live-comment-form input { min-width: 0; flex: 1; height: 38px; padding: 0 11px; border: 1px solid #383e33; border-radius: 9px; outline: none; background: #1c2019; color: #eef1e8; }
+    .live-comment-form input:focus { border-color: var(--lime); }
+    .live-comment-form button { width: 38px; border: 0; border-radius: 9px; background: var(--lime); color: #171a12; font-weight: 900; }
+
+    @media (max-width: 680px) {
+      .editorial-title { grid-template-columns: 1fr; }
+      .editorial-title h1 { font-size: 43px; }
+      .editorial-title p { width: auto; }
+      .editorial-card { grid-template-columns: 1fr; box-shadow: 6px 6px 0 #d84260; }
+      .editorial-image { min-height: 290px; }
+      .editorial-strip { grid-template-columns: 1fr; }
+      .live-row { grid-template-columns: 1fr 68px; gap: 10px; }
+      .live-control { grid-column: 1 / -1; grid-row: 2; padding: 8px 0 0; border: 0; }
+      .live-score { grid-column: 2; grid-row: 1; }
+      .live-detail { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 430px) {
+      .proto-picker { bottom: 12px; max-width: calc(100vw - 20px); }
+      .proto-picker-item { padding: 0 8px; font-size: 11px; }
+      .stack-intro h1 { font-size: 36px; }
+      .stack-faces img { width: 54px; height: 54px; }
+      .stack-name h2 { font-size: 17px; }
+      .stack-score output { font-size: 29px; }
+      .editorial-page { padding-inline: 14px; }
+      .editorial-content { padding: 23px 19px 27px; }
+      .editorial-pair h2 { font-size: 34px; }
+      .editorial-number output { font-size: 50px; }
+      .live-page { padding-inline: 10px; }
+      .live-intro { grid-template-columns: 1fr; }
+      .live-people { padding-left: 7px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stack-card, .editorial-card, .live-board { animation: none; }
+      .live-dot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="stage" class="prototype-stage"></main>
+  <nav class="proto-picker" aria-label="Prototype variants">
+    <span class="proto-picker-highlight" aria-hidden="true"></span>
+    <button class="proto-picker-item" data-active aria-current="true">Portrait stack</button>
+    <button class="proto-picker-item">Editorial split</button>
+    <button class="proto-picker-item">Live table</button>
+    <span class="proto-picker-divider" aria-hidden="true"></span>
+    <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+  </nav>
+
+  <script>
+    const portraits = 'https://lovewatch.app/couples/';
+
+    function faces(a, b, className) {
+      return `<div class="${className}"><img src="${portraits}${a.toLowerCase()}.jpg" alt="${a}"><img src="${portraits}${b.toLowerCase()}.jpg" alt="${b}"></div>`;
+    }
+
+    function binary(active = 'yes') {
+      return `<div class="binary" role="group" aria-label="Välj ja eller nej"><button type="button" data-value="yes" class="${active === 'yes' ? 'is-active' : ''}">Ja</button><button type="button" data-value="no" class="${active === 'no' ? 'is-active' : ''}">Nej</button></div>`;
+    }
+
+    function stackVariant() {
+      return `<div class="stack-page"><div class="stack-shell">
+        <header class="stack-head"><div class="stack-brand">Love <span>Watch</span></div><div class="stack-profile"><span>William</span><span class="stack-avatar">🦊</span></div></header>
+        <section class="stack-intro"><div><div class="stack-kicker">Era par · just nu</div><h1>Hur känns kärleken?</h1></div><span class="stack-round">Avsnitt 4</span></section>
+        <section class="stack-list" aria-label="Par">
+          <article class="stack-card">
+            <div class="stack-card-head">${faces('Olivia','Urban','stack-faces')}<div class="stack-name"><h2>Olivia & Urban</h2><p>Gruppen ligger på 68%</p></div><div class="stack-score"><output data-score>72%</output><span>din känsla</span></div></div>
+            <label class="sr-only" for="stack-score">Din känsla för Olivia och Urban</label><input id="stack-score" class="stack-range js-range" type="range" min="0" max="100" value="72">
+            <div class="stack-predictions"><h3>Dina förutsägelser</h3><div class="stack-predict-row"><span>Tar de sig till finalen?</span>${binary('yes')}</div><div class="stack-predict-row"><span>Bor de ihop om ett år?</span>${binary('yes')}</div><div class="stack-predict-row"><span>Blir det ett ja?</span>${binary('no')}</div></div>
+            <p class="stack-comment">"De pratar förbi varandra, men jag tror fortfarande på dem."</p>
+          </article>
+          <article class="stack-card stack-mini">${faces('Julia','Edin','stack-faces')}<div class="stack-name"><h2>Julia & Edin</h2><p>3 nya kommentarer</p></div><div class="stack-score"><output>84%</output><span>din känsla</span></div></article>
+          <article class="stack-card stack-mini">${faces('Yasmin','Felix','stack-faces')}<div class="stack-name"><h2>Yasmin & Felix</h2><p>Gruppen gick ner 9%</p></div><div class="stack-score"><output>41%</output><span>din känsla</span></div></article>
+        </section>
+      </div></div>`;
+    }
+
+    function editorialVariant() {
+      return `<div class="editorial-page"><div class="editorial-shell">
+        <header class="editorial-head"><div class="editorial-brand">Love <b>Watch</b></div><span>Söndag · Avsnitt 4</span></header>
+        <section class="editorial-title"><h1>Olivia och Urban,<br>vad tror vi nu?</h1><p>Din magkänsla efter kvällens avsnitt. Flytta markören när något skaver.</p></section>
+        <article class="editorial-card">
+          <div class="editorial-image"><img src="${portraits}olivia.jpg" alt="Olivia"><img src="${portraits}urban.jpg" alt="Urban"></div>
+          <div class="editorial-content">
+            <div class="editorial-pair"><div><h2>Olivia<br>& Urban</h2><p>28, Bromma · 36, Solna</p></div><div class="editorial-number"><output data-score>72</output><span>procent kärlek</span></div></div>
+            <label class="sr-only" for="editorial-score">Din känsla för Olivia och Urban</label><input id="editorial-score" class="editorial-range js-range" type="range" min="0" max="100" value="72">
+            <div class="editorial-question"><span>Tar de sig till finalen?</span>${binary('yes')}</div>
+            <div class="editorial-question"><span>Bor de ihop om ett år?</span>${binary('yes')}</div>
+            <div class="editorial-question"><span>Blir det ett ja?</span>${binary('no')}</div>
+            <p class="editorial-note">Gruppen tror lite mindre än du. Snittet ligger på 68 procent efter 11 röster.</p>
+          </div>
+        </article>
+        <section class="editorial-strip" aria-label="Fler par"><article><strong>Julia & Edin</strong><span>84 procent</span></article><article><strong>Yasmin & Felix</strong><span>41 procent</span></article><article><strong>Sara & Gabriel</strong><span>63 procent</span></article></section>
+      </div></div>`;
+    }
+
+    function liveVariant() {
+      return `<div class="live-page"><div class="live-shell">
+        <header class="live-head"><div class="live-brand"><span class="live-dot"></span>Love Watch live</div><time>21:43 · avsnitt 4</time></header>
+        <section class="live-intro"><div><h1>Gruppens magkänsla</h1><p>11 vänner tittar. Poängen uppdateras direkt.</p></div><div class="live-people" aria-label="Vänner online"><span>🦊</span><span>🌙</span><span>🍋</span><span>+8</span></div></section>
+        <section class="live-board" aria-label="Livepoäng">
+          <article class="live-row is-focus"><div class="live-pair">${faces('Olivia','Urban','live-faces')}<div><strong>Olivia & Urban</strong><small>+6 sedan förra veckan</small></div></div><div class="live-control"><label for="live-olivia"><span>Din känsla</span><output data-score>72%</output></label><input id="live-olivia" class="live-range js-range" type="range" min="0" max="100" value="72"></div><div class="live-score"><output>68%</output><span>gruppen</span></div></article>
+          <article class="live-row"><div class="live-pair">${faces('Julia','Edin','live-faces')}<div><strong>Julia & Edin</strong><small>Stabilast ikväll</small></div></div><div class="live-control"><label for="live-julia"><span>Din känsla</span><output data-score>84%</output></label><input id="live-julia" class="live-range js-range" style="--p:84%" type="range" min="0" max="100" value="84"></div><div class="live-score"><output>79%</output><span>gruppen</span></div></article>
+          <article class="live-row"><div class="live-pair">${faces('Yasmin','Felix','live-faces')}<div><strong>Yasmin & Felix</strong><small>−9 efter middagen</small></div></div><div class="live-control"><label for="live-yasmin"><span>Din känsla</span><output data-score>41%</output></label><input id="live-yasmin" class="live-range js-range" style="--p:41%" type="range" min="0" max="100" value="41"></div><div class="live-score"><output>46%</output><span>gruppen</span></div></article>
+        </section>
+        <section class="live-detail">
+          <article class="live-panel"><h2>Snabbtips · Olivia & Urban</h2><div class="live-bet"><span>Till finalen</span>${binary('yes')}</div><div class="live-bet"><span>Ihop om ett år</span>${binary('yes')}</div><div class="live-bet"><span>Ett ja vid slutet</span>${binary('no')}</div></article>
+          <article class="live-panel"><h2>Eftersnack</h2><div class="live-feed js-feed"><div class="live-message"><i>🌙</i><p><b>Frida</b> Jag köper inte hans svar vid middagen.</p></div><div class="live-message"><i>🍋</i><p><b>Sam</b> Fast hon log direkt efteråt?</p></div></div><form class="live-comment-form js-comment-form"><label class="sr-only" for="live-comment">Skriv en kommentar</label><input id="live-comment" required placeholder="Skriv i eftersnacket..."><button aria-label="Skicka">↑</button></form></article>
+        </section>
+      </div></div>`;
+    }
+
+    const variants = [stackVariant, editorialVariant, liveVariant];
+    const stage = document.getElementById('stage');
+    const picker = document.querySelector('.proto-picker');
+    const highlight = picker.querySelector('.proto-picker-highlight');
+    const items = [...picker.querySelectorAll('.proto-picker-item:not(.proto-picker-replay)')];
+    const replay = picker.querySelector('.proto-picker-replay');
+    let current = 0;
+
+    function moveHighlight() {
+      const el = items[current];
+      highlight.style.width = el.offsetWidth + 'px';
+      highlight.style.transform = `translateX(${el.offsetLeft}px)`;
+    }
+
+    function mount(i) {
+      stage.innerHTML = '';
+      // Clear first, render next frame, so entrance animations re-run.
+      requestAnimationFrame(() => { stage.innerHTML = variants[i](); });
+    }
+
+    function setActive(i) {
+      if (i < 0 || i >= variants.length) return;
+      current = i;
+      items.forEach((el, j) => {
+        el.toggleAttribute('data-active', j === i);
+        if (j === i) el.setAttribute('aria-current', 'true');
+        else el.removeAttribute('aria-current');
+      });
+      moveHighlight();
+      const url = new URL(location);
+      url.searchParams.set('v', i + 1);
+      history.replaceState(null, '', url);
+      mount(i);
+    }
+
+    items.forEach((el, i) => el.addEventListener('click', () => setActive(i)));
+    replay?.addEventListener('click', () => mount(current));
+    window.addEventListener('resize', moveHighlight);
+
+    document.addEventListener('keydown', (e) => {
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= variants.length) setActive(num - 1);
+      else if (e.key === 'ArrowRight') setActive((current + 1) % variants.length);
+      else if (e.key === 'ArrowLeft') setActive((current - 1 + variants.length) % variants.length);
+      else if (e.key === 'r' || e.key === 'R') mount(current);
+    });
+
+    setActive((parseInt(new URLSearchParams(location.search).get('v'), 10) || 1) - 1);
+    // Enable the slide only after first paint, so load doesn't animate.
+    requestAnimationFrame(() => requestAnimationFrame(() => picker.setAttribute('data-ready', '')));
+
+    stage.addEventListener('input', (event) => {
+      const range = event.target.closest('.js-range');
+      if (!range) return;
+      range.style.setProperty('--p', `${range.value}%`);
+      const root = range.closest('article') || range.parentElement;
+      const output = root.querySelector('[data-score]');
+      if (output) output.textContent = `${range.value}${output.textContent.includes('%') ? '%' : ''}`;
+    });
+
+    stage.addEventListener('click', (event) => {
+      const choice = event.target.closest('.binary button');
+      if (!choice) return;
+      choice.parentElement.querySelectorAll('button').forEach(button => button.classList.remove('is-active'));
+      choice.classList.add('is-active');
+    });
+
+    stage.addEventListener('submit', (event) => {
+      const form = event.target.closest('.js-comment-form');
+      if (!form) return;
+      event.preventDefault();
+      const input = form.querySelector('input');
+      const feed = form.parentElement.querySelector('.js-feed');
+      const message = document.createElement('div');
+      message.className = 'live-message';
+      message.innerHTML = `<i>🦊</i><p><b>William</b> ${input.value.replace(/[<>]/g, '')}</p>`;
+      feed.append(message);
+      input.value = '';
+    });
+  </script>
+</body>
+</html>
