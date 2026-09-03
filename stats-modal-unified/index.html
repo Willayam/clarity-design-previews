@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Statistics modal · unified proposal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5/index.css" />
+<link rel="stylesheet" href="../shared.css" />
+<style>
+  /* ============================================================
+     PROPOSAL — one stage, every data level.
+     Everything below the header is the same skeleton:
+       tile | curve + seek | ruler | head row | rows
+     Parts drop out as data thins; nothing gets replaced by a
+     different layout.
+     ============================================================ */
+
+  .frame { container: stage / inline-size; }
+
+  /* Header summary may wrap; it is the one place the numbers live now. */
+  .u .video-stats-header p { white-space: normal; text-overflow: clip; }
+  .u .video-stats-header p .tag {
+    display: inline-block; margin-left: 0.35rem; vertical-align: 0.08em;
+    border: 1px solid var(--border); border-radius: 999px;
+    color: var(--muted-foreground); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em;
+    padding: 0.05rem 0.45rem; line-height: 1.3;
+  }
+
+  .u .video-stats-where .video-stats-when { display: none; }
+
+  /* Rows area: real sessions, or location rows, or a single "slot" message */
+  .u .video-stats-rows { max-height: 24rem; }
+  .u .video-stats-slot {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    min-height: 4.5rem; padding: 0.9rem 0; color: var(--muted-foreground); font-size: 0.85rem;
+  }
+  .u .video-stats-slot strong { color: var(--foreground); font-weight: 600; display: block; font-size: 0.9rem; }
+  .u .video-stats-slot span { display: block; margin-top: 0.1rem; }
+  .u .video-stats-slot[data-tone="error"] strong { color: var(--destructive); }
+  .u .video-stats-slot .video-stats-send-link { margin-left: auto; }
+
+  /* Location rows reuse the session grid: Where | Views | share-of-views lane | count */
+  .u .video-stats-row[data-kind="location"] .video-stats-where { font-weight: 500; }
+  .u .video-stats-lane[data-kind="share"] i:not(.video-stats-rail) { height: 4px; margin-top: -2px; border-radius: 3px; }
+
+  /* No-retention fallback: the curve becomes a quiet baseline, the seek still works for the ruler. */
+  .u .video-stats-stage[data-curve="none"] .video-stats-curve { height: 2.2rem; }
+  .u .video-stats-stage[data-curve="none"] .video-stats-curve svg { opacity: 0.35; }
+
+  /* Loading skeleton lives inside the same slots. */
+  .u .sk { display: block; border-radius: 0.35rem; background: color-mix(in oklab, var(--foreground) 8%, transparent); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.45; } }
+  .u .video-stats-row .sk { height: 0.55rem; margin: 0.35rem 0; }
+  .u .video-stats-curve .sk { position: absolute; inset: 0.6rem 0 0; }
+
+  /* Optional provenance line — kept off by default; toggle at the top of the page. */
+  .u .video-stats-footnote { display: none; color: var(--muted-foreground); font-size: 0.72rem; margin-top: -0.4rem; }
+  html.show-footnote .u .video-stats-footnote { display: block; }
+
+  /* ------------------------------------------------------------
+     Narrow: the same skeleton, re-flowed.
+       · popup becomes a full-height sheet
+       · thumbnail shrinks into the header next to the title
+       · Where + When stack in one cell; lane gets the width
+       · 3 ruler labels instead of 5
+       · rows take the remaining height instead of a fixed 26rem
+     ------------------------------------------------------------ */
+  @container stage (max-width: 720px) {
+    .u.video-stats-modal-popup { padding: 1rem; border-radius: 1rem 1rem 0 0; }
+    .u .video-stats-header { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); column-gap: 0.75rem; align-items: center; padding-right: 2rem; }
+    .u .video-stats-header .head-tile { display: block; grid-row: 1 / span 2; }
+    .u .video-stats-header p { font-size: 0.82rem; }
+    .u .video-stats-grid { grid-template-columns: minmax(0, 7rem) 1fr 2.6rem; column-gap: 0.6rem; }
+    .u .video-stats-tile-cell { display: none; }
+    .u .video-stats-graph-cell, .u .video-stats-ruler-cell { grid-column: 1 / -1; }
+    .u .video-stats-grid > .spacer { display: none; }
+    .u .video-stats-ruler span:nth-child(2), .u .video-stats-ruler span:nth-child(4) { display: none; }
+    .u .video-stats-head-cell[data-col="when"] { display: none; }
+    .u .video-stats-head-cell[data-align="span"] { grid-column: 2 / -1; }
+    .u .video-stats-where .video-stats-when { display: block; text-align: left; font-size: 0.68rem; font-weight: 500; }
+    .u .video-stats-cell.video-stats-where { display: grid; line-height: 1.2; padding: 0.15rem 0; }
+    .u .video-stats-row > .video-stats-when { display: none; }
+    .u .video-stats-rows { max-height: none; flex: 1; }
+    .u .video-stats-lane { height: 1.5rem; }
+    .u .video-stats-slot { flex-wrap: wrap; }
+  }
+  .head-tile { display: none; overflow: hidden; border-radius: var(--radius-md); aspect-ratio: 16 / 9; background: var(--muted); position: relative; }
+
+  /* Page-only bits */
+  .principles { display: grid; gap: 0.5rem; margin-top: 1.25rem; }
+  .principles div { border: 1px solid var(--border); border-radius: 0.65rem; background: var(--background); padding: 0.7rem 0.85rem; font-size: 0.85rem; }
+  .principles strong { display: block; font-size: 0.85rem; margin-bottom: 0.1rem; }
+  .principles span { color: var(--muted-foreground); }
+  .ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.4rem; margin-top: 1rem; }
+  .ladder div { border: 1px solid var(--border); border-radius: 0.55rem; background: var(--background); padding: 0.55rem 0.7rem; font-size: 0.75rem; color: var(--muted-foreground); }
+  .ladder em { display: block; font-style: normal; color: var(--primary); font-weight: 700; font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0.15rem; }
+  .ladder b { color: var(--foreground); display: block; font-weight: 600; margin-bottom: 0.15rem; }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.25rem; align-items: start; }
+  .phone { width: 22rem; max-width: 100%; margin: 0 auto; border: 1px solid var(--border); border-radius: 1.6rem; padding: 0.55rem; background: color-mix(in oklab, var(--foreground) 6%, var(--canvas)); }
+  .phone .frame { height: 40rem; overflow: hidden; border-radius: 1.1rem; background: rgb(0 0 0 / 0.35); display: flex; align-items: flex-end; }
+  .phone .u.video-stats-modal-popup { height: 92%; width: 100%; }
+  .decisions { max-width: 58rem; margin: 3rem auto; padding: 0 1rem; }
+  .decisions h2 { font-size: 1.15rem; margin: 0 0 0.5rem; }
+  .decisions ol { margin: 0; padding-left: 1.2rem; color: var(--muted-foreground); font-size: 0.88rem; }
+  .decisions li { margin: 0.35rem 0; }
+  .decisions b { color: var(--foreground); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <h1>Statistics modal <span>· unified proposal</span></h1>
+  <nav class="page-nav" id="nav"><a href="../stats-modal-states/">← current states</a></nav>
+  <span style="display:flex;gap:.35rem">
+    <button class="toggle" id="footnote" type="button">Show provenance line</button>
+    <button class="toggle" id="theme" type="button">Dark mode</button>
+  </span>
+</header>
+
+<section class="intro">
+  <h2>One stage. Data thins, layout stays.</h2>
+  <p>
+    Every state below is the same skeleton: header with the numbers, thumbnail beside the retention curve
+    and seek bar, ruler, column head, rows. There is no note card, no metric tiles, no second chart.
+    When a piece of data is missing its slot either collapses or carries a one-line message in the same
+    typography as the rows.
+  </p>
+  <div class="principles">
+    <div><strong>Numbers live in one place: the header line.</strong><span>Sessions, imported totals and stored summaries all format to the same sentence shape: <i>views · past halfway · average watched</i>. Segments drop when the data is missing. The four imported tiles are gone; their numbers were always derivable from the same sentence.</span></div>
+    <div><strong>The retention curve is the hero in every state.</strong><span>Imported history has retention too, so it gets the same curve, seek bar, ruler and scrubbing readout. When no sessions exist the readout says <i>"1:23 · 66% still watching"</i> instead of <i>"4 of 17 watching"</i>.</span></div>
+    <div><strong>The rows grid is the only list.</strong><span>Sessions fill it when they exist. Imported history fills it with locations instead: <i>Where · views · share-of-views bar</i>. Empty, failed and loading all render inside the rows slot, so nothing ever jumps.</span></div>
+    <div><strong>Provenance is a tag, not a paragraph.</strong><span>An <i>imported</i> pill after the header numbers replaces the explanatory card. If we still want a sentence, it is a single muted footnote under the rows (toggle it at the top to compare). Default: off.</span></div>
+  </div>
+  <div class="ladder" id="ladder"></div>
+</section>
+
+<div id="states"></div>
+
+<section class="decisions">
+  <h2>Decisions this needs from you</h2>
+  <ol>
+    <li><b>Header sentence for aggregates.</b> Proposed: <i>2 views · 2 past halfway · 100% watched on average</i>. Unique viewers and total watch time are dropped from the line. Keep either?</li>
+    <li><b>Location rows.</b> The share-of-views bar reuses the lane but under a time ruler. Alternative is plain rows with only the count on the right. The mock shows the bar; the plain version is one CSS line away.</li>
+    <li><b>Provenance.</b> Tag only, or tag plus the muted footnote? Toggle it above.</li>
+    <li><b>Narrow thumbnail.</b> Proposed: shrink it into the header beside the title instead of hiding it. Cheap to drop if it feels busy.</li>
+    <li><b>Empty state.</b> Proposed: the same stage with a flat curve and the share CTA in the rows slot, so a brand-new video already looks like the thing it will become.</li>
+  </ol>
+</section>
+
+<footer>Proposal, not shipped code. Mock data. Thumbnails are placeholders.</footer>
+
+<script>
+/* ---------- helpers copied from VideoStatsModal.tsx ---------- */
+const NUMBER_FORMAT = new Intl.NumberFormat();
+const RULER_RATIOS = [0, 0.25, 0.5, 0.75, 1];
+const formatCount = (n) => NUMBER_FORMAT.format(n);
+function formatTime(seconds) {
+  const r = Math.max(0, Math.round(seconds));
+  return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, "0")}`;
+}
+function buildCurvePath(points, duration) {
+  if (points.length === 0) return { area: "M 0,100 L 1000,100 L 0,100 Z", line: "M 0,100 L 1000,100" };
+  const maxPercent = Math.max(1, ...points.map((p) => p.percent));
+  const xOf = (s) => Math.min(1000, Math.max(0, (s / duration) * 1000));
+  const yOf = (p) => 100 - (Math.max(0, p) / maxPercent) * 96;
+  let prevY = yOf(points[0].percent);
+  let line = `M 0,${prevY.toFixed(1)}`;
+  for (const p of points.slice(1)) {
+    const x = xOf(p.second), y = yOf(p.percent);
+    line += ` L ${x.toFixed(2)},${prevY.toFixed(1)} L ${x.toFixed(2)},${y.toFixed(1)}`;
+    prevY = y;
+  }
+  line += ` L 1000,${prevY.toFixed(1)}`;
+  return { area: `${line} L 1000,100 L 0,100 Z`, line };
+}
+const lastWatched = (v) => v.watched_ranges.reduce((m, [, e]) => Math.max(m, e), 0);
+const watchedSeconds = (v) => v.watched_ranges.reduce((t, [s, e]) => t + e - s, 0);
+const viewCountLabel = (n) => `${formatCount(n)} ${n === 1 ? "view" : "views"}`;
+const retentionAt = (points, second) => {
+  let p = points[0]?.percent ?? 0;
+  for (const pt of points) { if (pt.second <= second) p = pt.percent; else break; }
+  return p;
+};
+
+const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>';
+const ARROW_UPDOWN = '<svg class="video-stats-sort-idle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
+
+/* ---------- mock data ---------- */
+const cityView = (city, ranges, pct) => ({ location: { city }, started_at_ms: 0, watched_percent: pct, watched_ranges: ranges });
+const liveViews = [
+  cityView("Portland", [[0, 130]], 100), cityView("Portland", [[0, 130]], 100),
+  cityView("Portland", [[0, 130]], 100), cityView("Portland", [[0, 130]], 100),
+  cityView("Portland", [[0, 6]], 5), cityView("Santa Clara", [[0, 3]], 2),
+  ...Array.from({ length: 10 }, () => cityView("Stockholm", [[0, 0.4]], 0)),
+  cityView("Portland", [[0, 0.4]], 0),
+];
+const LIVE = {
+  kind: "sessions", duration: 130, views: liveViews,
+  retention: [{ second: 0, percent: 100 }, { second: 2, percent: 88 }, { second: 6, percent: 70 }, { second: 130, percent: 70 }],
+};
+const IMPORTED = {
+  kind: "locations", duration: 398, provider: "imported",
+  video_loads: 2, half: 2, avg: 100,
+  retention: [
+    { second: 0, percent: 100 }, { second: 220, percent: 66 }, { second: 264, percent: 100 },
+    { second: 266, percent: 66 }, { second: 283, percent: 100 }, { second: 285, percent: 66 },
+    { second: 287, percent: 100 }, { second: 289, percent: 66 }, { second: 300, percent: 100 },
+    { second: 302, percent: 66 }, { second: 398, percent: 66 },
+  ],
+  locations: [{ city: "Portland", region: "Oregon", views: 2 }],
+};
+const IMPORTED_BIG = {
+  kind: "locations", duration: 214, provider: "imported",
+  video_loads: 1284, half: 611, avg: 58,
+  retention: [
+    { second: 0, percent: 100 }, { second: 4, percent: 91 }, { second: 12, percent: 82 }, { second: 30, percent: 74 },
+    { second: 60, percent: 66 }, { second: 95, percent: 60 }, { second: 140, percent: 55 }, { second: 190, percent: 51 }, { second: 214, percent: 49 },
+  ],
+  locations: [
+    { city: "New York", region: "New York", views: 312 }, { city: "London", views: 188 }, { city: "Los Angeles", region: "California", views: 141 },
+    { city: "Stockholm", views: 97 }, { city: "Toronto", region: "Ontario", views: 64 },
+  ],
+};
+const SUMMARY_ONLY = { kind: "locations", duration: 130, video_loads: 38, half: 12, avg: 41, retention: [], locations: [] };
+
+/* ---------- renderers ---------- */
+function summaryLine(s) {
+  if (s.kind === "sessions") {
+    const v = s.views;
+    const full = v.filter((x) => x.watched_percent >= 97).length;
+    const half = v.filter((x) => x.watched_percent >= 50).length;
+    const short = v.filter((x) => watchedSeconds(x) < 10).length;
+    return `<b>${viewCountLabel(v.length)}</b> · ${formatCount(full)} watched all of it · ${formatCount(half)} past halfway · ${formatCount(short)} barely started`;
+  }
+  const parts = [`<b>${viewCountLabel(s.video_loads)}</b>`];
+  if (s.half != null) parts.push(`${formatCount(s.half)} past halfway`);
+  if (s.avg != null) parts.push(`${s.avg}% watched on average`);
+  return parts.join(" · ") + (s.provider === "imported" ? `<span class="tag">imported</span>` : "");
+}
+
+function axis(s, { id, active, ratio }) {
+  const duration = s.duration;
+  const hasCurve = s.retention.length > 1;
+  const curve = buildCurvePath(s.retention, duration);
+  const progress = `${(ratio * 100).toFixed(2)}%`;
+  const hasRows = s.kind === "sessions" || (s.kind === "locations" && s.locations.length > 0);
+  const headSpan = !hasRows ? ""
+    : s.kind === "sessions" ? `<span class="video-stats-sort-side">Watched</span><span class="video-stats-sort-side"><span>%</span>${ARROW_DOWN}</span>`
+    : `<span class="video-stats-sort-side">Share of views</span><span class="video-stats-sort-side"><span>Views</span>${ARROW_DOWN}</span>`;
+  return `
+    <div class="video-stats-axis"><div class="video-stats-grid">
+      <div class="video-stats-tile-cell"><div class="video-stats-tile"><div class="fake-poster"></div></div></div>
+      <div class="video-stats-graph-cell">
+        <div class="video-stats-curve">
+          ${s.kind === "loading" ? `<span class="sk"></span>` : `
+          <svg preserveAspectRatio="none" viewBox="0 0 1000 100">
+            <defs>
+              <linearGradient id="area-${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity="0.32"/><stop offset="100%" stop-color="currentColor" stop-opacity="0.04"/></linearGradient>
+              <clipPath id="clip-${id}" clipPathUnits="objectBoundingBox"><rect height="1" width="${active ? ratio : 0}" x="0" y="0"/></clipPath>
+            </defs>
+            ${hasCurve ? `
+            <path d="${curve.area}" fill="url(#area-${id})" opacity="0.45"/>
+            <path d="${curve.area}" fill="url(#area-${id})" clip-path="url(#clip-${id})"/>` : ""}
+            <path class="video-stats-curve-line" d="${curve.line}"${hasCurve ? "" : ' stroke-dasharray="4 6"'}/>
+          </svg>`}
+        </div>
+        <div class="video-stats-seek" style="--video-stats-progress:${active ? progress : "0%"}"><i class="video-stats-seek-thumb" style="left:${active ? progress : "0%"}"></i></div>
+      </div>
+      <div class="spacer"></div><div class="spacer"></div><div class="spacer"></div>
+      <div class="video-stats-ruler-cell"><div class="video-stats-ruler">${RULER_RATIOS.map((r) => `<span style="left:${r * 100}%">${formatTime(r * duration)}</span>`).join("")}</div></div>
+      <div class="spacer"></div>
+      <div class="video-stats-head-row">
+        <button class="video-stats-head-cell" data-col="where" type="button"><span>${hasRows ? "Where" : ""}</span>${hasRows ? ARROW_UPDOWN : ""}</button>
+        <button class="video-stats-head-cell" data-col="when" data-align="right" type="button"><span>${s.kind === "sessions" ? "When" : ""}</span>${s.kind === "sessions" ? ARROW_UPDOWN : ""}</button>
+        <button class="video-stats-head-cell" data-active="true" data-align="span" type="button">${headSpan}</button>
+      </div>
+    </div></div>`;
+}
+
+function sessionRows(s, { active, ratio }) {
+  const d = s.duration, second = ratio * d;
+  const pct = (x) => ((x / d) * 100).toFixed(3);
+  const sorted = [...s.views].sort((a, b) => b.watched_percent - a.watched_percent || lastWatched(b) - lastWatched(a));
+  return sorted.map((v) => {
+    const present = v.watched_ranges.some(([a, b]) => second >= a && second < b);
+    return `<div class="video-stats-row"${active ? ` data-present="${present}"` : ""}>
+      <div class="video-stats-cell video-stats-where">${v.location?.city ?? ""}<span class="video-stats-when">6d ago</span></div>
+      <div class="video-stats-cell video-stats-when">6d ago</div>
+      <div class="video-stats-lane"><i class="video-stats-rail"></i>${v.watched_ranges.map(([a, b]) => `<i style="left:${pct(a)}%;width:${Math.max(0.4, ((b - a) / d) * 100).toFixed(3)}%"></i>`).join("")}<i class="video-stats-stop" style="left:calc(${pct(lastWatched(v))}% - 2.5px)"></i></div>
+      <div class="video-stats-cell video-stats-pct">${Math.round(v.watched_percent)}%</div>
+    </div>`;
+  }).join("");
+}
+
+function locationRows(s) {
+  const max = Math.max(1, ...s.locations.map((l) => l.views));
+  return s.locations.map((l) => `<div class="video-stats-row" data-kind="location">
+      <div class="video-stats-cell video-stats-where">${l.city}${l.region ? `<span class="video-stats-when">${l.region}</span>` : ""}</div>
+      <div class="video-stats-cell video-stats-when"></div>
+      <div class="video-stats-lane" data-kind="share"><i class="video-stats-rail"></i><i style="left:0;width:${((l.views / max) * 100).toFixed(2)}%"></i></div>
+      <div class="video-stats-cell video-stats-pct">${formatCount(l.views)}</div>
+    </div>`).join("");
+}
+
+const slot = (title, text, extra = "", tone = "") => `<div class="video-stats-slot" data-tone="${tone}"><div><strong>${title}</strong>${text ? `<span>${text}</span>` : ""}</div>${extra}</div>`;
+
+function skeletonRows(n) {
+  return Array.from({ length: n }, () => `<div class="video-stats-row">
+    <div class="video-stats-cell video-stats-where"><span class="sk" style="width:60%"></span></div>
+    <div class="video-stats-cell video-stats-when"><span class="sk" style="width:70%;margin-left:auto"></span></div>
+    <div class="video-stats-lane"><i class="video-stats-rail"></i></div>
+    <div class="video-stats-cell video-stats-pct"><span class="sk" style="width:80%;margin-left:auto"></span></div>
+  </div>`).join("");
+}
+
+function unified(s, { id, active = false, ratio = 0.42, rowsHtml } = {}) {
+  const second = ratio * s.duration;
+  let rows = rowsHtml;
+  if (!rows) {
+    if (s.kind === "sessions") rows = sessionRows(s, { active, ratio });
+    else if (s.kind === "locations" && s.locations.length) rows = locationRows(s);
+    else if (s.kind === "locations") rows = slot("No location or session detail for these views", "Totals come from a stored summary.");
+    else if (s.kind === "empty") rows = slot("No views yet", "Share this video to start collecting stats.", `<button class="video-stats-send-link" type="button">Share video</button>`);
+    else if (s.kind === "loading") rows = skeletonRows(6);
+    else if (s.kind === "failed") rows = slot("Couldn't load statistics", "HTTP 502 from the stats service.", `<button class="video-stats-send-link" type="button">Try again</button>`, "error");
+  }
+  let readout = "";
+  if (s.kind === "sessions") {
+    const live = s.views.filter((v) => v.watched_ranges.some(([a, b]) => second >= a && second < b)).length;
+    readout = live === 0 ? " · nobody here" : ` · ${live} of ${s.views.length} watching`;
+  } else if (s.retention.length > 1) {
+    readout = ` · ${Math.round(retentionAt(s.retention, second))}% still watching`;
+  }
+  const header = s.kind === "loading" ? `<span class="sk" style="width:55%;height:.7rem"></span>`
+    : s.kind === "failed" ? `Intro from Will`
+    : s.kind === "empty" ? `<b>No views yet</b>`
+    : summaryLine(s);
+  return `
+    <div class="frame"><div class="dialog-popup video-stats-modal-popup u">
+      <div class="dialog-header video-stats-header">
+        <div class="head-tile video-stats-tile"><div class="fake-poster"></div></div>
+        <h2 class="dialog-title">Statistics</h2>
+        <p>${header}</p>
+      </div>
+      <div class="video-stats-stage" data-active="${active}" data-ratio="${ratio}" data-curve="${s.retention.length > 1 ? "yes" : "none"}">
+        ${axis(s, { id, active, ratio })}
+        <div class="video-stats-rows"><div class="video-stats-grid">${rows}</div></div>
+        <i class="video-stats-playhead" style="left:0"></i>
+        <div class="video-stats-readout"><span>${formatTime(second)}</span><em>${readout}</em></div>
+      </div>
+      ${s.provider === "imported" ? `<div class="video-stats-footnote">History before the import comes from the previous host, which recorded totals and locations but not individual sessions.</div>` : ""}
+      <button class="dialog-close" type="button" aria-label="Close">${X}</button>
+    </div></div>`;
+}
+
+const EMPTY = { kind: "empty", duration: 130, retention: [] };
+const LOADING = { kind: "loading", duration: 130, retention: [] };
+const FAILED = { kind: "failed", duration: 130, retention: [] };
+
+const STATES = [
+  { id: "sessions", name: "Sessions", when: "Full data. Unchanged from today except the header may wrap on narrow screens.", body: unified(LIVE, { id: "a" }) },
+  { id: "sessions-scrub", name: "Sessions · scrubbing", when: "Unchanged.", body: unified(LIVE, { id: "b", active: true }) },
+  { id: "imported", name: "Imported history", when: "Same stage. Note card and metric tiles are gone: the totals moved into the header sentence with an <i>imported</i> tag, retention takes the hero slot, locations fill the rows. This is the small 2-view case from your screenshot.", body: unified(IMPORTED, { id: "c" }) },
+  { id: "imported-big", name: "Imported history · larger video · scrubbing", when: "A more typical import: 1,284 views over five cities. Scrubbing reads the retention curve instead of counting sessions.", body: unified(IMPORTED_BIG, { id: "d", active: true, ratio: 0.55 }) },
+  { id: "summary", name: "Totals only", when: "A stored summary with no retention and no locations (the current \"View history is not available\" state). Curve slot becomes a dashed baseline, rows slot carries one line.", body: unified(SUMMARY_ONLY, { id: "e" }) },
+  { id: "empty", name: "No views yet", when: "Same skeleton so a new video already looks like the thing it will become. The share CTA sits where rows will appear.", body: unified(EMPTY, { id: "f" }) },
+  { id: "loading", name: "Loading", when: "Thumbnail is known from the asset, so it shows immediately. Curve and rows shimmer in place.", body: unified(LOADING, { id: "g" }) },
+  { id: "failed", name: "Failed", when: "Error takes the rows slot with a retry. The frame does not change shape.", body: unified(FAILED, { id: "h" }) },
+  { id: "narrow", name: "Narrow (≤ 720px)", when: "Full-height sheet. Thumbnail moves into the header, Where and When stack, lane takes the width, three ruler labels, rows fill the remaining height.", body: `<div class="phones">
+      <div class="phone">${unified(LIVE, { id: "p1" })}</div>
+      <div class="phone">${unified(IMPORTED_BIG, { id: "p2" })}</div>
+      <div class="phone">${unified(EMPTY, { id: "p3" })}</div>
+    </div>` },
+];
+
+const statesEl = document.getElementById("states");
+const nav = document.getElementById("nav");
+STATES.forEach((s, i) => {
+  const n = String(i + 1).padStart(2, "0");
+  statesEl.insertAdjacentHTML("beforeend", `<section class="state" id="${s.id}"><div class="state-meta"><div class="eyebrow">Proposal ${n} of ${STATES.length}</div><h2>${s.name}</h2><p>${s.when}</p></div>${s.body}</section>`);
+  nav.insertAdjacentHTML("beforeend", `<a href="#${s.id}">${n} ${s.name.split(" · ")[0]}</a>`);
+});
+
+document.getElementById("ladder").innerHTML = [
+  ["Level 4", "Sessions", "Curve, seek, session rows, live count when scrubbing."],
+  ["Level 3", "Retention + locations", "Curve, seek, location rows, retention % when scrubbing."],
+  ["Level 2", "Retention only", "Curve, seek, one-line rows slot."],
+  ["Level 1", "Totals only", "Header numbers, dashed baseline, one-line rows slot."],
+  ["Level 0", "Nothing yet", "Header says so, dashed baseline, share CTA in rows slot."],
+].map(([e, b, t]) => `<div><em>${e}</em><b>${b}</b>${t}</div>`).join("");
+
+function placePlayheads() {
+  document.querySelectorAll('.video-stats-stage[data-active="true"]').forEach((st) => {
+    const ratio = Number(st.dataset.ratio);
+    const seek = st.querySelector(".video-stats-seek");
+    const stageBox = st.getBoundingClientRect(), seekBox = seek.getBoundingClientRect();
+    const x = seekBox.left - stageBox.left + ratio * seekBox.width;
+    st.querySelector(".video-stats-playhead").style.left = `${x}px`;
+    const readout = st.querySelector(".video-stats-readout");
+    const half = readout.offsetWidth / 2 + 8;
+    readout.style.left = `${Math.max(half, Math.min(stageBox.width - half, x))}px`;
+  });
+}
+placePlayheads();
+addEventListener("resize", placePlayheads);
+document.fonts?.ready.then(placePlayheads);
+
+const root = document.documentElement;
+const themeBtn = document.getElementById("theme");
+if (localStorage.getItem("stats-states-theme") === "dark") root.classList.add("dark");
+const syncLabel = () => (themeBtn.textContent = root.classList.contains("dark") ? "Light mode" : "Dark mode");
+syncLabel();
+themeBtn.addEventListener("click", () => { root.classList.toggle("dark"); localStorage.setItem("stats-states-theme", root.classList.contains("dark") ? "dark" : "light"); syncLabel(); });
+const fnBtn = document.getElementById("footnote");
+fnBtn.addEventListener("click", () => { root.classList.toggle("show-footnote"); fnBtn.textContent = root.classList.contains("show-footnote") ? "Hide provenance line" : "Show provenance line"; });
+</script>
+</body>
+</html>
