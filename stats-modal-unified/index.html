@@ -51,18 +51,16 @@
   /* ------------------------------------------------------------
      Narrow: the same skeleton, re-flowed.
        · popup becomes a full-height sheet
-       · thumbnail shrinks into the header next to the title
+       · thumbnail stacks full-width above the curve
        · Where + When stack in one cell; lane gets the width
        · 3 ruler labels instead of 5
        · rows take the remaining height instead of a fixed 26rem
      ------------------------------------------------------------ */
   @container stage (max-width: 720px) {
     .u.video-stats-modal-popup { padding: 1rem; border-radius: 1rem 1rem 0 0; }
-    .u .video-stats-header { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); column-gap: 0.75rem; align-items: center; padding-right: 2rem; }
-    .u .video-stats-header .head-tile { display: block; grid-row: 1 / span 2; }
     .u .video-stats-header p { font-size: 0.82rem; }
     .u .video-stats-grid { grid-template-columns: minmax(0, 7rem) 1fr 2.6rem; column-gap: 0.6rem; }
-    .u .video-stats-tile-cell { display: none; }
+    .u .video-stats-tile-cell { grid-column: 1 / -1; margin-bottom: 0.75rem; }
     .u .video-stats-graph-cell, .u .video-stats-ruler-cell { grid-column: 1 / -1; }
     .u .video-stats-grid > .spacer { display: none; }
     .u .video-stats-ruler span:nth-child(2), .u .video-stats-ruler span:nth-child(4) { display: none; }
@@ -72,10 +70,10 @@
     .u .video-stats-cell.video-stats-where { display: grid; line-height: 1.2; padding: 0.15rem 0; }
     .u .video-stats-row > .video-stats-when { display: none; }
     .u .video-stats-rows { max-height: none; flex: 1; }
+    .u .video-stats-axis { overflow: visible; } /* let the seek thumb at 0:00 hang over the edge */
     .u .video-stats-lane { height: 1.5rem; }
     .u .video-stats-slot { flex-wrap: wrap; }
   }
-  .head-tile { display: none; overflow: hidden; border-radius: var(--radius-md); aspect-ratio: 16 / 9; background: var(--muted); position: relative; }
 
   /* Page-only bits */
   .principles { display: grid; gap: 0.5rem; margin-top: 1.25rem; }
@@ -144,7 +142,6 @@
   <ol>
     <li><b>Header sentence for aggregates.</b> Proposed: <i>2 views · 2 past halfway · 100% watched on average</i>. Unique viewers and total watch time are dropped from the line. Keep either?</li>
     <li><b>Location rows.</b> Accepted as a fallback. Open question is only whether the lane shows a share-of-views bar (as mocked) or stays empty with just the count on the right.</li>
-    <li><b>Narrow thumbnail.</b> Proposed: shrink it into the header beside the title instead of hiding it. Cheap to drop if it feels busy.</li>
     <li><b>Empty state.</b> Proposed: the same stage with a flat curve and the share CTA in the rows slot, so a brand-new video already looks like the thing it will become.</li>
   </ol>
 </section>
@@ -341,7 +338,6 @@ function unified(s, { id, active = false, ratio = 0.42, rowsHtml } = {}) {
   return `
     <div class="frame"><div class="dialog-popup video-stats-modal-popup u">
       <div class="dialog-header video-stats-header">
-        <div class="head-tile video-stats-tile"><div class="fake-poster"></div></div>
         <h2 class="dialog-title">Statistics</h2>
         <p>${header}</p>
       </div>
@@ -368,7 +364,7 @@ const STATES = [
   { id: "empty", name: "No views yet", when: "Same skeleton so a new video already looks like the thing it will become. The share CTA sits where rows will appear.", body: unified(EMPTY, { id: "f" }) },
   { id: "loading", name: "Loading", when: "Thumbnail is known from the asset, so it shows immediately. Curve and rows shimmer in place.", body: unified(LOADING, { id: "g" }) },
   { id: "failed", name: "Failed", when: "Error takes the rows slot with a retry. The frame does not change shape.", body: unified(FAILED, { id: "h" }) },
-  { id: "narrow", name: "Narrow (≤ 720px)", when: "Full-height sheet. Thumbnail moves into the header, Where and When stack, lane takes the width, three ruler labels, rows fill the remaining height.", body: `<div class="phones">
+  { id: "narrow", name: "Narrow (≤ 720px)", when: "Full-height sheet. Thumbnail stacks full-width above the curve, Where and When stack in one cell, lane takes the width, three ruler labels, rows fill the remaining height.", body: `<div class="phones">
       <div class="phone">${unified(LIVE, { id: "p1" })}</div>
       <div class="phone">${unified(IMPORTED_BIG, { id: "p2" })}</div>
       <div class="phone">${unified(EMPTY, { id: "p3" })}</div>
