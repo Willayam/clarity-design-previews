@@ -19,12 +19,6 @@
 
   /* Header summary may wrap; it is the one place the numbers live now. */
   .u .video-stats-header p { white-space: normal; text-overflow: clip; }
-  .u .video-stats-header p .tag {
-    display: inline-block; margin-left: 0.35rem; vertical-align: 0.08em;
-    border: 1px solid var(--border); border-radius: 999px;
-    color: var(--muted-foreground); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em;
-    padding: 0.05rem 0.45rem; line-height: 1.3;
-  }
 
   .u .video-stats-where .video-stats-when { display: none; }
 
@@ -53,10 +47,6 @@
   @keyframes pulse { 50% { opacity: 0.45; } }
   .u .video-stats-row .sk { height: 0.55rem; margin: 0.35rem 0; }
   .u .video-stats-curve .sk { position: absolute; inset: 0.6rem 0 0; }
-
-  /* Optional provenance line — kept off by default; toggle at the top of the page. */
-  .u .video-stats-footnote { display: none; color: var(--muted-foreground); font-size: 0.72rem; margin-top: -0.4rem; }
-  html.show-footnote .u .video-stats-footnote { display: block; }
 
   /* ------------------------------------------------------------
      Narrow: the same skeleton, re-flowed.
@@ -113,7 +103,6 @@
   <h1>Statistics modal <span>· unified proposal</span></h1>
   <nav class="page-nav" id="nav"><a href="../stats-modal-states/">← current states</a></nav>
   <span style="display:flex;gap:.35rem">
-    <button class="toggle" id="footnote" type="button">Show provenance line</button>
     <button class="toggle" id="theme" type="button">Dark mode</button>
   </span>
 </header>
@@ -130,7 +119,7 @@
     <div><strong>Numbers live in one place: the header line.</strong><span>Sessions, imported totals and stored summaries all format to the same sentence shape: <i>views · past halfway · average watched</i>. Segments drop when the data is missing. The four imported tiles are gone; their numbers were always derivable from the same sentence.</span></div>
     <div><strong>The retention curve is the hero in every state.</strong><span>Imported history has retention too, so it gets the same curve, seek bar, ruler and scrubbing readout. When no sessions exist the readout says <i>"1:23 · 66% still watching"</i> instead of <i>"4 of 17 watching"</i>.</span></div>
     <div><strong>The rows grid is the only list.</strong><span>Sessions fill it when they exist. Imported history fills it with locations instead: <i>Where · views · share-of-views bar</i>. Empty, failed and loading all render inside the rows slot, so nothing ever jumps.</span></div>
-    <div><strong>Provenance is a tag, not a paragraph.</strong><span>An <i>imported</i> pill after the header numbers replaces the explanatory card. If we still want a sentence, it is a single muted footnote under the rows (toggle it at the top to compare). Default: off.</span></div>
+    <div><strong>No provenance at all.</strong><span>Nothing in the modal says "imported". Where the numbers came from is a data-layer concern; the viewer only needs the numbers.</span></div>
   </div>
   <div class="ladder" id="ladder"></div>
 </section>
@@ -138,11 +127,23 @@
 <div id="states"></div>
 
 <section class="decisions">
+  <h2>What this deletes from the component</h2>
+  <ol>
+    <li><b>The whole imported branch.</b> <code>ImportedStatsSummary</code> and its note card, metric tiles, halfway line, second retention chart and locations list, plus every <code>.video-stats-imported-*</code> rule (about a quarter of the stylesheet).</li>
+    <li><b>The six-way branch in <code>VideoStatsModal</code>.</b> Today the modal picks between failed, loading, imported, unavailable, empty and stage. After: the stage always renders and only the rows slot varies. <code>source_provider</code> stops being a UI concern.</li>
+    <li><b>Four one-off layouts.</b> <code>.video-stats-state</code>, <code>.video-stats-state-error</code>, <code>.video-stats-empty-callout</code> and <code>.video-stats-import-error</code> collapse into one <code>.video-stats-slot</code>.</li>
+    <li><b>Two summary-line formats.</b> One <code>summaryLine(stats)</code> for every case; segments drop when the data is null.</li>
+    <li><b>The narrow media query for imported tiles.</b> Gone with the tiles. The remaining narrow rules cover one layout instead of two.</li>
+    <li><b>Nothing new for "no retention".</b> <code>buildCurvePath([])</code> already returns a flat baseline; the dashed stroke is one attribute.</li>
+  </ol>
+  <p style="color:var(--muted-foreground);font-size:.85rem;margin:.6rem 0 0">Net: one layout, one rows renderer with two row shapes (session, location), one slot message. Roughly a third less TSX and CSS than today.</p>
+</section>
+
+<section class="decisions">
   <h2>Decisions this needs from you</h2>
   <ol>
     <li><b>Header sentence for aggregates.</b> Proposed: <i>2 views · 2 past halfway · 100% watched on average</i>. Unique viewers and total watch time are dropped from the line. Keep either?</li>
-    <li><b>Location rows.</b> The share-of-views bar reuses the lane but under a time ruler. Alternative is plain rows with only the count on the right. The mock shows the bar; the plain version is one CSS line away.</li>
-    <li><b>Provenance.</b> Tag only, or tag plus the muted footnote? Toggle it above.</li>
+    <li><b>Location rows.</b> Accepted as a fallback. Open question is only whether the lane shows a share-of-views bar (as mocked) or stays empty with just the count on the right.</li>
     <li><b>Narrow thumbnail.</b> Proposed: shrink it into the header beside the title instead of hiding it. Cheap to drop if it feels busy.</li>
     <li><b>Empty state.</b> Proposed: the same stage with a flat curve and the share CTA in the rows slot, so a brand-new video already looks like the thing it will become.</li>
   </ol>
@@ -237,7 +238,7 @@ function summaryLine(s) {
   const parts = [`<b>${viewCountLabel(s.video_loads)}</b>`];
   if (s.half != null) parts.push(`${formatCount(s.half)} past halfway`);
   if (s.avg != null) parts.push(`${s.avg}% watched on average`);
-  return parts.join(" · ") + (s.provider === "imported" ? `<span class="tag">imported</span>` : "");
+  return parts.join(" · ");
 }
 
 function axis(s, { id, active, ratio }) {
@@ -350,7 +351,6 @@ function unified(s, { id, active = false, ratio = 0.42, rowsHtml } = {}) {
         <i class="video-stats-playhead" style="left:0"></i>
         <div class="video-stats-readout"><span>${formatTime(second)}</span><em>${readout}</em></div>
       </div>
-      ${s.provider === "imported" ? `<div class="video-stats-footnote">History before the import comes from the previous host, which recorded totals and locations but not individual sessions.</div>` : ""}
       <button class="dialog-close" type="button" aria-label="Close">${X}</button>
     </div></div>`;
 }
@@ -413,8 +413,6 @@ if (localStorage.getItem("stats-states-theme") === "dark") root.classList.add("d
 const syncLabel = () => (themeBtn.textContent = root.classList.contains("dark") ? "Light mode" : "Dark mode");
 syncLabel();
 themeBtn.addEventListener("click", () => { root.classList.toggle("dark"); localStorage.setItem("stats-states-theme", root.classList.contains("dark") ? "dark" : "light"); syncLabel(); });
-const fnBtn = document.getElementById("footnote");
-fnBtn.addEventListener("click", () => { root.classList.toggle("show-footnote"); fnBtn.textContent = root.classList.contains("show-footnote") ? "Hide provenance line" : "Show provenance line"; });
 </script>
 </body>
 </html>
