@@ -362,7 +362,7 @@ const FAILED = { kind: "failed", duration: 130, retention: [] };
 const STATES = [
   { id: "sessions", name: "Sessions", when: "Full data. Unchanged from today except the header may wrap on narrow screens.", body: unified(LIVE, { id: "a" }) },
   { id: "sessions-scrub", name: "Sessions · scrubbing", when: "Unchanged.", body: unified(LIVE, { id: "b", active: true }) },
-  { id: "imported", name: "Imported history", when: "Same stage. Note card and metric tiles are gone: the totals moved into the header sentence with an <i>imported</i> tag, retention takes the hero slot, locations fill the rows. This is the small 2-view case from your screenshot.", body: unified(IMPORTED, { id: "c" }) },
+  { id: "imported", name: "Imported history", when: "Same stage. Note card and metric tiles are gone: the totals moved into the header sentence, retention takes the hero slot, locations fill the rows. This is the small 2-view case from your screenshot.", body: unified(IMPORTED, { id: "c" }) },
   { id: "imported-big", name: "Imported history · larger video · scrubbing", when: "A more typical import: 1,284 views over five cities. Scrubbing reads the retention curve instead of counting sessions.", body: unified(IMPORTED_BIG, { id: "d", active: true, ratio: 0.55 }) },
   { id: "summary", name: "Totals only", when: "A stored summary with no retention and no locations (the current \"View history is not available\" state). Curve slot becomes a dashed baseline, rows slot carries one line.", body: unified(SUMMARY_ONLY, { id: "e" }) },
   { id: "empty", name: "No views yet", when: "Same skeleton so a new video already looks like the thing it will become. The share CTA sits where rows will appear.", body: unified(EMPTY, { id: "f" }) },
