@@ -1,0 +1,984 @@
+<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Clarity: plan to retire hand-written CSS</title><style>body{font:15px/1.6 system-ui,sans-serif;max-width:960px;margin:2rem auto;padding:0 1.25rem;color:#1c1c1c}h1{font-size:1.7rem;margin-top:2.5rem}h2{font-size:1.3rem;margin-top:2rem;border-bottom:1px solid #e5e5e5;padding-bottom:.25rem}h3{font-size:1.05rem}table{border-collapse:collapse;margin:1rem 0;font-size:.9em}td,th{border:1px solid #ddd;padding:5px 9px;text-align:left;vertical-align:top}th{background:#f5f5f5}code{background:#f3f3f3;padding:1px 4px;border-radius:3px;font-size:.9em}pre{background:#f6f6f6;padding:.75rem 1rem;overflow:auto;border-radius:6px}blockquote{border-left:3px solid #ccc;margin:1rem 0;padding:.25rem 1rem;color:#444}hr{border:0;border-top:2px solid #e5e5e5;margin:3rem 0}</style><h1>Plan v2: retire the editor&#39;s hand-written CSS</h1>
+<p>Owner: William Larsten. Executor: Claude session with Opus and Codex workers. Date: 2026-09-15. Supersedes PLAN-v1 after critiques by Claude Opus 5 (xhigh) and Codex GPT-5.6 Sol (max); both critiques are appended to the published plan.</p>
+<h2>Decision already made</h2>
+<p>One styling system in the editor: Tailwind v4 utilities on shadcn/Base UI primitives, tokens in <code>editor/src/index.css</code>. Hand-written CSS goes to near zero. Every slice migrates and normalizes in the same PR; the pixel-parity commit is an intermediate checkpoint, not an end state.</p>
+<h2>Completion, binary</h2>
+<p>No <code>.css</code> under <code>editor/src</code> except <code>index.css</code>. <code>styles.css</code> and its import in <code>ProtectedEditorLayout.tsx</code> gone. The legacy path and class allowlists in the ratchet are empty. <code>shadcn/no-unknown-classes</code> needs no legacy exception. Every cumulative visual manifest passes. Compiled CSS bytes per chunk reported and not larger than today&#39;s 287 KB total.</p>
+<h2>What stays as CSS</h2>
+<ul>
+<li><code>editor/src/index.css</code>: tokens, <code>.dark</code>, <code>@layer base</code> (the relocated body/root/font-synthesis rules), <code>@theme</code> animations, <code>@utility glass</code> and <code>@utility glass-media</code>. A postcss test rejects feature or component selectors in it.</li>
+<li><code>packages/journey-page-domain/src/journey-page-styles.ts</code>: published-page stylesheet for no-build SSR HTML. Separate domain. Gets its own <code>--jp-*</code> namespace (slice J) and later a real workspace package; not otherwise in scope.</li>
+<li>Email templates.</li>
+</ul>
+<h2>Lead decisions on the four disagreements</h2>
+<ol>
+<li><strong>Cascade layer move (Opus) versus per-slice residual scan (Codex): do the layer move, gated by the probe.</strong> Move every remaining legacy stylesheet into <code>@layer components</code> so utilities win by default. Tailwind already emits an empty <code>@layer components;</code> before <code>utilities</code>, so no new layer name and no chunk-order dependence. Decision rule: probe the whole authenticated and public app before and after the flip; if the grouped diff is under about 50 <code>property: before → after</code> rows, land it once in P0b; otherwise move each slice&#39;s stylesheets into the layer as step 1 of that slice. <code>button-surface.css</code> and <code>chrome.css</code> stay unlayered until slice S1 replaces them.</li>
+<li><strong><code>.jp-theme</code> namespace: mirror now, rename before canvas.</strong> P0b adds a 15-line <code>--app-*</code> mirror plus a <code>[data-editor-chrome]</code> restore block so any app chrome inside the preview keeps app colours (Opus). Slice J renames journey colours, radius, and font variables to <code>--jp-*</code> atomically across <code>theme.ts</code>, presets, <code>journey-page-styles.ts</code>, both renderers, and the ADR 0007 test, gated by SSR HTML equality modulo variable names and screenshots of all six presets in both renderers (Codex). J lands before the canvas slices.</li>
+<li><strong>Slice size: eleven slices, not eight and not fourteen.</strong> Codex&#39;s coupling evidence wins where it is concrete: the record route and the edit modal share trimmer selectors and go together; the editor topbar is half AI composer and goes with the editor frame, not the sidebar; media surfaces group by the picker-overlay-player-resizer seam; canvas splits into inline editing and structured/reorder. Opus&#39;s lanes win for parallelism after the spine.</li>
+<li><strong>Legal pages: rebuild, with the scoped-CSS fallback written down.</strong> Replace the injected vendor HTML with one <code>LegalDocument</code> component rendering clean semantic markup, gated by text-hash, heading, list, and link assertions. If regeneration proves riskier than expected, keep about 180 lines scoped to <code>[data-legal-document]</code> inside <code>@layer components</code> as a named exception.</li>
+</ol>
+<h2>Recipe per slice</h2>
+<ol>
+<li>Worktree, dev server on its own port with HMR, <code>control-clarity</code> login against that base. Base is the merged trunk SHA for fan slices, the previous PR for spine slices.</li>
+<li>Visual manifest: a committed spec under <code>tests/visual/</code> with role and data-attribute selectors, one case per route × state × viewport × scheme the slice&#39;s CSS has a selector for. Mask <code>img</code> and <code>video</code> except when the slice&#39;s subject is media chrome. Capture the baseline on the base SHA twice to prove determinism.</li>
+<li>Structural probe: <code>tests/visual/probe.spec.ts</code> over the slice&#39;s scenes at 1440, 1024, 768, 720, 640, 390, recording computed properties and rects per element. Two runs at the base SHA must agree. This is the parity gate; screenshots are the human evidence.</li>
+<li>Wave A, parity: migrate consumers to utilities, port attribute-selector blocks and keyframes, delete the stylesheet and residual overrides, update test selectors to <code>data-slot</code> or roles. Zero screenshot diff, zero probe diff.</li>
+<li>Wave B, normalize: run the codemod with the slice manifest, then colours to tokens and private skins deleted by hand. Every diff classified intended or defect by cropped region; defects fixed; normalized goldens captured.</li>
+<li>Parent verification: harness and probe rerun, <code>pnpm lint</code>, typecheck, root <code>pnpm test</code>, <code>pnpm run editor:build</code> (the backdrop-filter gate only fires on a real build), compiled CSS bytes per chunk.</li>
+<li>Three-way report (base / parity / normalized) published via <code>scripts/publish-artifact.sh</code>, with the exact base, parity, and normalized SHAs. PR with Why / Scope / Tradeoffs / Blast Radius / Verification. PR preview deployed by label; harness rerun against it.</li>
+<li>Before merge: rebase on current main, regenerate proof, merge, watch production, then the next.</li>
+</ol>
+<h2>Slices</h2>
+<p>Spine is serial. Lanes are parallel branches off the last spine merge, each targeting main; one lane owns each hub file (<code>MediaPicker.tsx</code>, <code>LivePreview.tsx</code>, <code>VideoPlayer.tsx</code>, <code>EditorWorkspace.tsx</code>, <code>PageHeader.tsx</code>, <code>AppSidebar.tsx</code>).</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Slice</th>
+<th>Retires</th>
+<th>Lines</th>
+<th>Lane</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P0a</td>
+<td>Tooling and ratchets</td>
+<td>none</td>
+<td>0</td>
+<td>spine</td>
+<td>Probe promoted to <code>tests/visual/probe.spec.ts</code> (skips unless <code>PROBE_OUT</code>); <code>scripts/visual/{summarize-probe,compare-probe,diff-regions,crop-pair,css-bytes}.mjs</code>; codemod takes <code>--files-from</code> and requires <code>--accept</code> for non-equivalent rewrites (breakpoints, <code>transform</code>, <code>999px</code>, easing), <code>max-md</code> mapping removed; <code>scripts/check-css-budget.mjs</code> + <code>css-budget.json</code> (allowed paths, nonblank lines, declaration count, exact class names; fails on growth, new file, new import, resurrection) run from <code>scripts/*.test.mjs</code> and <code>check-ci-invariants.sh</code>; hook routes <code>.css</code> edits to it; shadcn rules at error with a one-time suppressions baseline, glob <code>{ts,tsx}</code>, <code>components/ui</code> exempt only from <code>no-restyle</code>, <code>no-unknown-classes</code> at error with a generated legacy-class allowlist that shrinks per slice; <code>!</code> count ratchet; <code>index.css</code> shape test; <code>DESIGN.md</code> and <code>evals/ui-change-eval.md</code> corrected.</td>
+</tr>
+<tr>
+<td>P0b</td>
+<td>Cascade environment</td>
+<td><code>00-base.css</code></td>
+<td>51</td>
+<td>spine</td>
+<td>Legacy sheets into <code>@layer components</code> per the decision rule; <code>00-base.css</code> deleted with <code>font-synthesis</code>, box-sizing, body, <code>#root</code> relocated to <code>index.css</code> <code>@layer base</code>; <code>font: inherit</code> and <code>a { color: inherit }</code> gone; <code>--app-*</code> mirror; <code>--chart-*</code> deleted. Gate: probe over every route with a table of every control whose computed font changed. Expected diffs: authenticated form-control sizes, link colours, legal-page typography, every utility that was dead. Geist loading boundary unchanged; flagged for William.</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Delete-only</td>
+<td><code>10-media-picker.css</code>, ~78 dead classes, the unreachable drag feature (<code>lib/folder-dnd.ts</code>, drop target, <code>[draggable]</code> rules)</td>
+<td>~300</td>
+<td>spine</td>
+<td>Zero-diff by construction; probe proves it.</td>
+</tr>
+<tr>
+<td>S1</td>
+<td>Surface languages</td>
+<td><code>button-surface.css</code>, <code>chrome.css</code></td>
+<td>448</td>
+<td>spine</td>
+<td>Button faces and states into <code>button.tsx</code> cva; a <code>Surface</code> primitive with <code>data-surface=&quot;hero|panel|bar|media&quot;</code> carrying container-owned altitude as descendant-variant bundles (proven specificity-safe in wave 2); <code>ButtonBase</code> stays unpainted; glass as <code>@utility glass</code>/<code>glass-media</code> because Tailwind&#39;s composite backdrop utilities fix filter order and <code>chrome.css</code> needs <code>blur saturate contrast brightness</code>; <code>--btn-*</code>/<code>--cg-*</code> stay tokens. Portal content carries the surface marker. Chrome must still reach public <code>VideoPlayer</code>.</td>
+</tr>
+<tr>
+<td>J</td>
+<td>Journey namespace</td>
+<td>none (journey package)</td>
+<td>0</td>
+<td>spine</td>
+<td>Atomic <code>--jp-*</code> rename of colours, radius, fonts; no generic aliases left on <code>.jp-theme</code>; ADR 0007 test updated to assert the forbidden names are absent. Gate: SSR HTML equal modulo names, six presets × two renderers screenshots zero-diff.</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>Protected shell</td>
+<td><code>01-app-shell.css</code>, <code>04-status-eyebrow.css</code>, <code>12-state-cards.css</code>, <code>20-settings.css</code>, <code>21-contacts.css</code></td>
+<td>666</td>
+<td>A</td>
+<td>Sidebar, page header and status, state cards, settings and contacts wrappers. Blocked on an admin e2e identity for two routes; if none, those routes are verified by markup identity and declared so.</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>Editor frame</td>
+<td><code>02-topbar.css</code>, <code>05-layout.css</code>, <code>16-responsive.css</code></td>
+<td>710</td>
+<td>A</td>
+<td><code>/new</code> and <code>/edit</code> layout, topbar, AI composer and Style popover, 900/720 breakpoints. <code>16-responsive</code> dissolves into its owners.</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Editor controls</td>
+<td><code>06-forms.css</code>, <code>18-property-panel.css</code>, <code>08-color-picker.css</code>, <code>09-dynamic-lists.css</code>, <code>11-form-editor.css</code></td>
+<td>1,154</td>
+<td>A</td>
+<td>Output is reusable controls (<code>EditorField</code>, <code>ControlRow</code>, <code>ColorField</code>, <code>SegmentedControl</code>), not call-site strings. Focus rings by probe.</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Media surfaces</td>
+<td><code>MediaPicker.css</code>, <code>MediaPickerDialog.css</code>, <code>VideoPlayer.css</code>, <code>JourneyMediaResizer.css</code>, library/learn half of <code>14-library.css</code></td>
+<td>~990</td>
+<td>B</td>
+<td>Picker, overlay, player, resizer share one seam. Do not mask media chrome.</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>Video stats</td>
+<td><code>25-video-stats-modal.css</code></td>
+<td>408</td>
+<td>B</td>
+<td>One consumer, attribute-driven. Needs seeded stats or a fixture route.</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>Recorder and edit transport</td>
+<td><code>19-record-video.css</code>, <code>22-video-edit-modal.css</code></td>
+<td>1,510</td>
+<td>B</td>
+<td>Shared trimmer, filmstrip, preview picker, timeline dock first; fake media streams in Playwright; densest breakpoint matrix. Cheap only after S1 deletes its copied outline variant.</td>
+</tr>
+<tr>
+<td>S8</td>
+<td>Auth</td>
+<td><code>LoginRoute.css</code></td>
+<td>641</td>
+<td>C</td>
+<td>Replace private Input and Button re-implementations with shared variants.</td>
+</tr>
+<tr>
+<td>S9</td>
+<td>Marketing</td>
+<td><code>PublicHomeRoute.css</code>, <code>TeamsRoute.css</code>; <code>TonyRoute</code> becomes a configured <code>PublicLanding</code></td>
+<td>358</td>
+<td>C</td>
+<td>Fixes the SiteHeader CTA rendering two ways across seven routes; drops the remote Inter import.</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>Legal</td>
+<td><code>TermsRoute.css</code>, <code>PrivacyRoute.css</code></td>
+<td>405</td>
+<td>C</td>
+<td><code>LegalDocument</code> rebuild with text-hash gate; fallback named above.</td>
+</tr>
+<tr>
+<td>S11</td>
+<td>Inline canvas editing</td>
+<td><code>17-canvas-inline-edit.css</code>, <code>07-tiptap.css</code>, <code>CtaRowEditor.css</code>, <code>FaqListEditor.css</code>, <code>InlineText.css</code>, <code>.lp-*</code> half of <code>14-library.css</code></td>
+<td>~840</td>
+<td>after A, B, J</td>
+<td>The <code>.lp-*</code> mirrors are deleted by making <code>LivePreview</code> emit SSR attributes; gate is SSR-versus-preview parity per block kind across presets, plus light/dark byte-identity inside <code>.jp-theme</code>.</td>
+</tr>
+<tr>
+<td>S12</td>
+<td>Structured canvas and reorder</td>
+<td><code>SummaryTableEditor.css</code>, <code>GalleryEditor.css</code>, <code>Accordion.css</code>, <code>23-add-section.css</code>, <code>24-block-reorder.css</code>; then delete <code>styles.css</code> and its import</td>
+<td>836</td>
+<td>after A, B, J</td>
+<td>Accordion row-height equality is load-bearing for reorder math; held-pointer screenshots, not simulated classes. Closes out.</td>
+</tr>
+</tbody></table>
+<p>Total about 8,960 lines plus the aggregator. Four spine PRs, one journey PR, twelve slice PRs in three lanes.</p>
+<h2>Ratchets, landing in P0a</h2>
+<ul>
+<li><code>css-budget.json</code>: every allowed legacy path with nonblank lines, declaration count, exact class names, and the <code>!</code>-utility count per TSX file. Fails on any growth, any new <code>.css</code> under <code>editor/src</code>, any new <code>@import</code> in <code>styles.css</code> or <code>import &#39;./x.css&#39;</code> in TSX, or resurrection of a deleted path. Only shrinks. Runs in root <code>pnpm test</code> and in <code>check-ci-invariants.sh</code>.</li>
+<li>ESLint: <code>no-raw-colors</code>, <code>no-arbitrary-values</code>, <code>no-inline-styles</code>, <code>no-restyle</code>, <code>require-static-classes</code> at error with a one-time suppressions baseline for the new rules; <code>no-unknown-classes</code> at error with the generated legacy-class allowlist; glob <code>editor/src/**/*.{ts,tsx}</code>; <code>components/ui</code> exempt only from <code>no-restyle</code>.</li>
+<li>Hook: <code>.css</code> edits run the budget check; ESLint never sees CSS.</li>
+<li><code>index.css</code> shape test in <code>editor/tests</code>.</li>
+<li>Per-slice report line: compiled CSS bytes per chunk and count of distinct generated utilities.</li>
+</ul>
+<h2>Risks and standing mitigations</h2>
+<ul>
+<li>Every merge deploys to production. Each slice soaks on a PR preview and staging, merges alone, and is watched before the next.</li>
+<li>Rebase invalidates a pixel baseline. Reports name base, parity, and normalized SHAs; proof is regenerated after rebase.</li>
+<li><code>index.css</code> is the shared writer. Fan lanes append inside marked sections; token additions prefer the spine.</li>
+<li>Masks hide scrims and overlays. Per-slice mask lists; media-chrome slices do not mask.</li>
+<li>Chromium-only captures. Native range thumbs, backdrop-filter fallbacks, autofill, media permission chrome get archived manual pairs.</li>
+<li>Tailwind scans <code>editor/</code> only; an explicit <code>@source</code> lands in P0a and a check fails if class strings move outside it.</li>
+<li>Breakpoint semantics: the codemod refuses to rename <code>max-width</code> media queries without <code>--accept</code>; slices test the boundary width ±1.</li>
+<li>Accessibility: focus rings, hit targets, keyboard order asserted by probe, not inferred from screenshots.</li>
+<li>Admin routes have no e2e identity; declared in each affected PR until one exists.</li>
+<li>Flagged-but-deferred decisions each get a Linear issue in <code>Inbox</code> when the slice&#39;s PR opens, so nothing dies with a report.</li>
+</ul>
+<h2>Decisions surfaced for William (defaults applied unless he says otherwise)</h2>
+<ul>
+<li>Geist is named on every route but loaded only in the authenticated chunk; <code>/login</code>, <code>/terms</code>, <code>/teams</code> render fallback sans-serif. Default: keep the boundary (documented Lighthouse decision on the landing page) and note it. Say the word to load Geist eagerly.</li>
+<li>The unreachable drag feature is deleted in P1, recoverable from git.</li>
+<li><code>/tony</code> keeps its behaviour as a configured landing, not a fork.</li>
+</ul>
+<hr>
+<h1>Appendix A: Opus critique of plan v1</h1>
+<p>Repository read: <code>/Users/williamlarsten/Development/clarity-css-home</code> @ <code>31ccd5fa</code> (branch <code>refactor/home-library-design-system</code>). All file references below are from that worktree.</p>
+<p>Summary of the position: the recipe proven in waves 1–3 is good and should be kept almost verbatim. The <em>sequencing</em> is wrong in four places, the slice <em>grouping</em> cuts across three stylesheets that are actually three families each, the <code>.jp-theme</code> prerequisite is both unnecessary in the form proposed and much more expensive than the plan implies, and the plan is missing the single highest-leverage move available: fixing the cascade inversion once, mechanically, instead of paying for it in every slice. It also assumes a lint plugin that does not exist on <code>main</code>.</p>
+<hr>
+<h2>Changes to the plan</h2>
+<h3>1. Add a prerequisite PR that moves the legacy layer into <code>@layer components</code>, and stop paying the cascade tax nine more times</h3>
+<p><strong>What:</strong> Before any slice, land a PR whose only job is to put every remaining legacy stylesheet into Tailwind&#39;s <code>components</code> layer, so utilities win by default.</p>
+<p><strong>Why.</strong> The plan treats the cascade inversion as background weather. It is the dominant per-slice cost. Wave 1 shipped 3 <code>!</code> overrides plus an invented custom-property seam (<code>--media-card-preview-bg</code>) purely to route around it; wave 1&#39;s report states the reason plainly: &quot;for <code>!important</code> declarations the layer order reverses, so a layered important utility beats an unlayered important rule&quot; (<code>/tmp/css-home/wave1-report.md:70</code>). Wave 2 shipped 31 <code>!</code> (<code>wave2-report.md:154-165</code>). Wave 3 spent a whole commit removing 19 of them and still ships 12 (<code>wave3-report.md:227-238</code>). That is three waves of bookkeeping on one stylesheet out of forty-two. There are 19 <code>!</code>-suffixed utility sites left in <code>editor/src</code> today across 10 files.</p>
+<p>The fix is mechanical and does not need a new layer name. Tailwind already emits <code>@layer components;</code> as an empty declaration before <code>@layer utilities{</code> — verified in the built entry chunk, which contains exactly <code>@layer properties{</code>, <code>@layer theme{</code>, <code>@layer base{</code>, <code>@layer components;</code>, <code>@layer utilities{</code> and nothing else. Legacy CSS placed in <code>components</code> therefore sorts above <code>base</code> and below every utility, in every chunk, regardless of file order, because the layer name is established by the eager entry chunk (<code>index-*.css</code>) that always loads before the lazy <code>ProtectedEditorLayout-*.css</code> chunk. Implementation, in order of preference:</p>
+<ol>
+<li><code>@import &quot;./styles/01-app-shell.css&quot; layer(components);</code> in <code>editor/src/styles.css</code>, and <code>import</code> sites for colocated sheets rewritten the same way. Needs a one-command spike to confirm Vite&#39;s CSS resolver preserves <code>layer()</code>.</li>
+<li>Guaranteed fallback if it does not: a codemod that wraps each file&#39;s contents in <code>@layer components { … }</code>. Two lines per file, 40 files, idempotent, self-checking — the same shape as <code>scripts/codemods/snap-arbitrary-values.mjs</code>.</li>
+</ol>
+<p><code>button-surface.css</code> and <code>chrome.css</code> stay unlayered until their own slice; their whole design is &quot;unlayered so we beat the CVA&#39;s colour utilities without <code>!important</code>&quot; (<code>editor/src/components/ui/button-surface.css:10-12</code>), and that is still true and still wanted until the surface language becomes a primitive.</p>
+<p><strong>Sizing it honestly.</strong> Flipping the layer makes every utility that is dead today come alive. The audit already names one (<code>sidebar.tsx:135</code>&#39;s <code>bg-[#f6f4ef]</code> losing to <code>.editor-shell-frame</code>). Nobody knows how many there are. That is exactly what wave 2&#39;s computed-style probe measures, and it costs one run: capture before, flip, capture after, run <code>summarize-probe.mjs</code>. Decision rule to write into the plan: <strong>if the grouped diff is under ~50 <code>property: before -&gt; after</code> rows, do the flip once in the prerequisite PR; if it is larger, move only the current slice&#39;s stylesheets into <code>components</code> as step 1 of each slice.</strong> Either way the tax is paid once per file instead of once per consumer.</p>
+<p><strong>Replacement text</strong> for a new section before &quot;Slices, in order&quot;:</p>
+<blockquote>
+<h2>Prerequisite PRs</h2>
+<p><strong>P0a — tooling and ratchets, no runtime change.</strong> Land <code>@shadcn/lint</code> (it is not on <code>main</code>: <code>git show main:package.json</code> has no <code>@shadcn/lint</code>, <code>git show main:eslint.config.mjs</code> has zero shadcn references). Land the ratchets below. Promote wave 2&#39;s <code>wave2-probe.spec.ts</code> into <code>tests/visual/probe.spec.ts</code> with a per-slice scene manifest, and wave 3&#39;s <code>diff-regions.mjs</code> / <code>crop-pair.mjs</code> into <code>scripts/visual/</code>. Correct <code>DESIGN.md</code> and <code>evals/ui-change-eval.md</code>, which currently instruct agents to hand-write <code>-webkit-backdrop-filter</code>, which <code>editor/vite-backdrop-filter-pair.ts:50</code> fails the build on.</p>
+<p><strong>P0b — cascade environment.</strong> Move the legacy layer into <code>@layer components</code> (see decision rule). Delete the three cascade-inverting rules in <code>00-base.css</code> — <code>button, input, textarea, select { font: inherit }</code>, <code>a { color: inherit; text-decoration: none }</code>, and the <code>a[data-slot=&quot;button&quot;][data-button-variant=&quot;default&quot;]</code> patch that exists only to undo the second. Relocate the rest of that file (<code>:root</code>, <code>* { box-sizing }</code>, <code>body</code>, <code>#root</code>) into <code>index.css</code>&#39;s <code>@layer base</code> and delete <code>00-base.css</code>. Gate: probe over every route, and a table naming every control whose computed <code>font-size</code> changed.</p>
+</blockquote>
+<h3>2. <code>00-base.css</code> is not a slice, and its blast radius is smaller than the plan says</h3>
+<p><strong>What:</strong> Remove slice 0 as written. Fold <code>00-base.css</code> into P0b (above). Correct the risk line.</p>
+<p><strong>Why.</strong> Two errors.</p>
+<p>First, <code>00-base.css</code> is not a migration target at all. Of its 51 lines, exactly three rule blocks invert the cascade; the rest (<code>:root</code> colour/font/line-height/<code>font-synthesis</code>/scrollbar, <code>* { box-sizing }</code>, <code>body { margin: 0; min-height: 100vh }</code>, <code>#root</code>) are ordinary base-layer rules that must be <em>relocated</em>, not converted to utilities. One of them is load-bearing outside the editor: <code>packages/journey-page-domain/src/theme.ts</code> documents that &quot;Anton and Bricolage ship no italic … so they rely on the synthesis that <code>editor/src/styles/00-base.css</code> permits.&quot; Deleting the file without moving <code>font-synthesis: style</code> changes italic rendering in the journey preview for two presets.</p>
+<p>Second, the risk line &quot;changes every form control size app-wide&quot; is wrong about &quot;app-wide&quot;. <code>editor/src/styles.css</code> is imported from exactly one place — <code>editor/src/routes/ProtectedEditorLayout.tsx:21</code> — so <code>font: inherit</code> reaches the authenticated app only. <code>/login</code>, <code>/signup</code>, <code>/terms</code>, <code>/privacy</code>, <code>/teams</code>, <code>/</code>, <code>/tony</code>, <code>/updates</code>, <code>/contact-us</code> never had it. That halves the sweep and it also means auth and marketing form controls already render at the primitive&#39;s sizes, so slice S9 does not inherit this problem.</p>
+<p><strong>Replacement risk row:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Reality</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>font: inherit</code> deletion</td>
+<td>Authenticated routes only (<code>styles.css</code> is imported once, from <code>ProtectedEditorLayout.tsx:21</code>). Public and auth routes are unaffected.</td>
+<td>P0b sweep over the ~14 authenticated routes; gate is a probe table of every <code>button/input/select/textarea</code> whose computed font-size changed, not a screenshot count. <code>SelectTrigger size=&quot;sm&quot;</code> gets its <code>text-xs</code> back for the first time.</td>
+</tr>
+</tbody></table>
+<h3>3. <code>16-responsive.css</code> and <code>04-status-eyebrow.css</code> belong to the shell slice, not to a &quot;base rules&quot; slice</h3>
+<p><strong>What:</strong> Move both into the app-shell slice. Delete <code>16-responsive.css</code> by dissolving each of its blocks into the file that owns the base rule.</p>
+<p><strong>Why.</strong> Every selector in <code>16-responsive.css</code> is owned by another partial: <code>.editor-split-layout</code>, <code>.editor-panel</code>, <code>.preview-panel</code> come from <code>05-layout.css:17,25,46</code>; <code>.topbar</code>, <code>.topbar-right</code>, <code>.editor-topbar-breadcrumbs .page-name-sizer</code> come from <code>02-topbar.css:5,182,165</code>; <code>.status-indicator</code> comes from <code>04-status-eyebrow.css</code>. Migrating a media-query override while its base rule still lives in an unlayered partial is the exact configuration that produced wave 2&#39;s <code>[@media(max-width:768px)]:pr-4!</code> (<code>wave2-report.md:163</code>). <code>04-status-eyebrow.css</code>&#39;s consumers are <code>EditorTopbar.tsx</code> (3), <code>PageHeader.tsx</code> (1), <code>StateScreens.tsx</code> (1), <code>ContactsIndexRoute.tsx</code> (1) — it is topbar furniture, and <code>16-responsive.css:39-42</code> reorders it inside <code>.editor-topbar</code>.</p>
+<h3>4. Move the surface languages from last to first among the slices</h3>
+<p><strong>What:</strong> <code>button-surface.css</code> + <code>chrome.css</code> become slice S1, immediately after the prerequisites, not slice 8.</p>
+<p><strong>Why.</strong> Four of the plan&#39;s later slices contain hand-copies of the surface language that only exist because the language is CSS rather than a primitive, and each of them will have to be re-touched in slice 8 if the order stands.</p>
+<ul>
+<li><code>editor/src/styles/19-record-video.css:398-427</code> reproduces the outline variant byte for byte: <code>border: 1px solid var(--glass-border); border-top-color: var(--glass-highlight); background: var(--glass-bg); backdrop-filter: blur(12px) saturate(1.4); box-shadow: inset 0 1px 0 var(--glass-highlight), var(--btn-halo)</code>, plus both degradations. Its own comment says so: &quot;Everything below is a copy of the outline variant in button-surface.css.&quot;</li>
+<li><code>19-record-video.css:444-459</code> says &quot;Specificity matches the outline variant rule in button-surface.css and this file loads later, so this wins the tie&quot; and &quot;these selectors outrank button-surface.css&#39;s open-state rule, so it has to be restated here.&quot; Utilities cannot reproduce a source-order tie against an unlayered sheet. Migrating Record Video before the surface language means inventing <code>!</code> or arbitrary-descendant workarounds for rules that are about to be deleted.</li>
+<li><code>LoginRoute.css:12-13</code> and <code>19-record-video.css:410-415</code> each re-derive <code>--btn-ink</code>/<code>--btn-halo</code> byte-identically with <code>button-surface.css:52-53</code> (audit, <code>explanation.md:86</code>).</li>
+<li><code>MediaPicker.css:210</code> and <code>CtaRowEditor.css:1-2</code> both say their surfaces come from <code>.cg-*</code>.</li>
+</ul>
+<p>The plan&#39;s own justification for doing the shell early — &quot;once done the harness covers shell for free on every later case&quot; — is a stronger argument for the surfaces, which are referenced by 30 files (<code>button-surface.css</code>) and 55 files (<code>chrome.css</code>), against 23 and 9 for the shell partials.</p>
+<p>The counter-argument in the plan is that tooling should mature first. It already has: harness, probe, codemod, <code>diff-regions.mjs</code>, <code>crop-pair.mjs</code> all exist after wave 3.</p>
+<h3>5. <code>14-library.css</code> is three families and must be split across two slices, and one of the three should be deleted rather than migrated</h3>
+<p><strong>What:</strong> Split <code>14-library.css</code>. <code>.workspace-library-*</code> / <code>.library-*</code> go to the picker slice. <code>.learn-*</code> goes with the picker slice too (<code>LearnIndexRoute</code> is already half-migrated by wave 2). The <code>.lp-*</code> family goes to the canvas slice <strong>as a renderer-parity fix, not a utility conversion</strong>.</p>
+<p><strong>Why.</strong> Its selector list is <code>.workspace-library | .workspace-library-breadcrumbs | .workspace-library-breadcrumb-current | .library-main | .library-toolbar | .library-toolbar-search | .library-toolbar-controls | .learn-main | .learn-tabs | .learn-tabs-list | .learn-section-header | .learn-section-title | .media-card-player-shell | .media-card-player-frame | .lp-page | .lp-logo-placeholder | .lp-video-container | .lp-asset-video | .lp-play-button | .lp-play-button-sm | .lp-asset-image-placeholder | .lp-video-poster | .lp-video-overlay | .lp-empty</code>. The <code>.lp-*</code> half is the editor&#39;s private re-implementation of the published page. <code>14-library.css:119-127</code> admits it: &quot;the published page&#39;s <code>.jp-theme</code> root spans the viewport … so the preview root must span the pane.&quot; The audit documents three live divergences caused by exactly this family, including &quot;the journey sheet&#39;s brand-tinted 56px button loses to <code>14-library.css</code>&#39;s white-tint 3.5rem one&quot; (<code>explanation.md:100</code>).</p>
+<p>Converting <code>.lp-play-button</code> to a utility freezes that bug in a new idiom. The correct change is to delete the <code>.lp-*</code> family and make <code>LivePreview.tsx</code> emit the attributes the SSR renderer emits (<code>data-journey-video-preview-trigger</code>, <code>.client-logo-track</code>, <code>&lt;div&gt;</code> not <code>&lt;section&gt;</code> for standalone logos), so <code>JOURNEY_PAGE_CSS</code> paints the preview — which is what ADR 0006 intended and never got.</p>
+<h3>6. <code>TermsRoute.css</code> and <code>PrivacyRoute.css</code> cannot be migrated to call-site utilities; say so in &quot;What stays as CSS&quot;</h3>
+<p><strong>What:</strong> Add a third sanctioned CSS exception, or schedule a markup regeneration.</p>
+<p><strong>Why.</strong> Both files style HTML that React injects with <code>dangerouslySetInnerHTML</code> from <code>editor/src/routes/public/legal/terms.html</code> and <code>privacy.html</code> (<code>TermsRoute.tsx:40</code>, <code>PrivacyRoute.tsx:37</code>). Their selectors are element and vendor-class descendants, not component classes: <code>.terms-route h1</code>, <code>.terms-route ol &gt; li &gt; h2:empty</code>, <code>.terms-route p:last-child</code>, <code>.terms-route .c-wrapper</code>, <code>.terms-route .mt-5</code>, <code>.terms-route .text-base</code>, <code>.terms-route .text-3xl</code>, <code>.terms-route ::selection</code>; <code>PrivacyRoute.css</code> adds <code>.privacy-route .flex.flex-col.border-b-2:last-of-type</code> and <code>.privacy-route &gt; div[role=&quot;document&quot;]</code>. There is no call site to put a utility on.</p>
+<p>Worse, these rules redefine class names that are also real Tailwind utilities (<code>.mt-5</code>, <code>.text-base</code>, <code>.text-lg</code>, <code>.text-3xl</code>, <code>.font-bold</code>) inside the injected document. After change 1 lands, the vendor markup&#39;s real utilities start winning and legal-page typography changes. That is a predicted P0b diff; put it on the expected list rather than discovering it.</p>
+<p><strong>Replacement text</strong> for &quot;What stays as CSS&quot;, third bullet:</p>
+<blockquote>
+<ul>
+<li><code>editor/src/routes/public/{Terms,Privacy}Route.css</code>: scoped typographic rules for vendor-generated legal HTML injected via <code>dangerouslySetInnerHTML</code>. There is no call site to hold a utility. Either keep ~180 lines in <code>@layer components</code> scoped to <code>[data-legal-document]</code> as a named exception, or regenerate <code>legal/*.html</code> with our own class names and delete both. Do not attempt a call-site migration.</li>
+</ul>
+</blockquote>
+<h3>7. Replace the <code>--jp-*</code> rename prerequisite with a 15-line <code>--app-*</code> mirror</h3>
+<p><strong>What:</strong> Drop the namespace rename from the critical path. Add the mirror to P0b.</p>
+<p><strong>Why.</strong> Two findings.</p>
+<p>First, the rename is larger than one line of plan. <code>packages/journey-page-domain/src/journey-page-styles.ts</code> reads the shadcn names ~50 times (<code>var(--primary)</code> ×17, <code>var(--foreground)</code> ×8, <code>var(--border)</code> ×6, <code>var(--muted-foreground)</code> ×6, plus <code>--background</code>, <code>--card-foreground</code>, <code>--muted</code>, <code>--primary-foreground</code>, <code>--radius*</code>). All six presets in <code>theme-presets.ts</code> declare <code>--background</code>, <code>--foreground</code>, <code>--card</code>, <code>--card-foreground</code>, <code>--muted</code>, <code>--muted-foreground</code>, <code>--border</code>, <code>--input</code>. <code>theme.ts:71-89</code> emits them. <code>editor/tests/journey-page-theme.test.ts</code> — the repo&#39;s most rigorous styling gate, enforcing ADR 0007&#39;s rule that &quot;a <code>--foreground</code> remap must also remap <code>--muted</code>/<code>--card</code>&quot; — asserts on those names and would have to be rewritten. And the surface is live customer pages with zero visual regression coverage.</p>
+<p>Second, the shadowing is narrower than the plan assumes. Custom properties resolve where they are <em>declared</em>, which <code>button-surface.css</code> itself documents: &quot;custom properties resolve where they are declared: the <code>:root</code> definition already baked in root&#39;s <code>--btn-ink</code>.&quot; So <code>--cg-ink: var(--foreground)</code> declared at <code>:root</code> in <code>chrome.css:22</code> keeps the app&#39;s foreground even inside <code>.jp-theme</code>. Shadowing bites in exactly one case: a <em>utility</em> on an element inside <code>.jp-theme</code>, because <code>bg-card</code> emits <code>background-color: var(--color-card)</code> on that element.</p>
+<p>The cheap fix is therefore a mirror, not a rename:</p>
+<pre><code class="language-css">/* index.css, in :root and .dark */
+--app-background: var(--background);
+--app-foreground: var(--foreground);
+--app-card: var(--card);
+--app-primary: var(--primary);
+--app-border: var(--border);
+--app-muted: var(--muted);
+--app-muted-foreground: var(--muted-foreground);
+
+/* Editor chrome rendered inside the journey preview: .jp-theme rebinds the
+   shadcn names to the customer&#39;s page colours; restore the app palette. */
+[data-editor-chrome] {
+  --background: var(--app-background);
+  --foreground: var(--app-foreground);
+  /* … */
+}
+</code></pre>
+<p>Fifteen lines, no published-page code touched, reversible, and verifiable with a computed-style probe on a canvas editor mounted inside the preview. Schedule the <code>--jp-*</code> rename separately as journey-package hygiene with its own SSR-HTML + screenshot gate; it is not on this plan&#39;s critical path.</p>
+<h3>8. Fix the codemod before it is run on eight more slices</h3>
+<p><strong>What:</strong> Correct the <code>max-md:</code> / <code>max-sm:</code> mapping in <code>scripts/codemods/snap-arbitrary-values.mjs</code> and make its file list a CLI argument.</p>
+<p><strong>Why.</strong> Wave 3 shipped a known regression through committed tooling and flagged it in &quot;Could not verify&quot; (<code>wave3-report.md:284</code>): Tailwind&#39;s <code>max-md</code> is <code>width &lt; 48rem</code>, which <strong>excludes</strong> 768px, where the legacy <code>@media (max-width: 768px)</code> included it. Wave 2 had deliberately kept the arbitrary variant for this reason (<code>wave2-report.md:204</code>: &quot;<code>max-md</code> would have dropped the entire narrow-viewport header and toolbar layout on that device&quot;). Wave 3 then mapped it anyway. iPad portrait is currently taking the wide Home layout. Every later slice re-runs this codemod, so the bug compounds. Emit <code>max-[768px]:</code> / <code>max-[640px]:</code> instead, or leave the arbitrary variant alone, and add both to <code>--check</code>.</p>
+<p>Second: <code>FILES</code> is a hard-coded list of the wave-1/2 branch files (<code>snap-arbitrary-values.mjs:21-37</code>). Make it <code>--files &lt;glob&gt;</code> or read from the slice manifest, or slice N+1 silently snaps nothing.</p>
+<h3>9. Promote the computed-style probe into the recipe — it is the gate, not the screenshots</h3>
+<p><strong>What:</strong> Add the probe as step 3 of the proven recipe, with a committed spec.</p>
+<p><strong>Why.</strong> The plan&#39;s recipe lists screenshots and never mentions the probe. Wave 2&#39;s own assessment: &quot;Screenshots cannot see a responsive breakpoint you are not sized to, a hover you do not perform, or a focus ring on an unfocused field… It found, in order: <code>leading-[0]</code> silently lost on a raw <code>&lt;button&gt;</code>; <code>border: 0</code> dropped as &#39;redundant&#39;…; <code>flex-direction</code> dropped as &#39;inert&#39;…; <code>align-self: start</code> vs <code>flex-start</code>; <code>rounded-full</code> vs <code>999px</code>; <code>shadow-[var(…)]</code> losing to the primitive&#39;s <code>shadow-xs</code>… Every one was a real difference I would otherwise have shipped, and only the last two were within a thousand pixels of anything a screenshot covers&quot; (<code>wave2-report.md:25-36</code>). Nine real regressions, sixteen screenshots blind to seven of them.</p>
+<p>It currently lives in <code>.context/visual-parity/wave2-manual/</code> as a <code>.txt</code> that has to be copied into <code>tests/visual/</code> and deleted again, because a spec in that directory changes what a bare harness run executes. Fix that properly: <code>tests/visual/probe.spec.ts</code> guarded by <code>test.skip(!process.env.PROBE_OUT)</code>, plus <code>scripts/visual/summarize-probe.mjs</code> and <code>compare-probe.mjs</code> committed.</p>
+<p><strong>Replacement text</strong> for recipe step 3:</p>
+<blockquote>
+<ol start="3">
+<li>Structural probe: <code>tests/visual/probe.spec.ts</code> walks the slice&#39;s scenes, keys every element by its index path from <code>&lt;body&gt;</code>, and records 130 computed properties plus its bounding rect, across the slice&#39;s scenes × {1440, 1024, 768, 720, 640, 390}. Prove determinism (two runs at the same commit → 0 differing values), capture at the base commit, re-run after. <code>summarize-probe.mjs</code> turns the diff into a grouped to-do list. Zero differing values is the parity gate; the screenshots are the human-legible evidence.</li>
+</ol>
+</blockquote>
+<h3>10. Replace the deep stack with a shallow trunk and three fan lanes</h3>
+<p><strong>What:</strong> Stack only P0a → P0b → P1 → S1. Everything after S1 branches from S1 and targets <code>main</code>, in three lanes with disjoint file ownership.</p>
+<p><strong>Why.</strong> An 8-deep stack means seven retargets, seven rebases, and one shared writer that every slice touches: <code>editor/src/index.css</code> (tokens, <code>@theme</code> animations, <code>@utility</code> declarations). Wave 2 already added a 27-line <code>@theme</code> block there and wave 3 added two tokens plus <code>--media-card-preview-bg</code>. Eight stacked branches all appending to the same file is a guaranteed conflict per rebase, and rebasing a branch whose gate is a pixel baseline invalidates the gate.</p>
+<p>After S1 the slices are genuinely independent except for five hub consumer files. Publish an owners map generated from the inventory (<code>file → slice</code>) and let exactly one lane edit each hub file: <code>MediaPicker.tsx</code>, <code>LivePreview.tsx</code>, <code>VideoPlayer.tsx</code>, <code>EditorWorkspace.tsx</code>, <code>PageHeader.tsx</code>.</p>
+<blockquote>
+<h2>PR strategy</h2>
+<p>Trunk (stacked, serial): P0a → P0b → P1 → S1. Each merges to <code>main</code> before the next opens; every merge deploys to production, so each carries its published three-way report.</p>
+<p>Fan (parallel branches off S1, each targeting <code>main</code>): Lane A app chrome (S2 → S3 → S4), Lane B media (S5 → S6 → S7), Lane C public (S9). S8 canvas opens after Lane A and Lane B land.</p>
+<p>Hub files are owned by exactly one lane; the owners map ships in P0a and the CSS ratchet fails a PR that edits a file it does not own.</p>
+<p>Every slice PR: deploy a PR preview (add the <code>deploy-preview</code> label — pushes do not redeploy it), run the harness and probe against the preview as well as locally, and soak on staging before merging.</p>
+</blockquote>
+<h3>11. Add a build step to every slice&#39;s gate</h3>
+<p><strong>What:</strong> <code>pnpm run editor:build</code> in the verification list.</p>
+<p><strong>Why.</strong> None of waves 1–3 ran a production build. <code>editor/vite-backdrop-filter-pair.ts</code> is a <code>generateBundle</code> hook: it only fires on a real build, it errors if <code>standard === 0</code>, and it errors on any prefixed/standard count mismatch. Slices that move glass from CSS into <code>@utility</code> or into utilities change how many <code>backdrop-filter</code> declarations the bundle emits. The build is also where Lightning CSS minification differences show up, and where the chunk split shifts (the audit measured 9 CSS assets / 287,560 bytes; <code>chrome.css</code> currently ships twice because <code>VideoPlayer.tsx:15</code> imports it alongside <code>styles.css:9</code>). Add a CSS-bytes-per-chunk line to the report so a slice that accidentally moves 114 KB from the auth-gated chunk into the entry chunk is visible.</p>
+<h3>12. Make the ratchet cover <code>.ts</code>, cover the primitives, and run in CI</h3>
+<p><strong>What:</strong> Three corrections to the ratchet section.</p>
+<p><strong>Why.</strong></p>
+<ul>
+<li>The shadcn block&#39;s <code>files</code> glob is <code>editor/src/**/*.tsx</code> (<code>eslint.config.mjs</code>). Wave 3 had to list <code>folder-dnd.ts</code>&#39;s arbitrary values by hand because &quot;a <code>.ts</code> file, not matched by the glob&quot; (<code>wave3-report.md:216</code>). Use <code>editor/src/**/*.{ts,tsx}</code>.</li>
+<li>The block sets <code>ignores: [&#39;editor/src/components/ui/**&#39;]</code>. That is right for <code>no-restyle</code> and wrong for <code>no-raw-colors</code>: the audit found the raw brand hex inside the design system itself (<code>tabs.tsx:64</code>&#39;s <code>after:bg-[#2563eb]</code>, which will not desaturate in dark mode the way <code>--primary</code> does) is invisible to the lint. Split the config: <code>no-restyle</code> keeps the exemption, <code>no-raw-colors</code> and <code>require-static-classes</code> do not.</li>
+<li><code>pnpm lint</code> is <code>eslint . --quiet</code>, which drops warnings, and <code>scripts/hooks/lint-on-edit.mjs</code> returns early on exit code 0, which ESLint uses for warnings-only. A warn-level rule is invisible on every automated path. The rules must be <code>error</code> with a suppressions baseline or they do nothing — which is the audit&#39;s central finding about the current setup.</li>
+</ul>
+<h3>13. Correct the throughput claim</h3>
+<p><strong>What:</strong> Stop implying linear extrapolation from wave 1–3.</p>
+<p><strong>Why.</strong> &quot;1,906 lines, 34 consumers, 3 worker waves, about one working day&quot; was one file with a clean consumer set. <code>MediaPicker.css</code> has 91 consumer files and <code>CtaRowEditor.css</code> has 86 (<code>remaining-css-inventory.json</code>). The canvas slice is a renderer-parity project, not a class sweep. State the estimate as a range with the canvas slice called out as the outlier, or state no estimate.</p>
+<hr>
+<h2>Answers to the open questions</h2>
+<p><strong>1. Is the order right? Should shell/topbar precede base rules, or should 0 and 1 merge?</strong>
+Neither. Slice 0 is not a slice: <code>00-base.css</code> is a cascade-environment change that belongs in a prerequisite PR next to the layer move, <code>16-responsive.css</code> and <code>04-status-eyebrow.css</code> belong to the shell, and <code>20-settings.css</code> / <code>21-contacts.css</code> / <code>12-state-cards.css</code> are unrelated route families that were grouped by size, not by coupling. The order that matters is that the <strong>surface languages come first</strong>, because four later slices contain hand-copies of them (<code>19-record-video.css:398-427</code> copies the outline variant verbatim and says so).</p>
+<p><strong>2. Should the <code>--jp-*</code> namespace be its own PR before slice 6, given <code>MediaPicker.css</code> also reaches into <code>.jp-theme</code>?</strong>
+No. <code>MediaPicker.css</code>&#39;s two <code>.jp-theme</code> rules are selector scoping, not token reads: <code>.jp-theme [data-journey-media-frame]:has(.mp-overlay) { overflow: visible }</code> and <code>.jp-theme .mpb-empty [data-journey-cta-row] { margin-top: 0.25rem }</code>. Neither is affected by token shadowing. Shadowing only bites theme-colour <em>utilities</em> placed on elements inside <code>.jp-theme</code>, because custom properties resolve where they are declared — so the <code>--cg-*</code> and <code>--btn-*</code> chains declared at <code>:root</code> are already safe. Ship a 15-line <code>--app-*</code> mirror in P0b instead, and schedule the <code>--jp-*</code> rename as independent journey-package hygiene with its own parity gate: it touches ~50 <code>var()</code> reads in <code>journey-page-styles.ts</code>, all six presets, <code>theme.ts</code>, both renderers, and ADR 0007&#39;s postcss test, on the only surface with live customer pages and no visual regression coverage.</p>
+<p><strong>3. What harness cases per slice are the minimum that make the parity gate honest?</strong>
+Screenshots alone never make it honest — wave 2 caught seven of nine real regressions with the probe, not the sixteen shots. The minimum per slice is: every route the slice touches at 1440 light and dark; one narrow viewport per <code>@media</code> breakpoint the slice&#39;s CSS declares; one shot per <em>state</em> the CSS has a selector for; and a probe run over the same scenes at six widths. Anything masked (<code>img</code>, <code>video</code>), anything behind <code>:hover</code> on an unhovered element, <code>:focus-visible</code>, <code>:active</code>, <code>@starting-style</code>, <code>prefers-reduced-motion</code>, <code>prefers-reduced-transparency</code>, <code>pointer: coarse</code>, or a live media stream gets a probe or an archived manual pair. Full table below.</p>
+<p><strong>4. Is folding <code>button-surface.css</code> into cva variants actually right, or should the container-owned appearance idea survive as a <code>data-surface</code> variant on a Surface primitive?</strong>
+The container-owned idea must survive, and cva alone cannot express it. <code>button-surface.css:36-46</code> states the contract: &quot;appearance is decided by the CONTAINER, never per call site… New surface? Pick an existing context or add ONE here — never restyle buttons at the call site.&quot; A cva variant is a call-site prop; moving the three contexts (<code>.cg-bar</code>, <code>[data-surface=&quot;panel&quot;]</code>, hero) into cva rows means 4 variants × 3 contexts = 12 combinations that every call site can now get wrong. Concretely:</p>
+<ul>
+<li>Button&#39;s <em>variant fills</em> (<code>default</code> gradient, <code>outline</code> glass, the <code>aria-expanded</code>/<code>data-popup-open</code> restatements) go into <code>button.tsx</code>&#39;s cva. They are the button&#39;s own appearance.</li>
+<li>The three <em>contexts</em> stay container-owned, on a <code>Surface</code> primitive keyed by <code>data-surface=&quot;hero|panel|bar|media&quot;</code>, expressed as arbitrary descendant-variant bundles in the primitive&#39;s own class string — <code>[&amp;_[data-button-variant]]:h-8 [&amp;_[data-button-variant]]:border-0 …</code>. This mechanism is proven: wave 2 reproduced four legacy selectors <em>and their relative specificities</em> this way for <code>MediaCardActions</code>, and explicitly rejected group variants because &quot;<code>group-data-[upload-active]/card:</code> resolves to (0,2,0) and would lose to the hover rule it must beat&quot; (<code>wave2-report.md:172</code>).</li>
+<li><code>--btn-*</code>, <code>--cg-*</code>, and the <code>[data-record-action]</code> / <code>.dark [data-record-action]</code> re-pointing stay as token declarations in <code>index.css</code>. They are tokens, which the plan already sanctions, and the re-pointing depends on the where-declared resolution rule that a utility cannot reproduce.</li>
+<li>The glass <em>surface</em> itself becomes <code>@utility glass</code> / <code>@utility glass-media</code> in <code>index.css</code>, not a utility stack. Two reasons. It has a multi-layer background plus two degradation blocks (<code>@media (prefers-reduced-transparency: reduce)</code> and <code>@supports not (backdrop-filter…)</code>) that no utility stack expresses compactly. And <strong>Tailwind&#39;s composite <code>backdrop-*</code> utilities emit a fixed function order</strong> — blur, brightness, contrast, …, saturate — while <code>chrome.css:40</code> needs <code>blur(30px) saturate(1.5) contrast(0.4) brightness(1.14)</code>. Filter functions do not commute; reordering changes the rendered glass. <code>button-surface.css</code>&#39;s <code>blur(12px) saturate(1.4)</code> happens to survive; <code>chrome.css</code>&#39;s four-function stack does not.</li>
+</ul>
+<p>Net: <code>button-surface.css</code> (286) + <code>chrome.css</code> (162) → about 40 lines of <code>@utility</code> and tokens in <code>index.css</code>, the rest in <code>button.tsx</code> and a new <code>surface.tsx</code>.</p>
+<p><strong>5. Anything that should be deleted rather than migrated?</strong>
+Yes, seven things, worth roughly 700 lines of CSS and 350 of TSX before any migration starts:</p>
+<table>
+<thead>
+<tr>
+<th>Delete</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>editor/src/styles/10-media-picker.css</code> (84 lines, 5 classes)</td>
+<td>Verified zero references: <code>media-empty</code>, <code>media-card-thumb</code>, <code>media-card-info</code>, <code>media-card-name</code> appear in no <code>.ts</code>/<code>.tsx</code> under <code>editor/src</code>. Inventory agrees: <code>&quot;consumers&quot;: 0</code>.</td>
+</tr>
+<tr>
+<td>The <code>.lp-*</code> family in <code>14-library.css</code> (~134 lines)</td>
+<td>It is the editor&#39;s fork of the published page and the cause of three documented divergences (<code>explanation.md:96-102</code>). Delete it by making <code>LivePreview.tsx</code> emit the SSR attributes.</td>
+</tr>
+<tr>
+<td><code>routes/public/TonyRoute.tsx</code> (353 lines)</td>
+<td>Same line count as <code>PublicHomeRoute.tsx</code>, 154-line diff, all copy and analytics. Either delete or make it <code>&lt;PublicHomeRoute variant=&quot;tony&quot;&gt;</code>. Check PostHog traffic first; this is a product call, not a refactor call.</td>
+</tr>
+<tr>
+<td>The drag feature: <code>lib/folder-dnd.ts</code>, <code>AppSidebar</code>&#39;s drop target, <code>[data-media-card][draggable]</code>, <code>[data-dragging]</code></td>
+<td><code>setDragData</code> has no caller anywhere in <code>editor/src</code>; nothing sets <code>draggable</code> or <code>onDragStart</code>; the whole path is unreachable (<code>wave1-report.md:125</code>, unchanged at <code>wave3-report.md:283</code>). It also owns two of the twelve surviving <code>!</code>. Decide before the shell slice, which owns <code>AppSidebar.tsx</code>.</td>
+</tr>
+<tr>
+<td>~78 dead classes across the partials, incl. the <code>.record-trim-*</code> family</td>
+<td><code>explanation.md:145</code>. A delete-only PR before the media lane shrinks <code>19-record-video.css</code> and <code>22-video-edit-modal.css</code> before anyone reads them. My own per-file scan puts the dead ratio highest at <code>TermsRoute.css</code> (11/19), <code>04-status-eyebrow.css</code> (4/7), <code>JourneyMediaResizer.css</code> (3/8), <code>11-form-editor.css</code> (5/15), <code>19-record-video.css</code> (12/60).</td>
+</tr>
+<tr>
+<td><code>--chart-1</code> … <code>--chart-5</code> in <code>index.css</code> (10 declarations, light and dark)</td>
+<td>Dead stock zinc greys with no consumer, and the shadcn lint recommends them as &quot;nearest theme tokens&quot;, which is wrong (<code>explanation.md:81</code>).</td>
+</tr>
+<tr>
+<td><code>DESIGN.md</code>&#39;s glass/radius/font sections and the two repeats in <code>evals/ui-change-eval.md</code></td>
+<td>They instruct <code>-webkit-backdrop-filter</code>, which <code>vite-backdrop-filter-pair.ts:50</code> fails the build on, and they are graded before every headless handback. Leaving them means every agent on this migration is scored against instructions the plan forbids.</td>
+</tr>
+</tbody></table>
+<p><strong>6. What is the right ratchet shape so the legacy layer cannot grow back between slices?</strong>
+Four pieces, all modelled on the mechanism this repo has already proven (the reuse ratchet moved 97 → 75 in five days):</p>
+<ol>
+<li><code>scripts/check-css-budget.mjs</code> + a committed <code>css-budget.json</code> keyed by path, holding line count and class count per file, plus a whole-repo total. It fails when any file grows, when the total grows, when a <code>.css</code> appears under <code>editor/src</code> that is not in the baseline, or when a file is deleted without its baseline entry being removed (so the baseline can only shrink). It also greps for new <code>@import</code> lines in <code>styles.css</code> and new <code>import &#39;./*.css&#39;</code> in <code>.tsx</code>. Wire it into <code>scripts/check-ci-invariants.sh</code>, which already runs early and cheap in CI and whose file-level doc convention it matches.</li>
+<li>A <code>!</code>-count ratchet in the same script, baselined at today&#39;s 19 sites across 10 files. It is the honest measure of cascade debt; after the layer move it should fall to near zero and never rise.</li>
+<li>ESLint: <code>shadcn/no-raw-colors</code>, <code>no-arbitrary-values</code>, <code>no-inline-styles</code>, <code>no-restyle</code>, <code>require-static-classes</code> at <code>error</code> with the ESLint 9 bulk-suppressions file the repo already uses (<code>eslint-suppressions.json</code>, <code>pnpm lint:prune</code>). <code>no-unknown-classes</code> stays off until the last partial goes. Glob widened to <code>{ts,tsx}</code>; <code>no-raw-colors</code> no longer exempts <code>components/ui/**</code>.</li>
+<li><code>scripts/hooks/lint-on-edit.mjs</code> gets a second branch: <code>.css</code> paths do not go to ESLint (it cannot parse CSS) — they go to <code>check-css-budget.mjs</code>. Today <code>LINTED</code> is <code>^editor\/src\/.+\.(ts|tsx)$</code>, so, in the audit&#39;s words, &quot;editing 1,900 lines of CSS triggers nothing.&quot;</li>
+</ol>
+<hr>
+<h2>Per-slice harness cases</h2>
+<p>Conventions used below. <strong>Shot</strong> = <code>toHaveScreenshot</code> at 1440×1800 through <code>playwright.visual.config.ts</code> (<code>maxDiffPixels: 0</code>, <code>threshold: 0.02</code>, <code>animations: &#39;disabled&#39;</code>, <code>img</code>/<code>video</code> masked). <strong>Probe</strong> = the promoted <code>tests/visual/probe.spec.ts</code>, same scenes at {1440, 1024, 768, 720, 640, 390}. <strong>Pair</strong> = archived before/after PNG + <code>compare-manual.mjs</code>, kept with the slice&#39;s report. Every slice additionally runs <code>pnpm run editor:build</code>.</p>
+<p>Standing rule, because the masking is load-bearing: <code>img</code> and <code>video</code> are masked, so any slice whose subject is media geometry or media chrome (S5, S6, S7) gets its assertions from the probe, not the shot.</p>
+<table>
+<thead>
+<tr>
+<th>Slice</th>
+<th>Shots (route · state · viewport · scheme)</th>
+<th>Probe scenes</th>
+<th>Needs a probe or pair instead of a shot</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>P0b</strong> cascade environment</td>
+<td>Every authenticated route at 1440, light + dark: <code>/home</code> (root + each of 4 library tabs), <code>/learn</code>, <code>/edit/:id</code>, <code>/record</code>, <code>/contacts</code>, <code>/leads</code>, <code>/profile</code>, <code>/settings/{billing,branding,notifications,password,subscription}</code>, <code>/admin/{user-accounts,organizations}</code>. Public at 1440 light only (no <code>font: inherit</code> there, but the layer move touches them): <code>/</code>, <code>/terms</code>, <code>/privacy</code>, <code>/teams</code>, <code>/updates</code>, <code>/contact-us</code>, <code>/login</code></td>
+<td>all of the above at 6 widths</td>
+<td>The gate is not the shots. It is a probe query enumerating every <code>button, input, select, textarea</code> in the app and listing each whose computed <code>font-size</code>/<code>line-height</code>/<code>font-weight</code> changed, plus every element whose computed value changed because a utility came alive. Both outputs go in the PR body as tables.</td>
+</tr>
+<tr>
+<td><strong>P1</strong> delete-only</td>
+<td>none needed</td>
+<td>all P0b scenes</td>
+<td>Zero-diff by construction; the probe proves it. If any value moves, something was not dead.</td>
+</tr>
+<tr>
+<td><strong>S1</strong> surfaces</td>
+<td><code>/home</code> (hero buttons), <code>/edit/:id</code> (property panel, <code>data-surface=&quot;panel&quot;</code>), media overlay toolbar open (<code>.cg-bar</code>), VideoPlayer transport over media (<code>.cg-surface--media</code>), <code>/record</code> (record action), <code>/login</code> (hero on a public route), inline text toolbar + character chip, the <code>S/M/L</code> segmented control. Each light + dark. <code>/home</code> at 390 for <code>@media (pointer: coarse)</code> sizing</td>
+<td>all of the above</td>
+<td>A <strong>button gallery probe</strong>: enumerate every <code>[data-button-variant]</code> on 8 routes and diff computed <code>background-image</code>, <code>background-color</code>, <code>border-color</code>, <code>box-shadow</code>, <code>backdrop-filter</code>, <code>height</code>, <code>min-width</code>, <code>color</code> at rest, <code>:hover</code>, <code>:focus-visible</code>, <code>[aria-expanded]</code>, <code>[aria-pressed]</code>, <code>:disabled</code>. Plus two launch-flag pairs Playwright cannot emulate from the API: <code>--force-prefers-reduced-transparency</code> and a Chromium build with <code>backdrop-filter</code> disabled, covering the two degradation blocks in both files. Plus the build gate: assert the <code>backdrop-filter</code> declaration count before and after.</td>
+</tr>
+<tr>
+<td><strong>S2</strong> shell, topbar, layout</td>
+<td><code>/home</code>, <code>/learn</code>, <code>/edit/:id</code>, <code>/record</code>, <code>/contacts</code>, <code>/settings/billing</code> at 1440 / 900 / 768 / 720 / 700 / 390, light + dark. States: sidebar expanded and <code>data-collapsible=&quot;icon&quot;</code>; folder tree with children expanded; sidebar rename input active; user footer menu open; editor topbar <code>.topbar-compact</code>; a page name long enough to exercise <code>.page-name-sizer</code> overflow; split layout with panel shown and <code>--panel-hidden</code></td>
+<td>same</td>
+<td><code>.status-saving</code> / <code>.status-saved</code> / <code>.status-error</code> are transient — drive them with a route stub and probe the three computed backgrounds. <code>app-sidebar-*-expander:focus-visible</code> and <code>.app-sidebar-rename-input:focus</code> need the probe. The drop-target state is unreachable until the drag decision lands.</td>
+</tr>
+<tr>
+<td><strong>S3</strong> small shared families</td>
+<td><code>/contacts</code> (empty, populated, error), <code>/leads</code>, <code>/admin/user-accounts</code>, <code>/admin/organizations</code>, <code>/settings/*</code> × 5 at 1440 + 768 (the <code>.shell-tabs-container</code> overflow breakpoint), light + dark. <code>state-card</code> and <code>error-strip</code> on <code>/home</code> and <code>/contacts</code></td>
+<td>same</td>
+<td><strong>Blocker, not a technique:</strong> <code>.env.e2e.local</code> carries no admin identity, so <code>/admin/*</code> cannot be driven (<code>wave2-report.md:220</code>, still true at <code>wave3-report.md:280</code>). Provision <code>E2E_USER_ADMIN_*</code> before this slice or the gate is dishonest for two routes. <code>.previous-version-link:hover</code> / <code>:focus-visible</code> by probe.</td>
+</tr>
+<tr>
+<td><strong>S4</strong> forms and property panel</td>
+<td><code>/edit/:id</code> with the property panel open for each block kind (hero, video, faq, gallery, summary table, cta row, form, logos); color picker open; dynamic list with 0, 1, and 3 rows; form editor field list. Light + dark, 1440 + 900 (the <code>05-layout</code> split breakpoint)</td>
+<td>same</td>
+<td>Every field type&#39;s <code>:focus-visible</code> ring by probe — this is where the focus-indicator defect wave 2 flagged will resurface. <code>:active</code> on the dashed add-row, <code>:disabled</code> on panel destructive icons, textarea autosize, and the <code>[data-surface=&quot;panel&quot;]</code> × Button interaction from S1, all by probe.</td>
+</tr>
+<tr>
+<td><strong>S5</strong> record video</td>
+<td><code>/record</code>: permission prompt, idle with preview, countdown, recording, paused, finished/review, layout picker open, device picker with one device and with two (<code>[data-has-extra]</code>), mic level bar, camera-denied error. Light + dark, 1440 + 390</td>
+<td>same</td>
+<td>Launch with <code>--use-fake-device-for-media-stream --use-fake-ui-for-media-stream</code>. Video is masked, so the device-picker shell&#39;s <code>border-color</code>, <code>background</code>, <code>backdrop-filter</code>, <code>box-shadow</code> at rest and hover come from the probe. The trimmer needs a drag: pair + probe on handle positions.</td>
+</tr>
+<tr>
+<td><strong>S6</strong> video modals and player</td>
+<td>Video Edit Modal on a recorded video: default, timeline dock, trimmer handles, preview picker grid, saving. Video Stats Modal with views and with zero views. VideoPlayer on <code>/learn</code> and on a public share page (the second chunk of <code>chrome.css</code>): controls visible, hover, error chip, play button. Light + dark</td>
+<td>same</td>
+<td><code>25-video-stats-modal.css</code> has one consumer and 32 class references; the stats stage needs seeded analytics. If staging has none, add a fixture route behind a query param rather than asserting nothing. Player transport hover and <code>:focus-visible</code> by probe (<code>.cg-seg button:focus-visible</code> is the only focus rule in <code>chrome.css</code>).</td>
+</tr>
+<tr>
+<td><strong>S7</strong> library and picker</td>
+<td>The 16 existing cases (they already cover <code>/home</code> × 4 tabs, hover, loading, error, phone, picker dialog, learn) plus: picker empty, picker after folder navigation, picker type filter applied, picker with an upload in flight, URL import, <code>/learn</code> at 768 (<code>.learn-tabs</code> scroll). Light + dark for the dialog</td>
+<td>same</td>
+<td>Picker dialog is portaled; shot the dialog, probe the toolbar controls. <code>.learn-tabs::-webkit-scrollbar</code> and <code>[scrollbar-width]</code> by probe.</td>
+</tr>
+<tr>
+<td><strong>S8</strong> canvas and preview parity</td>
+<td>Editor canvas: hover outline per block kind, selected block, add-section menu open, tiptap toolbar with each mark active, character-limit chip at and over limit, media resizer handles, faq row ops, gallery editor, summary table editor, cta row editor. 1440 light + dark <strong>for the chrome only</strong></td>
+<td>same</td>
+<td>This slice&#39;s real gate is <strong>SSR-vs-preview parity</strong>, not before/after. Extend <code>scripts/build-public-page-render-compare.mjs</code>: for one fixture document per block kind × 6 presets × 3 tones, diff the attribute set on corresponding nodes between <code>render-blocks.ts</code> and <code>LivePreview.tsx</code>, and screenshot the preview pane against the SSR page at the same width. That is the only gate that catches the three known divergences. Separately, probe that <code>.jp-theme</code> descendants are byte-identical between <code>light</code> and <code>dark</code> schemes — published pages have no dark mode, and a stray <code>dark:</code> utility inside the canvas is the failure mode this slice introduces. Reorder drag: pair.</td>
+</tr>
+<tr>
+<td><strong>S9</strong> auth and marketing</td>
+<td><code>/login</code>, <code>/signup</code>, <code>/forgot-password</code>, <code>/reset-password</code> each in empty, filled, error, and submitting states; <code>/</code>, <code>/tony</code>, <code>/updates</code>, <code>/terms</code>, <code>/privacy</code>, <code>/teams</code>, <code>/contact-us</code>. 1440 + 768 + 390, light + dark (<code>PublicHomeRoute.css:247</code> has a <code>.dark</code> arm)</td>
+<td>same</td>
+<td>The honest gate for the documented CTA bug is a probe, not a shot: enumerate <code>SiteHeader</code>&#39;s CTA on all 7 routes that render it and assert one computed appearance. <code>.public-home</code> exists on exactly 3 of them (<code>PublicHomeRoute.tsx:70</code>, <code>TonyRoute.tsx:68</code>, <code>UpdatesRoute.tsx:178</code>), so today the button has two appearances. Also probe the font stack: Geist&#39;s <code>@font-face</code> ships only in the auth-gated chunk, so these routes render in fallback <code>sans-serif</code>; do not silently &quot;fix&quot; that inside a parity slice.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Risks the plan misses</h2>
+<ol>
+<li><strong><code>@shadcn/lint</code> does not exist on <code>main</code>.</strong> <code>git show main:package.json</code> has no <code>@shadcn/lint</code>; <code>git show main:pnpm-lock.yaml</code> has no entry; <code>git show main:eslint.config.mjs</code> has zero shadcn references. Every lint metric in waves 1–3 was produced by a tool CI has never run. P0a is therefore a dependency-addition PR for a <code>0.x</code> plugin that becomes load-bearing for a nine-PR migration, and it needs the supply-chain review the <code>lint:react-doctor</code> comment in <code>package.json</code> already asks for on lint dependencies.</li>
+<li><strong>The harness cannot run in CI.</strong> It needs a pro account, a seeded workspace, and a dev server (<code>getAccountCredentials(&#39;userPro&#39;)</code>, <code>.env.e2e.local</code>). So the parity gate is a local gate that a reviewer trusts rather than reruns. Worse, baselines live in <code>.context/</code>, which is gitignored and also eslint-ignored — a reviewer cannot reproduce a single number in the wave reports. Fix: publish baseline, parity and normalized PNGs per slice via <code>/publish-artifact</code> and link them from the PR body, which the repo&#39;s own instruction already requires for &quot;anything William is asked to look at.&quot;</li>
+<li><strong>No admin identity.</strong> Two routes have had no verification across two waves. Provision it or declare those routes out of scope in writing.</li>
+<li><strong><code>index.css</code> is the shared writer.</strong> Eight branches appending <code>@theme</code> and <code>@utility</code> blocks to one file will conflict on every rebase, and a rebase invalidates a pixel baseline. Reserve <code>index.css</code> edits for the trunk PRs where possible; give each fan lane an append-only section with a marker comment.</li>
+<li><strong>Every merge is a production deploy</strong> of a user-visible change, nine or more times in a row, with no rollback story beyond a revert that itself changes pixels. Add a staging soak plus a PR preview run to each slice&#39;s definition of done, and space merges so a regression report has somewhere to land.</li>
+<li><strong>Filter-function order.</strong> <code>chrome.css:40</code> needs <code>blur(30px) saturate(1.5) contrast(0.4) brightness(1.14)</code>; Tailwind&#39;s composite <code>backdrop-*</code> utilities emit a fixed blur → brightness → contrast → … → saturate order. These do not commute. Any slice that reaches for <code>backdrop-blur-* backdrop-saturate-*</code> on a <code>.cg-*</code> surface changes the glass without changing a single number.</li>
+<li><strong>The build gate reacts to the migration.</strong> <code>vite-backdrop-filter-pair.ts</code> errors when the prefixed and standard counts differ <em>or</em> when <code>standard === 0</code>. Moving glass between CSS and utilities changes those counts. It only fires on a real build, which no wave ran.</li>
+<li><strong>Tailwind&#39;s content scan covers <code>editor/</code> only</strong>, with no <code>@source</code> anywhere. The legal HTML&#39;s utilities compile by accident of the scan root. Any slice that relocates a file or a class string outside <code>editor/</code> loses its CSS with no error. Add an explicit <code>@source</code> and a check.</li>
+<li><strong>Legal-page typography will move in P0b.</strong> <code>TermsRoute.css</code> and <code>PrivacyRoute.css</code> override vendor classes that collide with real Tailwind utility names (<code>.mt-5</code>, <code>.text-base</code>, <code>.text-3xl</code>, <code>.font-bold</code>) inside the injected markup. Once legacy CSS drops below utilities, the injected utilities win. Predict it, do not discover it.</li>
+<li><strong><code>font-synthesis: style</code> is load-bearing outside the editor.</strong> <code>packages/journey-page-domain/src/theme.ts</code> documents that Anton and Bricolage &quot;rely on the synthesis that <code>editor/src/styles/00-base.css</code> permits.&quot; Deleting the file without relocating that declaration changes journey-preview italics for two presets.</li>
+<li><strong>Chunk migration is invisible.</strong> <code>chrome.css</code> currently ships in both the entry chunk (via <code>VideoPlayer.tsx:15</code>) and the auth-gated chunk (via <code>styles.css:9</code>). A <code>Surface</code> primitive changes which chunk carries the glass and what public routes download. Add per-chunk CSS bytes to each slice&#39;s metrics.</li>
+<li><strong>The codemod ships a known regression</strong> (<code>max-md</code> at exactly 768px) and will be re-run on eight more slices. See change 8.</li>
+<li><strong>Deferred normalization decisions have no owner.</strong> Wave 2 flagged the suppressed focus ring; wave 3 flagged <code>font: inherit</code>. Each slice will produce more. Without a Linear issue per flagged item the design system re-inverts by accretion, which is exactly how the June 2026 migration died — its roadmap was deleted the day it was written.</li>
+<li><strong>Nothing in the plan stops new legacy CSS arriving from outside the migration</strong> while nine PRs are open. The line-count ratchet catches growth in existing files; it must also reject a <em>new</em> <code>.css</code> file and a new <code>@import</code>, or the next feature lands in the idiom the plan is deleting, as <code>AuthRoute.tsx</code> did in August.</li>
+</ol>
+<hr>
+<h2>Revised slice table</h2>
+<p>Trunk is serial; lanes are parallel branches off S1, each targeting <code>main</code>.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Slice</th>
+<th>Files</th>
+<th>Lines</th>
+<th>Lane</th>
+<th>Why this position</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P0a</td>
+<td>Tooling and ratchets</td>
+<td><code>eslint.config.mjs</code>, <code>package.json</code>, <code>scripts/check-css-budget.mjs</code> + <code>css-budget.json</code>, <code>scripts/hooks/lint-on-edit.mjs</code>, <code>scripts/check-ci-invariants.sh</code>, <code>tests/visual/probe.spec.ts</code>, <code>scripts/visual/*</code>, <code>scripts/codemods/snap-arbitrary-values.mjs</code> (fix <code>max-md</code>), <code>DESIGN.md</code>, <code>evals/ui-change-eval.md</code></td>
+<td>0 CSS</td>
+<td>trunk</td>
+<td><code>@shadcn/lint</code> is not on <code>main</code>. No runtime change. Everything downstream depends on the probe and the ratchet existing.</td>
+</tr>
+<tr>
+<td>P0b</td>
+<td>Cascade environment</td>
+<td><code>styles.css</code> (layer move), all remaining sheets into <code>@layer components</code>, <code>00-base.css</code> <strong>deleted</strong>, <code>index.css</code> (+<code>@layer base</code> relocation, <code>--app-*</code> mirror, <code>--chart-*</code> removed)</td>
+<td>51</td>
+<td>trunk</td>
+<td>Removes the <code>!</code> tax from all nine slices at once. One intended, enumerated diff set: form-control sizes in the authenticated app, link colours, legal-page typography, and every utility that was dead.</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Delete-only</td>
+<td><code>10-media-picker.css</code> <strong>deleted</strong> (0 consumers, verified); ~78 dead classes across the partials; the drag feature or its rewire; <code>TonyRoute.tsx</code> decision</td>
+<td>84+</td>
+<td>trunk</td>
+<td>Zero-diff by construction. Shrinks S5, S6 and S9 before anyone reads them.</td>
+</tr>
+<tr>
+<td>S1</td>
+<td>Surface languages</td>
+<td><code>button-surface.css</code> <strong>deleted</strong> (286), <code>chrome.css</code> <strong>deleted</strong> (162) → <code>button.tsx</code> cva, new <code>ui/surface.tsx</code>, <code>@utility glass</code> / <code>glass-media</code> + <code>--btn-*</code> / <code>--cg-*</code> tokens in <code>index.css</code></td>
+<td>448</td>
+<td>trunk</td>
+<td>30 and 55 consumer files. Four later slices contain hand-copies of these rules (<code>19-record-video.css:398-427</code> says so in its own comment). Doing this last means touching those slices twice.</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>App shell, topbar, layout</td>
+<td><code>01-app-shell.css</code> (499), <code>02-topbar.css</code> (566), <code>05-layout.css</code> (96), <code>16-responsive.css</code> (48), <code>04-status-eyebrow.css</code> (43)</td>
+<td>1,252</td>
+<td>A</td>
+<td>On every authenticated page. <code>16-responsive</code> and <code>04</code> dissolve into the files that own their base rules. Owns <code>AppSidebar.tsx</code>, <code>EditorTopbar.tsx</code>, <code>EditorWorkspace.tsx</code>, <code>PageHeader.tsx</code>.</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>Small shared families</td>
+<td><code>12-state-cards.css</code> (54), <code>20-settings.css</code> (46), <code>21-contacts.css</code> (24), <code>Accordion.css</code> (95)</td>
+<td>219</td>
+<td>A</td>
+<td>Clears Settings, Contacts, Leads and Admin in one cheap pass. Blocked on an admin e2e identity.</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Forms and property panel</td>
+<td><code>06-forms.css</code> (317), <code>18-property-panel.css</code> (402), <code>08-color-picker.css</code> (166), <code>09-dynamic-lists.css</code> (135), <code>11-form-editor.css</code> (134)</td>
+<td>1,154</td>
+<td>A</td>
+<td>The editor sidebar. Depends on S1 for <code>[data-surface=&quot;panel&quot;]</code>. Outside <code>.jp-theme</code>.</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Record video</td>
+<td><code>19-record-video.css</code> (806)</td>
+<td>806</td>
+<td>B</td>
+<td>Self-contained route. Cheap after S1 deletes its copy of the outline variant; expensive before it.</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>Video modals and player</td>
+<td><code>22-video-edit-modal.css</code> (704), <code>25-video-stats-modal.css</code> (408), <code>VideoPlayer.css</code> (97)</td>
+<td>1,209</td>
+<td>B</td>
+<td><code>25</code> has a single consumer and is attribute-driven, so it is the easy half. Owns <code>VideoPlayer.tsx</code>.</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>Library and picker</td>
+<td><code>MediaPicker.css</code> (367), <code>MediaPickerDialog.css</code> (172), the <code>.workspace-library-*</code> / <code>.library-*</code> / <code>.learn-*</code> half of <code>14-library.css</code> (~120)</td>
+<td>659</td>
+<td>B</td>
+<td>91 consumer files for <code>MediaPicker.css</code> alone. Owns <code>MediaPicker.tsx</code>. Its two <code>.jp-theme</code> rules are selector scoping and need no prerequisite.</td>
+</tr>
+<tr>
+<td>S8</td>
+<td>Canvas and preview parity</td>
+<td><code>17-canvas-inline-edit.css</code> (188), <code>24-block-reorder.css</code> (152), <code>23-add-section.css</code> (128), <code>07-tiptap.css</code> (144), <code>CtaRowEditor.css</code> (234), <code>SummaryTableEditor.css</code> (301), <code>GalleryEditor.css</code> (160), <code>FaqListEditor.css</code> (127), <code>JourneyMediaResizer.css</code> (98), <code>InlineText.css</code> (12), the <code>.lp-*</code> half of <code>14-library.css</code> (~134)</td>
+<td>1,678</td>
+<td>after A+B</td>
+<td>Two jobs, not one: migrate the <em>editing affordances</em> to utilities, and delete the <em>renderer mirrors</em> by making <code>LivePreview.tsx</code> emit the SSR attributes. Gate is SSR-vs-preview parity. Owns <code>LivePreview.tsx</code>.</td>
+</tr>
+<tr>
+<td>S9</td>
+<td>Auth and marketing</td>
+<td><code>LoginRoute.css</code> (641), <code>PublicHomeRoute.css</code> (329), <code>TermsRoute.css</code> (206), <code>PrivacyRoute.css</code> (199), <code>TeamsRoute.css</code> (29)</td>
+<td>1,404</td>
+<td>C</td>
+<td>Independent of every other lane; only dependency is S1. <code>Terms</code>/<code>Privacy</code> are vendor-HTML theming and cannot go to zero — see change 6. Fixes the 3-of-7 CTA bug.</td>
+</tr>
+</tbody></table>
+<p>Total: about 8,960 lines, plus <code>styles.css</code> itself when the last <code>@import</code> goes. Four trunk PRs, eight slice PRs, three lanes.</p>
+<hr>
+<h1>Appendix B: Codex critique of plan v1</h1>
+<h2>Changes to the plan</h2>
+<ol>
+<li><p><strong>Insert a migration-platform slice before touching global CSS.</strong> The first slice proved the process, but its most valuable tools remained disposable: the computed-style probe was copied temporarily into <code>tests/visual/</code> and produced roughly 97 MB per run (<a href="/tmp/css-home/wave2-report.md:23">wave2-report.md:23</a>); the diff-region and crop tools stayed under <code>.context</code> (<a href="/tmp/css-home/wave3-report.md:94">wave3-report.md:94</a>). The current visual suite also depends on a mutable pro account and discovers a page dynamically (<a href="/Users/williamlarsten/Development/clarity-css-home/tests/visual/home-library.spec.ts:11">home-library.spec.ts:11</a>, <a href="/Users/williamlarsten/Development/clarity-css-home/tests/visual/home-library.spec.ts:120">home-library.spec.ts:120</a>).</p>
+<p><strong>Replacement text:</strong> “Slice 0 lands <code>just css-migration-baseline &lt;slice&gt; &lt;base-sha&gt;</code>, <code>just css-migration-verify &lt;slice&gt; &lt;base-sha&gt;</code>, and <code>just css-migration-report &lt;slice&gt;</code>; deterministic API fixtures for public, protected, admin, editor, recorder, and modal states; scoped computed-style snapshots; connected-region/crop reporting; and orphan-selector analysis. It also deletes <code>10-media-picker.css</code>, whose five selectors have zero consumers.”</p>
+</li>
+<li><p><strong>Keep parity-then-normalization in one PR, but make parity a two-part gate.</strong> That core recipe is right. Screenshots alone are not: the wave-2 probe caught lost borders, line-height, flex direction, radii, shadows, and focus behavior that the screenshots missed (<a href="/tmp/css-home/wave2-report.md:25">wave2-report.md:25</a>). Wave 3 then found an upload-scrim regression outside the 16 screenshots (<a href="/tmp/css-home/wave3-report.md:142">wave3-report.md:142</a>).</p>
+<p><strong>Replace recipe steps 2–5 with:</strong> “Each slice has a committed state manifest. Capture the base twice; require zero screenshot and scoped computed-style differences at the parity commit; normalize; generate a machine-readable list of changed regions/properties; classify every change as intended or defect; then approve the normalized goldens. The manifest and driver remain in the repository and join the cumulative regression suite.”</p>
+</li>
+<li><p><strong>Make <code>00-base.css</code> a standalone global-cascade slice; move the other five files out of it.</strong> <code>16-responsive.css</code> is not a base stylesheet: it targets the editor split layout and topbar exclusively (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles/16-responsive.css:5">16-responsive.css:5</a>). The real risk in <code>00-base.css</code> is the unlayered declaration blocking component typography, not merely “losing font inheritance”; the reports measured that <code>text-*</code> utilities could not win (<a href="/tmp/css-home/wave3-report.md:266">wave3-report.md:266</a>). Preserve <code>font-synthesis: style</code>, because journey fonts rely on it (<a href="/Users/williamlarsten/Development/clarity-css-home/packages/journey-page-domain/src/theme.ts:126">theme.ts:126</a>).</p>
+<p><strong>Replacement rows:</strong> “Global cascade and font loading: <code>00-base.css</code>, 51 lines”; “Editor frame/topbar/responsive: <code>02-topbar.css</code>, <code>05-layout.css</code>, <code>16-responsive.css</code>, 710 lines”; and “Protected shell/route chrome: <code>01-app-shell.css</code>, <code>04-status-eyebrow.css</code>, <code>12-state-cards.css</code>, <code>20-settings.css</code>, <code>21-contacts.css</code>, 666 lines.”</p>
+<p>At the parity checkpoint, keep the existing Geist loading boundary. During normalization, move <code>@fontsource-variable/geist</code> from the protected-only aggregator (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles.css:8">styles.css:8</a>, <a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/routes/ProtectedEditorLayout.tsx:21">ProtectedEditorLayout.tsx:21</a>) to the eager entry. <code>index.css</code> currently names Geist globally without loading it globally (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/index.css:38">index.css:38</a>).</p>
+</li>
+<li><p><strong>Make the journey namespace an atomic prerequisite PR, and namespace more than colors.</strong> <code>buildJourneyTheme()</code> currently installs app-colliding color, radius, and font variables on <code>.jp-theme</code> (<a href="/Users/williamlarsten/Development/clarity-css-home/packages/journey-page-domain/src/theme.ts:72">theme.ts:72</a>). Renaming only colors still leaves <code>rounded-*</code> and <code>font-heading</code> utilities inside the canvas bound to customer values.</p>
+<p><strong>Replacement text:</strong> “Atomically rename all journey-owned generic variables: the 12 semantic colors to <code>--jp-*</code>, plus <code>--radius</code>, <code>--radius-button</code>, <code>--radius-input</code>, <code>--font-heading</code>, and <code>--font-body</code> to their <code>--jp-*</code> equivalents. Update <code>theme.ts</code>, <code>journey-page-styles.ts</code>, every preset, both renderers, and intentional editor reads in one PR. Do not leave generic aliases on <code>.jp-theme</code>, because aliases preserve the collision.”</p>
+<p>Replace the current test that deliberately pins the generic key set (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/tests/journey-page-theme.test.ts:67">journey-page-theme.test.ts:67</a>) with an AST invariant that the emitted theme and all <code>.jp-theme</code> CSS declare none of the forbidden app-token names, plus pixel parity across all six presets and both renderers.</p>
+</li>
+<li><p><strong>Move the surface-language slice immediately after the namespace prerequisite.</strong> Leaving it last makes every earlier migration target a styling layer that is then redesigned. <code>button-surface.css</code> and <code>chrome.css</code> are foundational, with 30 and 55 inventoried consumers respectively; <code>chrome.css</code> also ships through both the protected aggregator and <code>VideoPlayer</code> (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/components/VideoPlayer.tsx:15">VideoPlayer.tsx:15</a>).</p>
+<p><strong>Replacement text:</strong> “<code>Button</code> CVA owns each button’s face and states. A <code>Surface</code>/<code>Chrome</code> primitive owns altitude and density through <code>data-surface=&quot;hero|panel|floating|media&quot;</code>. Buttons read that ancestor context from their CVA classes. <code>ButtonBase</code> remains unpainted. Port <code>ChromeBar</code>, separators, segmented controls, and chips as primitives.” This preserves the existing, correct container-owned principle documented in <a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/components/ui/button-surface.css:27">button-surface.css:27</a> without retaining global descendant CSS.</p>
+</li>
+<li><p><strong>Split shell/navigation from the editor topbar and AI composer.</strong> The proposed “shell and topbar” slice hides two distinct state machines. More than half of <code>02-topbar.css</code> is the Generate button, composer, chips, suggestions, feedback, and Style popover, beginning at <a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles/02-topbar.css:198">02-topbar.css:198</a>. Its responsive rules are coupled to <code>05-layout.css</code> and <code>16-responsive.css</code>.</p>
+<p><strong>Replacement rows:</strong> “Protected shell and route chrome, 666 lines” and “Editor frame, topbar, AI composer, and responsive behavior, 710 lines.” The former owns sidebar, PageHeader/status, shared state cards, Settings shell, and Contacts wrapper; the latter owns <code>/new</code> and <code>/edit</code> layout, topbar, popovers, and the 900/720 breakpoints.</p>
+</li>
+<li><p><strong>Regroup media by actual interaction dependencies, and move Accordion beside reorder.</strong> <code>MediaPicker.css</code> contains both a side-panel picker and a canvas overlay (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/components/MediaPicker.css:183">MediaPicker.css:183</a>); that overlay directly coordinates with <code>VideoPlayer</code> (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/components/MediaPicker.css:247">MediaPicker.css:247</a>) and <code>JourneyMediaResizer</code> (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/components/editor/JourneyMediaResizer.css:7">JourneyMediaResizer.css:7</a>). Conversely, <code>24-block-reorder.css</code> directly manipulates Accordion panels and sections (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles/24-block-reorder.css:74">24-block-reorder.css:74</a>).</p>
+<p><strong>Replacement rows:</strong> “Media surfaces: <code>MediaPicker.css</code>, <code>MediaPickerDialog.css</code>, <code>14-library.css</code>, <code>VideoPlayer.css</code>, <code>JourneyMediaResizer.css</code>, 988 lines”; and “Structured canvas/reorder: <code>SummaryTableEditor.css</code>, <code>GalleryEditor.css</code>, <code>24-block-reorder.css</code>, <code>23-add-section.css</code>, <code>Accordion.css</code>, 836 lines.” Delete the conflicting <code>.lp-page</code> fallback in <code>14-library.css</code> where the shared journey stylesheet already owns the page, rather than migrating that duplicate.</p>
+</li>
+<li><p><strong>Treat record and edit as one coupled transport slice; keep stats separate.</strong> Record video is not self-contained. <code>22-video-edit-modal.css</code> overrides <code>.record-trimmer</code>, <code>.record-trim-*</code>, and <code>.video-preview-picker</code> owned by <code>19-record-video.css</code> (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles/22-video-edit-modal.css:311">22-video-edit-modal.css:311</a>), and it changes <code>.record-main</code> at mobile width (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles/22-video-edit-modal.css:596">22-video-edit-modal.css:596</a>).</p>
+<p><strong>Replacement text:</strong> “Migrate shared <code>VideoTrimmer</code>, <code>VideoFilmstrip</code>, <code>VideoPreviewPicker</code>, and <code>VideoTimelineDock</code> first inside one PR; then the <code>/record</code> and edit-modal layouts; delete <code>19-record-video.css</code> and <code>22-video-edit-modal.css</code> together. Keep <code>25-video-stats-modal.css</code> as its own 408-line slice because it has one stateful consumer and a separate API/state matrix.”</p>
+</li>
+<li><p><strong>Split the public-route island into auth, marketing, and legal slices.</strong> They have different risks and should not share one 1,400-line review. Auth privately reimplements Input and Button appearance (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/routes/LoginRoute.css:217">LoginRoute.css:217</a>, <a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/routes/LoginRoute.css:496">LoginRoute.css:496</a>); replace those with shared variants, not another hand implementation. <code>TonyRoute.tsx</code> is a 353-line copy of the 353-line home route, differing mainly in copy and analytics. Terms and Privacy render legacy raw HTML and then undo its wrappers and utility classes with <code>!important</code> and selector shims (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/routes/public/TermsRoute.tsx:35">TermsRoute.tsx:35</a>, <a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/routes/public/TermsRoute.css:20">TermsRoute.css:20</a>).</p>
+<p><strong>Replacement rows:</strong> “Auth, 641 lines”; “Marketing, 358 lines”; “Legal documents, 405 lines.” Keep <code>/tony</code>, but replace the duplicate implementation with a configured <code>PublicLanding</code>. Replace the legacy legal wrapper markup with clean semantic HTML rendered by one <code>LegalDocument</code> component, preserving exact legal text by snapshot/hash. Delete Teams’ one-off remote Inter import (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/routes/public/TeamsRoute.css:1">TeamsRoute.css:1</a>) unless product explicitly chooses a route-specific font.</p>
+</li>
+<li><p><strong>Keep the forms/property grouping, but define its architectural output; split canvas into two behavior slices.</strong> The five form files do share consumers and can remain one slice. The acceptance criterion should be reusable editor controls—such as <code>EditorField</code>, <code>EditorControlRow</code>, <code>ColorField</code>, and <code>SegmentedControl</code>—rather than moving hundreds of declarations into call-site strings. The plan is also right to leave canvas work late, but 1,650 interaction-heavy lines are too much for one parity review.</p>
+<p><strong>Replacement rows:</strong> “Editor control system: <code>06</code>, <code>08</code>, <code>09</code>, <code>11</code>, <code>18</code>, 1,154 lines”; “Inline canvas/content editing: <code>17</code>, <code>07</code>, <code>CtaRowEditor</code>, <code>FaqListEditor</code>, <code>InlineText</code>, 705 lines”; and the 836-line structured/reorder row above.</p>
+</li>
+<li><p><strong>Generalize the normalization codemod and make semantic changes opt-in.</strong> It currently hard-codes the first slice’s files (<a href="/Users/williamlarsten/Development/clarity-css-home/scripts/codemods/snap-arbitrary-values.mjs:17">snap-arbitrary-values.mjs:17</a>). It also automatically maps inclusive <code>max-width:768px/640px</code> conditions to exclusive Tailwind variants (<a href="/Users/williamlarsten/Development/clarity-css-home/scripts/codemods/snap-arbitrary-values.mjs:158">snap-arbitrary-values.mjs:158</a>), precisely the untested regression flagged in wave 3 (<a href="/tmp/css-home/wave3-report.md:284">wave3-report.md:284</a>).</p>
+<p><strong>Replacement text:</strong> “Accept <code>--files-from &lt;slice-manifest&gt;</code> and emit a JSON review ledger. Apply only provably equivalent rewrites by default. Breakpoint renames, <code>transform</code>→<code>translate</code>, <code>999px</code>→<code>rounded-full</code>, easing changes, and scale snapping require named <code>--accept</code> decisions and corresponding boundary/probe cases. Keep idempotence and real-Tailwind generation tests.”</p>
+</li>
+<li><p><strong>Replace the long stacked-PR chain with a short dependency spine and rebased, independently shippable PRs.</strong> Main auto-deploys after every merge, and the repository’s merge rule requires proof and UI sign-off (<a href="/Users/williamlarsten/Development/clarity-css-home/docs/agents/pipeline.md:12">pipeline.md:12</a>). A many-PR stack makes every baseline and public report stale after an early normalization changes shared primitives.</p>
+<p><strong>Replacement text:</strong> “Merge slices 0–3 sequentially. After Surface lands, route-isolated Auth, Marketing, Legal, and Protected-shell work may proceed in parallel from that merged SHA, but no reviewable PR targets another feature branch. Before merge, rebase onto current main, regenerate proof against that exact parent SHA, publish the report, merge one PR, and monitor production before the next. Preserve the parity commit SHA in the report even if the merge strategy squashes it.”</p>
+</li>
+<li><p><strong>Replace the line-count ratchet with a path/class/AST ratchet.</strong> A per-file line ceiling can be bypassed by adding a new file, minifying declarations, moving CSS to another directory, or dumping component selectors into <code>index.css</code>. The current shadcn rules are warnings (<a href="/Users/williamlarsten/Development/clarity-css-home/eslint.config.mjs:111">eslint.config.mjs:111</a>); the edit hook only recognizes TS/TSX (<a href="/Users/williamlarsten/Development/clarity-css-home/scripts/hooks/lint-on-edit.mjs:26">lint-on-edit.mjs:26</a>).</p>
+<p><strong>Replacement text:</strong></p>
+<ul>
+<li>Commit <code>editor-css-legacy.json</code> containing every allowed legacy CSS path, maximum nonblank lines, declaration count, and exact legacy class names. Fail new paths/imports/classes, per-file or total growth, or resurrection of a deleted path.</li>
+<li>Turn every shadcn rule, including <code>no-unknown-classes</code>, on at error now. Allow only the exact committed legacy-class list and shrink it each slice. Use per-file suppressions for existing raw colors, arbitrary values, inline styles, and restyling; no count may rise.</li>
+<li>Stop exempting all of <code>components/ui</code> from appearance rules: exempt it only from <code>no-restyle</code>, while enforcing raw-color, arbitrary-value, static-class, inline-style, and unknown-class rules there.</li>
+<li>Add a PostCSS test for <code>index.css</code> that permits tokens, <code>.dark</code>, narrowly approved base rules, <code>@theme</code>, keyframes, and <code>@utility</code>, but rejects feature/component selectors. Treat “under 400 lines” as a reporting target, not the integrity gate.</li>
+<li>Run the ratchet through <code>scripts/*.test.mjs</code>, which root <code>pnpm test</code> already reaches, and expose it as <code>just css-ratchet</code>. Route CSS edits to that recipe from the hook; do not pass CSS files to ESLint.</li>
+<li>Report compiled CSS bytes and unique generated utilities per slice so hand-written CSS is not replaced by a larger generated bundle.</li>
+</ul>
+</li>
+<li><p><strong>Correct the baseline and make completion binary.</strong> The draft has rows 0–8—nine slices—but says eight. The inventory is exactly 8,964 remaining lines across 40 files, excluding the 33-line aggregator.</p>
+<p><strong>Replacement text:</strong> “Completion means: no <code>.css</code> under <code>editor/src</code> except <code>index.css</code>; <code>styles.css</code> and its protected-route import are gone; the legacy path and class allowlists are empty; <code>no-unknown-classes</code> needs no legacy exception; every cumulative state manifest passes; and compiled CSS size is reported.”</p>
+<p>The reports’ frozen-lockfile caveat is stale in this checkout: both <a href="/Users/williamlarsten/Development/clarity-css-home/package.json:62">package.json:62</a> and <a href="/Users/williamlarsten/Development/clarity-css-home/pnpm-lock.yaml:25">pnpm-lock.yaml:25</a> now pin <code>@shadcn/lint</code> to <code>0.1.0</code>. Slice 0 should still prove a clean frozen install instead of relying on existing <code>node_modules</code>.</p>
+</li>
+</ol>
+<h2>Answers to the open questions</h2>
+<ol>
+<li><p><strong>No merge.</strong> Tooling first, then <code>00-base.css</code> alone. Surface primitives should precede shell/topbar; <code>16-responsive.css</code> belongs with the editor frame, not base.</p>
+</li>
+<li><p><strong>Yes.</strong> Make it its own atomic PR before Surface and every media/canvas slice, and namespace journey colors, shape, and typography—not colors alone.</p>
+</li>
+<li><p><strong>Use the matrix below.</strong> Every slice needs deterministic route screenshots plus a scoped computed-style/state probe; screenshots alone are not an honest parity gate.</p>
+</li>
+<li><p><strong>Use both ownership levels.</strong> Button faces belong in Button CVA; altitude/density belongs to a container <code>Surface</code>/<code>Chrome</code> variant. Keep <code>ButtonBase</code> paintless.</p>
+</li>
+<li><p><strong>Delete rather than migrate:</strong> <code>10-media-picker.css</code>; unreachable folder-DnD code unless it first gains a real caller; dead selectors/components found by the orphan audit; duplicate Tony implementation; legacy legal wrappers/shims; duplicate <code>.lp-page</code> fallback declarations; and unused <code>--chart-*</code> tokens. Keep the <code>/tony</code> behavior and legal text.</p>
+</li>
+<li><p><strong>Use a closed allowlist ratchet.</strong> Gate paths, declarations, exact legacy class names, <code>index.css</code> AST shape, shadcn violations, and compiled CSS size; run it in CI and on CSS edits. Every list only shrinks.</p>
+</li>
+</ol>
+<h2>Per-slice harness cases</h2>
+<p><code>D</code> means 1440×1800 desktop; <code>M</code> means 390×844 touch. “Light/dark” refers to the app color scheme; journey presets remain a separate axis. Each named interaction state is a separate golden. Fixture media should be local and deterministic; do not mask the specific surface being migrated.</p>
+<ul>
+<li><p><strong>0 — Migration platform/dead code.</strong> Re-run the existing 16 Home/Library cases using deterministic fixtures: root, folder, empty, four library tabs, card hover, loading, error, picker dialog, Learn, and M Home. No new visual golden is needed for <code>10-media-picker.css</code>; require static and runtime zero-match proof for every deleted selector. No manual pair.</p>
+</li>
+<li><p><strong>1 — Global cascade/font.</strong> <code>/</code> hero, <code>/login</code> empty door, <code>/home?library=videos</code> populated and search-focused, <code>/edit/:fixture</code> with visible property controls, <code>/settings/branding</code>, and <code>/terms</code>; D light/dark, plus <code>/login</code> and <code>/terms</code> at M light/dark. Probe root, anchor, Button, ButtonBase, Input, Select, Textarea, checkbox, and range for font family/size/line-height, color, decoration, border, focus, and rect. No manual substitute.</p>
+</li>
+<li><p><strong>2 — Journey namespace.</strong> <code>/journey_pages/landing/:fixture</code> and <code>/edit/:fixture</code> for all six presets at D; <code>clean</code> and <code>noir</code> at M; editor captures in app light and dark. Require zero pixels. Probe every old/new variable on root, alternating section, hero, form, media, and CTA, plus an app Button/Chrome control inside the preview to prove it retains app tokens. No manual pair.</p>
+</li>
+<li><p><strong>3 — Surface/Button/Chrome.</strong> <code>/home</code> headline actions/sidebar; <code>/edit/:fixture</code> property-panel buttons, inline toolbar, media toolbar; <code>/record</code> record action/device menu; <code>/</code> public VideoPlayer. Capture D light/dark and the media toolbar at M touch. Probe every Button variant across <code>hero</code>, <code>panel</code>, <code>floating</code>, and <code>media</code>, in rest/hover/keyboard-focus/open/pressed/disabled states, including coarse pointer and reduced transparency. Use a WebKit/manual pair for busy-photo backdrop and unsupported-backdrop fallback.</p>
+</li>
+<li><p><strong>4 — Auth.</strong> <code>/login</code>: empty door, known-user password expanded, wrong-password, rate-limited, busy/disabled, SSO failure, and last-used tile; <code>/forgot-password</code>: form, error, sent; <code>/reset-password</code>: valid form, validation error, submitting, invalid token. Core login states at D and M light/dark; secondary states D light plus one dark error. Probe collapsed-slot geometry, keyboard focus, autofill animation name, disabled tiles, and reduced motion. Browser-managed autofill needs a manual Chromium/WebKit pair.</p>
+</li>
+<li><p><strong>5 — Marketing.</strong> <code>/</code>, <code>/tony</code>, <code>/teams</code>, <code>/updates</code>: D light/dark and M light; <code>/</code> and <code>/tony</code> CTA hover/keyboard focus; hero VideoPlayer paused/playing/error. Probe pseudo-element backgrounds, animation names, reduced-motion behavior, header CTA surface, and metadata/analytics invariants. Use a manual pair only for actual fullscreen playback.</p>
+</li>
+<li><p><strong>6 — Legal.</strong> <code>/terms</code> and <code>/privacy</code>: top, representative nested section/list, and footer at D light/dark and M light/dark. Add DOM assertions for exact normalized text/hash, heading hierarchy, list counts, links, document landmark, and removal of hidden legacy wrappers. Screenshots are secondary; no computed-style dump or manual pair is needed.</p>
+</li>
+<li><p><strong>7 — Protected shell/route chrome.</strong> <code>/home</code>: sidebar expanded/collapsed, folder tree expanded, folder menu open, rename focused, user menu; <code>/contacts</code>: populated, empty, loading/error, selection toolbar; <code>/settings/branding</code>: active navigation; <code>/admin/users</code> and <code>/admin/organizations</code>: loading and ready fixtures. D light/dark and M light/dark; Settings also at 768 px. Probe collapsed widths, menu portals, focus-visible states, and 769/768/767 behavior. This slice is blocked until Slice 0 supplies an admin fixture.</p>
+</li>
+<li><p><strong>8 — Editor frame/topbar/AI.</strong> <code>/new</code> and <code>/edit/:fixture</code>: panel shown/hidden, short and long page name focused, Generate popover empty, suggestions overflowing, chip hover/focus, generating, error, and Style popover. Capture D light/dark, 900 px, 720 px, and M light/dark. Probe <code>page-name-sizer::after</code>, popover rects, animation/reduced-motion state, and widths 901/900/899 and 721/720/719.</p>
+</li>
+<li><p><strong>9 — Editor control system.</strong> <code>/edit/:fixture</code>: all primitive field types, presets/font cards, segmented controls, dynamic-list rows, form editor validation, add/delete/disabled states, color picker open/focused, and range at minimum/middle/maximum. Capture D and M light/dark. Probe label/control alignment, portaled select/popover geometry, and keyboard focus. Native range track/thumb painting requires Chromium and Firefox screenshot pairs rather than relying only on pseudo-element computed styles.</p>
+</li>
+<li><p><strong>10 — Media surfaces.</strong> <code>/learn</code>: grid plus VideoPlayer idle/playing/error; <code>/edit/:fixture</code>: media dialog root/folder/search/no-results, side-panel picker empty/filled, canvas image/video empty/paused/playing/error, overlay toolbar, and active resize. Capture D light/dark, 720 px, 520 px, and M touch; use both <code>clean</code> and <code>noir</code> journey presets. Probe portal inheritance, range geometry, resize bounds, customer/app token separation, and widths 721/720/719, 761/760/759, and 521/520/519. Use manual WebKit/iOS pairs for native fullscreen and media-permission behavior.</p>
+</li>
+<li><p><strong>11 — Video stats.</strong> Open from <code>/home?library=videos</code>: loading, ready with multiple views, active graph/readout hover, no views, partial rows, and API error. Capture D light/dark, 720 px, and M light/dark. Probe SVG path/bounds, playhead pseudo-element, readout position, focus trap, and 721/720/719 layout. No manual pair.</p>
+</li>
+<li><p><strong>12 — Inline canvas/content editors.</strong> <code>/edit/:fixture</code> containing hero, story, CTA, FAQ, and logos: rest, text hover, editing/focus, empty placeholder, selection toolbar, link editor, CTA hover/add/delete, FAQ open/edit. Capture D and M in app light/dark with <code>clean</code>, <code>bold</code>, and <code>noir</code> presets. Probe contenteditable selection, placeholder pseudo-elements, toolbar portal position, and page-token versus app-token sources. Use one manual IME/composition pair if the DOM changes during composition.</p>
+</li>
+<li><p><strong>13 — Structured canvas/reorder.</strong> <code>/edit/:fixture</code>: summary table default/edit/reorder, gallery empty/filled/reorder, Accordion open/closed, side-panel block reorder, Add Section open/highlighted, canvas section lifted and drop slot. Capture D and M touch in app light/dark with <code>clean</code>, <code>warm</code>, <code>bold</code>, and <code>noir</code>. Probe equal Accordion row heights—the reorder math depends on them (<a href="/Users/williamlarsten/Development/clarity-css-home/editor/src/styles/24-block-reorder.css:1">24-block-reorder.css:1</a>)—plus transforms, bounding boxes, pointer capture, keyboard move fallback, and focus-visible state. Use an actual held-pointer screenshot; do not substitute a manually added class.</p>
+</li>
+<li><p><strong>14 — Recorder/edit transport and closeout.</strong> <code>/record</code>: permission prompt, ready, countdown, recording, paused, layout picker, device menu, finished/trimmer, upload/polishing, and error; video edit modal from <code>/home?library=videos</code>: loading, metadata, summary timeline, active trim, preview selection, saving, and save error. Capture D light/dark, sidebar-expanded/collapsed container widths, 780, 760, 768, 640, and M touch. Probe the 60rem container boundary, viewport boundaries ±1 px, timeline/handle pseudo-elements, audio-level custom property, reduced motion/transparency, and coarse-pointer hit areas. CI uses fake media streams; real camera permission chrome, device switching, and iOS fullscreen need manual before/after pairs.</p>
+</li>
+</ul>
+<h2>Risks the plan misses</h2>
+<ul>
+<li><p><strong>The prerequisite is an external styling-contract change.</strong> Generated <code>styleAttr</code> names may be consumed by embeds or custom code even if stored documents do not contain them. Audit production HTML/customization before removing generic aliases.</p>
+</li>
+<li><p><strong>Global font loading is currently inconsistent.</strong> Moving Geist into the eager bundle deliberately repaints auth/legal routes and changes bundle weight; leaving it where it is means <code>font-sans</code> lies on public routes.</p>
+</li>
+<li><p><strong>CSS chunk availability can regress.</strong> <code>chrome.css</code> currently reaches public VideoPlayer through a direct import. The replacement must remain available on public routes after <code>styles.css</code> disappears.</p>
+</li>
+<li><p><strong>Portal context can sever container-owned styling.</strong> Dialogs, menus, tooltips, and popovers mounted under <code>body</code> will not inherit a <code>data-surface</code> ancestor outside the portal. Put the surface marker on portal content and test it there.</p>
+</li>
+<li><p><strong>Exact breakpoint semantics are already known to drift.</strong> Named Tailwind <code>max-*</code> variants exclude the nominal boundary while legacy <code>max-width</code> includes it. Recorder/edit also combines 640, 760, 768, 780, and a 60rem container query.</p>
+</li>
+<li><p><strong>Tailwind source discovery is route/package sensitive.</strong> Classes moved into a shared package or dynamically assembled string may generate no CSS because scanning is rooted in <code>editor</code>; add an explicit <code>@source</code> or keep literal styling contracts inside the editor.</p>
+</li>
+<li><p><strong>Current screenshots hide too much and use mutable data.</strong> Masking all images/video and relying on a live account can conceal scrims, overlays, wrapping, and empty-state changes. Fixtures must control asset dimensions and content.</p>
+</li>
+<li><p><strong>Browser-owned controls need cross-browser evidence.</strong> Range thumbs, backdrop filters, autofill, media permissions, fullscreen, pointer-coarse behavior, and reduced transparency are not honestly covered by the Chromium-only resting-state suite.</p>
+</li>
+<li><p><strong>Large normalization diffs can hide accessibility regressions.</strong> Wave 3 had all 16 screenshots fail intentionally, yet a real defect remained elsewhere. Focus rings, hit targets, contrast, reduced motion, keyboard order, and accessible names need independent assertions.</p>
+</li>
+<li><p><strong>Partial migration preserves source-order hazards.</strong> There are selectors defined across ordered partials and colocated CSS. During intermediate slices, a utility may still lose to an unrelated unlayered rule; every slice needs a residual-selector/import scan.</p>
+</li>
+<li><p><strong>Near-zero source CSS does not guarantee a smaller or simpler output.</strong> Large arbitrary utility strings can increase generated CSS and duplicate contracts across call sites. Track compiled CSS size and repeated class sequences.</p>
+</li>
+<li><p><strong>Semantic legal cleanup can alter regulated content.</strong> Preserve exact visible text, links, dates, and heading/list semantics with tests; do not review it only as a styling diff.</p>
+</li>
+<li><p><strong>Parallel PRs can invalidate visual proof.</strong> Any merge changing shared primitives or <code>index.css</code> changes another PR’s base. Reports must name the exact base, parity, and normalized SHAs and be regenerated after rebasing.</p>
+</li>
+</ul>
+<h2>Revised slice table</h2>
+<p>Paths are relative to <code>editor/src</code> unless shown otherwise.</p>
+<table>
+<thead>
+<tr>
+<th align="right">#</th>
+<th>Slice</th>
+<th>Files retired or changed</th>
+<th align="right">Inventoried lines retired</th>
+<th>Ordering rationale</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">0</td>
+<td>Migration platform and dead-code cut</td>
+<td>Delete <code>styles/10-media-picker.css</code>; default-delete unreachable <code>lib/folder-dnd.ts</code> flow and residual drop styling; add fixtures, tools, recipes, and ratchets</td>
+<td align="right">84</td>
+<td>Guardrails and deterministic state construction must precede global changes</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td>Global cascade and font loading</td>
+<td><code>styles/00-base.css</code>; normalize the Geist import boundary</td>
+<td align="right">51</td>
+<td>Removes the unlayered base that defeats utilities while isolating its app-wide blast radius</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td>Journey namespace prerequisite</td>
+<td><code>packages/journey-page-domain/src/theme.ts</code>, <code>theme-presets.ts</code>, <code>journey-page-styles.ts</code>; both renderers, intentional editor reads, and tests</td>
+<td align="right">0</td>
+<td>Makes app utilities safe inside <code>.jp-theme</code>; atomic zero-pixel refactor</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td>Surface, Button, and Chrome primitives</td>
+<td><code>components/ui/button-surface.css</code>, <code>components/ui/chrome.css</code></td>
+<td align="right">448</td>
+<td>Establishes the design-system target before later slices normalize onto it</td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td>Auth</td>
+<td><code>routes/LoginRoute.css</code></td>
+<td align="right">641</td>
+<td>Uses the new Button/Input/Surface contracts; isolated stateful public route</td>
+</tr>
+<tr>
+<td align="right">5</td>
+<td>Marketing</td>
+<td><code>routes/PublicHomeRoute.css</code>, <code>routes/public/TeamsRoute.css</code>; consolidate <code>TonyRoute</code> into configured shared landing</td>
+<td align="right">358</td>
+<td>Route island independent after Slice 3; removes duplicate glass and font language</td>
+</tr>
+<tr>
+<td align="right">6</td>
+<td>Legal documents</td>
+<td><code>routes/public/TermsRoute.css</code>, <code>routes/public/PrivacyRoute.css</code>; replace legacy wrappers with semantic <code>LegalDocument</code> content</td>
+<td align="right">405</td>
+<td>Separate review for content/DOM invariants rather than mixing with visual marketing normalization</td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td>Protected shell and route chrome</td>
+<td><code>styles/01-app-shell.css</code>, <code>04-status-eyebrow.css</code>, <code>12-state-cards.css</code>, <code>20-settings.css</code>, <code>21-contacts.css</code></td>
+<td align="right">666</td>
+<td>One protected-route frame: sidebar, headers/status, shared states, Settings and Contacts wrappers</td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td>Editor frame, topbar, AI, responsive</td>
+<td><code>styles/02-topbar.css</code>, <code>05-layout.css</code>, <code>16-responsive.css</code></td>
+<td align="right">710</td>
+<td>These files share <code>/new</code>/<code>/edit</code>, popover states, and the 900/720 responsive contract</td>
+</tr>
+<tr>
+<td align="right">9</td>
+<td>Editor control system</td>
+<td><code>styles/06-forms.css</code>, <code>08-color-picker.css</code>, <code>09-dynamic-lists.css</code>, <code>11-form-editor.css</code>, <code>18-property-panel.css</code></td>
+<td align="right">1,154</td>
+<td>Builds shared editor-control interfaces once before media and canvas consume them</td>
+</tr>
+<tr>
+<td align="right">10</td>
+<td>Media surfaces</td>
+<td><code>components/MediaPicker.css</code>, <code>MediaPickerDialog.css</code>, <code>VideoPlayer.css</code>, <code>editor/JourneyMediaResizer.css</code>, <code>styles/14-library.css</code></td>
+<td align="right">988</td>
+<td>One dependency seam across library, dialog, player, canvas overlay, and resizing; requires namespace and Surface</td>
+</tr>
+<tr>
+<td align="right">11</td>
+<td>Video stats</td>
+<td><code>styles/25-video-stats-modal.css</code></td>
+<td align="right">408</td>
+<td>Small, isolated modal/API state machine after shared Chrome and media fixtures exist</td>
+</tr>
+<tr>
+<td align="right">12</td>
+<td>Inline canvas/content editing</td>
+<td><code>styles/17-canvas-inline-edit.css</code>, <code>07-tiptap.css</code>, <code>components/editor/CtaRowEditor.css</code>, <code>FaqListEditor.css</code>, <code>InlineText.css</code></td>
+<td align="right">705</td>
+<td>Shared contenteditable, toolbar, CTA, and FAQ interaction seam inside <code>.jp-theme</code></td>
+</tr>
+<tr>
+<td align="right">13</td>
+<td>Structured canvas and reorder</td>
+<td><code>components/editor/SummaryTableEditor.css</code>, <code>GalleryEditor.css</code>, <code>Accordion.css</code>, <code>styles/23-add-section.css</code>, <code>24-block-reorder.css</code></td>
+<td align="right">836</td>
+<td>Keeps Accordion geometry, block reorder, canvas drag, structured tables, and gallery interactions together</td>
+</tr>
+<tr>
+<td align="right">14</td>
+<td>Recorder/edit transport and closeout</td>
+<td><code>styles/19-record-video.css</code>, <code>22-video-edit-modal.css</code>; then delete the empty <code>styles.css</code> aggregator and its import</td>
+<td align="right">1,510, plus aggregator</td>
+<td>Coupled shared trimmer/preview selectors; last because it has the densest media, breakpoint, container-query, and transient-state matrix</td>
+</tr>
+</tbody></table>
+<h2>Total retired from the inventory: <strong>8,964 lines across all 40 remaining CSS files</strong>, followed by deletion of the aggregator.</h2>
+<h1>Appendix C: Plan v1 (superseded)</h1>
+<p>Owner: William Larsten. Executor: Claude session with Opus/Codex workers. Date: 2026-09-15.</p>
+<h2>Decision already made</h2>
+<p>End state is one styling system in the editor: Tailwind v4 utilities on shadcn/Base UI primitives, tokens in <code>editor/src/index.css</code>. Hand-written CSS goes to near zero. William rejected &quot;make legacy CSS first-class&quot; and rejected &quot;parity now, normalize later&quot; as an end state: every slice migrates and normalizes in the same PR, with the pixel-parity commit as an intermediate checkpoint only.</p>
+<h2>What stays as CSS</h2>
+<ul>
+<li><code>editor/src/index.css</code>: tokens, dark values, <code>@theme</code> animations, <code>@utility</code> declarations. Target well under 400 lines.</li>
+<li><code>packages/journey-page-domain/src/journey-page-styles.ts</code>: the published-page stylesheet for no-build SSR HTML. Separate domain, stays CSS, should share tokens and live in a real workspace package. Out of scope for this plan except the <code>--jp-*</code> colour namespace prerequisite.</li>
+<li>Email templates in <code>workers/auth-email</code>.</li>
+</ul>
+<p>Everything else under <code>editor/src</code> (about 9,000 lines across 40 files) is deleted, file by file, in the slices below.</p>
+<h2>Proven recipe (from PR #695, the 13-journey-index.css slice)</h2>
+<ol>
+<li>Worktree per slice, dev server on its own port with HMR, <code>control-clarity</code> login against that base.</li>
+<li>Screenshot harness: a spec under <code>tests/visual/</code> with role/data-attribute selectors, <code>playwright.visual.config.ts</code> (1440×1800, images masked, per-pixel threshold 0.02, zero pixel tolerance). Capture baseline on the base branch with <code>--update-snapshots</code> into <code>.context/visual-parity/baseline</code>; rerun once to prove determinism.</li>
+<li>Wave A (parity): a worker migrates consumers to utilities holding every pixel; deletes the stylesheet and residual overrides; ports attribute-selector blocks and keyframes (to <code>@theme --animate-*</code>); updates test selectors to <code>data-slot</code>/roles. Harness 16/16 zero diff.</li>
+<li>Wave B (normalize): run <code>scripts/codemods/snap-arbitrary-values.mjs</code> (committed, idempotent, self-checking), then replace literal colours with tokens and delete private skins by hand; review every diff by cropped region; capture &quot;normalized&quot; snapshots.</li>
+<li>Independent verification by the parent: harness rerun, lint, typecheck, root <code>pnpm test</code>.</li>
+<li>Three-way report (main / parity / normalized) published via <code>scripts/publish-artifact.sh</code>; PR with Why / Scope / Tradeoffs / Blast Radius / Verification.</li>
+</ol>
+<p>Throughput observed: 1,906 lines, 34 consumers, 3 worker waves, about one working day.</p>
+<h2>Slices, in order</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Slice</th>
+<th>Files</th>
+<th>Lines</th>
+<th>Why this position</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Base rules</td>
+<td><code>00-base.css</code> (<code>font: inherit</code> on form controls, <code>a { color: inherit }</code>), <code>16-responsive.css</code>, <code>12-state-cards.css</code>, <code>04-status-eyebrow.css</code>, <code>20-settings.css</code>, <code>21-contacts.css</code></td>
+<td>~270</td>
+<td>Unlayered globals that force <code>!</code> overrides everywhere; deleting <code>font: inherit</code> changes every form control app-wide, so it gets its own screenshots across all routes</td>
+</tr>
+<tr>
+<td>1</td>
+<td>App shell and topbar</td>
+<td><code>01-app-shell.css</code>, <code>02-topbar.css</code>, <code>05-layout.css</code></td>
+<td>~1,160</td>
+<td>On every page; owns the remaining <code>!</code> sites; once done the harness covers shell for free on every later case</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Record video</td>
+<td><code>19-record-video.css</code></td>
+<td>806</td>
+<td>Largest remaining partial; self-contained route; needs recorder states captured (idle, recording, paused, finished, layout picker)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Video edit modal and stats</td>
+<td><code>22-video-edit-modal.css</code>, <code>25-video-stats-modal.css</code>, <code>VideoPlayer.css</code></td>
+<td>~1,210</td>
+<td>Modal surfaces with timeline, trimmer, dock; stats modal has one consumer</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Auth and marketing islands</td>
+<td><code>LoginRoute.css</code>, <code>PublicHomeRoute.css</code>, <code>TermsRoute.css</code>, <code>PrivacyRoute.css</code>, <code>TeamsRoute.css</code></td>
+<td>~1,400</td>
+<td>Re-implement Button/Input by hand; <code>TonyRoute</code> is a fork of <code>PublicHomeRoute</code>; SiteHeader CTA class only resolves on 3 of 7 pages</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Forms and property panel</td>
+<td><code>06-forms.css</code>, <code>18-property-panel.css</code>, <code>08-color-picker.css</code>, <code>09-dynamic-lists.css</code>, <code>11-form-editor.css</code></td>
+<td>~1,150</td>
+<td>Editor sidebar: <code>FormFields.tsx</code>, <code>block-editors.tsx</code>, <code>ThemeStylePanel.tsx</code>; outside <code>.jp-theme</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Media picker</td>
+<td><code>MediaPicker.css</code>, <code>MediaPickerDialog.css</code>, <code>10-media-picker.css</code>, <code>14-library.css</code>, <code>Accordion.css</code></td>
+<td>~970</td>
+<td>Picker dialog and library surfaces; some rules reach into <code>.jp-theme</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Canvas editors (inside <code>.jp-theme</code>)</td>
+<td><code>17-canvas-inline-edit.css</code>, <code>24-block-reorder.css</code>, <code>23-add-section.css</code>, <code>07-tiptap.css</code>, <code>CtaRowEditor.css</code>, <code>SummaryTableEditor.css</code>, <code>GalleryEditor.css</code>, <code>FaqListEditor.css</code>, <code>JourneyMediaResizer.css</code>, <code>InlineText.css</code></td>
+<td>~1,650</td>
+<td>Rendered inside the journey preview where <code>.jp-theme</code> rebinds <code>--primary</code>, <code>--background</code>, etc. Prerequisite: give the journey page its own <code>--jp-*</code> colour namespace so theme-token utilities are safe inside the canvas. Largest hover/state logic; do last when tooling is mature</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Surface languages</td>
+<td><code>button-surface.css</code> (Halo Glass, 286), <code>chrome.css</code> (<code>.cg-*</code>, 162)</td>
+<td>~450</td>
+<td>Fold into cva variants on Button/ButtonBase and a <code>Surface</code>/<code>Chrome</code> primitive keyed on data attributes; then <code>styles.css</code> and the unlayered-import trick are deleted</td>
+</tr>
+</tbody></table>
+<p>Total: about 9,000 lines, 8 slices.</p>
+<h2>Ratchets (land with slice 0)</h2>
+<ul>
+<li><code>@shadcn/lint</code> rules other than <code>no-unknown-classes</code> at <code>error</code> with a shrink-only per-file baseline like <code>eslint-suppressions.json</code>; <code>no-unknown-classes</code> stays off until the last partial goes, then on at error.</li>
+<li>Per-file CSS line-count ratchet: a script with a committed baseline that fails when any <code>.css</code> under <code>editor/src</code> grows; <code>check-ci-invariants.sh</code> runs it in CI.</li>
+<li><code>lint-on-edit.mjs</code> hook extended to <code>.css</code> so editing a stylesheet triggers the ratchet locally.</li>
+</ul>
+<h2>PR strategy</h2>
+<p>Stacked PRs: slice N branches from slice N−1&#39;s branch and targets it; when a PR merges, retarget the next to main. Each PR carries its own harness spec (new cases for its surfaces), its own three-way report, and its own before/after metrics. Main pushes deploy to production, so every merge is a visible change; William reviews the report before merging.</p>
+<h2>Risks</h2>
+<ul>
+<li><code>.jp-theme</code> token shadowing: canvas components styled with theme-token utilities pick up the customer&#39;s page colours. Mitigation: <code>--jp-*</code> namespace before slice 7; until then, canvas slices avoid theme-token colour utilities.</li>
+<li>Surfaces without a deterministic capture (recorder with live camera, drag-and-drop, transitions). Mitigation: fake media streams in Playwright, computed-style probes, manual before/after PNG pairs archived per wave.</li>
+<li><code>font: inherit</code> deletion changes every form control size app-wide. Mitigation: its own slice with a route-wide screenshot sweep.</li>
+<li>Review load: canvas diffs are large. Mitigation: canvas last; cropped-region diff tooling from wave 3 (<code>diff-regions.mjs</code>, <code>crop-pair.mjs</code>) promoted into <code>scripts/</code>.</li>
+<li>Drift while slices are open: someone adds to a partial. Mitigation: the line-count ratchet from slice 0.</li>
+</ul>
+<h2>Open questions for the critics</h2>
+<ol>
+<li>Is the order right? Should shell/topbar precede base rules, or should slices 0 and 1 merge?</li>
+<li>Should the <code>--jp-*</code> namespace be its own PR before slice 6, given <code>MediaPicker.css</code> also reaches into <code>.jp-theme</code>?</li>
+<li>What harness cases per slice are the minimum that make the parity gate honest?</li>
+<li>Is folding <code>button-surface.css</code> into cva variants actually right, or should the container-owned appearance idea survive as a <code>data-surface</code> variant on a Surface primitive?</li>
+<li>Anything that should be deleted rather than migrated (dead features, forks like <code>TonyRoute</code>)?</li>
+<li>What is the right ratchet shape so the legacy layer cannot grow back between slices?</li>
+</ol>
+</html>
