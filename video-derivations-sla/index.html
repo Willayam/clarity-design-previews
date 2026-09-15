@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Video derivations: latency contracts and one driver</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<style>
+body{font:16px/1.55 -apple-system,system-ui,sans-serif;max-width:56rem;margin:2rem auto;padding:0 1rem;color:#1a1a1a}
+nav a{margin-right:1rem}nav{border-bottom:1px solid #ddd;padding-bottom:.6rem;margin-bottom:1.2rem;position:sticky;top:0;background:#fff}
+pre{background:#f5f5f5;padding:.8rem;overflow:auto;font-size:13px}code{font-size:.92em}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:.3rem .5rem;vertical-align:top}
+h1,h2,h3{line-height:1.25}blockquote{color:#555;border-left:3px solid #ccc;margin:0;padding-left:1rem}
+</style></head><body>
+<nav>
+<a href="#design.md">Design</a><a href="#migration.md">Migration</a><a href="#incident-2026-09-15.md">Incident timeline</a>
+<a href="#arena/candidate-A-design.md">Candidate A</a><a href="#arena/candidate-B-design.md">Candidate B</a><a href="#arena/candidate-C-design.md">Candidate C</a><a href="#arena/cross-judge.md">Cross-judge</a>
+</nav>
+<main id="main">Loading…</main>
+<script>
+async function show(){const f=(location.hash||'#design.md').slice(1);const r=await fetch(f);const t=await r.text();document.getElementById('main').innerHTML=marked.parse(t);window.scrollTo(0,0);}
+addEventListener('hashchange',show);show();
+</script></body></html>
