@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clarity staging Add users verification</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #14213d; background: #f5f7fb; }
+    body { margin: 0; padding: 32px 16px; }
+    main { max-width: 900px; margin: 0 auto; background: white; border: 1px solid #dde3ee; border-radius: 16px; padding: 28px; box-shadow: 0 14px 40px rgba(20,33,61,.08); }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 42px); }
+    h2 { margin-top: 30px; font-size: 20px; }
+    p { line-height: 1.55; }
+    .verdict { display: inline-block; margin: 12px 0 20px; padding: 8px 12px; border-radius: 999px; background: #fff4dc; color: #7a4b00; font-weight: 700; }
+    .meta { color: #5d6678; word-break: break-word; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { padding: 12px; border-bottom: 1px solid #e7ebf2; text-align: left; vertical-align: top; }
+    th { color: #5d6678; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+    .pass { color: #087443; font-weight: 700; }
+    .blocked { color: #9a5a00; font-weight: 700; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; overflow-wrap: anywhere; }
+    .note { padding: 14px 16px; border-radius: 10px; background: #f3f6fb; }
+    @media (max-width: 640px) { main { padding: 20px; } th, td { padding: 10px 7px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Add users verification</h1>
+    <p class="meta">Clarity staging · 16 September 2026</p>
+    <div class="verdict">BLOCKED at step 4</div>
+    <p>Steps 1 to 3 and 8 passed. Step 10 passed in Stripe live mode. Chrome computer use could not control an Incognito window, so account creation and the dependent checks in steps 4 to 7 could not run safely.</p>
+
+    <h2>Results</h2>
+    <table>
+      <thead><tr><th>Step</th><th>Status</th><th>Observation</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="pass">PASS</td><td>System-admin Users page opened with Add users. Commit <code>950c7f1369f0a2de6780352121719c1728da3192</code>.</td></tr>
+        <tr><td>2</td><td class="pass">PASS</td><td>The staging invitation was reviewed, sent, and listed as Sent with included access through 14 January 2027.</td></tr>
+        <tr><td>3</td><td class="pass">PASS</td><td>Gmail received the WorkOS invitation. Its host and path matched <code>staging.clarity.video/auth/invite</code>.</td></tr>
+        <tr><td>4</td><td class="blocked">BLOCKED</td><td>Incognito was not exposed to computer use, so the new staging account was not created.</td></tr>
+        <tr><td>5</td><td class="blocked">BLOCKED</td><td>No new-account home session existed.</td></tr>
+        <tr><td>6</td><td class="blocked">BLOCKED</td><td>The new account's plan label and end date were not observed.</td></tr>
+        <tr><td>7</td><td class="blocked">BLOCKED</td><td>The invitation remained Sent. Accepted status and included-access billing could not be checked.</td></tr>
+        <tr><td>8</td><td class="pass">PASS</td><td>Three Stripe TEST checkout links were generated without opening them. Annual differed from the first monthly. The final monthly differed from both earlier links.</td></tr>
+        <tr><td>9</td><td class="blocked">BLOCKED</td><td>No controllable Incognito window existed to close.</td></tr>
+        <tr><td>10</td><td class="pass">PASS</td><td>The production restricted key's normal information tooltip listed Customer Portal under Read and write. Edit was not opened.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Notes</h2>
+    <p class="note">The public copy omits email addresses, screenshots, checkout URLs, key names, and key values. The complete local report contains the authorized test data and evidence filenames.</p>
+  </main>
+</body>
+</html>
