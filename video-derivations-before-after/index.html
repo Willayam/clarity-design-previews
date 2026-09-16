@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Video derivations: before and after on staging</title>
+<style>body{font:15px/1.5 -apple-system,system-ui,sans-serif;max-width:70rem;margin:2rem auto;padding:0 1rem;color:#1a1a1a}pre{background:#f5f5f5;padding:.8rem;overflow:auto;font-size:12px}h2{margin-top:2rem}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:.3rem .6rem;text-align:right}th:first-child,td:first-child{text-align:left}small{color:#555}</style></head><body>
+<h1>Video derivations: before and after on staging</h1>
+<p>Measured 2026-09-16 with <code>scripts/derivations-probe.mjs</code> (PR #700): one 240 s recorder-shaped fixture (H.264 baseline, 8 Mbps, 200 ms keyframes) uploaded through the recording API, trimmed 3 s to 237 s, then every derivation row polled to a terminal state. Wall time is seconds from Original acceptance, the design's SLA clock. Staging is shared, so single runs carry noise; the ordering and refusal facts are the load-bearing ones.</p>
+<h2>Summary</h2>
+<table><tr><th>artifact</th><th>trunk (re-baseline)</th><th>unit 1 (#703)</th><th>stack tip (#703 + #701)</th></tr>
+<tr><td>poster, first</td><td>7.3 s</td><td>5.9 s</td><td>6.3 s</td></tr>
+<tr><td>poster after the clip</td><td>79.6 s (1.5 s of work)</td><td>79.6 s (1.3 s)</td><td>112.7 s (3.4 s)</td></tr>
+<tr><td>transcript</td><td>127.7 s, 1 capacity refusal</td><td>10.8 s</td><td>11.2 s</td></tr>
+<tr><td>faststart (playback)</td><td>111.8 s</td><td>58.7 s</td><td>65.6 s</td></tr>
+<tr><td>clip (trim, unchanged recipe)</td><td>77.9 s</td><td>78.2 s</td><td>109.2 s</td></tr>
+<tr><td>capacity refusals</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>attempts per kind</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>node state at the end</td><td>preparation_status: ready or processing, by publish order</td><td>processing (stuck)</td><td>readiness.state: ready, pending []</td></tr></table>
+<p><small>The clip recipe is untouched until unit 8 (boundary trim); its wall time is container encode time plus shared-staging variance. The second poster row exists because the poster's identity moves when a clip publishes; unit 5 keys it by intent.</small></p>
+<h2>Trunk re-baseline (origin/main e1721b21 plus CI-only commits, b870aa37)</h2><pre>kind        digest    status  created_at                first attempt             settled                   field         from accept  from row  budget s  attempts  refusals
+clip        3e8da58e  ready   2026-09-16T00:20:05.679Z  2026-09-16T00:20:06.132Z  2026-09-16T00:21:23.378Z  published_at  77.9         77.7      69.3      1         0
+faststart   f07640fe  ready   2026-09-16T00:20:05.483Z  2026-09-16T00:20:08.286Z  2026-09-16T00:21:57.190Z  published_at  111.8        111.7     54.3      1         0
+poster      f07640fe  ready   2026-09-16T00:20:05.963Z  2026-09-16T00:20:05.963Z  2026-09-16T00:20:12.765Z  updated_at    7.3          6.8       20        1         0
+poster      8fa68bfc  ready   2026-09-16T00:21:23.501Z  2026-09-16T00:21:23.501Z  2026-09-16T00:21:25.018Z  updated_at    79.6         1.5       20        1         0
+transcript  f07640fe  ready   2026-09-16T00:20:06.076Z  2026-09-16T00:20:06.076Z  2026-09-16T00:22:13.139Z  updated_at    127.7        127.1     114       1         1
+
+capacity refusals, D1        1
+capacity refusals, timings   0
+producer timing rows         12 total, 0 for this video
+preparation_status at end    ready
+node                         asset:user:4993f1ce-7efd-4cb7-ab2e-2166c1413c0d:video:41080bda-8260-4662-91e5-ca6a67377e21
+</pre>
+<h2>Unit 1: lane split and typed admission (integration head a16ce368)</h2><pre>kind        digest    status  created_at                first attempt             settled                   field         from accept  from row  budget s  attempts  refusals  error
+----------  --------  ------  ------------------------  ------------------------  ------------------------  ------------  -----------  --------  --------  --------  --------  -----
+clip        9369df09  ready   2026-09-16T10:34:02.779Z  2026-09-16T10:34:03.236Z  2026-09-16T10:35:20.476Z  published_at  78.2         77.7      69.3      1         0         -    
+faststart   3bb50261  ready   2026-09-16T10:34:02.500Z  2026-09-16T10:34:06.302Z  2026-09-16T10:35:00.964Z  published_at  58.7         58.5      54.3      1         0         -    
+poster      3bb50261  ready   2026-09-16T10:34:03.111Z  2026-09-16T10:34:03.111Z  2026-09-16T10:34:08.197Z  updated_at    5.9          5.1       20        1         0         -    
+poster      b53b71ce  ready   2026-09-16T10:35:20.632Z  2026-09-16T10:35:20.632Z  2026-09-16T10:35:21.892Z  updated_at    79.6         1.3       20        1         0         -    
+transcript  3bb50261  ready   2026-09-16T10:34:03.049Z  2026-09-16T10:34:03.049Z  2026-09-16T10:34:13.090Z  updated_at    10.8         10.0      114       1         0         -    
+
+capacity refusals, D1        0
+capacity refusals, timings   0</pre>
+<h2>Stack tip: unit 2 readiness projection on unit 1 (integration head e957cf73)</h2><pre>kind        digest    status  created_at                first attempt             settled                   field         from accept  from row  budget s  attempts  refusals  error
+----------  --------  ------  ------------------------  ------------------------  ------------------------  ------------  -----------  --------  --------  --------  --------  -----
+clip        5c9221c6  ready   2026-09-16T11:33:54.393Z  2026-09-16T11:33:55.006Z  2026-09-16T11:35:43.130Z  published_at  109.2        108.7     69.3      1         0         -    
+faststart   45f97179  ready   2026-09-16T11:33:54.082Z  2026-09-16T11:33:55.043Z  2026-09-16T11:34:59.610Z  published_at  65.6         65.5      54.3      1         0         -    
+poster      45f97179  ready   2026-09-16T11:33:54.656Z  2026-09-16T11:33:54.656Z  2026-09-16T11:34:00.303Z  updated_at    6.3          5.6       20        1         0         -    
+poster      fe919529  ready   2026-09-16T11:35:43.339Z  2026-09-16T11:35:43.339Z  2026-09-16T11:35:46.721Z  updated_at    112.7        3.4       20        1         0         -    
+transcript  45f97179  ready   2026-09-16T11:33:54.736Z  2026-09-16T11:33:54.736Z  2026-09-16T11:34:05.206Z  updated_at    11.2         10.5      114       1         0         -    
+
+capacity refusals, D1        0
+capacity refusals, timings   0</pre>
+<h3>Readiness of the probe's node, read from the API</h3><pre>{ "degraded": [], "pending": [], "shareLinkLive": true, "state": "ready" }   (GET /api/tree/root on staging at e957cf73; preparation_status no longer exists)</pre>
+<h2>Where the incident stood</h2><p>Production page ur36ry on 2026-09-15: 889 MB, 699 s recording; poster after 10 m 57 s, transcript after 12 m 24 s, 21 capacity refusals for the audio job, node still marked processing. Timeline and causes: <a href="https://willayam.github.io/clarity-design-previews/video-derivations-sla/">design and incident record</a>.</p>
+<h2>Links</h2><ul>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/703">#703 perf(video): split derivation admission lanes</a> (stack root)</li>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/701">#701 readiness as a projection</a> (stacked on #703)</li>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/700">#700 measurement probe</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/699">#699 staging deploy fix</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/702">#702 local dev boot fix</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/696">#696 design and plan</a></li>
+<li><a href="https://linear.app/cocco/issue/WIL-3377">WIL-3377</a></li></ul>
+</body></html>
