@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Verify report — CSV guard, sign-in email refresh, admin change email</title>
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-stone-50 text-slate-900">
+<main class="max-w-5xl mx-auto px-6 py-10 space-y-8">
+<header class="rounded-xl bg-emerald-600 text-white p-6">
+  <p class="text-xs uppercase tracking-wider text-emerald-100">Verify report · preview pass · 2026-09-16</p>
+  <h1 class="font-serif text-3xl mt-1">VERIFIED, with stated limits</h1>
+  <p class="mt-2 text-emerald-50 max-w-3xl">PRs #708, #710 and #711. Evidence run and two independent checkers agree. The limits are named in the table and carried into each PR's Proof.</p>
+</header>
+
+<section class="rounded-xl border border-slate-200 bg-white overflow-hidden">
+  <table class="w-full text-sm"><thead class="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
+  <tr><th class="p-2">State</th><th class="p-2">Check</th><th class="p-2">Note</th></tr></thead>
+  <tbody class="divide-y divide-slate-100"><tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">PR #708 preview guards all three CSV exports</td><td class="p-2 align-top text-slate-600">Contacts, journey-page submissions and leads map every cell through the shared escaper. Production leaves contacts and leads unguarded. Checker self-tested against production ground truth first. Preview d4ed63ab2.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">PR #708 leads headers escaped</td><td class="p-2 align-top text-slate-600">Production joins header text raw. The preview folds headers into the same escaped map.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">PR #710 and #711 previews serve the expected merge commits</td><td class="p-2 align-top text-slate-600">pr-710 eea7e77b, pr-711 50a35d68. Previews report the PR merge commit, not the branch head.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">PR #710 sign-in runs on the new code against production AUTH_DB</td><td class="p-2 align-top text-slate-600">POST /auth/password 200, /auth/me 200 with an identity. Row email and updated_at unchanged (2026-05-25T16:58:51.000000).</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800">warn</span></td><td class="p-2 align-top font-medium">PR #710 email copy not exercised at runtime</td><td class="p-2 align-top text-slate-600">It only changes data when WorkOS returns a different address, which cannot be produced safely here. Covered on real SQLite, including two mutation checks.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">PR #711 route sits behind the System Admin guard</td><td class="p-2 align-top text-slate-600">Non-admin 403, anonymous 401, row unchanged. This proves the guard covers the path, not the route's own logic.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800">warn</span></td><td class="p-2 align-top font-medium">PR #711 admin dialog and a successful change not exercised</td><td class="p-2 align-top text-slate-600">Needs an admin session and would move a real WorkOS login. Acceptance is Todd (WIL-3356) after deploy, with William confirming first.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800">warn</span></td><td class="p-2 align-top font-medium">workers/auth-email not deployed to previews</td><td class="p-2 align-top text-slate-600">Staging validation waived under DEPLOY.md support-worker isolation: no bridge token or staging admin session here. Covered by auth-email-send tests; production mail log checked after deploy.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">Unit and static checks</td><td class="p-2 align-top text-slate-600">vitest 184 passed on the #711 head, 103 on #710. Editor, router and auth-email typecheck, lint, LOC ratchet all pass.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">Production D1 migrations</td><td class="p-2 align-top text-slate-600">None pending on AUTH_DB, PUBLIC_PAGE_DB, VIDEO_STATS_DB, WORKSPACE_TREE_DB, AUTH_EMAIL_DB.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800">pass</span></td><td class="p-2 align-top font-medium">Independent confirmation</td><td class="p-2 align-top text-slate-600">Two fresh Opus checkers replayed the behavior with their own requests. The first found the leads export still unguarded, which sent #708 back for a second commit. The second verified the fix from quoted minified code.</td></tr>
+<tr><td class="p-2 align-top"><span class="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800">warn</span></td><td class="p-2 align-top font-medium">Corrected overclaims from the first evidence run</td><td class="p-2 align-top text-slate-600">Several sign-in assertions would also pass on production, where sign-in never wrote those columns. They are regression checks, not proof of the change. Captions above say so.</td></tr></tbody></table>
+</section>
+
+<section class="rounded-xl border border-slate-200 bg-white p-6">
+  <h2 class="font-serif text-xl">CSV exports, production against pr-708</h2>
+  <table class="w-full text-sm mt-3"><thead class="text-left text-xs uppercase tracking-wider text-slate-500">
+  <tr><th class="p-2">Export</th><th class="p-2">Production d0f180dfd</th><th class="p-2">pr-708 d4ed63ab2</th></tr></thead><tbody class="divide-y divide-slate-100">
+<tr><td class='p-2 font-mono text-xs'>ContactsIndexRoute</td><td class='p-2'>unguarded</td><td class='p-2'>guarded</td></tr>
+<tr><td class='p-2 font-mono text-xs'>LeadsRoute</td><td class='p-2'>unguarded</td><td class='p-2'>guarded</td></tr>
+<tr><td class='p-2 font-mono text-xs'>UserAccountsRoute</td><td class='p-2'>guarded</td><td class='p-2'>guarded</td></tr>
+  </tbody></table>
+  <p class="text-xs text-slate-500 mt-3">The checker resolves the function each cell is mapped through and follows it into its chunk. It was self-tested against production first, where it must report contacts and leads unguarded and the admin export guarded. Known weaknesses, reported by the independent checker: it reads minified text rather than running a download, it keys results by route, and it needs a literal text/csv Blob type. Both preview results were confirmed by hand from quoted snippets.</p>
+</section>
+
+<section class="rounded-xl border border-slate-200 bg-white p-6">
+  <h2 class="font-serif text-xl">Production AUTH_DB row, across the run</h2>
+  <pre class="bg-slate-900 text-slate-100 text-xs p-4 rounded mt-3 overflow-x-auto">{
+  "before": {
+    "id": "acct_legacy_<redacted>",
+    "email": "<redacted, unchanged across the run>",
+    "updated_at": "2026-05-25T16:58:51.000000",
+    "last_login_at": "2026-09-16T14:24:14.699Z"
+  },
+  "after_sign_in": {
+    "id": "acct_legacy_<redacted>",
+    "email": "<redacted, unchanged across the run>",
+    "updated_at": "2026-05-25T16:58:51.000000",
+    "last_login_at": "2026-09-16T14:24:56.571Z"
+  },
+  "after_refused_admin_calls": {
+    "id": "acct_legacy_<redacted>",
+    "email": "<redacted, unchanged across the run>",
+    "updated_at": "2026-05-25T16:58:51.000000",
+    "last_login_at": "2026-09-16T14:24:56.571Z"
+  },
+  "pr710_before": {
+    "id": "acct_legacy_<redacted>",
+    "email": "<redacted, unchanged across the run>",
+    "updated_at": "2026-05-25T16:58:51.000000",
+    "last_login_at": "2026-09-16T14:24:56.571Z"
+  },
+  "pr710_after_sign_in": {
+    "id": "acct_legacy_<redacted>",
+    "email": "<redacted, unchanged across the run>",
+    "updated_at": "2026-05-25T16:58:51.000000",
+    "last_login_at": "2026-09-16T14:25:29.171Z"
+  }
+}</pre>
+  <p class="text-xs text-slate-500 mt-3">Only last_login_at moves, and only from the sign-in. The email and updated_at columns are untouched by the sign-in and by both refused admin calls. Test account redacted, approved for agent login.</p>
+</section>
+
+<section class="rounded-xl border border-slate-200 bg-white p-6">
+  <h2 class="font-serif text-xl">Artifacts</h2>
+  <ul class="mt-2 text-sm font-mono text-slate-600 space-y-1">
+    <li>evidence.py · pr-710/evidence.json · pr-711/evidence.json</li>
+    <li>csv_bundle_check.py · csv-bundle-prod.json · csv-bundle-pr-708.json</li>
+    <li>../review-loop/20260916T140138Z/ · patches, checks.md, security-scan.txt, codex-review.txt</li>
+  </ul>
+</section>
+</main></body></html>
