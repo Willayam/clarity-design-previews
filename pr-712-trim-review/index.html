@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PR 712 review: trim saves instantly</title>
+<style>body{font:16px/1.55 -apple-system,system-ui,sans-serif;max-width:60rem;margin:2rem auto;padding:0 1rem;color:#1a1a1a}img,video{max-width:100%;border:1px solid #ddd;border-radius:6px;margin:.4rem 0 1.2rem}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:.35rem .6rem;text-align:left}h2{margin-top:2.2rem}.pass{color:#0a7d2c;font-weight:600}</style></head><body>
+<h1>PR 712: saving a trim is instant, and the page keeps playing until the new clip is ready</h1>
+<p>Recorded on the PR preview on 2026-09-16 with an existing 10.3 s test video trimmed to 1 s through 9 s, then reset. Previews refuse new uploads, so no new video was created. The clip was cut by the production video producer. PR: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/712">github.com/Clarity-Video-HQ/clarity/pull/712</a>.</p>
+<table><tr><th>Check</th><th>Result</th><th>Measured</th></tr>
+<tr><td>Save returns in under 1 s with one request and no render-job polling</td><td class="pass">PASS</td><td>265.6 ms from click to response, one edit request, zero render-job requests</td></tr>
+<tr><td>The public page keeps playing the previous file while the clip renders</td><td class="pass">PASS</td><td>Previous file served for all 33.3 s the clip was pending</td></tr>
+<tr><td>The trimmed clip plays once it is ready</td><td class="pass">PASS</td><td>Clip published 33.5 s after the save, plays at 7.98 s long</td></tr>
+<tr><td>Reset works</td><td class="pass">PASS</td><td>232 ms, full-length file back on the public page within 50 ms</td></tr></table>
+<h2>Trim: recording</h2><video controls src="trim/trim-screencast.mp4"></video>
+<h2>Trim: before, draft, saved</h2>
+<img src="trim/trim-1-trim-mode-before.png"><img src="trim/trim-2-draft-range.png"><img src="trim/trim-3-saved.png"><img src="trim/trim-5-after-readiness-settled.png">
+<h2>Public page while the clip renders, then after</h2>
+<img src="public-1-trim-while-pending-t0.5.png"><img src="public-1-trim-after-change-t4.png">
+<h2>Reset: recording</h2><video controls src="reset/reset-screencast.mp4"></video>
+<img src="reset/reset-3-saved.png"><img src="public-2-reset-after-change-t4.png">
+<h2>Not covered by this run</h2>
+<p>A reset while a clip is still rendering, two editors saving at once, and a long 240 s video. Two small findings: the editor fires two identical tree requests on each 5 s poll, and the request itself takes about 265 ms, so the "under 100 ms" wording in the PR applies only to the instant saving indicator.</p>
+</body></html>
