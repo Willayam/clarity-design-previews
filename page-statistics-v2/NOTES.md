@@ -1,6 +1,8 @@
 # Page statistics at application scale
 
-Question: Does the page statistics layout work at the real dialog size and with measured data?
+Question: Can page statistics remain as simple as the existing video statistics dialog?
+
+Following independent design advice, the current prototype is one screen: the existing preview, retention chart, and table, with a page-visit summary and a narrow Clicked column. Tabs, block list, histories, and explanatory copy were removed. Clicking the checkmark reveals the button label.
 
 Layout follows VideoStatsModal: 928 px maximum width, 24 px padding, 18 px title, 14 px summary, 12 px rows, 236 px preview. Public data is fictional. The local .context/page-statistics-real/preview holds the production snapshot and is not for publication or commit.
 
