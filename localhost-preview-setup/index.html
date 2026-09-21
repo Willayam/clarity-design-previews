@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Localhost previews on your Mac</title><style>body{font:18px/1.6 system-ui,sans-serif;max-width:680px;margin:48px auto;padding:0 22px;color:#172125;background:#fafafa}pre{padding:16px;background:#eef1f2;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}a{color:#0658ac}</style></head><body>
+<h1>Localhost previews on your Mac</h1>
+<p>Install once on each Mac. Start your app, then run <code>localhost-preview 5173</code>. Open the printed HTTPS link on your phone.</p>
+<h2>Install</h2>
+<p>The installer downloads Cloudflare's official macOS binary, checks its SHA-256 checksum, and installs it with the preview command in <code>~/.local/bin</code>. It adds that directory to your zsh PATH. No administrator access or Cloudflare account is needed.</p>
+<pre>curl -fsSL https://willayam.github.io/clarity-design-previews/localhost-preview-setup/install.sh -o /tmp/install-localhost-preview.sh &amp;&amp; bash /tmp/install-localhost-preview.sh</pre>
+<p><a href="install.sh">Read the installer</a></p>
+<h2>Use</h2>
+<p>Open a new terminal after installation. Keep your app running in its original terminal, then:</p>
+<pre>localhost-preview 5173</pre>
+<p>Replace 5173 with your app's port. The link works while your Mac is awake, online, and both processes are running. Press Ctrl-C to stop the tunnel. Each run produces a new public URL.</p>
+<p>This exposes the selected local web server. App login, OAuth callbacks, and cookie settings may need their own preview configuration. Quick Tunnels do not support Server-Sent Events.</p>
+</body></html>
