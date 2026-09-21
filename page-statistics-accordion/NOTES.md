@@ -12,3 +12,5 @@ Build: node_modules/.bin/esbuild editor/prototypes/page-statistics-smooth/app.js
 Run: python3 -m http.server 8050 --directory editor/prototypes/page-statistics-smooth
 
 Verified fixed dialog bounds across panel selection, zero accordion overflow at desktop and 390 by 844, linked mini selection, watched filter, and empty states. User feedback pending.
+
+Visit rows now follow VideoStatsModal.tsx: Where / When / Watched / %, relative dates, compact alternating rows, watched-range rails and end dots, sortable headers. Button panels share the same table and show a checkmark only for recorded clicks. On phones, dates move below locations. Checked sorting and phone overflow.
