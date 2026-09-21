@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture review — Clarity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; }
+      .seam { border-top: 2px dashed #64748b; }
+      .leakbox { border-color: #dc2626; color: #991b1b; }
+      .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
+      .band { height: 2.25rem; border-left-width: 4px; display: flex; align-items: center; padding-left: 0.75rem; }
+      pre.mermaid { margin: 0; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+      <header class="space-y-4">
+        <h1 class="font-serif text-4xl">Architecture review — Clarity</h1>
+        <p class="text-sm text-slate-600">21 September 2026 · code read at <span class="font-mono">origin/main c8698648</span> · 14 open pull requests · 120 open Linear tickets</p>
+        <div class="flex flex-wrap gap-4 text-xs text-slate-600">
+          <span class="inline-flex items-center gap-2"><span class="inline-block w-5 h-4 border border-slate-400 bg-white"></span>module</span>
+          <span class="inline-flex items-center gap-2"><span class="inline-block w-6 seam"></span>seam</span>
+          <span class="inline-flex items-center gap-2"><span class="inline-block w-5 h-4 border-2 leakbox bg-white"></span>leak</span>
+          <span class="inline-flex items-center gap-2"><span class="inline-block w-5 h-4 deep"></span>deep module</span>
+        </div>
+        <nav class="text-sm flex flex-wrap gap-x-4 gap-y-1 text-emerald-800 underline underline-offset-2">
+          <a href="#c1">1 Derivation driver</a><a href="#c2">2 Playback verdict</a><a href="#c3">3 Terminal states</a><a href="#c4">4 Recorder take</a><a href="#c5">5 Router table and Env</a><a href="#c6">6 Identity seam</a><a href="#c7">7 Block kind registry</a><a href="#c8">8 Library</a><a href="#c9">9 D1 test adapter</a><a href="#c10">10 Deploy truth</a><a href="#forks">Forks</a><a href="#prs">PR queue</a><a href="#tracker">Tracker</a><a href="#top-recommendation">Top pick</a>
+        </nav>
+      </header>
+
+      <section id="signal" class="grid md:grid-cols-2 gap-6">
+        <div class="rounded-lg border border-slate-200 bg-white p-5">
+          <h2 class="lbl text-slate-500 mb-3">Most confusing</h2>
+          <ul class="space-y-2 text-sm">
+            <li><b>One public video URL is decided five times.</b> Projection, <span class="font-mono">resolvePlayback</span>, <span class="font-mono">resolvePublicVideoPlayback</span>, the <span class="font-mono">step_N_*</span> flattening, <span class="font-mono">resolveStepVideoSources</span>. A copy of the verdict is stored in the page document.</li>
+            <li><b>Four vocabularies for one derivation.</b> <span class="font-mono">DerivationKind</span>, <span class="font-mono">GeneratedOutputKind</span>, <span class="font-mono">ArtifactKind</span>, metadata fields. One new derivation touches about 12 files.</li>
+            <li><b>Router <span class="font-mono">index.ts</span>, 2,453 lines.</b> 220 lines of dispatch, 700 of legacy Contacts CRUD, 810 of Stripe broker.</li>
+            <li><b><span class="font-mono">WorkspaceTreeNode.metadata</span>.</b> Untyped bag, three local type declarations, name precedence re-derived per reader.</li>
+          </ul>
+        </div>
+        <div class="rounded-lg border border-slate-200 bg-white p-5">
+          <h2 class="lbl text-slate-500 mb-3">Most unreliable</h2>
+          <ul class="space-y-2 text-sm">
+            <li><b>Retry loops with no terminal state.</b> Acceptance outbox retries a permanent 4xx every 5 minutes forever. <span class="font-mono">ready_unpublished</span> rows re-kick forever and can fill the 50-row sweep.</li>
+            <li><b>Both merge gates are dark.</b> Staging critical e2e red since 15 Sep (WIL-3392). Previews cannot test uploads (WIL-3360).</li>
+            <li><b>Routine deploys ship Convex.</b> <span class="font-mono">DEPLOY.md</span> says rollback scope is the router only. The rollback cannot undo a Convex push.</li>
+            <li><b>Missing config opens the trial wall silently.</b> Deliberate fail-open, but no log, no counter, no test names the condition.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="candidates" class="space-y-10">
+
+        <!-- 1 -->
+        <article id="c1" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">1. One derivation driver</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">local-substitutable</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">L · in flight</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">workers/workspace-tree/src/durable-faststart.ts · generated-video-capabilities.ts · render-jobs.ts · video-transcripts.ts · clip-render-driver.ts · derivation-sweep.ts · packages/video-derivations/src/contracts.ts</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">Before</div>
+              <div class="grid grid-cols-5 gap-1 text-center">
+                <div class="border leakbox border-2 p-2 lbl">faststart<br />7 steps</div>
+                <div class="border leakbox border-2 p-2 lbl">poster<br />7 steps</div>
+                <div class="border leakbox border-2 p-2 lbl">gif<br />7 steps</div>
+                <div class="border leakbox border-2 p-2 lbl">clip<br />7 steps</div>
+                <div class="border leakbox border-2 p-2 lbl">transcript<br />7 steps</div>
+              </div>
+              <div class="seam my-3"></div>
+              <div class="border border-slate-400 p-2 text-center lbl">ledger · 7 modules write it · store owns 19 of 30 statements</div>
+              <div class="border border-slate-400 p-2 text-center lbl mt-1">contracts.ts · budgets re-typed as SQL literals</div>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">After</div>
+              <div class="deep rounded p-4 space-y-2">
+                <div class="lbl">Derivation driver</div>
+                <div class="grid grid-cols-5 gap-1 text-center opacity-50">
+                  <div class="border border-slate-500 p-1 lbl">faststart</div><div class="border border-slate-500 p-1 lbl">poster</div><div class="border border-slate-500 p-1 lbl">gif</div><div class="border border-slate-500 p-1 lbl">clip</div><div class="border border-slate-500 p-1 lbl">transcript</div>
+                </div>
+                <div class="lbl opacity-70">claim · lease · admission · settle · publish · terminal</div>
+              </div>
+              <div class="seam my-3"></div>
+              <div class="border border-slate-400 p-2 text-center lbl">ledger · one writer</div>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> One ledger and one contract table exist, but each kind hand-writes the same claim-to-publish loop. <span class="font-mono">case 'queued':</span> appears six times. A fix to one kind does not reach the other four.</p>
+          <p class="text-sm"><b>Solution.</b> Finish units 5 and 6 of the approved design in PR 696. Kinds become data behind one driver. The ledger gets one writer. SQL reads budgets from <span class="font-mono">contracts.ts</span>.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>locality: lifecycle bugs in one module</li><li>leverage: one interface, five kinds</li><li>tests cross one seam, not five</li><li>delete dead faststart path, ~95 lines</li>
+          </ul>
+          <p class="text-xs text-slate-600">Tickets this absorbs: WIL-3377, 3315, 3362, 3365, 3364, bounds 3361. Live divergence found: node delete cancels clips without clearing <span class="font-mono">breached_at</span>, so deleted videos count as SLA breaches.</p>
+        </article>
+
+        <!-- 2 -->
+        <article id="c2" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">2. One playback verdict on the public page</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">M</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/public-video-policy.ts · public-page-delivery/render-media.ts · render-blocks.ts · packages/journey-page-domain/src/blocks.ts · packages/served-file-policy · workers/workspace-tree/src/generated-video-source.ts</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4 space-y-1">
+              <div class="lbl text-slate-500 mb-2">Before · a URL passes through</div>
+              <div class="band border-slate-400 bg-slate-50 lbl">projection</div>
+              <div class="band border-slate-400 bg-slate-50 lbl">resolvePlayback</div>
+              <div class="band border-slate-400 bg-slate-50 lbl">resolvePublicVideoPlayback</div>
+              <div class="band border-red-600 bg-red-50 lbl text-red-800">flatten to step_N_* string keys</div>
+              <div class="band border-red-600 bg-red-50 lbl text-red-800">resolveStepVideoSources · second precedence</div>
+              <div class="band border-red-600 bg-red-50 lbl text-red-800">videoProcessingStatus stored in the Block</div>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4 space-y-1">
+              <div class="lbl text-slate-500 mb-2">After</div>
+              <div class="band border-slate-400 bg-slate-50 lbl">video record</div>
+              <div class="deep rounded p-5 lbl">resolvePlayback · the only precedence · Clip, faststart, Original</div>
+              <div class="band border-slate-400 bg-slate-50 lbl">every surface adapts the result</div>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> <span class="font-mono">CONTEXT.md</span> says no surface keeps its own precedence. The public page keeps two, and the Block document stores a processing verdict that goes stale.</p>
+          <p class="text-sm"><b>Solution.</b> Public rendering takes the typed result of <span class="font-mono">resolvePlayback</span> per Block. Stop persisting playback state in Block fields. Delete the unused second resolver in workspace-tree.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>locality: editor and public page agree</li><li>one seam: record in, render out</li><li>Mux migration becomes a field write</li><li>deletes the Step flattening on this path</li>
+          </ul>
+          <p class="text-xs text-slate-600">Tickets: WIL-3339, 3349, 3216 item 1, 3334. Same reader drift as the 16 July incident.</p>
+          <p class="text-xs rounded bg-amber-50 border border-amber-200 px-3 py-2">ADR 0006 says the flat Step shape has no consumers. The live public path still builds it. The ADR stands; the code has not caught up.</p>
+        </article>
+
+        <!-- 3 -->
+        <article id="c3" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">3. Every retry loop gets a terminal state</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">local-substitutable</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">S each</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">workers/r2-media/src/recording-acceptance-outbox.ts:91-128 · workers/workspace-tree/src/derivation-sweep.ts:288-309 · generated-output-claim.ts:309-345</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4"><div class="lbl text-slate-500 mb-2">Before</div>
+              <pre class="mermaid">
+stateDiagram-v2
+  [*] --> pending
+  pending --> delivered: 200 or 201
+  pending --> pending: 400, 404, 409, 5xx, timeout
+              </pre></div>
+            <div class="rounded-lg border border-slate-200 p-4"><div class="lbl text-slate-500 mb-2">After</div>
+              <pre class="mermaid">
+stateDiagram-v2
+  [*] --> pending
+  pending --> delivered: accepted
+  pending --> pending: retryable, attempts below cap
+  pending --> dead: permanent 4xx or cap reached
+  dead --> [*]: alert, visible to the rep
+              </pre></div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> The outbox interface returns a bare HTTP number, so permanence is nobody's decision. Two rows have retried 3,000+ times since 10 Sep. <span class="font-mono">ready_unpublished</span> has the same shape, and a failed kick leaves the row at the head of a 50-row sweep.</p>
+          <p class="text-sm"><b>Solution.</b> Classify the outcome once, inside the module. Cap attempts. Add a dead state that alerts.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>lost recordings become visible</li><li>sweep cannot be starved</li><li>testable: drive a 409 through delivery</li><li>same rule for webhooks and metadata writes</li>
+          </ul>
+          <p class="text-xs text-slate-600">Tickets: WIL-3394, 3315, 3362, 3350, 3285, 3318. Four areas, one missing discipline: server-side preconditions and terminal states.</p>
+        </article>
+
+        <!-- 4 -->
+        <article id="c4" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">4. Give the recorder a take state machine</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">M</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">editor/src/routes/RecordVideoRoute.tsx · lib/video-edit-session.ts:142-164 · recording-multipart-uploader.ts · resumable-video-upload.ts · media-upload.ts · recording-session-client.ts · upload-attempt-outcome.ts</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">Before</div>
+              <pre class="mermaid">
+flowchart TB
+  R[RecordVideoRoute · 967 lines] --> A[multipart · retries every error]
+  R --> B[resumable · honours retryable]
+  R --> C[presigned PUT · honours retryable]
+  R --> D[session client · honours retryable]
+  R -.booleans.-> F[uploadState, saveError, six flags]
+  E[outcome by error message text] -.-> R
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class A,F,E leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">After</div>
+              <div class="border border-slate-400 p-2 text-center lbl mb-2">RecordVideoRoute · renders a take state</div>
+              <div class="seam my-2"></div>
+              <div class="deep rounded p-4 space-y-2">
+                <div class="lbl">Take</div>
+                <div class="lbl opacity-70">recording → uploading → accepted → link ready · failed(retry)</div>
+                <div class="grid grid-cols-3 gap-1 text-center opacity-50"><div class="border border-slate-500 p-1 lbl">streamed</div><div class="border border-slate-500 p-1 lbl">resumable</div><div class="border border-slate-500 p-1 lbl">presigned</div></div>
+                <div class="lbl opacity-70">one retry policy · typed outcomes</div>
+              </div>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> Five open recorder bugs are one missing state machine. A failed upload pins Copy link off for the life of the page. A failed accept leaves the link enabled for an asset with no id. Re-record is a page reload.</p>
+          <p class="text-sm"><b>Solution.</b> One Take module owns the states and one retry policy. Errors carry an outcome instead of a message to match.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>locality: five bugs, one module</li><li>every failure state has a retry</li><li>tests drive states, not the DOM</li><li>route shrinks to rendering</li>
+          </ul>
+          <p class="text-xs text-slate-600">Tickets: WIL-3345, 3359, 3347, 3346, 3348, 3344, 3358. <span class="font-mono">RecordVideoRoute.tsx</span> has the most fix commits of any route in 60 days.</p>
+        </article>
+
+        <!-- 5 -->
+        <article id="c5" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">5. A route table and a validated Env for the router</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">M to L</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/index.ts:134-437 · trial-wall.ts · router-http.ts · security-headers.ts · auth-session.ts:1961 · app-shell-routes.ts · legacy-redirects.ts</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">Before · interface a maintainer must learn</div>
+              <div class="flex items-end gap-3 h-56">
+                <div class="flex-1 border-2 leakbox h-52 p-2 lbl">interface<br /><br />35 ordered predicates<br />4 re-matchers in the trial wall<br />35 optional bindings<br />57 "is it configured" guards<br />3 origin policies</div>
+                <div class="flex-1 border border-slate-400 h-56 p-2 lbl">implementation</div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">After</div>
+              <div class="flex items-end gap-3 h-56">
+                <div class="flex-1 border border-slate-400 h-16 p-2 lbl">interface<br />route table row: path, auth, wall, origin</div>
+                <div class="flex-1 deep h-56 p-2 lbl">implementation<br /><br />dispatch<br />wall policy<br />origin policy<br />Env parsed once at entry</div>
+              </div>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> Route order is the rule, stated in a comment. The trial wall re-classifies the same paths from a third list. Each handler re-decides what a missing binding means, and the answers disagree: 503 in one place, full access in another.</p>
+          <p class="text-sm"><b>Solution.</b> Routes become rows that declare auth, wall, and origin policy. Env is parsed once into required and optional bindings. Contacts CRUD and the Stripe broker move out of <span class="font-mono">index.ts</span>.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>a new route cannot skip the wall</li><li>fail-open paths are listed and logged</li><li>one origin policy, not three</li><li>test the table, not 35 branches</li>
+          </ul>
+        </article>
+
+        <!-- 6 -->
+        <article id="c6" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">6. One identity type across the worker seam</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">ports &amp; adapters</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">M</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/workspace-tree-proxy.ts:40-53 · workers/workspace-tree/src/index.ts:1604-1632 · packages/auth-identity · admin-accounts-native.ts:753 · index.ts:962,1387 · journey-pages-native.ts:852-872 · entitlement.ts · stripe-subscription-sync.ts:72-83</p>
+          <div class="rounded-lg border border-slate-200 p-4">
+            <pre class="mermaid">
+flowchart LR
+  subgraph Before
+    I[AuthIdentity · 9 fields] --> P[proxy · 6 string headers]
+    P -.seam.-> W[workspace-tree re-parses]
+    I --> C1[admin check copy 1]
+    I --> C2[admin check copy 2]
+    I --> C3[corp or cadmin copy 3]
+    I --> C4[page access · 5 fields x 3 ids]
+    W --> L[4 more local AuthenticatedUser shapes]
+  end
+  subgraph After
+    J[Identity · can x do y] --> S[typed seam, shared by both workers]
+  end
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class P,C1,C2,C3,C4,L leak
+            </pre>
+          </div>
+          <p class="text-sm"><b>Problem.</b> The identity record exposes fields and callers restate the policy. The router drops two admin flags at the seam. The header test writes literals and never calls the builder, so a rename passes on both sides. ADR 0008's entitlement rule has also leaked back out as a hand-copied predicate.</p>
+          <p class="text-sm"><b>Solution.</b> <span class="font-mono">auth-identity</span> answers authorization questions and owns the header encoding. Both workers import it.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>locality: a role rule fixed once</li><li>two adapters justify the seam</li><li>round-trip test replaces literals</li><li>prerequisite for any worker merge</li>
+          </ul>
+        </article>
+
+        <!-- 7 -->
+        <article id="c7" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">7. Deepen the Block kind registry</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">M to L</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">packages/journey-page-domain/src/blocks.ts:240 · hero-primary-cta.ts:70 · workers/frontend-router/src/public-page-delivery/render-blocks.ts:356,369 · render-values.ts:125 · editor/src/components/editor/LivePreview.tsx:245,723 · MiniPage.tsx:217 · block-editors.tsx:61 · hooks/use-media-hydration.ts:9</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">Before · add one Block kind</div>
+              <div class="grid grid-cols-3 gap-1 text-center">
+                <div class="border border-slate-400 p-2 lbl">registry</div><div class="border border-slate-400 p-2 lbl">BLOCK_KINDS</div><div class="border border-slate-400 p-2 lbl">singletons</div>
+                <div class="border-2 leakbox p-2 lbl">public renderer</div><div class="border-2 leakbox p-2 lbl">LivePreview<br />default: null</div><div class="border-2 leakbox p-2 lbl">MiniPage</div>
+                <div class="border-2 leakbox p-2 lbl">block editors<br />default: null</div><div class="border border-slate-400 p-2 lbl">generation x2</div><div class="border border-slate-400 p-2 lbl">styles</div>
+              </div>
+              <p class="text-xs text-slate-600 mt-2">Nine sites. A missed kind renders blank, silently.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">After</div>
+              <div class="deep rounded p-4 space-y-2">
+                <div class="lbl">Block definition, per kind</div>
+                <div class="lbl opacity-70">fields · defaults · normalize · render model · generation</div>
+              </div>
+              <div class="seam my-3"></div>
+              <div class="grid grid-cols-3 gap-1 text-center"><div class="border border-slate-400 p-2 lbl">public HTML</div><div class="border border-slate-400 p-2 lbl">preview</div><div class="border border-slate-400 p-2 lbl">mini</div></div>
+              <p class="text-xs text-slate-600 mt-2">Three adapters over one render model. The compiler lists what is missing.</p>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> ADR 0006 asked for renderers co-located per kind. The definition carries none. The hero CTA row has two implementations that meet through a legacy Step record. The preview resolves one page-global PDF, so two document Blocks show the same file.</p>
+          <p class="text-sm"><b>Solution.</b> Each kind owns a render model that all three surfaces adapt. Media hydrates per Block id. Delete <span class="font-mono">JourneyPageRecord</span> from the editor payload union.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>parity by construction, not by test</li><li>exhaustive switch, no silent blank</li><li>pure deletion: three dead types</li><li>fixes WIL-3296 at the root</li>
+          </ul>
+          <p class="text-xs text-slate-600"><span class="font-mono">LivePreview.tsx</span> is the most-changed file in the repo over 60 days, 35 commits. The parity test is good but compares CSS vocabulary, not values, so a wrong <span class="font-mono">src</span> passes.</p>
+        </article>
+
+        <!-- 8 -->
+        <article id="c8" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">8. Finish the Library convergence</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">L</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">editor/src/routes/HomeTreeRoute.tsx:218-349,1274-1848 · components/LibraryGrid.tsx · WorkspaceLibrary.tsx · lib/library-model.ts · tree-media-adapter.ts · workspace-empty-folder-sync.ts · routes/ContactsIndexRoute.tsx:393-662</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">Before</div>
+              <pre class="mermaid">
+flowchart TB
+  H[HomeTreeRoute · 1,848 lines · own cards, 3 optimistic id sets, timers] --> N[WorkspaceTreeNode.metadata]
+  K[picker: WorkspaceLibrary + LibraryGrid] --> M[MediaAsset]
+  N -.same rules, second copy.-> M
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class H,N leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <div class="lbl text-slate-500 mb-2">After</div>
+              <div class="grid grid-cols-2 gap-1 text-center mb-2"><div class="border border-slate-400 p-2 lbl">Home · mode library</div><div class="border border-slate-400 p-2 lbl">editor · mode picker</div></div>
+              <div class="seam my-2"></div>
+              <div class="deep rounded p-4 lbl">Library · one Library item model · fetch, move, delete, optimistic state</div>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> <span class="font-mono">CONTEXT.md</span> defines one Library with two modes. The management view never moved onto it. Two card implementations, the transparent-image rule twice, <span class="font-mono">metadataRecord</span> typed six ways. Eight exported sync helpers have one caller, a 60-line effect where the real bugs live.</p>
+          <p class="text-sm"><b>Solution.</b> Home hosts the shared Library in <span class="font-mono">library</span> mode. Optimistic state moves behind its interface. The same cut applies to Contacts: CSV parsing and HTTP leave the 1,702-line component.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>one typed Library item</li><li>leverage: one grid, two hosts</li><li>optimistic state testable without a route</li><li>Contacts import gets its first test</li>
+          </ul>
+          <p class="text-xs text-slate-600">Related: WIL-3228 (1,000+ items), WIL-3229 (placeholders, Trash, restore), WIL-3331. Both are easier on one Library than on two.</p>
+        </article>
+
+        <!-- 9 -->
+        <article id="c9" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">9. Replace SQL-text fakes with the SQLite adapter</h2>
+            <span class="rounded bg-amber-100 text-amber-800 text-xs px-2 py-0.5">Worth exploring</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">local-substitutable</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">L, incremental</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">editor/tests/helpers/sqlite-auth-db.ts · frontend-router-harness.ts:146-203 · workers/workspace-tree/tests/poster-supersede.test.ts:40 · 72 test files</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4 space-y-2">
+              <div class="lbl text-slate-500">Before</div>
+              <div class="border-2 leakbox p-3 font-mono text-xs">sql.includes("from journey_pages")<br />sql.includes("RETURNING attempts") ← matches 8 statements</div>
+              <p class="text-xs text-slate-600">Reformat a query and the fake takes another branch. The test still passes.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4 space-y-2">
+              <div class="lbl text-slate-500">After</div>
+              <div class="deep rounded p-3 lbl">D1 seam · two adapters: D1 in prod, SQLite over the real migrations in tests</div>
+              <p class="text-xs text-slate-600">The second adapter already exists and carries 20 tests.</p>
+            </div>
+          </div>
+          <p class="text-sm"><b>Problem.</b> Two adapters sit at the D1 seam and the older one matches query text. Tests assert SQL spelling instead of behaviour.</p>
+          <p class="text-sm"><b>Solution.</b> Extend the SQLite adapter to the other databases. Migrate a file whenever it is touched. A lint rule bans new <span class="font-mono">sql.includes</span> fakes.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>tests survive query refactors</li><li>migrations get exercised</li><li>ratchet, no big-bang rewrite</li><li>router tests can move home</li>
+          </ul>
+        </article>
+
+        <!-- 10 -->
+        <article id="c10" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-serif text-2xl mr-2">10. Make the deploy surface tell the truth</h2>
+            <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+            <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">S</span>
+          </div>
+          <p class="font-mono text-sm text-slate-600">justfile:136-139 · DEPLOY.md:5,59-60,144 · scripts/deploy-convex.sh · workers/workspace-tree/src/product-analytics.ts:11-16 · workers/frontend-router/src/product-analytics.ts:58-62</p>
+          <div class="rounded-lg border border-slate-200 p-4">
+            <pre class="mermaid">
+sequenceDiagram
+  participant J as just deploy-production
+  participant C as Convex prod
+  participant R as prod router
+  J->>R: preflight
+  J->>C: push schema and functions
+  J->>R: upload router
+  Note over J,R: rollback reverts R only
+  Note over C: DEPLOY.md never mentions this step
+            </pre>
+          </div>
+          <p class="text-sm"><b>Problem.</b> The doc describes a smaller blast radius than the recipe has. It is also wrong about the media read gate mode. Separately, workspace-tree tags analytics rows from the request host while the router drains by an env var. If they disagree, rows pile up with no error.</p>
+          <p class="text-sm"><b>Solution.</b> Deploy Convex only when its directory changed, or document and gate it. One owner for "which environment am I". A check that fails when <span class="font-mono">DEPLOY.md</span> and the recipe diverge.</p>
+          <ul class="text-sm list-disc pl-5 grid sm:grid-cols-2 gap-x-6">
+            <li>rollback scope matches the doc</li><li>outbox cannot strand rows silently</li><li>small, no design needed</li>
+          </ul>
+        </article>
+      </section>
+
+      <section id="forks" class="space-y-4">
+        <h2 class="font-serif text-2xl">Open forks that block sequencing</h2>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-6 space-y-3 text-sm">
+          <p><b>Cloudflare or Convex for the two small workers and the job store.</b> WIL-3165 folds workspace-tree and auth-email into the router. WIL-3306, 3308 and 3309 delete the same two workers by moving them to Convex. WIL-3377 replaces the job driver on Cloudflare Workflows while WIL-3308 assumes a Convex workpool. Both plans are open. Work on either side of the fork is at risk until one ticket closes the other.</p>
+          <p><b>Recommendation.</b> The derivation design is approved and four of six units are on main. Keep jobs on Cloudflare, close WIL-3308's job half, and decide WIL-3309 (library to Convex) on its own merits after candidate 8.</p>
+          <p><b>Mux order.</b> WIL-3355 (recover legacy sources from Mux) must finish before WIL-3232 (retire Mux). The tracker shows them as siblings.</p>
+          <p><b><span class="font-mono">packages/</span> is not a pnpm workspace.</b> Thirteen directories reached by relative paths. <span class="font-mono">auth-identity</span> has one consumer, so the seam ADR 0002 promised never formed. Candidate 6 forms it.</p>
+        </div>
+      </section>
+
+      <section id="prs" class="space-y-4">
+        <h2 class="font-serif text-2xl">Pull request queue · 14 open</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table class="w-full text-sm">
+            <thead class="text-left lbl text-slate-500 border-b"><tr><th class="p-3">PR</th><th class="p-3">What</th><th class="p-3">State</th><th class="p-3">Verdict</th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="p-3 font-mono">696</td><td class="p-3">Video derivations design. The contract for candidate 1.</td><td class="p-3">docs only, mergeable</td><td class="p-3 text-emerald-700 font-medium">Land. Main already runs units 1 to 4 with no written contract.</td></tr>
+              <tr><td class="p-3 font-mono">741</td><td class="p-3">Fragment index and structural verification. Deepens an existing module.</td><td class="p-3">green</td><td class="p-3 text-emerald-700 font-medium">Land, before 742.</td></tr>
+              <tr><td class="p-3 font-mono">742</td><td class="p-3">Edge cache: single-flight fills, segment cache above 512 MB.</td><td class="p-3">green</td><td class="p-3 text-emerald-700 font-medium">Land. Fixes the WIL-3396 stall.</td></tr>
+              <tr><td class="p-3 font-mono">705 · 693 · 674</td><td class="p-3">Small UX fixes.</td><td class="p-3">drafts, green</td><td class="p-3 text-emerald-700 font-medium">Land.</td></tr>
+              <tr><td class="p-3 font-mono">645</td><td class="p-3">GoHighLevel sync on the router. Sixth cron owner.</td><td class="p-3">conflicting, 13 d</td><td class="p-3">Rebase. Migrations 0011 and 0012 collide with main, renumber to 0017 and 0018.</td></tr>
+              <tr><td class="p-3 font-mono">732</td><td class="p-3">Remove default Story section.</td><td class="p-3">conflicting</td><td class="p-3">Rebase, land.</td></tr>
+              <tr><td class="p-3 font-mono">647</td><td class="p-3">Thumbnail lag after trim.</td><td class="p-3">conflicting, 13 d</td><td class="p-3">Land the worker half. Design unit 5 removes the need for the client half.</td></tr>
+              <tr><td class="p-3 font-mono">631</td><td class="p-3">Account tab, profile merge, soft delete with daily purge.</td><td class="p-3">draft, conflicting</td><td class="p-3 text-amber-700 font-medium">Split. Land the Profile merge. Hold the purge for a decision.</td></tr>
+              <tr><td class="p-3 font-mono">635</td><td class="p-3">Derived media gets an owner.</td><td class="p-3">base branch gone, conflicting</td><td class="p-3 text-amber-700 font-medium">Needs a decision, then retarget to main. Land 742 first and re-measure.</td></tr>
+              <tr><td class="p-3 font-mono">666</td><td class="p-3">Agent-surface cleanup, 45 files.</td><td class="p-3">draft, 11 d, mostly landed via 667</td><td class="p-3 text-red-700 font-medium">Close. Re-cut the CORS helper rename as a small PR.</td></tr>
+              <tr><td class="p-3 font-mono">669 · 735</td><td class="p-3">Root redirect. Sidebar email fallback.</td><td class="p-3">CI red</td><td class="p-3 text-red-700 font-medium">Close. 669's premise is gone since 722. 735 overlaps 631.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-sm text-slate-600">Eight merges, three closes, two decisions clear the queue. Conflicts to watch: 631 and 645 both add auth migration 0011 and a scheduled handler.</p>
+      </section>
+
+      <section id="tracker" class="space-y-4">
+        <h2 class="font-serif text-2xl">Tracker · 120 open</h2>
+        <div class="grid md:grid-cols-2 gap-6 text-sm">
+          <div class="rounded-xl border border-slate-200 bg-white p-5 space-y-2">
+            <h3 class="lbl text-slate-500">Symptoms that share a structural cause</h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>WIL-3315, 3362, 3365, 3364, 3361 → candidate 1. Make WIL-3377 their parent.</li>
+              <li>WIL-3339, 3349, 3216, 3334 → candidate 2.</li>
+              <li>WIL-3394, 3350, 3285, 3318 → candidate 3.</li>
+              <li>WIL-3345, 3359, 3347, 3346, 3348, 3344 → candidate 4. Merge 3345 into 3359.</li>
+              <li>WIL-3289, 3290, 3291, 3374 → no owned CSS layering and browser-target policy.</li>
+              <li>WIL-3360, 3299, 3197 → WIL-3162, no isolated preview environment.</li>
+            </ul>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-5 space-y-2">
+            <h3 class="lbl text-slate-500">Hygiene</h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>Doing but stalled: WIL-3277 (55 days), 3216, 3196, 3358 (waiting on detail).</li>
+              <li>WIL-3227 carries <span class="font-mono">agent-ready</span> but depends on WIL-3333. Do not move it to Next first.</li>
+              <li>WIL-3216 carries <span class="font-mono">agent-ready</span> with a deferred item. A partial brief.</li>
+              <li>WIL-3136 sits in Next with an empty description.</li>
+              <li>Fifteen <span class="font-mono">needs-triage</span> tickets are complete briefs with file paths. WIL-3363 (Node 20 in Actions) has a deadline.</li>
+              <li>WIL-3392 and WIL-3364 are the cheapest reliability wins: turn the gates and the job-health check back on.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="top-recommendation">
+        <div class="deep rounded-xl p-8 space-y-3">
+          <div class="lbl opacity-70">Top recommendation</div>
+          <h2 class="font-serif text-3xl"><a href="#c1" class="underline underline-offset-4">One derivation driver</a></h2>
+          <p class="text-sm opacity-90">The design is approved, four of six units are on main, and it absorbs the largest cluster of reliability tickets. Land PR 696, 741 and 742, then build units 5 and 6. Do <a href="#c3" class="underline">candidate 3</a> first this week. It is small, and it stops recordings from being lost silently today.</p>
+          <p class="text-sm opacity-90">Suggested order: 3 → 10 → 1 → 2 → 4 → 6 → 5 → 7 → 8, with 9 as a ratchet throughout.</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
