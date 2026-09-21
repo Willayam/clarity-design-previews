@@ -16,3 +16,5 @@ Verified fixed dialog bounds across panel selection, zero accordion overflow at 
 Visit rows now follow VideoStatsModal.tsx: Where / When / Watched / %, relative dates, compact alternating rows, watched-range rails and end dots, sortable headers. Button panels share the same table and show a checkmark only for recorded clicks. On phones, dates move below locations. Checked sorting and phone overflow.
 
 Uses the shared Table family, ButtonBase for sorting and filtering, and NativeSelect. Visit rows now render as React components. Sort direction is exposed through aria-sort. Base UI Accordion and Lucide remain shared dependencies. Prototype-only layout, preview rendering, and summary graph styling remain local. Verified filtering, sorting, scenario changes and no-click suppression.
+
+Button tables now list only visits with a recorded click on the selected button. Columns are Where and When. No Clicked column or click filter toggle. Zero-click buttons show No clicks yet. Video tables retain their watch detail.
