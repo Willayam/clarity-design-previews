@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity video platform: the way forward (2026-09-22)</title>
+<style>
+  :root { color-scheme: light dark; --fg:#16181d; --muted:#5b6370; --bg:#fbfbfa; --card:#fff; --line:#e4e4e0; --accent:#2f5fd0; --good:#1d7a46; --bad:#b3372c; --warn:#946200; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#e9eaec; --muted:#9aa2ae; --bg:#121316; --card:#1a1c20; --line:#2c2f36; --accent:#8fb0ff; --good:#6fd39b; --bad:#ff8f84; --warn:#e7b856; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 18px 80px; }
+  h1 { font-size: 1.7rem; line-height:1.2; margin: 0 0 6px; }
+  h2 { font-size: 1.2rem; margin: 40px 0 10px; padding-top: 18px; border-top:1px solid var(--line); }
+  h3 { font-size: 1rem; margin: 22px 0 6px; }
+  p, li { max-width: 72ch; }
+  .muted { color: var(--muted); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:16px 0; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse: collapse; width:100%; font-size: .9rem; min-width: 720px; }
+  th, td { text-align:left; vertical-align:top; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { font-weight:600; color:var(--muted); }
+  .good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  code { font-size:.88em; background: color-mix(in srgb, var(--line) 50%, transparent); padding:1px 5px; border-radius:4px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<h1>Clarity video platform: the way forward</h1>
+<p class="muted">Decision report, 2026-09-22. Five research lanes (two on the current code, one on history and incidents, two on vendors), then three independent model critics attacked the draft recommendation. Production telemetry was queried directly where a claim could be measured.</p>
+
+<div class="card">
+<h3 style="margin-top:0">Verdict</h3>
+<p>Rule out Cloudflare Stream and Bunny Stream. Stop the project to migrate the old library off Mux. The real choice is between <strong>pure Mux for new videos</strong> and <strong>finishing the self-built pipeline</strong>, and it is close. The three critics split three ways. Three numbers decide it, and all three can be measured within two weeks at almost no cost.</p>
+<p>My lean is pure Mux with direct uploads, at about 60% confidence, because the priorities are founder time and customer trust, and every step of the self-built path so far has produced new incidents. That lean flips if Mux misses the record-to-share latency bar or cannot trim privately fast enough.</p>
+</div>
+
+<h2>What the evidence says</h2>
+<ul>
+<li><strong>Mux was never left.</strong> The 2026-09-16 census counts 5,817 of 7,441 production videos as Mux-only and 1,565 as native. The public page still renders <code>&lt;mux-player&gt;</code> for the Mux ones. The current Mux bill is under $100 a month.</li>
+<li><strong>Tracking does not depend on the backend.</strong> One inline script uses only the standard media-element API and writes to Clarity's own D1. Mux Data was never used. Any option keeps today's tracking as long as Clarity keeps minting the session id. One thing is unverified: that the events fire through <code>&lt;mux-player&gt;</code> in production.</li>
+<li><strong>The viewer-facing player has no custom look today.</strong> Journey pages use a bare <code>&lt;video controls&gt;</code> with browser controls. The custom React player is editor-only. A themed player is frontend work under every option (Media Chrome works over a plain file or HLS, and Mux Player is built on it).</li>
+<li><strong>The self-built surface.</strong> About 42,000 lines of production code, 38,000 lines of tests, three Workers, an ffmpeg container, two Durable Object classes, three crons, twelve tables. 229 of the last 1,519 commits touched it. It includes a 4,764-line hand-written MP4 parser and header synthesizer and a hand-rolled edge cache.</li>
+<li><strong>The reliability record.</strong> Fix-like video commits per month since May run 12, 23, 20, 11, 44. The producer was down 16 days unnoticed. Three customer-visible incidents landed in the last eight weeks, the latest on 2026-09-21 (playback froze for 95 minutes, caused by the edge cache). Failure classes are orchestration and state, container operations, multipart upload, size limits, delivery stalls and silent alerting.</li>
+<li><strong>A vendor does not remove the lifecycle code.</strong> Acceptance, edit fencing, reconciliation, publication and webhook handling stay in Clarity under any option. Much of the incident history is in exactly that code. The measured deletion from moving playback to Mux is about 12,000 lines, not the 25,000 to 30,000 the first draft claimed.</li>
+<li><strong>The self-built replacement for the slow paths shipped this week.</strong> Header-based playable views and trim views landed 2026-09-17 to 2026-09-21. Targets are a playable file at a median of 2 seconds and a private trim in under 2 seconds with no bytes moved. Production has 5 view-class outputs so far. It is days old and needed fixes on day one.</li>
+<li><strong>Production playback speed does not favour Mux.</strong> First-frame telemetry on share pages over 30 days shows native file at median 0 ms and p95 366 ms (30 sampled rows) and Mux HLS at median 103 ms and p95 973 ms (12 rows). Small samples. Whether missing adaptive bitrate causes mid-play stalls is unmeasured, because stall telemetry began 2026-09-21 and has 16 sessions.</li>
+<li><strong>Mux instant clips fail the trim privacy contract.</strong> Mux documents that instant clips can include content outside the requested range. Frame-accurate asset clips are private but encode asynchronously as a new asset.</li>
+</ul>
+
+<h2>Options compared</h2>
+<div class="scroll">
+<table>
+<tr><th>Option</th><th>Simple and low founder time</th><th>Reliability and trust</th><th>Record to share</th><th>Player look and tracking</th><th>Biggest risk</th><th>Verdict</th></tr>
+<tr><td><strong>1. Pure Mux</strong> (direct upload, new videos)</td><td class="good">Best. Removes container, MP4 synthesizer, video delivery, poster and GIF jobs, the upload broker, and the Mux retirement project. Lifecycle code stays.</td><td>Managed, independent failure domain. About one video-affecting major incident a quarter, one critical outage in July 2026. SLA is contract-only.</td><td class="warn">Unmeasured. Mux says seconds for standard input, up to minutes.</td><td>Mux Player themes through Media Chrome. Tracking unchanged.</td><td>Gives up byte-exact originals (a Mux master export was measured missing about 735 ms of audio). Private trims need slower asset clips.</td><td><strong>Lean pick, gated on the spike</strong></td></tr>
+<tr><td><strong>2. Cloudflare Stream</strong></td><td>One vendor, but each gap needs a workaround.</td><td class="bad">Shares the app's failure domain. Years of forum reports of stuck processing. VOD product is stagnant.</td><td class="warn">Undocumented.</td><td>Iframe player is colour-only. Own player is supported. No custom domain for VOD.</td><td>Cannot download originals. One webhook per account. Clips re-queue.</td><td class="bad">Rule out</td></tr>
+<tr><td><strong>3. Finish self-built</strong> (views as the primary path)</td><td class="bad">Worst. You keep owning an MP4 muxer, a cache layer, a container fleet and a job ledger.</td><td class="warn">Record so far is poor. The new views remove the slowest paths but are days old.</td><td class="good">Best on paper, about 2 seconds.</td><td>Full freedom. Tracking unchanged.</td><td>Every convergence step so far has created new incidents. No adaptive bitrate.</td><td><strong>The alternative if the spike fails</strong></td></tr>
+<tr><td><strong>4. Bunny Stream</strong></td><td>Good API, cheapest.</td><td class="bad">Instant play is unsupported outside Bunny's player. Free encode queue can take hours at peak. Small vendor.</td><td class="bad">Undocumented with a custom player.</td><td>Own player works against HLS or MP4 URLs.</td><td>Encode latency sits on the share moment.</td><td class="bad">Rule out</td></tr>
+<tr><td><strong>5. R2 as record, Mux as engine</strong> (first draft)</td><td class="warn">Two durable pipelines. Deletion was overstated by about half.</td><td>Same as Mux, plus a second hop and double retention.</td><td class="warn">Worst of the Mux shapes. Adds an R2 to Mux pull.</td><td>Same as Mux.</td><td>Bridging the latency gap keeps everything it claimed to delete, and creates two playback representations per video, the class behind the 2026-07-16 incident.</td><td>Only if byte-exact originals are non-negotiable</td></tr>
+<tr><td><strong>6. R2 plus a transcode API</strong></td><td class="bad">Removes only the encoder.</td><td>Two-vendor debugging.</td><td>Unchanged.</td><td>Unchanged.</td><td>Keeps orchestration and delivery.</td><td class="bad">Rule out</td></tr>
+</table>
+</div>
+
+<h2>What the critics said</h2>
+<ul>
+<li><strong>Critic A (Claude Fable)</strong> picked a narrowed hybrid. Mux only as the adaptive delivery layer, keeping the synthesizer and instant playback of the original. It flagged its own pick as institutionalizing two playback representations.</li>
+<li><strong>Critic B (Claude Opus)</strong> picked finishing the self-built pipeline at 65%. The draft priced that option at June costs when the views shipped this week. It also pointed at production telemetry that could be queried immediately, which is where the first-frame numbers above came from.</li>
+<li><strong>Critic C (GPT-5.6 via Codex)</strong> picked pure Mux with direct upload at 70%. A hybrid is two durable pipelines. It said hybrid only wins if byte-exact sources and source-track remixing are truly committed.</li>
+<li><strong>All three agreed</strong> that the draft's deletion estimate was too high, that lifecycle code survives any vendor, that instant clips cannot be used for private trims, that the adaptive bitrate argument was asserted and not measured, and that record-to-share latency is the crux.</li>
+</ul>
+
+<h2>The gate: three numbers, two weeks</h2>
+<ol>
+<li><strong>Record to public first frame.</strong> Run about 20 real recordings through Mux direct upload and through the new views path. Include the 889 MB 11-minute recording and a Safari capture. Compare p50 and p95 from stop to a viewer's first frame. Mux passes at a p95 of roughly 15 seconds or less for recordings up to 10 minutes.</li>
+<li><strong>Private trim.</strong> Measure Mux asset-clip latency and confirm no trimmed-out content is reachable. It passes at roughly 30 seconds or less with zero leak.</li>
+<li><strong>Two weeks of production telemetry.</strong> Stall rate for native file versus Mux HLS, failure rate of the new views path, and confirmation that tracking events fire through <code>&lt;mux-player&gt;</code>.</li>
+</ol>
+<p>If Mux passes 1 and 2, go pure Mux for new videos and treat the self-built pipeline as legacy to drain. If it fails either, finish the self-built path with views as primary, and scope a replacement for the container separately. A short spike measures latency and privacy. It cannot establish reliability, which is why the two-week telemetry window runs alongside it.</p>
+
+<h2>Do now, under either outcome</h2>
+<ul>
+<li>Stop the Mux retirement project. The old library plays fine where it is, the migration has known fidelity defects, and the bill is small.</li>
+<li>Freeze new pipeline architecture work (the Workflows move, the derivations facade) until the gate. Bug fixes only.</li>
+<li>Build the themed viewer player on Media Chrome. It works over a file or HLS, so it survives the decision.</li>
+<li>Keep the session id minted by Clarity and passed through any player.</li>
+<li>Put the Mux account on a backup payment method. A billing lapse there is a playback outage for most of the library.</li>
+</ul>
+
+<h2>Corrections to earlier drafts</h2>
+<ul>
+<li>The deletion from moving to Mux is about 12,000 lines, not 25,000 to 30,000.</li>
+<li>The monthly fix count is not a steady rise. September's spike coincides with shipping the views.</li>
+<li>Mux costs Clarity $63 to $82 a month today. The pricing-page estimate of near zero was too low. A branded delivery domain adds $100 a month.</li>
+<li>The tally of Mux status incidents could not be validated by one critic from primary data and is not used comparatively here.</li>
+</ul>
+<p class="muted">Web claims about vendors were researched on 2026-09-22 from vendor docs and status pages. Items the researchers marked unverified are labelled as such above or omitted.</p>
+</main>
+</body>
+</html>
