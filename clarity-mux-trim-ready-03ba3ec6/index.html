@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mux trim retest 03ba3ec6</title><style>body{font:16px/1.6 system-ui;max-width:800px;margin:32px auto;padding:0 20px}pre{white-space:pre-wrap;font:inherit}img{width:100%;height:auto}</style></head><body><h1>Mux trim retest</h1><pre>PASS. Verified staging commit 03ba3ec6 via /__deploy-info. Tested in visible Chromium with fake camera/microphone and QA login. No source files changed.
+
+1. PASS: Recorded 30.03 s; library card played, currentTime 5.10 s and paused=false. Screenshot: 01-library-playing.png.
+2. PASS: Trimmed 5–20 s. Save took 2.895 s, measured from clicking Trim to “Saving changes…” clearing. Clicked card Play 0.176 s later, without reload. Played 15.002 s clip; no “Playback failed.” Screenshot: 02-library.png.
+3. PASS: Private share opened 2.202 s after saving cleared. Played the 15.003 s clip to its end. Screenshot: 02-private.png.
+4. PASS: Re-trimmed 3–25 s. Save took 4.375 s. Clicked Play 0.126 s later, without reload. Card played 22.000 s; private share played 22.026 s. No playback failure. Screenshots: 04-library.png, 04-private.png.
+5. PASS: Deleted video; after reload library count returned to 241, and share had no video. Screenshot: 05-deleted.png.
+
+All captured stream.mux.com manifests returned HTTP 200; no 412. Screenshots, timings.json, observations.json and network.json are under .audit/manual-mux-test-trim3/.
+
+An earlier attempt was discarded after a selector clicked another card. Its temporary video was deleted; all results above are from the replacement recording.
+</pre><h2>Private playback, 15 seconds</h2><img src="02-private.png"><h2>Private playback, 22 seconds</h2><img src="04-private.png"></body></html>
