@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture review — Clarity — 2026-09-22</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose", flowchart: { useMaxWidth: true } });
+</script>
+<style>
+  .mermaid { display: flex; justify-content: center; }
+  .bar { height: 10px; border-radius: 2px; background: #334155; }
+  .bar.t { background: #94a3b8; }
+</style>
+</head>
+<body class="bg-stone-50 text-slate-900 font-sans">
+<main class="max-w-5xl mx-auto px-6 py-12 space-y-14">
+
+<header class="space-y-3">
+  <p class="text-xs uppercase tracking-wider text-slate-500">Architecture review · origin/main d8416547 · 2026-09-22</p>
+  <h1 class="font-serif text-4xl">Clarity: where the code is, and where to deepen it</h1>
+  <p class="text-slate-600 max-w-3xl">Six parallel explorers covered frontend-router, workspace-tree, the media pipeline, the editor, the seams between deployables, and tests and tooling. Candidates are ranked across all six. Glossary: a <b>module</b> is <b>deep</b> when a lot of behaviour sits behind a small <b>interface</b>. A <b>seam</b> is where that interface lives.</p>
+  <div class="flex flex-wrap gap-4 text-xs text-slate-500 pt-2">
+    <span><span class="inline-block w-3 h-3 bg-emerald-600 rounded-sm align-middle"></span> Strong</span>
+    <span><span class="inline-block w-3 h-3 bg-amber-500 rounded-sm align-middle"></span> Worth exploring</span>
+    <span><span class="inline-block w-3 h-3 bg-slate-400 rounded-sm align-middle"></span> Speculative</span>
+    <span><span class="text-red-600 font-bold">red</span> = a rule leaking across a seam</span>
+  </div>
+</header>
+
+<!-- ============ SIZE ============ -->
+<section class="space-y-6">
+  <h2 class="font-serif text-2xl">Size and shape</h2>
+  <div class="grid md:grid-cols-4 gap-4">
+    <div class="rounded-lg bg-white border border-slate-200 p-4"><div class="text-3xl font-semibold">114k</div><div class="text-xs uppercase tracking-wider text-slate-500 mt-1">runtime code</div><div class="text-xs text-slate-500">editor, workers, packages, convex</div></div>
+    <div class="rounded-lg bg-white border border-slate-200 p-4"><div class="text-3xl font-semibold">76k</div><div class="text-xs uppercase tracking-wider text-slate-500 mt-1">test code</div><div class="text-xs text-slate-500">vitest, node --test, Playwright</div></div>
+    <div class="rounded-lg bg-white border border-slate-200 p-4"><div class="text-3xl font-semibold">13k</div><div class="text-xs uppercase tracking-wider text-slate-500 mt-1">tooling</div><div class="text-xs text-slate-500">scripts/: deploy, CI checks, ratchets</div></div>
+    <div class="rounded-lg bg-white border border-slate-200 p-4"><div class="text-3xl font-semibold">18k</div><div class="text-xs uppercase tracking-wider text-slate-500 mt-1">markdown</div><div class="text-xs text-slate-500">docs, ADRs, skills</div></div>
+  </div>
+  <p class="text-xs text-slate-500">Non-blank lines in git-tracked files. Excluded: 49k lines of vendored agent-skill code (<code>.agents/skills/impeccable</code>, <code>workos-widgets</code>), 7k lines of HTML/JS under <code>docs/</code>, lockfiles and binaries. Test lines are attributed to the directory they live in; most frontend-router and r2-media tests live in <code>editor/tests</code>.</p>
+
+  <div class="rounded-lg bg-white border border-slate-200 p-5">
+    <table class="w-full text-sm">
+      <thead class="text-xs uppercase tracking-wider text-slate-500 text-left"><tr><th class="pb-2">Module</th><th class="pb-2">What it is</th><th class="pb-2 text-right">Runtime lines</th><th class="pb-2 w-56"></th></tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr><td class="py-2 font-mono">editor/src</td><td>React 19 + Vite SPA: routes 14k, components 19.7k, lib 12.9k, hooks 3.1k</td><td class="text-right">51.0k</td><td><div class="bar" style="width:100%"></div></td></tr>
+        <tr><td class="py-2 font-mono">workers/frontend-router</td><td>Edge routing, SPA serving, /auth/*, sessions, Stripe, admin, public-page SSR</td><td class="text-right">19.6k</td><td><div class="bar" style="width:38%"></div></td></tr>
+        <tr><td class="py-2 font-mono">workers/workspace-tree</td><td>Canonical Library tree (D1), video acceptance, derivation jobs, sweeps</td><td class="text-right">16.0k</td><td><div class="bar" style="width:31%"></div></td></tr>
+        <tr><td class="py-2 font-mono">workers/r2-media</td><td>R2 upload broker, recording sessions, byte serving, playable views</td><td class="text-right">6.4k</td><td><div class="bar" style="width:12.5%"></div></td></tr>
+        <tr><td class="py-2 font-mono">packages/video-derivations</td><td>MP4 fragment/sample indexing, view synthesis</td><td class="text-right">5.9k</td><td><div class="bar" style="width:11.6%"></div></td></tr>
+        <tr><td class="py-2 font-mono">workers/media-artifact-producer</td><td>ffmpeg Container: poster, GIF, clip, faststart</td><td class="text-right">5.7k</td><td><div class="bar" style="width:11.2%"></div></td></tr>
+        <tr><td class="py-2 font-mono">packages/journey-page-domain</td><td>Block document, block registry, theme styles (editor + Convex)</td><td class="text-right">4.7k</td><td><div class="bar" style="width:9.2%"></div></td></tr>
+        <tr><td class="py-2 font-mono">workers/auth-email</td><td>Transactional email (D1 + Resend)</td><td class="text-right">1.1k</td><td><div class="bar" style="width:2.1%"></div></td></tr>
+        <tr><td class="py-2 font-mono">convex-spike</td><td>Convex: AI page generation</td><td class="text-right">1.1k</td><td><div class="bar" style="width:2.1%"></div></td></tr>
+        <tr><td class="py-2 font-mono">packages/* (11 more)</td><td>auth-identity 1k, url signing, stats, served-file policy, recording protocol, and 6 small ones</td><td class="text-right">2.8k</td><td><div class="bar" style="width:5.5%"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="rounded-lg bg-white border border-slate-200 p-4">
+      <p class="text-xs uppercase tracking-wider text-slate-500 mb-2">How the deployables talk</p>
+      <pre class="mermaid">
+flowchart LR
+  B[Browser / editor SPA] --> FR[frontend-router]
+  FR -- identity headers --> WT[workspace-tree]
+  FR --> R2[r2-media]
+  FR --> AE[auth-email]
+  FR -- JWT --> CX[Convex]
+  WT -- HTTP --> MP[media-artifact-producer]
+  WT -- RPC --> R2
+  R2 -- RPC acceptance --> WT
+  classDef deep fill:#1e293b,color:#fff,stroke:#0f172a;
+      </pre>
+    </div>
+    <div class="rounded-lg bg-white border border-slate-200 p-4 text-sm space-y-2">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Largest runtime files</p>
+      <ul class="font-mono text-xs space-y-1 text-slate-700">
+        <li>1,770 frontend-router/src/auth-session.ts</li>
+        <li>1,684 editor/src/routes/HomeTreeRoute.tsx</li>
+        <li>1,556 workspace-tree/src/index.ts</li>
+        <li>1,556 editor/src/routes/ContactsIndexRoute.tsx</li>
+        <li>1,346 video-derivations/src/mp4/fragment-index.ts</li>
+        <li>1,112 r2-media/src/recording-sessions.ts</li>
+        <li>1,048 workspace-tree/src/generated-output-jobs.ts</li>
+        <li>1,027 workspace-tree/src/generated-video-capabilities.ts</li>
+        <li>1,009 r2-media/src/index.ts</li>
+      </ul>
+      <p class="text-xs text-slate-500">Test placement: <code>editor/tests</code> holds 274 files, and 78 of them test frontend-router. r2-media and auth-email have no test script of their own.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CANDIDATES ============ -->
+<section id="candidates" class="space-y-10">
+  <h2 class="font-serif text-2xl">Deepening candidates, ranked</h2>
+
+  <!-- 1 -->
+  <article id="c1" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">01</span><h3 class="font-serif text-xl">One identity codec plus one request context at the router → workspace-tree seam</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">in-process</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">S–M</span><span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">found by 2 explorers independently</span></div>
+    <p class="font-mono text-xs text-slate-600">frontend-router: workspace-tree-proxy.ts:40-64 · media-videos-native.ts:262-281 · journey-pages-native.ts:562-578 · admin-accounts-native.ts:347-358 · public-video-fetch.ts:30-37 · trial-wall.ts:67 · media-signing.ts:200 — workspace-tree: index.ts:226, 1621-1644 — convex-spike/convex/generate.ts:75-86</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Before</p><pre class="mermaid">
+flowchart LR
+  P[proxy] -- "role: admin if sysadmin" --> WT[workspace-tree reader]
+  M[media-videos] -- "role: raw" --> WT
+  J[journey-pages] -- "role: raw" --> WT
+  A[admin-accounts] -- "owner fallback 'admin'" --> WT
+  F[public-video-fetch] --> WT
+  linkStyle 1,2 stroke:#dc2626,stroke-width:2px;
+      </pre></div>
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">After</p><pre class="mermaid">
+flowchart LR
+  H[handlers] --> CTX[request context<br/>resolved once]
+  CTX --> C[[internal-identity codec<br/>encode / decode / claims]]
+  C --> WT[workspace-tree]
+  C --> CX[Convex claims]
+  classDef deep fill:#1e293b,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class C deep
+      </pre></div>
+    </div>
+    <p><b>Problem.</b> Five call sites write the six <code>X-Clarity-*</code> headers by hand, and they already disagree: a System Admin arrives as <code>admin</code> through the proxy and as <code>user</code> through the other two paths. Today workspace-tree reads the role only for admin content counts, so the drift is latent, not a live bug. Each request also decrypts the session and reads D1 up to three times.</p>
+    <p><b>Solution.</b> The <code>auth-identity</code> package owns <code>encode</code>/<code>decode</code> for the wire contract and the Convex claims. <code>fetch</code> resolves a memoized request context once and passes it to handlers.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>Locality: the role rule lives in one file</li><li>Tests: one round-trip test covers the seam</li><li>Fewer D1 reads per request</li><li>Makes the WIL-3401 route table easier</li></ul>
+  </article>
+
+  <!-- 2 -->
+  <article id="c2" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">02</span><h3 class="font-serif text-xl">One derivation driver, plus a table that decides which edits invalidate what</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">local-substitutable</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">L · ~600 lines removed</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">WIL-3377, still open</span></div>
+    <p class="font-mono text-xs text-slate-600">workspace-tree/src: generated-video-capabilities.ts:570-797, 831-1073 · generated-output-intents.ts:100-140 · render-jobs.ts:240-379 · clip-render-driver.ts:120-190 · derivation-sweep.ts:173-363 · index.ts:1206-1427 · video-edit-routes.ts:65-256</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Before</p><pre class="mermaid">
+flowchart TB
+  E1[PATCH node] -. "strips derived keys" .-> META[(node metadata)]
+  E2[edit route] -. "nulls poster by hand" .-> META
+  EP[ensurePoster] --> L[(job ledger)]
+  EG[ensureGif — near copy] --> L
+  RJ[render-jobs clip] --> L
+  DO[driver DO: 6 kinds, retry for 2] --> L
+  SW[sweep: status as SQL text ×12] --> L
+  linkStyle 0,1 stroke:#dc2626,stroke-width:2px;
+      </pre></div>
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">After</p><pre class="mermaid">
+flowchart TB
+  E[PATCH / edit route] --> INV[[invalidation table<br/>old+new manifest → slots]]
+  INV --> D[[drive kind, node<br/>claim · admit · publish · retry · DO name]]
+  R[per-kind recipe: intent, request, patch] --> D
+  D --> L[(ledger owns status set + budgets)]
+  classDef deep fill:#1e293b,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class INV,D deep
+      </pre></div>
+    </div>
+    <p><b>Problem.</b> Poster and GIF each copy the claim → admit → publish skeleton, and the copies have already drifted. Only 2 of 6 kinds retry when a driver throws. The Durable Object name that serializes drivers is built by hand in 7 places. <code>ready_unpublished</code> still has no terminal state. Two edit paths decide invalidation independently, and the poster-nulling list is written four times.</p>
+    <p><b>Solution.</b> One <code>drive()</code> owns the lifecycle, and each kind is a small recipe. A single pure invalidation module maps an edit to the slots to clear and schedule. Poster moves to a digest key, the way GIF and clip already work.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>A retry fix applies to all six kinds</li><li>Tests drive <code>drive()</code> on SQLite with a fake producer</li><li>index.ts goes back to being a thin adapter</li><li>Also closes the CAS loops that bypass <code>node-metadata-cas</code></li></ul>
+  </article>
+
+  <!-- 3 -->
+  <article id="c3" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">03</span><h3 class="font-serif text-xl">One shared SQLite D1 adapter, and each worker's tests move into that worker</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">local-substitutable</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">M · mostly mechanical</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">enabler</span></div>
+    <p class="font-mono text-xs text-slate-600">workspace-tree/tests/helpers/sqlite-d1.ts · editor/tests/helpers/sqlite-auth-db.ts · sqlite-recording-sessions.ts · frontend-router-harness.ts:146-421 · workspace-tree-store.test.ts:25-143 · fake-generated-output-jobs.ts · editor/vitest.config.ts</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Before</p><pre class="mermaid">
+flowchart LR
+  subgraph editor/tests
+    A[3 SQLite wrappers<br/>3 result shapes]
+    S[34 files match SQL text]
+    RT[78 router tests]
+    RM[r2-media tests]
+  end
+  S -. "re-implements WITH RECURSIVE" .-> X[prod SQL]
+  linkStyle 0 stroke:#dc2626,stroke-width:2px;
+      </pre></div>
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">After</p><pre class="mermaid">
+flowchart LR
+  T[[packages/test-d1<br/>createD1 migrationsDir<br/>+ contract test]]
+  T --> W1[workers/frontend-router/tests]
+  T --> W2[workers/workspace-tree/tests]
+  T --> W3[workers/r2-media/tests]
+  classDef deep fill:#1e293b,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class T deep
+      </pre></div>
+    </div>
+    <p><b>Problem.</b> The adapter's own header warns that "two fakes each mirroring D1 is two chances to get it wrong", and PR #757 shipped green because of exactly that. Three wrappers still exist, and 34 test files still pattern-match SQL. Router, r2-media and auth-email tests only run by booting the editor suite. r2-media's recording-durability modules (<code>recording-multipart</code>, <code>upload-recovery</code>, <code>segment-cache</code>) have no importing test at all.</p>
+    <p><b>Solution.</b> One <code>createD1({ migrationsDir })</code> test package with a single contract test. Migrate the SQL-matching fakes onto real migrations, move tests next to their worker, and add a CI invariant that every package has a <code>test</code> script.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>Real SQL guards run in tests</li><li>1–2k lines of fakes deleted</li><li>Each worker's code and tests change together</li><li>Makes candidates 01, 02 and 06 cheaper to test</li></ul>
+  </article>
+
+  <!-- 4 -->
+  <article id="c4" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">04</span><h3 class="font-serif text-xl">Recorder Take state machine plus one client upload session (Mux becomes an adapter)</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">ports &amp; adapters</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">M–L</span><span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">timely: pure-Mux decision</span></div>
+    <p class="font-mono text-xs text-slate-600">editor/src/routes/RecordVideoRoute.tsx:297-653 · hooks/use-media-recorder.ts · lib/media-recorder-{lifecycle,events,finalization}.ts · lib/resumable-video-upload.ts:184-410 · recording-multipart-uploader.ts · recording-session-client.ts · media-upload.ts:229-290</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Before</p><pre class="mermaid">
+flowchart TB
+  R[RecordVideoRoute<br/>handleStart resets ~22 refs] --> H[use-media-recorder]
+  R --> U1[streaming uploader]
+  F[file upload] --> U2[resumable uploader]
+  U1 --> RT1[retry loop A]
+  U2 --> RT2[retry loop B]
+  F --> RT3[XHR retry C]
+      </pre></div>
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">After</p><pre class="mermaid">
+flowchart TB
+  UI[React subscribes] --> TK[[Take<br/>explicit states + events]]
+  TK --> US[[Upload session<br/>blob or live stream, retry, resume]]
+  US --> A1[R2 multipart adapter]
+  US --> A2[Mux Direct Upload adapter]
+  classDef deep fill:#1e293b,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class TK,US deep
+      </pre></div>
+    </div>
+    <p><b>Problem.</b> <code>RecordingState</code> has only 4 values. Uploading, failed, recovered and handed-off are implied by a set of refs. The session sequence (create → intent → multipart → parts → seal → complete) is written twice, with four retry loops and two copies of <code>isRetryableStatus</code>.</p>
+    <p><b>Solution.</b> A Take module owns the recorder, journal, uploader, heartbeat and recovery. A single upload session hides the transport: R2 today, Mux for new videos.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>A new take is one transition</li><li>Lifecycle tests without the DOM</li><li>The Mux cutover swaps an adapter</li></ul>
+  </article>
+
+  <!-- 5 -->
+  <article id="c5" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">05</span><h3 class="font-serif text-xl">One playback verdict, with Mux as a first-class tier</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">in-process</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">S–M</span></div>
+    <p class="font-mono text-xs text-slate-600">packages/served-file-policy/src/index.ts:261-325 · frontend-router/src/public-video-playback.ts:28-70 · editor/src/lib/video-source-resolver.ts:149-290 · packages/video-capabilities/src/index.ts:81-114</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">Before</p><pre class="mermaid">
+flowchart LR
+  RP[resolvePlayback<br/>R2 tiers only] --> PP[public page<br/>+ own readiness gate<br/>+ own Mux fallback]
+  RP --> ED[editor resolver<br/>+ own Mux fallback]
+  linkStyle 0,1 stroke:#dc2626,stroke-width:2px;
+      </pre></div>
+      <div class="rounded-lg border border-slate-200 p-3"><p class="text-xs uppercase tracking-wider text-slate-500 mb-1">After</p><pre class="mermaid">
+flowchart LR
+  RP[[resolvePlayback<br/>mux · clip · faststart · original ·<br/>processing · unavailable + poster]] --> PP[public page renders]
+  RP --> ED[editor renders]
+  classDef deep fill:#1e293b,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class RP deep
+      </pre></div>
+    </div>
+    <p><b>Problem.</b> CONTEXT.md says one function decides playback, but both adapters decide the Mux fallback themselves, and the public page adds its own readiness gate. Pure Mux reverses the current order, so every adapter would change.</p>
+    <p><b>Solution.</b> <code>resolvePlayback</code> returns the complete verdict, including tier, readiness and poster. Adapters only render it.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>The Mux cutover is one change</li><li>The public page and editor cannot drift</li></ul>
+  </article>
+
+  <!-- 6 -->
+  <article id="c6" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">06</span><h3 class="font-serif text-xl">An account read model: one "current subscription" rule and one entitlement read</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">local-substitutable</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">M</span></div>
+    <p class="font-mono text-xs text-slate-600">frontend-router/src: account-profile.ts:168-262 · stripe-checkout.ts:206-345 · admin-accounts-native.ts:228-300 · trial-offer-with-stripe-sync.ts:20-70 · trial-wall.ts:72-83 · convex-auth.ts:66-73 — editor/src/lib/trial-access.ts:8</p>
+    <p><b>Problem.</b> ADR-0008 centralised the entitlement <i>rule</i>, but reads are spread over six files, and "which subscription is current" is answered three ways. Callers disagree on what happens when the read fails: the trial wall allows, convex-auth refuses with a 503, and the offer route throws. The editor redeclares <code>TrialOffer</code>, and its copy has already lost <code>accessEndsAt</code>.</p>
+    <p><b>Solution.</b> An account read module next to <code>account-spine</code>. <code>readEntitlement(…, { onUnavailable })</code> makes every caller state its failure policy.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>ADR-0008's approach extended to reads</li><li>The plan rule is testable without SQL</li><li>Removes a large share of router SQL fakes</li></ul>
+  </article>
+
+  <!-- 7 -->
+  <article id="c7" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">07</span><h3 class="font-serif text-xl">A Library item module (finishes the Library convergence)</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">in-process</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">L · ~900 lines move</span></div>
+    <p class="font-mono text-xs text-slate-600">editor/src/routes/HomeTreeRoute.tsx:154-330, 463-1274 · lib/tree-media-adapter.ts:33-83 · components/LibraryGrid.tsx:67 · components/AppSidebar.tsx:398-470</p>
+    <p><b>Problem.</b> Home and the media picker classify a tree node differently. Home treats a legacy "video" that is really an image as an image, and the picker files it as a video, so the two surfaces disagree today. Rename and delete are written twice, in cards and in the sidebar. The journey-page delete rule (a 404 falls back to deleting the tree node) sits inline in a click handler. No test touches HomeTreeRoute.</p>
+    <p><b>Solution.</b> One module turns a node into kind, name, preview, link and allowed actions, and owns rename, move and delete with optimistic restore. Home, the picker and the sidebar become views over it.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>The classification disagreement is fixed once</li><li>Card behaviour is testable without the route</li></ul>
+  </article>
+
+  <!-- 8 -->
+  <article id="c8" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">08</span><h3 class="font-serif text-xl">Block kinds own their render model (what ADR-0006 promised)</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">in-process</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">M–L</span></div>
+    <p class="font-mono text-xs text-slate-600">packages/journey-page-domain/src/blocks.ts:240-249 · editor LivePreview.tsx:245 · MiniPage.tsx:162 · block-editors.tsx:61 · page-outline.ts:103 · frontend-router render-blocks.ts:81-116, 356</p>
+    <p><b>Problem.</b> Five surfaces each switch on block kind and derive values themselves (image guess, story media, CTA markup "same shape as SSR"). SSR still copies media onto v1 <code>step_N_*</code> keys. A 290-line parity test holds the surfaces together after the fact.</p>
+    <p><b>Solution.</b> Each registry entry gets a pure <code>block + media → render model</code> function. SSR, LivePreview and MiniPage only turn that model into markup.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>A new kind is one registry entry</li><li>The parity test gets smaller</li></ul>
+  </article>
+
+  <!-- 9 -->
+  <article id="c9" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">09</span><h3 class="font-serif text-xl">One media-host table and one "workspace owns this media" rule</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">in-process</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">M</span></div>
+    <p class="font-mono text-xs text-slate-600">packages/media-url-signing (isMediaHost, line 65) vs 8 private host lists across frontend-router, media-artifact-producer, workspace-tree, r2-media, editor · ownership checks: media-bucket.ts:117 · media-source-probe.ts:13 · generated-video-capabilities.ts:519</p>
+    <p><b>Problem.</b> A shared <code>isMediaHost</code> exists, but eight sites keep their own host lists, and the lists differ. The ownership rule is written three times with three parsers. <code>user:${ownerId}</code> is built by hand in 8+ places.</p>
+    <p><b>Solution.</b> A branded <code>WorkspaceId</code>, <code>workspaceOwnsMedia()</code> and one host table per environment, all in <code>media-url-signing</code>. This absorbs the 17-line <code>deployment-surfaces</code> package, which fails the deletion test on its own.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>A security invariant gets one enforcement point</li><li>Table-driven test</li></ul>
+  </article>
+
+  <!-- 10 -->
+  <article id="c10" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">10</span><h3 class="font-serif text-xl">Put the R2 view and remux path behind a legacy seam, then delete it</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-amber-500 text-white">Worth exploring</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">L · mostly deletion</span></div>
+    <p class="font-mono text-xs text-slate-600">packages/video-derivations/src/mp4/* (~4.9k) · r2-media: clip-views, playable-views, view-objects, recording-scan, shadow-scan-telemetry, index.ts:157-205, 420-800 · producer renderAndStore{Faststart,Gif,Poster}</p>
+    <p><b>Problem.</b> Under pure Mux, new videos never need synthesized headers, fragment scans or faststart remux, but the scan is still wired into every upload. r2-media's byte serving and clip views each run their own edge-cache and segment coordination.</p>
+    <p><b>Solution.</b> Stop scan and view work for Mux-bound sessions, and leave one legacy-playback entry point for existing R2 videos. Delete it once they have a Mux asset or a frozen faststart file. Freeze this code rather than deepen it.</p>
+    <ul class="text-sm list-disc pl-5 text-slate-700"><li>Passes the deletion test: the complexity goes away instead of moving</li><li>~7k lines leave the hot path</li></ul>
+  </article>
+
+  <!-- 11 -->
+  <article id="c11" class="rounded-xl bg-white border border-slate-200 p-6 space-y-4">
+    <div class="flex items-center gap-3 flex-wrap"><span class="text-slate-400 font-mono">11</span><h3 class="font-serif text-xl">A deploy manifest as the one source of deploy facts</h3>
+      <span class="text-xs px-2 py-0.5 rounded bg-emerald-600 text-white">Strong</span><span class="text-xs px-2 py-0.5 rounded bg-slate-100">S</span></div>
+    <p class="font-mono text-xs text-slate-600">justfile:82-87, 131-167 · scripts/cloudflare-ops.sh:61-132 · .github/workflows/cloudflare-deploy.yml:51, 676 · DEPLOY.md · workers/{r2-media,auth-email}/DEPLOY.md</p>
+    <p><b>Problem.</b> <code>deploy-staging</code>/<code>deploy-production</code> push Convex, and DEPLOY.md never says so. The worker list is hard-coded in 5+ places, D1 bindings are listed twice, and the per-worker DEPLOY files are stale.</p>
+    <p><b>Solution.</b> <code>deploy/workers.json</code> is read by the justfile, the ops script and the workflow, and a test checks that DEPLOY.md agrees with it.</p>
+  </article>
+
+  <!-- quick wins -->
+  <article class="rounded-xl border border-dashed border-slate-300 p-6 space-y-3">
+    <h3 class="font-serif text-xl">Smaller wins seen along the way</h3>
+    <ul class="text-sm space-y-2 text-slate-700">
+      <li><b>Journey Page submissions table</b> (Strong, S): Contacts has a hidden <code>?journeyPageId</code> mode that copies LeadsRoute almost line for line, and the CSV download is written three times. Removes about 150 lines.</li>
+      <li><b>Contacts module</b> (Strong, M): the CSV parser, import mapping, dedupe and CRUD sit inside a 1,556-line route and use raw <code>apiFetch</code>, which skips shared error handling.</li>
+      <li><b>WorkOS client</b> (Worth exploring, M): the base-URL normalization is copied about 10 times, and <code>auth-session.ts</code> mixes 12 routes, raw WorkOS HTTP calls and telemetry. Tests stub global fetch 33 times.</li>
+      <li><b>Journey Page lifecycle</b> (Worth exploring, M–L): create, update, duplicate and delete each coordinate three stores with a different failure policy, and there are two different access predicates.</li>
+      <li><b>Typed r2-media RPC</b> (Worth exploring, S): workspace-tree hand-copies r2-media's method payloads, and nothing makes the compiler check them against each other.</li>
+      <li><b>Validated Env</b> (Worth exploring, M): 93 runtime checks for missing bindings in the router, with 503-vs-null disagreements. This is WIL-3401 and needs sign-off.</li>
+    </ul>
+  </article>
+</section>
+
+<section id="top-recommendation" class="rounded-xl deep text-white p-8 space-y-3" style="background:linear-gradient(135deg,#0f172a,#1e293b)">
+  <p class="text-xs uppercase tracking-wider text-slate-400">Top recommendation</p>
+  <h2 class="font-serif text-2xl"><a href="#c1" class="underline decoration-slate-500">01 · Identity codec and request context</a>, then <a href="#c2" class="underline decoration-slate-500">02 · one derivation driver</a></h2>
+  <p class="text-slate-300 max-w-3xl">01 is small, two explorers found it independently, the drift already exists in the code, and it makes the pending route-table work (WIL-3401) simpler. 02 has the most leverage: most open video-job bugs trace back to six drivers that each hand-roll the same lifecycle. Doing <a href="#c3" class="underline">03</a> first makes both cheap to test. Because pure Mux was decided today, 04, 05 and 10 should be decided before more code lands in the upload and playback paths.</p>
+</section>
+
+</main>
+</body>
+</html>
