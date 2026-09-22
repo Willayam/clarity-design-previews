@@ -1,0 +1,13 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mux trim retest</title><style>body{font:16px/1.6 system-ui;max-width:48rem;margin:2rem auto;padding:0 1rem}p{white-space:pre-wrap;overflow-wrap:anywhere}</style><h1>Mux trim retest</h1><p>Partial pass. Tested https://staging.clarity.video, verified commit 69603178 via /__deploy-info. Used headed Chromium with fake camera/microphone and QA login. No source files changed.</p><p>1. PASS: Recorded 40 seconds. Library showed 0:40 and played a 40.05-second video, confirmed 66.5 seconds after Stop.
+2. PASS with playback defect: Saved approximately 5–20 seconds. Library showed 0:15 and played after reload, confirmed 106.8 seconds after saving. The first playback attempt returned Mux HTTP 412 and stayed unloaded.
+3. FAIL on unrestricted scrubbing; source/handles PASS: Reopened Edit → Trim with a 40.054-second timeline, a 40.05-second source, and handles at 5.000 and 20.007 seconds. Clicking around 32 seconds displayed a later source frame, but currentTime settled at 20.007; Play restarted near 5 seconds. Scrubbing/playback beyond the saved endpoint did not remain there.
+4. PASS with playback defect: Widened to approximately 3–30 seconds. Library showed 0:27 and played after reload, confirmed 84.1 seconds after saving. Another initial Mux HTTP 412 occurred. A separate private context played the share to its end at 27.014 seconds.
+5. PASS: “Restore” is above Trim and Cancel at the timeline’s right edge. It immediately saves the full span. Library returned to 0:40; playback confirmed after reload at 44.9 seconds. The same private share played to its end at 40.067 seconds. The label is terse: “Restore full video” would explain its scope and immediate action better.
+6. PASS: Deleted the video and reloaded. Library count returned from 242 to 241; test card disappeared. Share had no player.</p><p>Timings are observed upper bounds including navigation, inspection, and retries, not isolated processing latency.</p><p>Screenshots under .audit/manual-mux-test-trim2/:
+1. 01-library-playing.png
+2. 02-library-15s.png
+3. 03-reopened-source.png, 03-scrub-past-20.png
+4. 04-widened-selection.png, 04-library-27s.png, 04-private-27s-ended.png
+5. 05-restore-control.png, 05-library-restored.png, 05-private-full-ended.png
+6. 06-deleted.png
+</p>
