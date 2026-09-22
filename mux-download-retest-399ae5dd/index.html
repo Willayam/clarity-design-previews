@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mux download retest</title><style>body{font:17px/1.6 system-ui;max-width:760px;margin:40px auto;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere}</style><body><h1>Mux download retest</h1>Verified on https://staging.clarity.video, commit 399ae5dd, in headed Chromium with fake camera and microphone.
+
+1. PASS — New recording downloaded in 1.028 s: 1,040,465 bytes, 20.528 s. Saved MP4 plays without error.
+2. PASS — Selected 3–12 s. Download arrived in 1.549 s: 455,034 bytes, 8.961 s. Saved MP4 plays the trim.
+3. PASS — Older video 051da72b, created September 21, loaded a stream.mux.com manifest. “Preparing your download” appeared, automatic polling completed, and download started in 18.992 s: 35,756,767 bytes, 119.983 s. Saved MP4 plays without error.
+4. PASS — Deleted the new recording through its card menu. Reload and library API confirm its ID is absent.
+
+All three files identified by file as ISO Media MP4. No source files modified.
+
+Evidence under .audit/manual-mux-download/: original-playable.png, 02-selected.png, trim-playable.png, 03-preparing.png, old-playable.png, 04-deleted.png. Measurements and network observations: notes.json. Downloads: 01-original.mp4, 02-trim.mp4, 03-old.mp4.
+</body></html>
