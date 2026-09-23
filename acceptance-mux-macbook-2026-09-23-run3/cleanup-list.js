@@ -1,0 +1,1 @@
+const p=await ctx.newPage();await p.goto('https://staging.clarity.video/home?library=pages');await p.getByRole('heading',{name:'Journey Pages',exact:true}).first().waitFor();console.log((await p.locator('main').ariaSnapshot()).slice(0,6500));await p.close();

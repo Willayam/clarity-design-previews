@@ -1,0 +1,1 @@
+const p=ctx.pages().find(p=>p.url().includes('/home'));console.log(await p.getByRole('button',{name:/Trim (start|end)/}).evaluateAll(es=>es.map(e=>e.outerHTML)));await p.getByRole('button',{name:'Trim start',exact:true}).focus();await p.keyboard.press('ArrowRight');log({range:await p.getByRole('slider',{name:'Trim range'}).getAttribute('aria-valuetext')});

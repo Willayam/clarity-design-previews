@@ -1,0 +1,1 @@
+log({recordStatus:await page.getByRole('button',{name:/^Stop ·/}).textContent(),preview:await page.locator('video').first().evaluate(v=>({width:v.videoWidth,height:v.videoHeight,time:v.currentTime}))});await shot('E-long-midpoint');

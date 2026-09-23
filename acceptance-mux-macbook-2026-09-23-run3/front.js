@@ -1,0 +1,1 @@
+await page.bringToFront();const cdp=await ctx.newCDPSession(page);console.log(await cdp.send('Browser.getWindowForTarget'));execFileSync('osascript',['-e','tell application "System Events" to set frontmost of first process whose name is "Google Chrome" to true']);

@@ -1,0 +1,1 @@
+await page.getByRole('button',{name:'Share Run3 B-camera25',exact:true}).focus();await page.keyboard.press('Enter');await sleep(500);console.log((await page.locator('body').ariaSnapshot()).slice(-6000));await shot('G-share-dialog');

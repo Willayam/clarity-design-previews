@@ -1,0 +1,1 @@
+await page.getByRole('button',{name:'Actions for Run3 camera preliminary',exact:true}).press('Enter');await page.getByRole('menuitem',{name:'Delete',exact:true}).press('Enter');console.log((await page.locator('body').ariaSnapshot()).slice(-2200));

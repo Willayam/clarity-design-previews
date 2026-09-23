@@ -1,0 +1,1 @@
+if(await page.getByRole('dialog').count())await page.getByRole('button',{name:'Close',exact:true}).click();await page.goto('https://staging.clarity.video/home?library=videos');console.log((await page.locator('main').ariaSnapshot()).slice(0,3300));await page.getByRole('button',{name:'Record video',exact:true}).click();await sleep(8000);await shot('J-preview');

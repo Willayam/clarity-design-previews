@@ -1,0 +1,1 @@
+console.log(await page.locator('input').evaluateAll(es=>es.map(e=>({label:e.getAttribute('aria-label'),placeholder:e.placeholder,value:e.type==='password'?'redacted':e.value}))));console.log((await page.locator('main').ariaSnapshot()).slice(0,2300));

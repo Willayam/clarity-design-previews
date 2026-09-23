@@ -1,0 +1,1 @@
+const p=await ctx.newPage();await p.goto('https://staging.clarity.video/home?library=videos');await p.getByRole('button',{name:'Edit Run3 C-screen',exact:true}).click();await sleep(1000);log({trimUrl:p.url()});console.log((await p.locator('body').ariaSnapshot()).slice(-6000));fs.writeFileSync(dir+'/trim-url.txt',p.url());
