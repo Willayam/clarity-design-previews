@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mux acceptance on the MacBook</title><style>body{font:16px/1.55 system-ui;max-width:1000px;margin:32px auto;padding:0 20px;color:#222}pre{white-space:pre-wrap;overflow-wrap:anywhere}figure{margin:32px 0}img{width:100%;height:auto;border:1px solid #ccc}figcaption{margin-top:8px}</style><h1>Mux acceptance on the MacBook, run 2</h1><pre>Run stopped at the mandatory real-camera preflight. No product flow passed.
+Target https://staging.clarity.video
+Commit 09a1d31da61c9d539e9bbf9268eeeb9cad2b89ad
+Chrome 153.0.8010.53 launched through Launch Services with the exact requested flags.
+Camera getUserMedia returned after 5273 ms. FaceTime HD Camera advertised 640x480 at 30 fps; microphone track was live. After a further 4000 ms, decoded video dimensions were 0x0 and frame callback count was zero. Probe timing uses performance.now from the supplied preflight; no Date.now product-action timings were collected because execution stopped before login.
+A: Login page rendered; login and library not tested.
+B: Blocked by zero camera frames. No recording created.
+C, D, E, F, G, H, I, J, L: Not run under the explicit camera-failure stop instruction.
+K: No videos or pages created. Nothing to delete; no share links exist from this run.
+Earlier finding 1: the zero-frame media condition reproduced, but saving it and the Changes saved toast were not retested.
+Earlier finding 2: failed screen capture silently switching layouts was not retested.
+The earlier successful preflight reportedly captured screen at 1800x1168 logical pixels on a 3024x1964 display. This run did not capture screen or assess text legibility.
+No source files modified. The QA file exists; credentials were not printed or used.
+Screenshots show the login page before and after the probe, not a recorder or a camera image. Machine-readable probe evidence is in notes.jsonl.
+</pre><h2>Probe log</h2><pre>{&quot;at&quot;:&quot;2026-09-23T20:56:23.476Z&quot;,&quot;deploy&quot;:{&quot;branch&quot;:&quot;mux/phase-1-new-video-path&quot;,&quot;commitSha&quot;:&quot;09a1d31da61c9d539e9bbf9268eeeb9cad2b89ad&quot;,&quot;commitShort&quot;:&quot;09a1d31d&quot;,&quot;release&quot;:&quot;09a1d31d&quot;}}
+{&quot;at&quot;:&quot;2026-09-23T20:56:38.585Z&quot;,&quot;preflight&quot;:{&quot;kind&quot;:&quot;camera&quot;,&quot;ok&quot;:false,&quot;frames&quot;:0,&quot;msToStream&quot;:5273,&quot;videoW&quot;:0,&quot;videoH&quot;:0,&quot;track&quot;:&quot;FaceTime HD Camera (467C:1317)&quot;,&quot;settings&quot;:{&quot;w&quot;:640,&quot;h&quot;:480,&quot;fps&quot;:30},&quot;audio&quot;:[{&quot;label&quot;:&quot;Default - MacBook Pro Microphone (Built-in)&quot;,&quot;state&quot;:&quot;live&quot;}]}}
+</pre><figure><img src="00-login.png" alt="Login page before the real-camera preflight. Form submission and library load were not tested."><figcaption>00-login.png: Login page before the real-camera preflight. Form submission and library load were not tested.</figcaption></figure><figure><img src="01-camera-preflight.png" alt="Login page after the camera probe. No camera frame rendered. The probe logged zero callbacks and video dimensions 0×0; the screenshot alone does not establish the frame count."><figcaption>01-camera-preflight.png: Login page after the camera probe. No camera frame rendered. The probe logged zero callbacks and video dimensions 0×0; the screenshot alone does not establish the frame count.</figcaption></figure></html>

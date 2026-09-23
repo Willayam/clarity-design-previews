@@ -1,0 +1,14 @@
+Run stopped at the mandatory real-camera preflight. No product flow passed.
+Target https://staging.clarity.video
+Commit 09a1d31da61c9d539e9bbf9268eeeb9cad2b89ad
+Chrome 153.0.8010.53 launched through Launch Services with the exact requested flags.
+Camera getUserMedia returned after 5273 ms. FaceTime HD Camera advertised 640x480 at 30 fps; microphone track was live. After a further 4000 ms, decoded video dimensions were 0x0 and frame callback count was zero. Probe timing uses performance.now from the supplied preflight; no Date.now product-action timings were collected because execution stopped before login.
+A: Login page rendered; login and library not tested.
+B: Blocked by zero camera frames. No recording created.
+C, D, E, F, G, H, I, J, L: Not run under the explicit camera-failure stop instruction.
+K: No videos or pages created. Nothing to delete; no share links exist from this run.
+Earlier finding 1: the zero-frame media condition reproduced, but saving it and the Changes saved toast were not retested.
+Earlier finding 2: failed screen capture silently switching layouts was not retested.
+The earlier successful preflight reportedly captured screen at 1800x1168 logical pixels on a 3024x1964 display. This run did not capture screen or assess text legibility.
+No source files modified. The QA file exists; credentials were not printed or used.
+Screenshots show the login page before and after the probe, not a recorder or a camera image. Machine-readable probe evidence is in notes.jsonl.
