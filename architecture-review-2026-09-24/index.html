@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clarity architecture review, 2026-09-24 (after the Mux cutover)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose", flowchart: { curve: "basis" } });
+</script>
+<style>
+  .seam { border-style: dashed; }
+  .deep { background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; }
+  .leak { color: #dc2626; }
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  .mermaid { display: flex; justify-content: center; }
+  details > summary { cursor: pointer; }
+</style>
+</head>
+<body class="bg-stone-50 text-slate-900 font-sans">
+<main class="max-w-5xl mx-auto px-6 py-12 space-y-14">
+
+<header class="space-y-4">
+  <p class="schem text-slate-500">Clarity · origin/main 705b9a4e · 2026-09-24 · third pass</p>
+  <h1 class="font-serif text-4xl">Architecture review after the Mux cutover</h1>
+  <p class="text-slate-600 max-w-3xl">Six auditors read the code at today's main: security, reliability, data ownership, maintainability, tests and deploy, and a from-scratch comparison. PR #769 deleted about 61k lines of the self-built video pipeline today, so a lot of earlier findings are gone. New ones came in with Mux. Security specifics are kept out of this public page; William has them in chat.</p>
+  <div class="flex flex-wrap gap-4 text-xs text-slate-600 pt-2">
+    <span class="flex items-center gap-2"><span class="inline-block w-5 h-4 border-2 border-slate-400 bg-white"></span>module</span>
+    <span class="flex items-center gap-2"><span class="inline-block w-5 h-4 border-2 border-dashed border-slate-400"></span>seam</span>
+    <span class="flex items-center gap-2"><span class="inline-block w-5 h-0.5 bg-red-600"></span>leak or gap</span>
+    <span class="flex items-center gap-2"><span class="inline-block w-5 h-4 deep"></span>deep module</span>
+  </div>
+</header>
+
+<!-- SCORECARD -->
+<section class="grid md:grid-cols-4 gap-4">
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Deployables</p><p class="text-3xl font-serif">4 + Convex</p><p class="text-xs text-slate-500">was 5; the producer container is gone</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Data stores</p><p class="text-3xl font-serif">8</p><p class="text-xs text-slate-500">5 bound D1s, 1 orphaned D1, Convex, R2 (+ Mux)</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Server error alerts</p><p class="text-3xl font-serif leak">none</p><p class="text-xs text-slate-500">no Sentry SDK in any worker or Convex</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Docs that contradict code</p><p class="text-3xl font-serif leak">9+</p><p class="text-xs text-slate-500">ROADMAP still plans to leave Mux</p></div>
+</section>
+
+<!-- STATUS OF PRIOR AUDITS -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">What happened to the earlier candidates</h2>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table class="w-full text-sm">
+    <thead class="bg-stone-100 text-left"><tr><th class="p-2">Candidate (21 and 22 Sept)</th><th class="p-2">Now</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      <tr><td class="p-2">One derivation driver (WIL-3377)</td><td class="p-2"><span class="text-emerald-700">Moot.</span> Mux replaced the driver. It left one stuck state behind: legacy videos that were never re-ingested (candidate 1).</td></tr>
+      <tr><td class="p-2">Terminal states for retry loops</td><td class="p-2">Acceptance outbox: gone with the pipeline. The analytics outbox still retries forever (candidate 5).</td></tr>
+      <tr><td class="p-2">Identity codec across the router to workspace-tree seam</td><td class="p-2"><span class="text-emerald-700">Shipped</span> (#766). The internal secret compare is now constant-time.</td></tr>
+      <tr><td class="p-2">Router route table and parsed Env (WIL-3401)</td><td class="p-2">Open, waiting on design sign-off. workspace-tree got its route table (#772).</td></tr>
+      <tr><td class="p-2">SQLite adapter replaces SQL-text fakes</td><td class="p-2">Half done. About 38 test files run real SQLite; about 30 still match SQL text, including the core tree store test.</td></tr>
+      <tr><td class="p-2">Cron isolation, failure visibility</td><td class="p-2">workspace-tree isolated (#775). The router cron is not. #785 made deploy failures reach Linear; server-side errors still reach no one.</td></tr>
+      <tr><td class="p-2">Worker folding (WIL-3165, deferred)</td><td class="p-2">The premise changed: workspace-tree went from 17.7k to 6.2k lines today. Worth re-asking (candidate 8).</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="candidates" class="space-y-12">
+<h2 class="font-serif text-2xl">Candidates</h2>
+
+<!-- 1 -->
+<article id="c1" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">01</span>
+    <h3 class="font-serif text-xl">A Mux video lifecycle module owns "every asset has a node"</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">ports &amp; adapters</span>
+    <span class="rounded bg-red-50 text-red-700 text-xs px-2 py-0.5">reliability · privacy · cost</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">workers/workspace-tree/src/index.ts:943-953 · workspace-tree-store.ts:298-336 · mux-video-ingest.ts · mux-video-routes.ts:217-259 · mux-video-trim.ts · packages/mux/src/client.ts:63,185-216 · editor/src/lib/mux-recording-uploader.ts:34 · RecordVideoRoute.tsx:460-466 · packages/video-derivations/src/readiness.ts · scripts/mux-reingest.mjs</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before: five writers, no one owns the invariant</p>
+<pre class="mermaid">
+flowchart TB
+  B[Browser recorder] -->|create node| T[tree index.ts]
+  B -.->|90s timeout: second upload| M[(Mux)]
+  W[Mux webhook] -->|node missing: 200, dropped| T
+  D[Folder delete] -.->|children skipped| M
+  S[reingest script on a laptop] --> M
+  T -->|best-effort delete| M
+  R[readiness.ts] -.->|legacy: preparing forever| B
+  linkStyle 1,2,3,6 stroke:#dc2626,stroke-width:2px
+</pre></div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After: one module, one interface</p>
+<pre class="mermaid">
+flowchart TB
+  B[Browser] --> L
+  W[Mux webhook] --> L
+  C[Cron] --> L
+  subgraph L[Video lifecycle module]
+    direction TB
+    a[create or adopt node]
+    b[delete subtree and its assets]
+    c[reconcile Mux against nodes]
+    d[terminal readiness]
+  end
+  L --> M[(Mux adapter)]
+  L --> DB[(tree D1)]
+  style L fill:#0f172a,color:#fff
+</pre></div>
+  </div>
+  <p><b>Problem.</b> Mux assets outlive their nodes. Deleting a folder leaves every video inside it on Mux. Timeouts, retried POSTs and failed deletes add more orphans, and nothing ever finds them. Legacy videos that were never re-ingested show "preparing" forever and poll every 5 seconds.</p>
+  <p><b>Solution.</b> Deepen the Mux code in workspace-tree into one lifecycle module. It owns node creation (the webhook can create a node from the upload passthrough, so a closed tab no longer loses the recording), subtree deletion with asset discard, a cron that reconciles Mux assets against live nodes, and a terminal readiness state for legacy videos.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5">
+    <li>locality: one module holds the Mux invariant</li>
+    <li>one interface, three callers (browser, webhook, cron)</li>
+    <li>tests hit one interface with a fake Mux adapter</li>
+    <li>deleting a video deletes it everywhere</li>
+    <li>Mux storage bill stops growing silently</li>
+  </ul>
+</article>
+
+<!-- 2 -->
+<article id="c2" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">02</span>
+    <h3 class="font-serif text-xl">The Journey Page content store owns revisions, tenancy and the list query</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">local-substitutable</span>
+    <span class="rounded bg-red-50 text-red-700 text-xs px-2 py-0.5">data loss</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/public-page-delivery/journey-page-content-store.ts:55-110 · journey-pages-native.ts:215-236, 334-397, 509-549, 684-711, 887-907 · editor/src/hooks/use-editor-page.ts:373-394</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before: the store is a pass-through upsert</p>
+      <div class="space-y-1 text-sm">
+        <div class="h-10 border-l-4 border-slate-300 pl-3 flex items-center">route handler: read page, check access in JS</div>
+        <div class="h-10 border-l-4 border-slate-300 pl-3 flex items-center">list: <span class="leak mx-1">load all 6,946 pages</span>, filter in JS</div>
+        <div class="h-10 border-l-4 border-slate-300 pl-3 flex items-center">save: whole-document upsert, <span class="leak mx-1">no revision</span></div>
+        <div class="h-10 border-l-4 border-red-500 pl-3 flex items-center leak">upsert sets deleted_at = null</div>
+        <div class="h-10 border-l-4 border-slate-300 pl-3 flex items-center">tree card: fire-and-forget copy</div>
+        <div class="h-10 border-l-4 border-slate-300 pl-3 flex items-center">owner_id in the column and in the JSON</div>
+      </div>
+    </div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After: one deep store</p>
+      <div class="deep rounded-lg p-4 h-full space-y-2">
+        <p class="schem text-slate-300">Journey Page content store</p>
+        <p class="text-sm">save(page, baseRevision) → saved | conflict | gone</p>
+        <p class="text-sm">list(owner) → SQL WHERE owner_id = ?</p>
+        <p class="text-sm">delete(page) → tombstone a save can't undo</p>
+        <p class="text-xs text-slate-400 pt-2">inside: revision column, tenancy in columns only, card projection</p>
+      </div>
+    </div>
+  </div>
+  <p><b>Problem.</b> Saves are last-write-wins. Two tabs, or an AI generation landing during autosave, silently overwrite each other. An autosave that lands after a delete brings the deleted page back, with its routes disabled and its Library cards gone. The page list reads every page in the database and filters in JavaScript, so it gets slower with every page any customer makes.</p>
+  <p><b>Solution.</b> Put a revision column and a precondition in the store. Save returns a conflict instead of overwriting, and the save path never writes <code>deleted_at</code>. Tenancy moves into columns and the list becomes a scoped SQL query.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5">
+    <li>interface names the three outcomes</li>
+    <li>locality: tenancy decided in one place</li>
+    <li>tests run the store on real SQLite</li>
+    <li>list cost stops scaling with all customers</li>
+  </ul>
+</article>
+
+<!-- 3 -->
+<article id="c3" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">03</span>
+    <h3 class="font-serif text-xl">One module for access decisions, signed tokens and rate limits</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+    <span class="rounded bg-red-50 text-red-700 text-xs px-2 py-0.5">security</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/auth-session.ts · journey-pages-native.ts · public-page-delivery/index.ts · public-video-watch.ts · workers/workspace-tree/src/workspace-tree-store.ts · packages/auth-identity · wrangler.jsonc (rate limiter bindings)</p>
+  <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">Several concrete security findings came out of this lane, and two are high severity. They are with William privately, not on this public page. This card covers only the structural fix.</div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before: each route decides for itself</p>
+<pre class="mermaid">
+flowchart LR
+  R1[page routes] --> P1{{own predicate}}
+  R2[public page] --> P2{{own token check}}
+  R3[session cookie] --> P3{{own HMAC compare}}
+  R4[tree decorations] --> P4{{own scoping}}
+  R5[new route] -.-> X[whatever it remembers]
+  linkStyle 4 stroke:#dc2626,stroke-width:2px
+</pre></div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After: three deep modules</p>
+<pre class="mermaid">
+flowchart LR
+  R[every route] --> A[authorize resource, actor, action]
+  R --> T[verifySignedToken]
+  R --> L[rate-limit table]
+  style A fill:#0f172a,color:#fff
+  style T fill:#0f172a,color:#fff
+  style L fill:#0f172a,color:#fff
+</pre></div>
+  </div>
+  <p><b>Problem.</b> Access rules for pages, public pages, sessions and card media are written separately in each handler, with small differences. Token checks and rate limits are also per-route choices, so a new route can skip them.</p>
+  <p><b>Solution.</b> Three modules. <code>authorize(resource, actor, action)</code> per resource kind, with explicit roles. One <code>verifySignedToken</code> for every signed token, plus a lint ban on a bare compare next to <code>sign(</code>. A route-to-limiter table, with a test that fails when an unauthenticated POST has no entry.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5">
+    <li>leverage: one policy, every route</li>
+    <li>tests enumerate actor × action</li>
+    <li>new routes are safe by default</li>
+  </ul>
+</article>
+
+<!-- 4 -->
+<article id="c4" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">04</span>
+    <h3 class="font-serif text-xl">PR previews get their own data</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">deploy config</span>
+    <span class="rounded bg-red-50 text-red-700 text-xs px-2 py-0.5">data integrity</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">scripts/deploy-pr-preview.sh:202 · scripts/deploy-cloudflare.sh:105-123 · workers/workspace-tree/wrangler.toml [env.preview] · WIL-3162</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before</p>
+<pre class="mermaid">
+flowchart LR
+  PR[unmerged PR router] --> A[(prod AUTH_DB)]
+  PR --> P[(prod PUBLIC_PAGE_DB)]
+  PR --> V[(prod VIDEO_STATS_DB)]
+  PR --> T[(preview tree DB)]
+  linkStyle 0,1,2 stroke:#dc2626,stroke-width:2px
+</pre></div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+<pre class="mermaid">
+flowchart LR
+  PR[unmerged PR router] --> E[(preview D1 set, seeded)]
+  CHK{{config check: no prod id in a preview}} -.-> PR
+</pre></div>
+  </div>
+  <p><b>Problem.</b> A preview runs unmerged, often agent-written code against production accounts, pages and contacts, and signs with the production media key. Pages made in a preview land in prod <code>journey_pages</code> while their cards land in the preview tree, so the two drift apart.</p>
+  <p><b>Solution.</b> Give each preview a seeded set of D1s, and fail the deploy if a production <code>database_id</code> shows up in a preview config.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>agent mistakes stay in the preview</li><li>preview migrations become testable</li></ul>
+</article>
+
+<!-- 5 -->
+<article id="c5" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">05</span>
+    <h3 class="font-serif text-xl">One failure sink per runtime, and timeouts in each client adapter</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">ports &amp; adapters</span>
+    <span class="rounded bg-red-50 text-red-700 text-xs px-2 py-0.5">reliability</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">stripe-checkout.ts:192 · mux-video-routes.ts:252 · lead-capture.ts:111 · journey-pages-native.ts:531 · convex-spike/convex/generate.ts:256 · packages/mux/src/client.ts:191 · stripe-billing.ts:808 · workos-authenticate.ts · auth-email/src/send.ts:139 · packages/product-analytics-outbox · frontend-router/src/product-analytics.ts:36</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before: failures end in console.error</p>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="border rounded p-2">Stripe write failed</div><div class="border rounded p-2">Mux event contended, 200</div>
+        <div class="border rounded p-2">lead not linked</div><div class="border rounded p-2">tree card not written</div>
+        <div class="border rounded p-2">Convex generation failed</div><div class="border rounded p-2">outbox poison row, forever</div>
+      </div>
+      <p class="text-center leak text-sm mt-3">↓ Workers Logs, nobody watching</p>
+    </div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+      <div class="deep rounded-lg p-4 space-y-2 text-sm">
+        <p class="schem text-slate-300">report(outcome) per runtime</p>
+        <p>Workers: Sentry SDK or a tail consumer</p><p>Convex: log stream</p><p>alert rule → a person</p>
+      </div>
+      <div class="mt-3 text-xs text-slate-600">Each client adapter (Mux, Stripe, WorkOS, Resend) owns a default timeout. The outbox gets a dead state and pruning.</div>
+    </div>
+  </div>
+  <p><b>Problem.</b> No worker or Convex function reports errors anywhere a person will see them. The external calls that matter have no timeout, so a slow Stripe hangs every navigation that goes through the trial wall. The analytics outbox retries permanent errors forever and never prunes delivered rows.</p>
+  <p><b>Solution.</b> One reporting interface per runtime with an alert rule. Timeouts move into each client adapter so no caller can forget them. The outbox package gets a terminal state and retention, and the router cron gets the same per-source isolation as workspace-tree.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>outages reach a person, not a customer</li><li>timeouts: one place per adapter</li></ul>
+</article>
+
+<!-- 6 -->
+<article id="c6" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">06</span>
+    <h3 class="font-serif text-xl">Make the docs match the code: an ADR for Mux, then delete what it replaced</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">docs + deletion</span>
+    <span class="rounded bg-amber-50 text-amber-800 text-xs px-2 py-0.5">confusion</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">docs/ROADMAP.md:110 · docs/transition-status.md:24,57 · CONTEXT.md:92,96,124 · ARCHITECTURE.md:14,19,26-29,87 · docs/SECURITY.md · docs/adr/0004, 0005 · docs/design-docs/video-derivations-sla/ (48 files, 21 of them .ts/.py) · packages/recording-session-protocol · packages/video-derivations · skills-lock.json</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">What an agent reads today</p>
+      <ul class="text-sm space-y-1">
+        <li><span class="leak">ROADMAP:</span> "no longer depend on Mux" is an open goal</li>
+        <li><span class="leak">ADR 0004/0005:</span> own faststart pipeline, "accepted"</li>
+        <li><span class="leak">CONTEXT:</span> Clip "produced by backend media production"</li>
+        <li><span class="leak">CONTEXT:</span> 7 Block kinds; code has 9</li>
+        <li><span class="leak">ARCHITECTURE:</span> Pages, Python media box</li>
+        <li><span class="leak">SECURITY.md:</span> invariants for the deleted producer</li>
+        <li><span class="leak">design-docs:</span> 21 code sketches of the deleted pipeline</li>
+        <li><span class="leak">packages:</span> a 319-line protocol with 3 live symbols</li>
+      </ul>
+    </div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+      <ul class="text-sm space-y-1">
+        <li>ADR 0010 "Mux owns video"; 0004 and 0005 marked superseded</li>
+        <li>CONTEXT: Clip is a Mux clip; Block kinds listed from code</li>
+        <li>ARCHITECTURE diagram redrawn from the wrangler configs</li>
+        <li>SECURITY.md table for the Mux webhook and playback</li>
+        <li>video-derivations-sla/ deleted</li>
+        <li>recording-session-protocol deleted; video-derivations renamed video-edit-manifest</li>
+        <li>all Mux URL building in packages/mux</li>
+        <li>a test that checks BLOCK_KINDS against CONTEXT.md</li>
+      </ul>
+    </div>
+  </div>
+  <p><b>Problem.</b> The canonical docs describe the video platform the team deleted today, and one of them plans to leave Mux. An agent that follows ROADMAP or the ADRs will rebuild R2 playback. Dead design code shows up in every grep for the old names.</p>
+  <p><b>Solution.</b> One PR. Write the ADR and rewrite the five docs above. Delete the design-doc sketches and the dead package.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>cheapest item in this report</li><li>stops agents building the wrong thing</li></ul>
+</article>
+
+<!-- 7 -->
+<article id="c7" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">07</span>
+    <h3 class="font-serif text-xl">Typed router seam: route table, parsed Env, shared request and response types</h3>
+    <span class="rounded bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5">Strong</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">WIL-3401</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/index.ts (37 pathname checks) · router-env.ts · auth-session.ts (1,955 lines) · editor/src/lib/*-api.ts</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before: interface as wide as the implementation</p>
+      <div class="flex items-end gap-6 h-40">
+        <div class="flex flex-col items-center"><div class="w-16 bg-red-200 border border-red-400" style="height:120px"></div><span class="schem mt-1">interface</span></div>
+        <div class="flex flex-col items-center"><div class="w-16 bg-slate-300 border border-slate-400" style="height:140px"></div><span class="schem mt-1">impl</span></div>
+      </div>
+      <p class="text-xs text-slate-600 mt-2">Every handler null-checks optional bindings. Routes are found by grep. Editor types are hand-copied.</p>
+    </div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+      <div class="flex items-end gap-6 h-40">
+        <div class="flex flex-col items-center"><div class="w-16 bg-emerald-200 border border-emerald-500" style="height:30px"></div><span class="schem mt-1">interface</span></div>
+        <div class="flex flex-col items-center"><div class="w-16 deep" style="height:140px"></div><span class="schem mt-1">impl</span></div>
+      </div>
+      <p class="text-xs text-slate-600 mt-2">A missing binding fails at boot, not as a 503. The route table carries auth, limiter and input schema, so candidate 03 hangs off it.</p>
+    </div>
+  </div>
+  <p><b>Problem.</b> The router dispatches through an ordered if-chain, Env is all-optional, and editor and worker types drift (the rename contract fix in #783 is one example).</p>
+  <p><b>Solution.</b> The existing ticket, with one addition: each route entry declares its access policy and limiter, which is where candidate 03 plugs in.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>makes 03 and 08 mechanical</li><li>locality: one table per worker</li></ul>
+</article>
+
+<!-- 8 -->
+<article id="c8" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">08</span>
+    <h3 class="font-serif text-xl">Fold workspace-tree and auth-email into the router</h3>
+    <span class="rounded bg-amber-100 text-amber-800 text-xs px-2 py-0.5">Worth exploring</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">packages/auth-identity/src/internal-identity.ts · workspace-tree-proxy.ts · journey-pages-native.ts:571,732 · frontend-router/src/mux-webhook.ts · .github/workflows/cloudflare-deploy.yml (stack vs frontend modes)</p>
+  <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">This reopens the 21 Sept deferral (WIL-3165). The reason to keep workspace-tree separate was the render pipeline, its Durable Object and the per-minute derivation sweeps. That code left today, and workspace-tree is now 6.2k lines with one analytics cron.</div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before</p>
+<pre class="mermaid">
+flowchart LR
+  B[browser] --> R[router]
+  R -- secret + identity headers --> T[workspace-tree]
+  R -- relay --> T
+  R -- service --> E[auth-email]
+  M[Mux] --> R
+  R -- page create: 2nd DB over fetch --> T
+  linkStyle 5 stroke:#dc2626,stroke-width:2px
+</pre></div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+<pre class="mermaid">
+flowchart LR
+  B[browser] --> A
+  M[Mux] --> A
+  subgraph A[one app worker]
+    direction TB
+    x[Actor parsed once] --> y[tree module]
+    x --> z[pages module]
+    x --> w[email module]
+  end
+  A --> r2[r2-media, kept separate]
+  style A fill:#0f172a,color:#fff
+</pre></div>
+  </div>
+  <p><b>Problem.</b> The internal secret, the identity header codec, the Mux relay hop, the two-worker page create and the two deploy modes all exist only because these are separate workers. Worker and migration skew has already caused one outage.</p>
+  <p><b>Solution.</b> After 07, move workspace-tree and auth-email into the router as modules. r2-media stays separate because it rarely changes and leans on the edge cache. Merge databases only if the dual writes keep biting.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>deletes an internal seam with one adapter</li><li>one deploy, one rollback</li></ul>
+</article>
+
+<!-- 9 -->
+<article id="c9" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">09</span>
+    <h3 class="font-serif text-xl">Give each concept one home: brand, org membership, workspace id, contacts</h3>
+    <span class="rounded bg-amber-100 text-amber-800 text-xs px-2 py-0.5">Worth exploring</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">local-substitutable</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">customer-brand.ts:80-104 · account-mapping-store.ts:296-345 · support-invitations.ts:483 · editor/src/lib/auth-scope.ts:55-77 · contacts-api.ts · lead-capture.ts:84-112 · workspace-tree-core.ts:137-181</p>
+  <div class="rounded-lg border border-slate-200 p-3 overflow-x-auto">
+    <table class="text-sm w-full">
+      <thead class="text-left schem text-slate-500"><tr><th class="p-1">Concept</th><th class="p-1">Stored today</th><th class="p-1">One home</th></tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr><td class="p-1">Customer Brand</td><td class="p-1 leak">profile columns + tree table + a copy in every page</td><td class="p-1">one table</td></tr>
+        <tr><td class="p-1">Organization Membership</td><td class="p-1 leak">legacy_corp_id on users + memberships table</td><td class="p-1">memberships only</td></tr>
+        <tr><td class="p-1">Workspace id</td><td class="p-1 leak">`user:${id}` built in ~12 places; editor guesses from 4 fields</td><td class="p-1">branded type, server-issued</td></tr>
+        <tr><td class="p-1">Journey Page card</td><td class="p-1 leak">page row + tree card copy with step_* fields + Convex row</td><td class="p-1">page row; tree keeps placement</td></tr>
+        <tr><td class="p-1">Contacts</td><td class="p-1 leak">live data in tables named legacy_*_snapshots</td><td class="p-1">contacts tables</td></tr>
+        <tr><td class="p-1">Video state</td><td class="p-1 leak">~60 keys in one metadata JSON field</td><td class="p-1">typed video_media columns</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>Problem.</b> Each duplicate needs precedence rules at read time and drifts on write. Contacts sitting in tables called "legacy snapshots" is a trap: the next "drop legacy tables" migration, following the pattern of this week's two, would delete live customer data.</p>
+  <p><b>Solution.</b> Take them one at a time, starting with the contacts rename because the trap is live. Each move follows the add-column-then-backfill pattern, since AUTH_DB can't rebuild <code>users</code>.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>locality: one writer per concept</li><li>deletes precedence code</li></ul>
+</article>
+
+<!-- 10 -->
+<article id="c10" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">10</span>
+    <h3 class="font-serif text-xl">One Journey Page renderer for SSR and the editor preview</h3>
+    <span class="rounded bg-amber-100 text-amber-800 text-xs px-2 py-0.5">Worth exploring</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">workers/frontend-router/src/public-page-delivery/ (3.8k lines, HTML strings) · editor/src/components/editor/LivePreview.tsx (967) · block-editors/ · editor/tests/block-rendering-parity.test.ts</p>
+  <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900">Contradicts ADR 0006. Worth reopening at the next Block kind or the streaming work (WIL-3234): <code>summary</code> and <code>gallery</code> each had to be built twice, and parity bugs are what prospects see.</div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before</p>
+<pre class="mermaid">
+flowchart TB
+  D[block document] --> S[string SSR renderer]
+  D --> E[React LivePreview]
+  S -. parity test .- E
+  linkStyle 2 stroke:#dc2626
+</pre></div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+<pre class="mermaid">
+flowchart TB
+  D[block document] --> K[Block kind registry + React blocks]
+  K --> S[renderToString in Worker]
+  K --> E[editor wraps with edit slots]
+  style K fill:#0f172a,color:#fff
+</pre></div>
+  </div>
+  <p><b>Problem.</b> Every block, theme or media change is two edits in two languages of markup.</p>
+  <p><b>Solution.</b> Prototype React SSR on the Worker first. Gate it on public page TTFB and CPU. If it passes, the Block kind registry owns one set of components.</p>
+  <ul class="text-sm text-slate-700 list-disc pl-5"><li>leverage: one change, both surfaces</li><li>parity test becomes unnecessary</li></ul>
+</article>
+
+<!-- 11 -->
+<article id="c11" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">11</span>
+    <h3 class="font-serif text-xl">react-query as the editor's only server cache</h3>
+    <span class="rounded bg-amber-100 text-amber-800 text-xs px-2 py-0.5">Worth exploring</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">in-process</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">editor/src/lib/session-cache.ts · workspace-tree-latest-nodes.ts · workspace-tree-query.ts · tree-api.ts:206,530-548 · upload-library-bridge.ts · 33 markWorkspaceTreeDirty call sites · 5 current_user parsers</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before: a stale card has six suspects</p>
+      <div class="space-y-1 text-xs">
+        <div class="border rounded p-1">react-query</div><div class="border rounded p-1">sessionStorage initialData</div><div class="border rounded p-1">latest-nodes map</div>
+        <div class="border rounded p-1">upload bridge optimistic maps</div><div class="border rounded p-1">warmedRoots</div><div class="border rounded p-1">dirty-at timestamp</div>
+      </div>
+    </div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+      <div class="deep rounded p-4 text-sm">react-query: persisted for warm start, setQueryData from mutation responses, server revision decides order. One useCurrentUser().</div>
+    </div>
+  </div>
+  <p><b>Problem.</b> The tree listing is cached six ways, each with its own staleness rule. One of those caches exists only to patch around another.</p>
+  <p><b>Solution.</b> Contacts already moved to react-query (#791). Do the same for the tree and the current user.</p>
+</article>
+
+<!-- 12 -->
+<article id="c12" class="rounded-xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="schem text-slate-400">12</span>
+    <h3 class="font-serif text-xl">Real packages, tests next to their owners, SQLite instead of SQL-text fakes</h3>
+    <span class="rounded bg-amber-100 text-amber-800 text-xs px-2 py-0.5">Worth exploring</span>
+    <span class="rounded bg-slate-100 text-slate-700 text-xs px-2 py-0.5">local-substitutable</span>
+  </div>
+  <p class="font-mono text-sm text-slate-600">pnpm-workspace.yaml · 191 relative ../../packages/x/src imports · editor/tests (91 files import worker source) · editor/tests/workspace-tree-store.test.ts · editor/tests/helpers/frontend-router-harness.ts</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">Before</p>
+<pre class="mermaid">
+flowchart LR
+  ET[editor/tests] --> W[workers/*/src]
+  ET --> P[packages/*/src]
+  W --> P
+  F[fake D1: query.includes] -.-> ET
+  linkStyle 3 stroke:#dc2626
+</pre></div>
+    <div class="rounded-lg border border-slate-200 p-3"><p class="schem text-slate-500 mb-2">After</p>
+<pre class="mermaid">
+flowchart LR
+  W[worker + its tests] --> P[package exports]
+  S[(SQLite with real migrations)] --> W
+</pre></div>
+  </div>
+  <p><b>Problem.</b> Packages have no <code>package.json</code>, so nothing enforces dependency direction and they aren't typechecked on their own. Worker tests live in the editor package, and r2-media and auth-email have none of their own. The core tree store test passes on wrong SQL, which is exactly where a tenant scoping bug would hide.</p>
+  <p><b>Solution.</b> Workspace packages with <code>exports</code>. Move the tree store and router harness onto the SQLite helpers that already exist. Add a lint rule against new text-matching fakes.</p>
+</article>
+
+</section>
+
+<!-- GREENFIELD -->
+<section id="greenfield" class="space-y-6">
+  <h2 class="font-serif text-2xl">If we built it from scratch today</h2>
+  <p class="text-slate-600 max-w-3xl">Same product, same team of one founder plus agents. Mostly this confirms the choices already made: Cloudflare, D1, WorkOS, Stripe behind the Worker, pure Mux, the block document and the theme levers. A rebuild would not beat those. The gap is in how many pieces there are and in where each invariant lives.</p>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 bg-white p-3"><p class="schem text-slate-500 mb-2">Today</p>
+<pre class="mermaid">
+flowchart TB
+  SPA[editor SPA] --> R[frontend-router]
+  R --> T[workspace-tree]
+  R --> E[auth-email]
+  R --> M2[r2-media]
+  R --> CX[Convex: 1 table]
+  R --> A[(AUTH_DB)]
+  R --> P[(PUBLIC_PAGE_DB)]
+  R --> V[(VIDEO_STATS_DB)]
+  T --> TD[(TREE_DB)]
+  E --> ED[(EMAIL_DB)]
+  O[(RECORDING_DB, unowned)]
+  T --> MUX[Mux]
+  M2 --> R2[(R2)]
+</pre></div>
+    <div class="rounded-lg border border-slate-200 bg-white p-3"><p class="schem text-slate-500 mb-2">Greenfield</p>
+<pre class="mermaid">
+flowchart TB
+  APP[one app worker: SPA assets, API, SSR, webhooks]
+  APP --> C[(tenant D1)]
+  APP --> EV[(events D1)]
+  APP --> MUX[Mux]
+  APP --> R2[(R2 via r2-media)]
+  APP --> DO[DO for AI generation stream]
+  style APP fill:#0f172a,color:#fff
+</pre></div>
+  </div>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table class="w-full text-sm">
+    <thead class="bg-stone-100 text-left"><tr><th class="p-2">Area</th><th class="p-2">Today</th><th class="p-2">Greenfield</th><th class="p-2">What the gap costs</th><th class="p-2">Close</th></tr></thead>
+    <tbody class="divide-y divide-slate-100 align-top">
+      <tr><td class="p-2">Deployables</td><td class="p-2">4 workers + Convex</td><td class="p-2">1 worker (+ r2-media)</td><td class="p-2">internal secret, header codec, relay hop, two deploy modes, router-only rollback</td><td class="p-2">later (c08, after c07)</td></tr>
+      <tr><td class="p-2">Data stores</td><td class="p-2">5 D1s + 1 orphaned + Convex</td><td class="p-2">tenant D1 + events D1</td><td class="p-2">non-atomic dual writes, 4 copies of the outbox table</td><td class="p-2">only if dual writes keep biting; AUTH_DB never</td></tr>
+      <tr><td class="p-2">Convex</td><td class="p-2">1 table, JWT bridge, JWKS, own deploy, flaky issuer check</td><td class="p-2">a Durable Object on the Worker</td><td class="p-2">second platform for one LLM call; open tickets keep asking whether email and library move there</td><td class="p-2">decide now; move with WIL-3234</td></tr>
+      <tr><td class="p-2">Authorization</td><td class="p-2">router, tree and Convex each decide</td><td class="p-2">one Actor, in-process policy</td><td class="p-2">drift between sites (already found once)</td><td class="p-2">now (c03)</td></tr>
+      <tr><td class="p-2">Rendering</td><td class="p-2">string SSR + React preview</td><td class="p-2">one React renderer</td><td class="p-2">every block built twice</td><td class="p-2">later (c10)</td></tr>
+      <tr><td class="p-2">Typed boundaries</td><td class="p-2">if-chain, optional Env, hand-copied types</td><td class="p-2">route table, schemas, parsed Env</td><td class="p-2">503 instead of boot failure; contract drift</td><td class="p-2">now (c07)</td></tr>
+      <tr><td class="p-2">Video</td><td class="p-2">Mux + legacy R2 tiers, no reconciler</td><td class="p-2">Mux + a reconciler</td><td class="p-2">orphans, stuck legacy videos</td><td class="p-2">now (c01)</td></tr>
+      <tr><td class="p-2">Background work</td><td class="p-2">crons + outboxes</td><td class="p-2">same</td><td class="p-2">small; no multi-step durable job left after Mux</td><td class="p-2">never adopt Workflows</td></tr>
+      <tr><td class="p-2">Test seams</td><td class="p-2">half SQLite, half SQL-text fakes; previews on prod data</td><td class="p-2">SQLite everywhere; seeded preview D1s</td><td class="p-2">wrong SQL passes; agent code hits prod data</td><td class="p-2">now (c04, c12)</td></tr>
+      <tr><td class="p-2">Deploy</td><td class="p-2">759-line workflow; drop-after-deploy rule lives in memory prose</td><td class="p-2">one deploy; expand/contract check in CI</td><td class="p-2">a 72-second outage already happened once</td><td class="p-2">CI check now</td></tr>
+      <tr><td class="p-2">Staging gate</td><td class="p-2">staging e2e optional; exits 0 without credentials</td><td class="p-2">prod deploys a staging-verified SHA</td><td class="p-2">runtime breaks in record and public pages go straight to prod</td><td class="p-2">now</td></tr>
+      <tr><td class="p-2">Agent tooling</td><td class="p-2">skills, ratchets, loops docs; docs stale</td><td class="p-2">same, docs true</td><td class="p-2">agents follow the wrong doc</td><td class="p-2">now (c06)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- SOUND -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Checked and sound</h2>
+  <div class="grid md:grid-cols-2 gap-3 text-sm">
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Mux webhook: raw-body signature, replay-safe monotonic patch, tombstone stops resurrection.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Stripe webhook: ordered by event time, a cancellation wins ties, 503 on write failure so Stripe retries.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Node metadata compare-and-swap: one retry loop, discriminated result, enforced by lint.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Convex generation: expiry scheduled in the same transaction, per-workspace cap, every function checks identity.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Internal identity: constant-time secret, spoofed headers stripped, service routes refuse users.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">CSRF, cookie flags, media URL signing, rich-text sanitizer.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Production CI gate and deploy planning from the live SHA.</div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">Real-SQLite tests for auth, billing and the tree, with a D1 contract test.</div>
+  </div>
+</section>
+
+<!-- TOP -->
+<section id="top-recommendation" class="rounded-2xl deep p-8 space-y-3">
+  <p class="schem text-slate-300">Top recommendation</p>
+  <h2 class="font-serif text-3xl"><a href="#c1" class="underline decoration-emerald-400">01 · The Mux video lifecycle module</a></h2>
+  <p class="text-slate-200 max-w-3xl">It's the newest code, it changes the most, and it protects both privacy and money: a deleted video is not deleted from Mux today, and Mux bills for every orphan. One module with one interface fixes deletion, lost webhooks, closed tabs and stuck legacy videos together. Candidate 06 (make the docs match the code) is small enough to ship alongside it.</p>
+</section>
+
+</main>
+</body>
+</html>
