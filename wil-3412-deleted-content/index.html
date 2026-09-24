@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WIL-3412 + WIL-3406: deleted pages and deleted videos</title>
+<style>body{font:15px/1.5 system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 16px;color:#0f172a}h2{margin-top:40px}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0}img{width:100%;border:1px solid #cbd5e1;border-radius:6px}figcaption{font-size:13px;color:#475569;margin-top:4px}</style>
+<h1>Deleted pages and deleted videos on public share links</h1>
+<p>Local <code>wrangler dev</code> with mock data. "Before" is origin/main 705b9a4e; "after" is the PR branch. Same D1 state for both.</p>
+<h2>WIL-3406: a share page whose video was deleted</h2>
+<p>The one taste item: the "Video unavailable" card. The copy already existed in the renderer ("Video unavailable / Please contact the sender for help.") but had no styles. It now reuses the processing card's look.</p>
+<div class="row"><figure><img src="base-vgn234.png"><figcaption>Before: title only, no player, no message.</figcaption></figure><figure><img src="branch-vgn234.png"><figcaption>After: the unavailable card in the video frame.</figcaption></figure></div>
+<h2>WIL-3412: a deleted page whose share route stayed active</h2>
+<div class="row"><figure><img src="base-del234.png"><figcaption>Before: 503 "Page temporarily unavailable".</figcaption></figure><figure><img src="branch-del234.png"><figcaption>After: 404 "Page not found".</figcaption></figure></div>
+<h2>Unchanged states (after)</h2>
+<div class="row"><figure><img src="branch-nrm234.png"><figcaption>Normal page with a live video.</figcaption></figure><figure><img src="branch-prc234.png"><figcaption>Processing placeholder, same as before.</figcaption></figure></div>
+</html>
