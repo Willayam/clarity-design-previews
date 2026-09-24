@@ -1,0 +1,74 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '.audit/acceptance-mux-prod/camera-download.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf58.22.100
+  Duration: 00:00:24.99, start: 0.000000, bitrate: 1494 kb/s
+  Stream #0:0[0x1](eng): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1360 kb/s, 26.37 fps, 25 tbr, 90k tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+  Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 127 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+[Parsed_volumedetect_0 @ 0x7ab9031680] n_samples: 0
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))
+  Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf62.12.100
+  Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)
+    Metadata:
+      encoder         : Lavc62.28.100 wrapped_avframe
+      handler_name    : VideoHandler
+  Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)
+    Metadata:
+      encoder         : Lavc62.28.100 pcm_s16le
+      handler_name    : SoundHandler
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 147 >= 147
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 162 >= 162
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 176 >= 176
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 189 >= 189
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 204 >= 204
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 218 >= 218
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 245 >= 245
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 260 >= 260
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 274 >= 274
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 288 >= 288
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 301 >= 301
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 316 >= 316
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 330 >= 330
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 344 >= 344
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 358 >= 358
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 372 >= 372
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 385 >= 385
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 399 >= 399
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 414 >= 414
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 428 >= 428
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 442 >= 442
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 456 >= 456
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 470 >= 470
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 484 >= 484
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 498 >= 498
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 512 >= 512
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 526 >= 526
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 540 >= 540
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 554 >= 554
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 568 >= 568
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 582 >= 582
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 596 >= 596
+[Parsed_volumedetect_0 @ 0x7ab9031b00] n_samples: 2398756
+[Parsed_volumedetect_0 @ 0x7ab9031b00] mean_volume: -24.3 dB
+[Parsed_volumedetect_0 @ 0x7ab9031b00] max_volume: -2.9 dB
+[Parsed_volumedetect_0 @ 0x7ab9031b00] histogram_2db: 8
+[Parsed_volumedetect_0 @ 0x7ab9031b00] histogram_3db: 624
+[Parsed_volumedetect_0 @ 0x7ab9031b00] histogram_4db: 1046
+[Parsed_volumedetect_0 @ 0x7ab9031b00] histogram_5db: 1748
+[null @ 0x7ab8813700] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 610 >= 610
+[out#0/null @ 0x7ab9030300] video:272KiB audio:4685KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=  657 fps=0.0 q=-0.0 Lsize=N/A time=00:00:24.98 bitrate=N/A speed= 142x elapsed=0:00:00.17    

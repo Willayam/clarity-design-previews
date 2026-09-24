@@ -1,0 +1,11 @@
+Target: https://clarity.video
+Commit: 3ab175509e5cf63a57a4bb571f48d1d2ff237cb5
+Real Google Chrome launched through macOS Launch Services and attached using Playwright CDP port 9333.
+Used the exact requested flags, including fake permission UI only and disabled ScreenCaptureKit features. No fake media devices.
+Production QA credentials read privately from .env.e2e.local and entered through the UI.
+Only items created in this run were renamed or otherwise changed.
+Timing uses Date.now. B original 92.504s is an upper bound including manual inspection and naming delays, not a processing latency.
+E original 34.387s is INVALID: the stale library list caused the script to select the short probe. E-corrected 270.188s is an observation upper bound after reopening. E-repeat uses a duration-specific card and verifies that card's video metadata.
+The screen preflight supplied by the user reported 1800x1168 logical pixels on a 3024x1964 display. This run initially could not start a screen source; no legibility conclusion can be drawn from the supplied preflight alone.
+Safari used AppleScript and System Events. JavaScript from Apple Events was disabled. Native controls did work. Login succeeded using paste. Camera/microphone permission was not granted, so recording was skipped as directed.
+No source files changed.

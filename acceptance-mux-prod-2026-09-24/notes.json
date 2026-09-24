@@ -1,0 +1,1097 @@
+[
+  {
+    "at": "2026-09-24T11:15:07.876Z",
+    "httpStatus": 401,
+    "url": "https://clarity.video/auth/me"
+  },
+  {
+    "at": "2026-09-24T11:15:08.838Z",
+    "flow": "A",
+    "lookupMs": 182,
+    "status": 200,
+    "endpoint": "https://clarity.video/auth/lookup",
+    "response": {
+      "data": {
+        "account": "known"
+      }
+    }
+  },
+  {
+    "at": "2026-09-24T11:15:09.510Z",
+    "screenshot": "A-login.png",
+    "caption": "QA email recognized on clean retry. Welcome back, email redacted."
+  },
+  {
+    "at": "2026-09-24T11:15:28.349Z",
+    "probe": "camera",
+    "results": [
+      {
+        "attempt": 1,
+        "streamMs": 1799,
+        "firstFrameMs": 2053,
+        "frames": 1,
+        "width": 640,
+        "height": 480,
+        "settings": {
+          "aspectRatio": 1.3333333333333333,
+          "frameRate": 30,
+          "height": 480,
+          "resizeMode": "none",
+          "width": 640
+        },
+        "audio": [
+          {
+            "state": "live"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "at": "2026-09-24T11:15:39.328Z",
+    "flow": "A",
+    "signInMs": 626
+  },
+  {
+    "at": "2026-09-24T11:15:51.699Z",
+    "flow": "A",
+    "result": "PASS",
+    "screenshot": "A-library.png",
+    "caption": "Authenticated library loaded. Existing content masked."
+  },
+  {
+    "at": "2026-09-24T11:16:05.007Z",
+    "screenshot": "B-preview.png",
+    "caption": "Real camera preview before recording."
+  },
+  {
+    "at": "2026-09-24T11:16:16.032Z",
+    "flow": "B",
+    "recordClickedAt": 1790248575996
+  },
+  {
+    "at": "2026-09-24T11:16:41.041Z",
+    "flow": "B",
+    "stoppedAt": 1790248601041,
+    "recordedMs": 25045
+  },
+  {
+    "at": "2026-09-24T11:17:01.492Z",
+    "screenshot": "B-finish.png",
+    "caption": "Camera recording finish screen, changes saved."
+  },
+  {
+    "at": "2026-09-24T11:17:17.999Z",
+    "createdPage": "https://clarity.video/edit/d8e70709-fb0f-49ae-8c8a-dbed1c303293",
+    "flow": "B"
+  },
+  {
+    "at": "2026-09-24T11:18:13.545Z",
+    "flow": "B",
+    "cardFirstFrameMs": 1577,
+    "stopToObservedPlayableMs": 92504
+  },
+  {
+    "at": "2026-09-24T11:18:31.189Z",
+    "screenshot": "B-card.png",
+    "caption": "Camera video playing from library without page reload."
+  },
+  {
+    "at": "2026-09-24T11:18:57.879Z",
+    "flow": "B",
+    "fullscreen": true,
+    "playback": {
+      "rate": 1.5,
+      "time": 12.5,
+      "audioBytes": 0
+    }
+  },
+  {
+    "at": "2026-09-24T11:19:43.192Z",
+    "flow": "C",
+    "screenshot": "C-screen-error.png",
+    "caption": "Screen only attempt reverted to Camera only with visible error: Could not start video source."
+  },
+  {
+    "at": "2026-09-24T11:19:55.665Z",
+    "probe": "screen",
+    "elapsedMs": 4,
+    "ok": false,
+    "error": "NotReadableError: Could not start video source"
+  },
+  {
+    "at": "2026-09-24T11:19:57.470Z",
+    "flow": "D",
+    "screenshot": "D-composite-error.png",
+    "caption": "Composite attempt with capture error."
+  },
+  {
+    "at": "2026-09-24T11:21:03.934Z",
+    "screenshot": "D-unexpected-finish.png",
+    "caption": "Unexpected 1.75-second finish state after capture errors. Not an accepted composite recording."
+  },
+  {
+    "at": "2026-09-24T11:21:04.741Z",
+    "flow": "D-unexpected",
+    "createdPage": "https://clarity.video/edit/616f8a39-a08a-4c80-ae6b-cf7ddbf106bd"
+  },
+  {
+    "at": "2026-09-24T11:21:15.783Z",
+    "flow": "E",
+    "previewMs": 2
+  },
+  {
+    "at": "2026-09-24T11:21:59.115Z",
+    "flow": "E",
+    "previewMs": 35,
+    "frame": {
+      "ok": true,
+      "ms": 27
+    }
+  },
+  {
+    "at": "2026-09-24T11:21:59.143Z",
+    "flow": "E",
+    "recordClickedAt": 1790248919143
+  },
+  {
+    "at": "2026-09-24T11:22:41.738Z",
+    "flow": "G",
+    "shareUrl": "https://clarity.video/page/7zuqs9",
+    "published": true,
+    "observation": "Recorder-created page already published."
+  },
+  {
+    "at": "2026-09-24T11:23:33.626Z",
+    "flow": "L",
+    "observation": "Safari 27 opened share page. Apple Events JavaScript denied; native coordinate play clicked."
+  },
+  {
+    "at": "2026-09-24T11:23:45.954Z",
+    "flow": "I",
+    "downloadMs": 2515,
+    "filename": "Prod acceptance camera 25s.mp4"
+  },
+  {
+    "at": "2026-09-24T11:24:10.405Z",
+    "flow": "I",
+    "result": "PASS",
+    "container": "MP4",
+    "duration": 24.987,
+    "video": "h264 1920x1080",
+    "audio": "aac"
+  },
+  {
+    "at": "2026-09-24T11:24:10.406Z",
+    "flow": "L",
+    "screenshot": "L-safari-play.png",
+    "caption": "Real Safari playback, native controls and spoken-caption text observed via accessibility."
+  },
+  {
+    "at": "2026-09-24T11:25:59.200Z",
+    "flow": "E",
+    "stoppedAt": 1790249159200,
+    "recordedMs": 240057
+  },
+  {
+    "at": "2026-09-24T11:26:31.259Z",
+    "screenshot": "E-finish.png",
+    "caption": "Four minute recording saved after an early Open page error."
+  },
+  {
+    "at": "2026-09-24T11:26:31.860Z",
+    "flow": "E",
+    "createdPage": "https://clarity.video/edit/90dea16f-37ed-4a08-ba6b-de9b05030fc8"
+  },
+  {
+    "at": "2026-09-24T11:26:33.587Z",
+    "flow": "E",
+    "stopToObservedPlayableMs": 34387,
+    "firstFrameMs": 1271,
+    "noReload": true,
+    "invalid": true,
+    "reason": "Selected 1.75-second probe from stale list. Superseded by E-repeat."
+  },
+  {
+    "at": "2026-09-24T11:26:33.682Z",
+    "screenshot": "E-card.png",
+    "caption": "INVALID long-recording check: this is the 1.75-second probe, not the four-minute clip."
+  },
+  {
+    "at": "2026-09-24T11:26:43.742Z",
+    "flow": "G",
+    "screenshot": "G-captions.png",
+    "caption": "Prospect captions enabled after seek.",
+    "speeds": [
+      1,
+      1.25,
+      1.5,
+      2
+    ],
+    "pipButton": false,
+    "captions": [
+      "Clarity camera exceptions.",
+      "The Mux migration should deliver clear video and sound.",
+      "The secret number is 23.",
+      "This is the real MacBook microphone."
+    ]
+  },
+  {
+    "at": "2026-09-24T11:27:04.226Z",
+    "flow": "G-mobile",
+    "screenshot": "G-mobile.png",
+    "caption": "Prospect view at 390 px with captions.",
+    "overflow": false
+  },
+  {
+    "at": "2026-09-24T11:27:33.158Z",
+    "flow": "H",
+    "statsOpenMs": 1267
+  },
+  {
+    "at": "2026-09-24T11:28:02.069Z",
+    "flow": "H",
+    "result": "PASS",
+    "screenshot": "H-statistics.png",
+    "caption": "Three generated prospect views, 100%, 100%, 96%, and retention curve."
+  },
+  {
+    "at": "2026-09-24T11:28:50.964Z",
+    "flow": "L",
+    "result": "PARTIAL",
+    "safariPlayback": true,
+    "safariLogin": true,
+    "recordingSkipped": "Safari asks permission to use camera and microphone. Skipped per instruction; no blank clip saved."
+  },
+  {
+    "at": "2026-09-24T11:29:22.869Z",
+    "screenshot": "G-mobile-controls.png",
+    "caption": "390 px controls have no playback-speed button.",
+    "flow": "G",
+    "mobileSpeedAbsent": true
+  },
+  {
+    "at": "2026-09-24T11:29:23.021Z",
+    "screenshot": "G-marker.png",
+    "caption": "Desktop captions after seeking to spoken Mux migration marker."
+  },
+  {
+    "at": "2026-09-24T11:29:24.563Z",
+    "flow": "J",
+    "screenshot": "J-before-close.png",
+    "caption": "Real camera recording before closing tab at approximately 15 seconds.",
+    "closeMs": 15233
+  },
+  {
+    "at": "2026-09-24T11:29:57.427Z",
+    "correction": "E earlier 34.39s result invalid: stale library list selected the 1.75s capture-error probe. Actual 4min video appeared separately after reopen. No-reload readiness for E is NOT VERIFIED."
+  },
+  {
+    "at": "2026-09-24T11:30:29.388Z",
+    "flow": "E-corrected",
+    "firstFrameMs": 868,
+    "stopToObservedPlayableMs": 270188,
+    "noReload": false
+  },
+  {
+    "at": "2026-09-24T11:30:29.653Z",
+    "screenshot": "E-actual-card.png",
+    "caption": "Actual four minute camera clip playing after library reopened. Earlier E-card.png shows the 1.75s probe and is not long-recording evidence."
+  },
+  {
+    "at": "2026-09-24T11:30:59.095Z",
+    "flow": "J",
+    "screenshot": "J-recovery-prompt.png",
+    "caption": "Recovery prompt appears on recorder, not home. Offers 14 seconds, 3.3 MB."
+  },
+  {
+    "at": "2026-09-24T11:30:59.147Z",
+    "flow": "J",
+    "recoveryPreviewMs": 51
+  },
+  {
+    "at": "2026-09-24T11:31:16.353Z",
+    "flow": "J",
+    "createdPage": "https://clarity.video/edit/cba9bcf1-3d16-4208-8fed-fbdfbbec2ebc"
+  },
+  {
+    "at": "2026-09-24T11:31:43.532Z",
+    "flow": "J",
+    "screenshot": "J-recovered.png",
+    "caption": "Recovered 14-second recording plays after tab closed at 15.23 seconds.",
+    "result": "PASS"
+  },
+  {
+    "at": "2026-09-24T11:32:19.309Z",
+    "flow": "E-repeat",
+    "recordClickedAt": 1790249539309
+  },
+  {
+    "at": "2026-09-24T11:32:51.975Z",
+    "screenshot": "A-library.png",
+    "caption": "Authenticated Videos library header. Existing workspace content excluded from public evidence."
+  },
+  {
+    "at": "2026-09-24T11:32:51.975Z",
+    "screenshot": "L-permission.png",
+    "caption": "Safari requested camera and microphone permission. Recording skipped per instruction."
+  },
+  {
+    "at": "2026-09-24T11:33:19.214Z",
+    "flow": "G",
+    "screenshot": "G-marker.png",
+    "caption": "Paused prospect caption reads The Mux migration should deliver clear video and sound.",
+    "accent": "#2563eb",
+    "time": 12.005173
+  },
+  {
+    "at": "2026-09-24T11:33:30.270Z",
+    "flow": "I",
+    "screenshot": "I-download.png",
+    "caption": "Downloaded 24.987-second MP4 plays locally in Chrome. AAC audio stream verified and file fully decoded."
+  },
+  {
+    "at": "2026-09-24T11:34:50.474Z",
+    "flow": "G",
+    "pageStyleColor": "#2563eb",
+    "playerAccent": "#2563eb",
+    "brandMatch": true
+  },
+  {
+    "at": "2026-09-24T11:35:15.433Z",
+    "screenshot": "E-repeat-recording.png",
+    "caption": "Repeat long recording with real camera preview and elapsed recorder timer."
+  },
+  {
+    "at": "2026-09-24T11:36:19.382Z",
+    "flow": "E-repeat",
+    "stoppedAt": 1790249779382,
+    "recordedMs": 240073
+  },
+  {
+    "at": "2026-09-24T11:36:21.439Z",
+    "uploadPollAt": 1790249781439,
+    "path": "/api/tree/media/mux/uploads/cCoTNVwMRD6J9Ei4QrWsc00M93fGvF3ETp64EGh01y764",
+    "http": 200,
+    "state": "waiting"
+  },
+  {
+    "at": "2026-09-24T11:36:23.049Z",
+    "uploadPollAt": 1790249783049,
+    "path": "/api/tree/media/mux/uploads/cCoTNVwMRD6J9Ei4QrWsc00M93fGvF3ETp64EGh01y764",
+    "http": 200,
+    "state": "waiting"
+  },
+  {
+    "at": "2026-09-24T11:36:25.081Z",
+    "uploadPollAt": 1790249785081,
+    "path": "/api/tree/media/mux/uploads/cCoTNVwMRD6J9Ei4QrWsc00M93fGvF3ETp64EGh01y764",
+    "http": 200,
+    "state": "ready"
+  },
+  {
+    "at": "2026-09-24T11:36:27.318Z",
+    "flow": "E-repeat",
+    "savedMs": 7936
+  },
+  {
+    "at": "2026-09-24T11:36:28.147Z",
+    "flow": "E-repeat",
+    "createdPage": "https://clarity.video/edit/ea53046f-c277-4b0b-a604-a42cd990fde6"
+  },
+  {
+    "at": "2026-09-24T11:36:30.484Z",
+    "muxStreamAt": 1790249790484,
+    "path": "/3hI3zevwFJSnFMgtrhj3m3ifT2WlRBpUjiJhkmWHJmk.m3u8",
+    "http": 200
+  },
+  {
+    "at": "2026-09-24T11:36:32.598Z",
+    "flow": "E-repeat",
+    "stopToPlayableMs": 13216,
+    "posterMs": 10908,
+    "firstFrameMs": 2308,
+    "noReload": true,
+    "duration": 240.0517,
+    "width": 1920,
+    "height": 1080,
+    "time": 0.024997
+  },
+  {
+    "at": "2026-09-24T11:36:32.679Z",
+    "screenshot": "E-repeat-card.png",
+    "caption": "Repeated four-minute recording playing without reload. Duration verified from this card video."
+  },
+  {
+    "at": "2026-09-24T11:36:39.682Z",
+    "flow": "E-repeat",
+    "screenshot": "E-repeat-20s.png",
+    "caption": "Timing checkpoint. Public screenshot was subsequently recaptured as card-only evidence.",
+    "elapsedMs": 20300
+  },
+  {
+    "at": "2026-09-24T11:36:58.674Z",
+    "screenshot": "E-repeat-20s.png",
+    "caption": "Repeat long recording remains playable. Recaptured as card-only evidence to exclude unrelated library content."
+  },
+  {
+    "at": "2026-09-24T11:37:03.107Z",
+    "flow": "C-retry",
+    "selectMs": 2524
+  },
+  {
+    "at": "2026-09-24T11:37:50.917Z",
+    "flow": "C",
+    "preview": {
+      "ok": true,
+      "frameMs": 32,
+      "w": 1920,
+      "h": 1080,
+      "tracks": [
+        {
+          "width": 1920,
+          "height": 1080
+        }
+      ]
+    }
+  },
+  {
+    "at": "2026-09-24T11:38:35.957Z",
+    "flow": "C",
+    "stoppedAt": 1790249915957,
+    "recordedMs": 45040
+  },
+  {
+    "at": "2026-09-24T11:38:37.298Z",
+    "uploadPollAt": 1790249917298,
+    "path": "/api/tree/media/mux/uploads/01RwU9oV7G402E2vDesZkPeVejer01fpHIEaDJYaPKnyP8",
+    "http": 200,
+    "state": "waiting"
+  },
+  {
+    "at": "2026-09-24T11:38:38.931Z",
+    "uploadPollAt": 1790249918931,
+    "path": "/api/tree/media/mux/uploads/01RwU9oV7G402E2vDesZkPeVejer01fpHIEaDJYaPKnyP8",
+    "http": 200,
+    "state": "ready"
+  },
+  {
+    "at": "2026-09-24T11:38:41.318Z",
+    "flow": "C",
+    "savedMs": 5361
+  },
+  {
+    "at": "2026-09-24T11:38:42.156Z",
+    "flow": "C",
+    "createdPage": "https://clarity.video/edit/5d83a79c-06b1-452b-be78-58807516d240"
+  },
+  {
+    "at": "2026-09-24T11:38:44.510Z",
+    "muxStreamAt": 1790249924510,
+    "path": "/vlfIIIt3WA01TNv4fuhvgaVUNKUSPAXr8hAzj01kJzFsQ.m3u8",
+    "http": 200
+  },
+  {
+    "at": "2026-09-24T11:38:45.625Z",
+    "flow": "C",
+    "stopToPlayableMs": 9668,
+    "posterMs": 8335,
+    "firstFrameMs": 1333,
+    "noReload": true,
+    "duration": 45.0169,
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "at": "2026-09-24T11:38:45.726Z",
+    "screenshot": "C-card.png",
+    "caption": "Prod acceptance screen 45s playing without reload."
+  },
+  {
+    "at": "2026-09-24T11:38:45.835Z",
+    "flow": "C",
+    "fullscreen": false,
+    "rate": 1.5
+  },
+  {
+    "at": "2026-09-24T11:39:28.679Z",
+    "flow": "D",
+    "preview": {
+      "ok": true,
+      "frameMs": 3,
+      "w": 1920,
+      "h": 1080,
+      "tracks": [
+        {
+          "width": 1920,
+          "height": 1080
+        }
+      ]
+    }
+  },
+  {
+    "at": "2026-09-24T11:39:58.725Z",
+    "flow": "D",
+    "stoppedAt": 1790249998725,
+    "recordedMs": 30045
+  },
+  {
+    "at": "2026-09-24T11:40:01.026Z",
+    "uploadPollAt": 1790250001026,
+    "path": "/api/tree/media/mux/uploads/SFeGx00ZAcQ5lsjCXpvEUm58I02N791V88wPnwfunHCDQ",
+    "http": 200,
+    "state": "waiting"
+  },
+  {
+    "at": "2026-09-24T11:40:02.648Z",
+    "uploadPollAt": 1790250002648,
+    "path": "/api/tree/media/mux/uploads/SFeGx00ZAcQ5lsjCXpvEUm58I02N791V88wPnwfunHCDQ",
+    "http": 200,
+    "state": "ready"
+  },
+  {
+    "at": "2026-09-24T11:40:05.090Z",
+    "flow": "D",
+    "savedMs": 6365
+  },
+  {
+    "at": "2026-09-24T11:40:05.918Z",
+    "flow": "D",
+    "createdPage": "https://clarity.video/edit/485a31db-6c14-45d8-8886-1a0cb4659cde"
+  },
+  {
+    "at": "2026-09-24T11:40:08.310Z",
+    "muxStreamAt": 1790250008310,
+    "path": "/EXJ0001EoXUgcZ1TopK2EZxXnEcoroL2ZpVHX01bqkkj004.m3u8",
+    "http": 200
+  },
+  {
+    "at": "2026-09-24T11:40:09.268Z",
+    "flow": "D",
+    "stopToPlayableMs": 10543,
+    "posterMs": 9371,
+    "firstFrameMs": 1172,
+    "noReload": true,
+    "duration": 30.02693,
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "at": "2026-09-24T11:40:09.391Z",
+    "screenshot": "D-card.png",
+    "caption": "Prod acceptance composite 30s playing without reload."
+  },
+  {
+    "at": "2026-09-24T11:40:09.688Z",
+    "flow": "D",
+    "fullscreen": true,
+    "rate": 1.5
+  },
+  {
+    "at": "2026-09-24T11:40:44.025Z",
+    "flow": "B-repeat",
+    "preview": {
+      "ok": true,
+      "frameMs": 2,
+      "w": 1920,
+      "h": 1080,
+      "tracks": [
+        {
+          "width": 1920,
+          "height": 1080
+        }
+      ]
+    }
+  },
+  {
+    "at": "2026-09-24T11:41:09.071Z",
+    "flow": "B-repeat",
+    "stoppedAt": 1790250069071,
+    "recordedMs": 25045
+  },
+  {
+    "at": "2026-09-24T11:41:12.367Z",
+    "uploadPollAt": 1790250072367,
+    "path": "/api/tree/media/mux/uploads/HknqVztOFs4RLas7IUS5IWMzhPoz8Za7DVXSi7fHW6U",
+    "http": 200,
+    "state": "waiting"
+  },
+  {
+    "at": "2026-09-24T11:41:13.762Z",
+    "uploadPollAt": 1790250073762,
+    "path": "/api/tree/media/mux/uploads/HknqVztOFs4RLas7IUS5IWMzhPoz8Za7DVXSi7fHW6U",
+    "http": 200,
+    "state": "ready"
+  },
+  {
+    "at": "2026-09-24T11:41:15.941Z",
+    "flow": "B-repeat",
+    "savedMs": 6870
+  },
+  {
+    "at": "2026-09-24T11:41:16.787Z",
+    "flow": "B-repeat",
+    "createdPage": "https://clarity.video/edit/aad0cd61-d844-40a6-bf36-4454b49af7e5"
+  },
+  {
+    "at": "2026-09-24T11:41:19.121Z",
+    "muxStreamAt": 1790250079121,
+    "path": "/VTtgOffrw015jF3AX00aEiJMLF85rBal00wxowpW9ZoTSc.m3u8",
+    "http": 200
+  },
+  {
+    "at": "2026-09-24T11:41:20.740Z",
+    "flow": "B-repeat",
+    "stopToPlayableMs": 11669,
+    "posterMs": 9859,
+    "firstFrameMs": 1810,
+    "noReload": true,
+    "duration": 24.99653,
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "at": "2026-09-24T11:41:20.822Z",
+    "screenshot": "B-repeat-card.png",
+    "caption": "Prod acceptance camera 25s repeat playing without reload."
+  },
+  {
+    "at": "2026-09-24T11:41:21.173Z",
+    "flow": "B-repeat",
+    "fullscreen": true,
+    "rate": 1.5
+  },
+  {
+    "at": "2026-09-24T11:41:27.732Z",
+    "flow": "F",
+    "screenshot": "F-trim-selection.png",
+    "caption": "Screen trim selection requested at 8 to 30 seconds.",
+    "selection": {
+      "max": "45.013",
+      "selection": "00:08 to 00:30",
+      "start": "8"
+    }
+  },
+  {
+    "at": "2026-09-24T11:41:54.131Z",
+    "flow": "F",
+    "trimSaveMs": 3445
+  },
+  {
+    "at": "2026-09-24T11:41:55.554Z",
+    "flow": "F",
+    "screenshot": "F-trim-play.png",
+    "caption": "Trimmed screen recording played immediately without reload.",
+    "playAfterSaveMs": 4853,
+    "duration": 22
+  },
+  {
+    "at": "2026-09-24T11:42:18.578Z",
+    "flow": "F",
+    "screenshot": "F-reopen.png",
+    "caption": "Reopened trim retains original full timeline and saved selection.",
+    "state": {
+      "max": "45.017",
+      "start": "8",
+      "range": "00:08 to 00:30"
+    }
+  },
+  {
+    "at": "2026-09-24T11:42:40.402Z",
+    "flow": "F",
+    "screenshot": "F-widen.png",
+    "caption": "Earlier fast drag missed start handle. Superseded by deliberate verified 5 to 40 selection.",
+    "state": {
+      "max": "45.013",
+      "selection": "00:08 to 00:40",
+      "start": "8"
+    },
+    "widenSaveMs": 4375,
+    "invalid": true
+  },
+  {
+    "at": "2026-09-24T11:45:01.324Z",
+    "flow": "F",
+    "screenshot": "F-widen.png",
+    "caption": "Verified 5 to 40 second trim selection.",
+    "widenSaveMs": 4390,
+    "range": "00:05 to 00:40"
+  },
+  {
+    "at": "2026-09-24T11:45:02.275Z",
+    "flow": "F",
+    "widenReopened": "00:05 to 00:40"
+  },
+  {
+    "at": "2026-09-24T11:45:03.135Z",
+    "flow": "F",
+    "restoreMs": 859
+  },
+  {
+    "at": "2026-09-24T11:45:03.291Z",
+    "screenshot": "F-restored.png",
+    "caption": "Restore returned the screen clip to its full 45-second source."
+  },
+  {
+    "at": "2026-09-24T11:46:00.981Z",
+    "flow": "C",
+    "screenshot": "C-legibility.png",
+    "caption": "Screen playback at 40 seconds in fullscreen for legibility inspection.",
+    "fullscreen": true
+  },
+  {
+    "at": "2026-09-24T11:46:18.508Z",
+    "flow": "D",
+    "screenshot": "D-fullscreen.png",
+    "caption": "Composite real camera and screen playback, fullscreen and midpoint seek.",
+    "fullscreen": true
+  },
+  {
+    "at": "2026-09-24T11:47:38.852Z",
+    "ownedPages": [
+      {
+        "editUrl": "https://clarity.video/edit/d8e70709-fb0f-49ae-8c8a-dbed1c303293",
+        "title": "Prod acceptance camera 25s",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/616f8a39-a08a-4c80-ae6b-cf7ddbf106bd",
+        "title": "Prod acceptance capture error probe",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/90dea16f-37ed-4a08-ba6b-de9b05030fc8",
+        "title": "Prod acceptance camera 4min",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/cba9bcf1-3d16-4208-8fed-fbdfbbec2ebc",
+        "title": "Prod acceptance recovered camera",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/ea53046f-c277-4b0b-a604-a42cd990fde6",
+        "title": "Prod acceptance camera 4min repeat",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/5d83a79c-06b1-452b-be78-58807516d240",
+        "title": "Prod acceptance screen 45s",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/485a31db-6c14-45d8-8886-1a0cb4659cde",
+        "title": "Prod acceptance composite 30s",
+        "shareUrl": null
+      },
+      {
+        "editUrl": "https://clarity.video/edit/aad0cd61-d844-40a6-bf36-4454b49af7e5",
+        "title": "Prod acceptance camera 25s repeat",
+        "shareUrl": null
+      }
+    ]
+  },
+  {
+    "at": "2026-09-24T11:48:20.771Z",
+    "ownedPages": [
+      {
+        "editUrl": "https://clarity.video/edit/d8e70709-fb0f-49ae-8c8a-dbed1c303293",
+        "title": "Prod acceptance camera 25s",
+        "shareUrl": "https://clarity.video/page/7zuqs9"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/616f8a39-a08a-4c80-ae6b-cf7ddbf106bd",
+        "title": "Prod acceptance capture error probe",
+        "shareUrl": "https://clarity.video/page/eajue7"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/90dea16f-37ed-4a08-ba6b-de9b05030fc8",
+        "title": "Prod acceptance camera 4min",
+        "shareUrl": "https://clarity.video/page/p55mct"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/cba9bcf1-3d16-4208-8fed-fbdfbbec2ebc",
+        "title": "Prod acceptance recovered camera",
+        "shareUrl": "https://clarity.video/page/a6g3v7"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/ea53046f-c277-4b0b-a604-a42cd990fde6",
+        "title": "Prod acceptance camera 4min repeat",
+        "shareUrl": "https://clarity.video/page/4q5977"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/5d83a79c-06b1-452b-be78-58807516d240",
+        "title": "Prod acceptance screen 45s",
+        "shareUrl": "https://clarity.video/page/us5gw5"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/485a31db-6c14-45d8-8886-1a0cb4659cde",
+        "title": "Prod acceptance composite 30s",
+        "shareUrl": "https://clarity.video/page/c6xsg9"
+      },
+      {
+        "editUrl": "https://clarity.video/edit/aad0cd61-d844-40a6-bf36-4454b49af7e5",
+        "title": "Prod acceptance camera 25s repeat",
+        "shareUrl": "https://clarity.video/page/6zk8d6"
+      }
+    ]
+  },
+  {
+    "at": "2026-09-24T11:48:41.204Z",
+    "deletedVideo": "Prod acceptance capture error probe"
+  },
+  {
+    "at": "2026-09-24T11:48:42.324Z",
+    "deletedVideo": "Prod acceptance camera 25s"
+  },
+  {
+    "at": "2026-09-24T11:48:43.097Z",
+    "deletedVideo": "Prod acceptance camera 4min"
+  },
+  {
+    "at": "2026-09-24T11:48:43.869Z",
+    "deletedVideo": "Prod acceptance recovered camera"
+  },
+  {
+    "at": "2026-09-24T11:48:44.717Z",
+    "deletedVideo": "Prod acceptance camera 4min repeat"
+  },
+  {
+    "at": "2026-09-24T11:48:45.462Z",
+    "deletedVideo": "Prod acceptance screen 45s"
+  },
+  {
+    "at": "2026-09-24T11:48:46.193Z",
+    "deletedVideo": "Prod acceptance composite 30s"
+  },
+  {
+    "at": "2026-09-24T11:48:46.954Z",
+    "deletedVideo": "Prod acceptance camera 25s repeat"
+  },
+  {
+    "at": "2026-09-24T11:48:46.956Z",
+    "flow": "K",
+    "videoDeleteMs": 6014,
+    "deletedVideos": 8
+  },
+  {
+    "at": "2026-09-24T11:49:39.354Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/d8e70709-fb0f-49ae-8c8a-dbed1c303293",
+      "title": "Prod acceptance camera 25s",
+      "shareUrl": "https://clarity.video/page/7zuqs9"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:40.379Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/616f8a39-a08a-4c80-ae6b-cf7ddbf106bd",
+      "title": "Prod acceptance capture error probe",
+      "shareUrl": "https://clarity.video/page/eajue7"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:41.154Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/90dea16f-37ed-4a08-ba6b-de9b05030fc8",
+      "title": "Prod acceptance camera 4min",
+      "shareUrl": "https://clarity.video/page/p55mct"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:41.906Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/cba9bcf1-3d16-4208-8fed-fbdfbbec2ebc",
+      "title": "Prod acceptance recovered camera",
+      "shareUrl": "https://clarity.video/page/a6g3v7"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:42.656Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/ea53046f-c277-4b0b-a604-a42cd990fde6",
+      "title": "Prod acceptance camera 4min repeat",
+      "shareUrl": "https://clarity.video/page/4q5977"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:43.388Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/5d83a79c-06b1-452b-be78-58807516d240",
+      "title": "Prod acceptance screen 45s",
+      "shareUrl": "https://clarity.video/page/us5gw5"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:44.142Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/485a31db-6c14-45d8-8886-1a0cb4659cde",
+      "title": "Prod acceptance composite 30s",
+      "shareUrl": "https://clarity.video/page/c6xsg9"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:44.865Z",
+    "deletedPage": {
+      "editUrl": "https://clarity.video/edit/aad0cd61-d844-40a6-bf36-4454b49af7e5",
+      "title": "Prod acceptance camera 25s repeat",
+      "shareUrl": "https://clarity.video/page/6zk8d6"
+    }
+  },
+  {
+    "at": "2026-09-24T11:49:44.866Z",
+    "flow": "K",
+    "deletedPages": 8,
+    "pageDeleteMs": 5754
+  },
+  {
+    "at": "2026-09-24T11:49:47.042Z",
+    "flow": "K",
+    "screenshot": "K-pages.png",
+    "caption": "After reload, page search finds no Prod acceptance items.",
+    "text": "Pages\nUpload\nRecord video\nNew Journey Page\nNew folder\nNo matches for \"Prod acceptance\"\n\nTry a different search or clear the filters.\n\nClear filters"
+  },
+  {
+    "at": "2026-09-24T11:49:48.356Z",
+    "flow": "K",
+    "screenshot": "K-videos.png",
+    "caption": "After cleanup, video search finds no Prod acceptance items.",
+    "text": "Videos\nUpload\nRecord video\nNew Journey Page\nNew folder\nNo matches for \"Prod acceptance\"\n\nTry a different search or clear the filters.\n\nClear filters"
+  },
+  {
+    "at": "2026-09-24T11:49:54.865Z",
+    "flow": "K",
+    "shareChecks": [
+      {
+        "url": "https://clarity.video/page/7zuqs9",
+        "status": 404,
+        "text": "Page not found"
+      },
+      {
+        "url": "https://clarity.video/page/eajue7",
+        "status": 404,
+        "text": "Page not found"
+      },
+      {
+        "url": "https://clarity.video/page/p55mct",
+        "status": 404,
+        "text": "Page not found"
+      },
+      {
+        "url": "https://clarity.video/page/a6g3v7",
+        "status": 404,
+        "text": "Page not found"
+      },
+      {
+        "url": "https://clarity.video/page/4q5977",
+        "status": 404,
+        "text": "Page not found"
+      },
+      {
+        "url": "https://clarity.video/page/us5gw5",
+        "status": 404,
+        "text": "Page not found"
+      },
+      {
+        "url": "https://clarity.video/page/c6xsg9",
+        "status": 503,
+        "text": "Page temporarily unavailable"
+      },
+      {
+        "url": "https://clarity.video/page/6zk8d6",
+        "status": 503,
+        "text": "Page temporarily unavailable"
+      }
+    ],
+    "screenshot": "K-share-gone.png",
+    "caption": "Deleted original camera share link returns Page not found."
+  },
+  {
+    "at": "2026-09-24T11:50:41.754Z",
+    "screenshot": "K-share-c6xsg9.png",
+    "caption": "Post-deletion share URL returned 503"
+  },
+  {
+    "at": "2026-09-24T11:50:41.929Z",
+    "screenshot": "K-share-6zk8d6.png",
+    "caption": "Post-deletion share URL returned 503"
+  },
+  {
+    "at": "2026-09-24T11:50:41.930Z",
+    "flow": "K",
+    "shareRecheck": [
+      {
+        "url": "https://clarity.video/page/c6xsg9",
+        "status": 503,
+        "ms": 169,
+        "text": "Page temporarily unavailable"
+      },
+      {
+        "url": "https://clarity.video/page/6zk8d6",
+        "status": 503,
+        "ms": 115,
+        "text": "Page temporarily unavailable"
+      }
+    ]
+  },
+  {
+    "at": "2026-09-24T11:51:27.793Z",
+    "screenshot": "zz-screen-now.png",
+    "caption": "Supplementary screenshot found during run, cropped to the recorder error and saved state to exclude surrounding apps. Not used as independent proof of frame delivery."
+  },
+  {
+    "at": "2026-09-24T11:51:27.794Z",
+    "screenshot": "L-safari.png",
+    "caption": "Real Safari loaded the original camera share page. Cropped to test content."
+  },
+  {
+    "at": "2026-09-24T11:51:27.794Z",
+    "finalCommit": "3ab175509e5cf63a57a4bb571f48d1d2ff237cb5",
+    "noReloadProof": {
+      "camera25": true,
+      "screen45": true,
+      "composite30": true,
+      "camera4min": true
+    },
+    "timingsSeconds": {
+      "camera25": 11.669,
+      "screen45": 9.668,
+      "composite30": 10.543,
+      "camera4min": 13.216
+    },
+    "smallText": "16 px readable; 12 px softer but decipherable at full-screen playback. Supplied screen baseline 1800x1168 logical on 3024x1964 display.",
+    "priorFindings": {
+      "zeroFrameSave": "Not rigorously reproduced under required wait-for-frame protocol.",
+      "silentScreenFallback": "Not reproduced: error visible; screen and composite worked after fresh initialization."
+    }
+  },
+  {
+    "at": "2026-09-24T11:52:01.134Z",
+    "flow": "K",
+    "finalShareRecheck": [
+      {
+        "url": "https://clarity.video/page/c6xsg9",
+        "status": 503,
+        "text": "Page temporarily unavailable"
+      },
+      {
+        "url": "https://clarity.video/page/6zk8d6",
+        "status": 503,
+        "text": "Page temporarily unavailable"
+      }
+    ]
+  },
+  {
+    "at": "2026-09-24T11:53:25.522Z",
+    "completedAt": "2026-09-24T11:53:25.522Z",
+    "sourceFilesChanged": false,
+    "cleanup": {
+      "videos": 8,
+      "pages": 8,
+      "libraryOwnItemsAbsent": true,
+      "share404": 6,
+      "share503": 2
+    },
+    "audioLimit": "Camera audio confirmed by decoded AAC and actual spoken captions. Screen and composite audio were not independently listened to."
+  }
+]
