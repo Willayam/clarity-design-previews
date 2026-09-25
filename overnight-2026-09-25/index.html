@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overnight cleanup run, 2026-09-25</title>
+<style>
+*{box-sizing:border-box}
+body{font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;color:#1a1a1a;background:#fff}
+main{max-width:52rem;margin:0 auto;padding:1.5rem 1rem 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:0 0 .25rem}
+h2{font-size:1.15rem;margin:2.25rem 0 .6rem;padding-top:.75rem;border-top:1px solid #e5e5e5}
+h3{font-size:1rem;margin:1.25rem 0 .4rem}
+p,li{margin:.35rem 0}
+ol,ul{padding-left:1.3rem}
+a{color:#0b57d0}
+.sub{color:#666;margin:0 0 1rem;font-size:.9rem}
+.top{background:#f4f6f8;border-radius:8px;padding:.75rem 1rem}
+code{font:.88em ui-monospace,SFMono-Regular,Menlo,monospace;background:#f1f1f1;padding:.05em .3em;border-radius:3px;overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:.5rem .45rem;border-bottom:1px solid #e5e5e5}
+th{font-weight:600;background:#fafafa}
+.ok,.wait{display:inline-block;font-size:.8rem;padding:.05rem .45rem;border-radius:999px;white-space:nowrap}
+.ok{background:#e6f4ea;color:#1e6b34}
+.wait{background:#fff4e0;color:#8a5300}
+@media (max-width:640px){
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid #e5e5e5;border-radius:8px;margin:0 0 .75rem;padding:.35rem .5rem}
+  td{border:0;padding:.2rem 0}
+  td::before{content:attr(data-l);display:block;font-size:.75rem;color:#666}
+}
+@media (prefers-color-scheme:dark){
+  body{background:#111;color:#e8e8e8}
+  a{color:#8ab4f8}
+  .top,th{background:#1c1c1c}
+  code{background:#222}
+  h2,th,td,tr{border-color:#333}
+  .sub,td::before{color:#999}
+  .ok{background:#15351f;color:#8fd6a3}
+  .wait{background:#3a2a0a;color:#f0c070}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Overnight cleanup run, 2026-09-25</h1>
+<p class="sub">Morning report for William. Security fixes are summarized here and detailed in each PR.</p>
+
+<div class="top">
+<p>20 of 25 PRs are verified by independent review lanes, and 13 of those can land today with no decision from you. Seven wait on your call first, five are still re-verifying, and the run closed 10 Linear tickets and 3 stale PRs.</p>
+</div>
+
+<h2>Landing order</h2>
+<p>No PR conflicts with main. Seven PR pairs conflict with each other. Each wave puts the smaller side of a conflict first, so #796 takes four of the seven in one rebase at the end.</p>
+
+<h3>Wave A. Independent, verified, no policy gate</h3>
+<ol>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/805">#805</a> first. It makes local test runs reliable, which every later gate depends on.</li>
+<li>#790, #799, #801, #804, #809, #810, #800 in any order.</li>
+<li>#811 once you accept its label change.</li>
+<li>#808 after #799. Both edit the checkout step in <code>ci.yml</code>. Keep checkout v7 from #799 with the <code>fetch-depth: 2</code> block from #808.</li>
+<li>#812, #813, #814, #815 as each clears re-verification. None conflicts with another open PR.</li>
+</ol>
+
+<h3>Wave B. Pipeline cleanup around a deploy</h3>
+<ol>
+<li>#788. It merges cleanly with #802 in either order.</li>
+<li>#802. Check workspace-tree on staging, merge, and let prod deploy.</li>
+<li>After #802 is live, #806 and #803 in either order. Their migrations touch different tables. Retarget draft #803 from #802's branch to main, let CI run, then merge.</li>
+</ol>
+
+<h3>Wave C</h3>
+<ol>
+<li>#807. Its conflict with #796 in <code>public-page-delivery/index.ts</code> gets resolved on #796's side. Keep #807's outcome returns and add the error report in the catch.</li>
+</ol>
+
+<h3>Wave D. Needs your policy approval</h3>
+<ol>
+<li>#784.</li>
+<li>#794 after #784. One test file conflicts. Keep #784's version of that test.</li>
+<li>#773. It conflicts with #804 in <code>eslint.config.mjs</code>. Keep both new lint rules. Its conflict with #796 is resolved in Wave E.</li>
+<li>#780. Retarget #793 to main before #780's branch is deleted.</li>
+<li>#793 later. It waits on WIL-3310 and on re-verification.</li>
+</ol>
+
+<h3>Wave E</h3>
+<ol>
+<li>#796 last, rebased once on main after #773, #801, #802 and #807 land. Keep both sides of the imports and catch handlers from #773 and #801. Drop the preview flag #802 removed and keep the Sentry environment line. Apply the #807 note above. Re-run gates after the rebase.</li>
+</ol>
+
+<h2>Each PR</h2>
+<table>
+<thead><tr><th>PR</th><th>What changes</th><th>Verdict</th><th>Your checks</th></tr></thead>
+<tbody>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/805">#805</a></td><td data-l="What changes">Local test runs stop failing when the machine is busy. Test time limits now fit a loaded machine.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Merge when CI is green.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/790">#790</a></td><td data-l="What changes">Analytics outbox tables stop growing. Delivered rows older than 14 days get deleted.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Read-only size check before merge. Confirm the prune finishes after deploy.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/799">#799</a></td><td data-l="What changes">Every GitHub Action moves to Node 24 before Node 20 support ends.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">None.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/801">#801</a></td><td data-l="What changes">The invitations panel says why a send was refused instead of always saying retry.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">None.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/804">#804</a></td><td data-l="What changes">Glass effects blur on Safari 17 and older. A lint rule keeps the Safari prefix in place.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Optional look in real Safari 17.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/809">#809</a></td><td data-l="What changes">Each document section in the editor shows its own PDF.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Optional look at a page with two PDFs.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/810">#810</a></td><td data-l="What changes">A gallery drag keeps reordering across several cells until release.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">None.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/800">#800</a></td><td data-l="What changes">Email delivery status can no longer move backwards when webhooks race.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Staging deploy and one test email.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/811">#811</a></td><td data-l="What changes">The recorder finish screen runs on one link state. Open page waits for the link, and a failed upload offers a retry.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Accept or reject the label change.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/808">#808</a></td><td data-l="What changes">CI fails a PR that grows a source file past 1,000 lines. Renames count against the old path.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Decide how two large draft PRs handle the limit.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/812">#812</a></td><td data-l="What changes">One shared access hook for the editor topbar and share dialog. One request instead of two.</td><td data-l="Verdict"><span class="wait">Re-verifying</span></td><td data-l="Your checks">None beyond review.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/813">#813</a></td><td data-l="What changes">The sign-in page stops logging 401 errors.</td><td data-l="Verdict"><span class="wait">Re-verifying</span></td><td data-l="Your checks">Accept the analytics tradeoff. One staging sign-in check.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/814">#814</a></td><td data-l="What changes">Test files get typechecked against an error budget that can only shrink.</td><td data-l="Verdict"><span class="wait">Re-verifying</span></td><td data-l="Your checks">None beyond review.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/815">#815</a></td><td data-l="What changes">Deletes code that nothing calls.</td><td data-l="Verdict"><span class="wait">Re-verifying</span></td><td data-l="Your checks">None beyond review.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/788">#788</a></td><td data-l="What changes">Removes a retired video lane. Old stream URLs answer 400.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Staging deploy check. Play one legacy video after deploy.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/802">#802</a></td><td data-l="What changes">Removes code the old video pipeline left behind.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Staging deploy and delete check, then deploy before #803.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/806">#806</a></td><td data-l="What changes">Deletes an old trim fallback after a migration copies every trim to the current fields. No video loses its trim.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Read-only count before merge. Check one video on staging.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/803">#803</a></td><td data-l="What changes">Drops four database tables only the old pipeline used. Draft, stacked on #802.</td><td data-l="Verdict"><span class="ok">Verified locally</span></td><td data-l="Your checks">Confirm #802 is live. Decide on exporting old transcripts. Retarget and merge.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/807">#807</a></td><td data-l="What changes">Deleted pages answer 404 instead of 503. A page with a deleted video shows &quot;Video unavailable&quot; instead of a blank frame.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Keep or change the card look. Check two links after deploy.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/784">#784</a></td><td data-l="What changes">Auth hardening for account binding. Details in the PR.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Approve the auth policy. Preview login. Staging dry run of the backfill.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/794">#794</a></td><td data-l="What changes">Auth hardening for admin flags. Flags come from one source. Details in the PR.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Approve the auth policy. Decide membership status. Read-only prod diff.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/773">#773</a></td><td data-l="What changes">Auth rate limits. Every auth route declares its limit in one table. Details in the PR.</td><td data-l="Verdict"><span class="ok">Code verified</span></td><td data-l="Your checks">Approve the auth policy. Preview login. Choose the enforcement approach.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/780">#780</a></td><td data-l="What changes">Billing hardening for customer linking. Details in the PR.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Approve the billing policy. Dry run, review, apply.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/793">#793</a></td><td data-l="What changes">One Stripe reconcile script. The settings screen stops showing legacy trials as Active.</td><td data-l="Verdict"><span class="wait">Re-verifying</span></td><td data-l="Your checks">Approve the billing policy after WIL-3310.</td></tr>
+<tr><td data-l="PR"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/796">#796</a></td><td data-l="What changes">Error tracking for every Worker and the editor, with privacy scrubbing in one place. Details in the PR.</td><td data-l="Verdict"><span class="ok">Verified</span></td><td data-l="Your checks">Staging check of three Workers. Watch event volume on day one.</td></tr>
+</tbody>
+</table>
+
+<h2>Decisions only you can make</h2>
+<ol>
+<li>#784 auth policy for account binding. The PR spells out what changes for password and OAuth sign-in.</li>
+<li>#794 auth policy for admin flags, and whether inactive memberships should still grant flags. Today they do, and the PR keeps that.</li>
+<li>#773 auth policy for rate limits, and which enforcement approach to use. Options are in the PR. Landing it first is safe.</li>
+<li>#780 and #793 billing policy for linking customers and naming legacy trials.</li>
+<li>#811 button labels. Buttons keep one label and show a spinner, and "Retry link" appears only after a failure.</li>
+<li>#807. The look of the "Video unavailable" card. A separate open question is whether deleting a video should delete its share page.</li>
+<li>#803. Whether to export the old transcripts before their table is dropped. The drop cannot be undone.</li>
+<li>#813. A signed-in user who opens a new tab straight onto a public page stays anonymous in analytics for that tab. Fixing it needs a new session marker the PR left out on purpose.</li>
+<li>#808. Whether two large draft PRs split up or test files get an exemption from the size limit.</li>
+</ol>
+
+<h2>Tickets</h2>
+<h3>Closed (10 tickets, 3 PRs)</h3>
+<p>Two review lanes from different model families agreed on each closure.</p>
+<ul>
+<li>WIL-3289 and WIL-3299 are done. Their fixes shipped in #704 and #620.</li>
+<li>WIL-3232, 3285, 3362, 3365, 3377 and 3364 are won't fix. The Mux move and the pipeline deletion removed what they described.</li>
+<li>WIL-3279 is won't fix. Its event-specific deadline passed.</li>
+<li>WIL-3407 is a duplicate of WIL-3415.</li>
+<li>PRs #647, #751 and #635 closed as superseded. The open decision from #635 lives on in WIL-3419.</li>
+</ul>
+<p>Fifteen more tickets sit in Waiting with PRs linked and close when those merge.</p>
+
+<h3>Left for you (14)</h3>
+<ul>
+<li>WIL-3403. The Mux spike still needs caption accuracy, comparison numbers and two weeks of telemetry, or a waiver.</li>
+<li>WIL-3288. Confirm the remaining Stripe account setup items.</li>
+<li>WIL-3196. Record-to-share timing is still missing.</li>
+<li>WIL-3188. Confirm how the post-recording prototype ended.</li>
+<li>WIL-3315. Confirm one stuck job reached a final state.</li>
+<li>WIL-3361. The old container Workers still need deleting and a cost check.</li>
+<li>WIL-3360. Previews still cannot test recording uploads before merge.</li>
+<li>WIL-3280. Captions exist. Trim alignment and default-off behavior need checks.</li>
+<li>WIL-3266. Port auto-trim to Mux or cancel it.</li>
+<li>WIL-3189, 3190, 3193, 3194. Product questions about layout editing, multi-track takes, transcription features and editable capture. Re-scope or cancel each.</li>
+<li>WIL-3270. Landing, tutorials and demos are still listed. Confirm or move them.</li>
+</ul>
+
+<h3>Filed tonight</h3>
+<ul>
+<li>WIL-3419. Clip access follow-up that keeps your #635 decision. Details in Linear.</li>
+<li>WIL-3420. Editor tests time out under load. Fixed by #805.</li>
+<li>WIL-3421. Run the file size check in CI. Fixed by #808.</li>
+<li>WIL-3422. Test files were never typechecked. #814.</li>
+<li>WIL-3423. Dead code sweep. #815.</li>
+</ul>
+
+<h2>What got structurally better</h2>
+<ul>
+<li>CI now enforces the 1,000-line file limit. It used to be a review note, and a file grew past it unnoticed.</li>
+<li>Test files have a type error budget that only shrinks. 310 errors were invisible before.</li>
+<li>Local tests no longer fail at random under load. A CPU profile showed starvation, not a race, and one setup file holds the fix.</li>
+<li>Error reports go through one scrubbing package and one reporting function across all Workers and the editor.</li>
+<li>Stripe scripts apply only the proposal you reviewed, read it back, and fail loudly on any row that did not land.</li>
+<li>Public page outcomes live in one table instead of four copies of the same branch. Page delete is one database batch.</li>
+<li>Every auth route has to declare a rate limit. A new route cannot skip the choice.</li>
+<li>Admin flags come from one source, so permission and scope always point at the same organization.</li>
+<li>Email delivery status follows one precedence table inside the database update.</li>
+<li>Recorder and share state are explicit types instead of loose booleans.</li>
+<li>A lint rule keeps the Safari blur prefix in place.</li>
+<li>Four PRs delete leftover pipeline code, four unused tables, an old trim fallback and unreferenced symbols.</li>
+<li>Verification is one rerunnable script. Three independent lanes check each PR head, and they found real defects in seven PRs that the authors then fixed.</li>
+</ul>
+
+<h2>Parked or excluded</h2>
+<ul>
+<li>#797 sidebar name fallback. UI taste call.</li>
+<li>#770 empty-state button contrast. UI taste call.</li>
+<li>#732 removes the default Story section. Content default, and it trips the new size check.</li>
+<li>#705 recorder device guidance. Copy change.</li>
+<li>#693 "Publish and copy" in the share dialog. Copy change.</li>
+<li>#674 loading state when opening a new page. Visible spinner change.</li>
+<li>#631 Settings Account tab. You decided to split it, and it trips the size check.</li>
+<li>#645 CRM contact sync. Its migrations collide with main and it reads a dropped table. Needs re-planning.</li>
+</ul>
+
+<h2>Follow-ups noticed, not done</h2>
+<ul>
+<li>The ship skill still calls one passing test known-red.</li>
+<li>The ops script lists a Worker secret that no Worker reads.</li>
+<li>A finished re-ingest script can go unless WIL-3355 needs it.</li>
+<li>WIL-3179 still has children the pipeline deletion made moot.</li>
+<li>Touch swipes cancel a gallery drag. This happens on main too.</li>
+<li>Playwright tests and script tests are still not typechecked.</li>
+<li>One media helper becomes dead once #788 lands.</li>
+<li>The container cost watch can go once WIL-3361 closes.</li>
+<li>The analytics outbox has no index on delivery time, so each prune scans the table.</li>
+<li>Explicit browser targets (WIL-3290) were skipped because they can shift visuals.</li>
+</ul>
+</main>
+</body>
+</html>
