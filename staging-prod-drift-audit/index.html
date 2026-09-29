@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staging vs production drift audit, 2026-09-29</title>
+<style>
+  :root { --ink:#16181d; --muted:#5b616e; --line:#e3e5ea; --bad:#b42318; --warn:#b54708; --ok:#067647; --bg:#fbfbfc; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 28px 18px 80px; }
+  h1 { font-size: 1.7rem; line-height:1.2; margin: 0 0 6px; }
+  h2 { font-size: 1.25rem; margin: 40px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 26px 0 8px; }
+  p, li { max-width: 72ch; }
+  .meta { color: var(--muted); font-size: .92rem; }
+  .tl { background:#fff; border:1px solid var(--line); border-radius:10px; padding: 14px 18px; }
+  .tl li { margin: 6px 0; }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; background:#fff; }
+  th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; background:#f3f4f6; white-space: nowrap; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.bad td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+  tr.warn td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+  tr.ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
+  code { font: .86em ui-monospace, SFMono-Regular, Menlo, monospace; background:#f1f2f5; padding: 1px 4px; border-radius: 4px; }
+  .rank { counter-reset: r; list-style: none; padding: 0; }
+  .rank > li { counter-increment: r; background:#fff; border:1px solid var(--line); border-radius:10px; padding: 12px 16px 12px 52px; margin: 12px 0; position: relative; }
+  .rank > li::before { content: counter(r); position:absolute; left:14px; top:12px; width:26px; height:26px; border-radius:50%; background:var(--ink); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:.85rem; }
+  .tag { display:inline-block; font-size:.75rem; padding: 1px 7px; border-radius: 99px; border:1px solid var(--line); color:var(--muted); margin-right: 4px; }
+  .legend { font-size:.85rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Staging has drifted from production</h1>
+<p class="meta">Audit run 2026-09-29, read-only. Prod <code>clarity.video</code>, staging <code>staging.clarity.video</code>. Counts are aggregate queries against each environment's D1 databases and the Cloudflare API. No customer content was copied.</p>
+
+<div class="tl">
+<p><strong>The short version.</strong> Staging code matches main today, but only because someone put it back at 11:12 UTC. Staging data stopped tracking production in May. Every one-shot data job since then ran on production only: the Journey Page block backfill in July, the account reconciliation, and the Mux re-ingest last week. So staging still carries shapes production no longer has, and it lacks shapes production is full of.</p>
+<ul>
+  <li>750 of staging's 1,636 videos (46%) have no Mux asset. Production has 67 of 7,497, and only 10 of those are real videos. Staging's re-ingest never ran: 1 staging video carries <code>mux_reingest_asset_id</code>, against 1,322 on production.</li>
+  <li>5,330 of staging's 5,807 live Journey Pages (92%) are still schema v1 documents. The v1 renderer was deleted on 2026-07-07, so all 5,283 public routes to them answer 503 <code>v1_document_unsupported</code>. Production has zero v1 pages.</li>
+  <li>The shape the trim fix needed is missing on staging. 807 production Mux videos carry the legacy <code>trim_start/trim_end</code> pair; staging has none. Staging's 760 old-app imports point at production's Mux assets, while staging's own token belongs to the Mux "Spike" environment.</li>
+  <li>Staging is a branch sandbox, not a pre-production copy. In September, 106 of 116 staging router uploads came from 46 different branches. A push to main never deploys staging.</li>
+  <li>Branch migrations have landed on staging and never reached main: 1 on the workspace tree database, 3 on the auth database. Production has 1 stray migration of its own.</li>
+</ul>
+</div>
+
+<h2>1. Data shape</h2>
+
+<h3>Videos</h3>
+<div class="scroll"><table>
+<tr><th>Shape</th><th>Production</th><th>Staging</th><th>Why it matters</th></tr>
+<tr><td>Video nodes</td><td class="n">7,497</td><td class="n">1,636</td><td></td></tr>
+<tr class="bad"><td>On Mux (<code>mux_asset_id</code> set)</td><td class="n">7,430 · 99.1%</td><td class="n">886 · 54%</td><td>The edit route answers 409 <code>reingest_pending</code> for anything else.</td></tr>
+<tr class="bad"><td>R2 only, with a media URL</td><td class="n">10</td><td class="n">681</td><td>Production's 10 are the documented re-ingest exceptions, and each has a re-ingest attempt recorded. None of staging's has an attempt.</td></tr>
+<tr><td>R2 only, no media at all</td><td class="n">57</td><td class="n">69</td><td>Abandoned uploads. Production's are 53 pending uploads plus 4 empty nodes.</td></tr>
+<tr class="bad"><td>Re-ingest recorded (<code>mux_reingest_asset_id</code>)</td><td class="n">1,322</td><td class="n">1</td><td>The re-ingest ran on production only. The only verdict log on disk is <code>mux-reingest-production.jsonl</code>.</td></tr>
+<tr class="warn"><td>Old-app import, Mux-hosted (<code>legacy_import</code> + <code>orig_mux_asset_id</code>)</td><td class="n">5,812</td><td class="n">760</td><td>734 of staging's 752 distinct asset ids are production's own Mux assets. Staging's token is the Spike environment, so Mux API calls for them go to an environment that doesn't hold them.</td></tr>
+<tr class="bad"><td>Mux video with legacy trim pair</td><td class="n">807</td><td class="n">0</td><td>This is the shape WIL-3441 had to hand-copy onto a staging video.</td></tr>
+<tr class="warn"><td>Mux video with <code>source_trim_*</code> only</td><td class="n">116</td><td class="n">2</td><td></td></tr>
+<tr class="warn"><td>Has <code>edit_manifest</code></td><td class="n">20</td><td class="n">214</td><td>163 of staging's are on R2 videos that can no longer be edited.</td></tr>
+<tr><td>Mux trim clip (<code>mux_clip_asset_id</code>)</td><td class="n">5</td><td class="n">47</td><td>Staging has more of the new path than production. Good for testing it, bad as a picture of production.</td></tr>
+<tr class="warn"><td>Mux video with <code>thumbnail_url</code> poster</td><td class="n">428</td><td class="n">0</td><td></td></tr>
+<tr><td>Mux video with <code>poster_url</code></td><td class="n">642</td><td class="n">78</td><td></td></tr>
+<tr><td>Transcript ready</td><td class="n">1,063 · 14%</td><td class="n">411 · 25%</td><td></td></tr>
+<tr><td>Legacy served-clip pointer (<code>current_served_file_url</code>, <code>render_output_url</code>)</td><td class="n">228</td><td class="n">439</td><td></td></tr>
+<tr class="warn"><td>Points at the other environment's media host</td><td class="n">3 → media-staging</td><td class="n">59 → files.clarity.video</td><td></td></tr>
+</table></div>
+<p>Where staging's R2-only videos come from: about 374 predate September. They are April to July recordings and legacy imports, including 224 legacy imports that were never moved. The other 376 are source-less videos in 2 workspaces, created between 9 and 24 September, which look like staging e2e runs from before the Mux cutover. Of the ones that point at <code>media-staging.clarity.video</code>, a 60-video sample gave 403 on all 13 private <code>files/videos/</code> originals and 206 on all 47 public <code>files/clips/</code>. Staging's preparation errors: 31 "Original is missing" and 30 "Invalid video operation identity or output key", the error William hit.</p>
+
+<h3>Journey Pages</h3>
+<div class="scroll"><table>
+<tr><th>Shape</th><th>Production</th><th>Staging</th><th>Note</th></tr>
+<tr><td>Live page documents</td><td class="n">7,015</td><td class="n">5,807</td><td></td></tr>
+<tr class="bad"><td>Schema v1 (no blocks)</td><td class="n">0</td><td class="n">5,330</td><td>Production's backfill drained v1 on 2026-07-07 and commit <code>5af2780cd</code> deleted the upgrader. I fetched 6 random v1 routes on staging and got 503 on all 6. There are 97 <code>v1_document_unsupported</code> render events on staging so far, 6 of them mine.</td></tr>
+<tr><td>Block kinds present</td><td>story, hero, faq, pricing, logos, form, document, gallery, summary</td><td>hero, story, faq, pricing, logos, document</td><td>Staging has no form, gallery or summary block anywhere.</td></tr>
+<tr class="warn"><td>Pages with a theme preset</td><td class="n">62</td><td class="n">0</td><td></td></tr>
+<tr class="warn"><td>Live pages with a Library node</td><td class="n">6,604 of 7,016</td><td class="n">520 of 5,808</td><td>Staging's Library shows about 9% of its pages.</td></tr>
+<tr class="warn"><td>Page listed in 2 or 3 workspaces</td><td class="n">6,014</td><td class="n">2</td><td>I didn't look into why. Staging can't reproduce it either way.</td></tr>
+</table></div>
+
+<h3>Workspaces, users, subscriptions</h3>
+<div class="scroll"><table>
+<tr><th>Shape</th><th>Production</th><th>Staging</th><th>Note</th></tr>
+<tr><td>Workspaces with any node</td><td class="n">1,392</td><td class="n">63</td><td>Largest: 6,348 nodes on production, 990 on staging. 2 production workspaces pass 1,000 nodes; none on staging.</td></tr>
+<tr><td>Workspace brand settings</td><td class="n">34</td><td class="n">2</td><td></td></tr>
+<tr><td>Users</td><td class="n">2,696</td><td class="n">2,508</td><td>2,401 legacy user ids appear in both. Staging holds a May copy of real customer accounts.</td></tr>
+<tr class="warn"><td>Users with no WorkOS user</td><td class="n">20</td><td class="n">680</td><td>Staging never ran the import reconciliation. Its import status still reads <code>pending</code> where production reads <code>skipped</code> or <code>manual_review</code>.</td></tr>
+<tr><td>Native sign-ups</td><td class="n">26</td><td class="n">6</td><td></td></tr>
+<tr><td>Subscription rows</td><td class="n">1,607</td><td class="n">1,998</td><td>163 of staging's 338 Stripe subscription ids are live production ids. Staging's Stripe key is test mode, according to the support-accounts runbook, so staging can't look them up.</td></tr>
+<tr><td>Video stats summaries</td><td class="n">4,800</td><td class="n">4,678</td><td>Staging carries a copy of production view history.</td></tr>
+</table></div>
+
+<h2>2. Schema</h2>
+<p>I compared <code>d1_migrations</code> and the full <code>sqlite_master</code> DDL for all six databases.</p>
+<div class="scroll"><table>
+<tr><th>Database</th><th>Production</th><th>Staging</th><th>Difference</th></tr>
+<tr class="warn"><td>workspace tree</td><td class="n">18</td><td class="n">19</td><td>Staging has <code>0019_backfill_source_trim_from_legacy_pair</code> from the unmerged branch <code>chore/wil-3216-legacy-trim-fallback</code>, applied 2026-09-25. It's a data-only migration that rewrote 61 staging rows, going by its own comment. The DDL is identical.</td></tr>
+<tr class="warn"><td>public pages</td><td class="n">7</td><td class="n">6</td><td>Production has <code>0004_journey_page_preview_url</code>, applied 2026-06-08. The file isn't in the repo, and it left an extra <code>preview_url</code> column on production's <code>journey_pages</code>.</td></tr>
+<tr class="bad"><td>auth</td><td class="n">20</td><td class="n">23</td><td>Staging has 3 branch migrations that aren't on main: <code>0011_gohighlevel_contact_sync</code>, <code>0012_gohighlevel_contact_sync_checked_at</code> and an earlier <code>0012_support_invitations</code>. They left 2 extra tables, <code>gohighlevel_contact_sync</code> and <code>support_checkout_links</code>, plus 2 indexes.</td></tr>
+<tr class="ok"><td>video stats, auth email, recording sessions</td><td class="n">5 · 1 · 6</td><td class="n">5 · 1 · 6</td><td>Identical.</td></tr>
+</table></div>
+
+<h2>3. Config and bindings</h2>
+<div class="scroll"><table>
+<tr><th>Axis</th><th>Finding</th></tr>
+<tr class="ok"><td>Checked-in env blocks</td><td>The router and the workspace tree, R2 media and auth email Workers differ only in names, hosts and database ids.</td></tr>
+<tr class="ok"><td>R2</td><td>Separate buckets, <code>clarity-media-prod</code> and <code>clarity-media-staging</code>. Production's CORS also allows the staging origin.</td></tr>
+<tr class="warn"><td>Mux</td><td>Production runs on the real environment, staging on "Spike" (<code>verify-loop/features/recording-to-media.md</code>). An asset id from one environment is a 404 in the other, and staging's data mixes both.</td></tr>
+<tr><td>WorkOS</td><td>Separate staging environment, set in the deploy workflow.</td></tr>
+<tr><td>Convex</td><td>Separate production and staging deployments, chosen at build time in <code>build-cloudflare.sh</code>.</td></tr>
+<tr><td>Stripe</td><td>Test mode on staging, live on production, by design.</td></tr>
+<tr class="warn"><td>Router secrets</td><td>Production has 19, staging 16. Only on production: <code>WORKOS_IMPERSONATION_RETURN_SECRET</code>, which the deploy script requires on production only; <code>GOHIGHLEVEL_API_TOKEN</code>, the CRM sync, probably intentional; and <code>AUTH_EMAIL_BRIDGE_TOKEN</code>, which the service-binding path doesn't need.</td></tr>
+<tr><td>Other Worker secrets</td><td>Workspace tree and R2 media names match. Auth email on production has one extra, <code>FRONTEND_ROUTER_AUTH_EMAIL_BRIDGE_TOKEN</code>.</td></tr>
+<tr class="ok"><td>Feature flags</td><td>There is no flag system. The only switch is <code>RECORDING_UPLOADS_DISABLED</code> on PR previews.</td></tr>
+</table></div>
+
+<h2>4. Deployed code</h2>
+<ul>
+<li>At the time of the audit, both routers' <code>/__deploy-info</code> reported <code>296ea631</code>, the current main.</li>
+<li>From 2026-09-28 23:16 to 2026-09-29 11:12 UTC, staging ran <code>verify/wil-3441-staging</code>, a merge of three fix branches.</li>
+<li>September staging router uploads: 116 in total. 106 came from 46 branches, 5 from main, and 5 carry no annotation.</li>
+<li>Deploys of the workspace tree, R2 media and auth email Workers carry no commit annotation in either environment, so nothing records which commit they run. Staging's R2 media and auth email were last deployed on 2026-09-25, production's on 2026-09-29.</li>
+<li>Stray Workers still on the account: <code>clarity-frontend</code>, <code>clarity-frontend-production</code>, <code>clarity-frontend-staging</code>, <code>clarity-workspace-tree</code>, <code>editor-app-staging</code>, <code>workos-cutover-plan</code>, <code>clarity-ai-generate</code>, <code>tony</code> and <code>clarity-cloudfront-proxy</code>, plus 39 PR preview pairs. The media-artifact-producer Workers are gone from both environments.</li>
+</ul>
+
+<h2>5. Process</h2>
+<ul>
+<li>A push to main deploys production only. Staging deploys through a manual workflow dispatch from any branch (108 runs so far) or a local <code>just deploy-stack-staging</code>. Nothing puts staging back on main afterwards.</li>
+<li><code>deploy-stack-staging</code> applies migrations from whatever branch is being deployed. That's how the 4 branch migrations got onto staging.</li>
+<li>Nothing seeds or refreshes staging data. There's no seed, snapshot or parity tooling in the repo. Both environments got the same legacy import in May: 1,721 production users and 1,722 staging users were created that month. After that, every data job ran on one side only: the Journey Page v1 to v2 backfill, the account reconciliation and the Mux re-ingest on production, and the branch backfills on staging.</li>
+<li>The staging critical e2e records real videos on every staging deploy. That explains the 376 source-less September videos.</li>
+</ul>
+
+<h3>Not checked</h3>
+<ul>
+<li>Convex function and schema parity. There's no Convex deploy key in this shell.</li>
+<li>WorkOS environment settings. There's no WorkOS key in this shell.</li>
+<li>The Stripe mode and the Mux environment of the actual secret values. Secrets are readable by name only. These rows rely on the runbook and the verify-loop doc.</li>
+</ul>
+
+<h2>Plan, ranked by value per effort</h2>
+<p>My opinion is that staging should be production-shaped and follow main. Branch verification can still borrow it, but it has to be handed back. Re-ingesting staging's dead videos into Spike would spend Mux encoding on test data that doesn't look like production anyway. Delete it, then seed the shapes production actually has.</p>
+<ol class="rank">
+<li><strong>Put staging back on main automatically.</strong> <span class="tag">S</span><span class="tag">high</span><br>
+Run the staging stack deploy on every push to main, after production. Also run it on a nightly schedule so a branch build can't sit there for more than a day. Stamp the commit sha on the workspace tree, R2 media and auth email uploads the way the router already does, so each Worker's version can be traced to a commit.</li>
+<li><strong>Delete the shapes production no longer has.</strong> <span class="tag">S to M</span><span class="tag">high</span><br>
+Export a backup first. Then soft-delete staging's 750 R2-only video nodes, and the 5,330 v1 Journey Pages with their 5,283 routes. Keep a handful of R2 videos that mirror production's 10 re-ingest exceptions, because production still has that shape. Staging writes are destructive, so this needs William's approval first.</li>
+<li><strong>Parity check recipe on a schedule.</strong> <span class="tag">M</span><span class="tag">high</span><br>
+Add <code>just env-parity</code>, run daily in GitHub Actions like Cost Watch, with a red run as the alarm. It diffs applied migrations and DDL for every database, secret names per Worker pair, each Worker's deploy annotation against main, and a shape catalog of the video, page, user and subscription classes in this report. It flags any shape production has at least 10 of that staging lacks, and any staging shape production has none of. Read-only by construction.</li>
+<li><strong>Generate a shape fixture workspace from production counts.</strong> <span class="tag">M to L</span><span class="tag">high</span><br>
+A script reads the parity catalog and builds one staging test workspace with at least one node per production shape. For videos that means an old-app import with the legacy trim pair, source-trim only, <code>thumbnail_url</code> posters, a manifest with a Mux clip, a transcript, an R2 exception and a pending shell. For pages it means every block kind, theme presets and a page listed in more than one workspace. The Mux assets are created in Spike so edits work. This replaces the hand-copying WIL-3441 needed.</li>
+<li><strong>Stop branch migrations landing on staging unseen.</strong> <span class="tag">S</span><span class="tag">medium</span><br>
+<code>deploy-stack-staging</code> should refuse a migration that isn't on <code>origin/main</code> unless it gets an explicit flag, and should log what it applied. Then reconcile today's strays: staging's workspace tree 0019 and 3 auth migrations, and production's <code>0004_journey_page_preview_url</code>.</li>
+<li><strong>Scrub real customer data from staging.</strong> <span class="tag">M</span><span class="tag">medium</span><br>
+Staging holds 2,401 real legacy accounts, 163 live Stripe subscription ids and copied view history. That's a privacy exposure rather than a fidelity problem, so it ranks last here. Pseudonymise or delete these once the fixture workspace from item 4 exists.</li>
+</ol>
+
+<p class="legend">Row markers: red means staging tests can pass or fail for reasons production doesn't share. Amber means a gap that hides a production path. Green means in parity.</p>
+</main>
+</body>
+</html>
