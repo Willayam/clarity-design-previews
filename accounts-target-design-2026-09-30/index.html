@@ -1,0 +1,235 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Accounts target design 2026-09-30</title><style>:root{color-scheme:light dark;--fg:#1a1a1a;--muted:#666;--bg:#fff;--card:#f6f6f4;--line:#e2e2de;--accent:#2a5bd7}
+@media (prefers-color-scheme:dark){:root{--fg:#ececec;--muted:#a0a0a0;--bg:#141414;--card:#1e1e1e;--line:#333;--accent:#7aa2ff}}
+body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;color:var(--fg);background:var(--bg);margin:0}
+main{max-width:780px;margin:0 auto;padding:28px 18px 80px}h1{font-size:1.6rem;line-height:1.25}
+h2{font-size:1.25rem;margin:38px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:6px 8px 6px 0}
+code{font:.86em ui-monospace,Menlo,monospace;background:var(--card);padding:1px 4px;border-radius:4px}
+pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto}pre code{background:none;padding:0}a{color:var(--accent)}</style></head><body><main>
+<p style="color:var(--muted);font-size:.9rem">Synthesized from three design runners (Fable 5.1, Opus 5.5, GPT-6 Astra) and one cross-judge. Previous audit: <a href="../customer-lifecycle-audit-2026-09-29/">customer lifecycle audit</a>.</p>
+<h1>Accounts, access and support: synthesized target design</h1>
+<p>Base: the Opus candidate. Grafts from Fable and Astra. Fixes from the cross-judge. Origin/main 4ccbfdd1, 2026-09-30.</p>
+<h2>The rule</h2>
+<p>A person can use Clarity when <strong>Stripe says they are paid, or they hold an access grant that has not ended, or they are staff</strong>, and <strong>no hold is on the account</strong>. One pure function decides it. Each fact it reads has exactly one writer.</p>
+<table>
+<thead>
+<tr>
+<th>Fact</th>
+<th>Where</th>
+<th>Only writer</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Identity</td>
+<td><code>users</code> (id, workos_user_id, email, names, owner id)</td>
+<td>sign-in, provisioning, admin email change</td>
+</tr>
+<tr>
+<td>Staff</td>
+<td><code>users.system_role</code></td>
+<td>admin command <code>set_staff</code></td>
+</tr>
+<tr>
+<td>Hold</td>
+<td><code>users.suspended_at</code> + reason + by; <code>account_deletions</code> row</td>
+<td>admin commands, self-serve delete</td>
+</tr>
+<tr>
+<td>Grants</td>
+<td><code>access_grants</code></td>
+<td>provisioning, offers, admin commands, migration runs</td>
+</tr>
+<tr>
+<td>Stripe mirror</td>
+<td><code>stripe_subscriptions</code></td>
+<td><code>syncStripeSubscription</code> only</td>
+</tr>
+<tr>
+<td>Memberships</td>
+<td><code>organization_memberships</code></td>
+<td>admin commands, offers</td>
+</tr>
+<tr>
+<td>Audit</td>
+<td><code>admin_actions</code></td>
+<td><code>runAdminCommand</code> in the same D1 batch as the write</td>
+</tr>
+</tbody></table>
+<p>Deleted: <code>users.kind</code>, <code>users.status</code>, <code>users.expiration_date</code>, <code>users.role</code>, <code>users.legacy_corp_id</code>, <code>users.legacy_affiliate_id</code>, the old <code>subscriptions</code> table, <code>support_invitations</code>, the window-claim marker. Legacy ids on <code>organizations</code> stay as inert import provenance, because their UNIQUE constraints cannot be dropped without a rebuild.</p>
+<h2>Access decision</h2>
+<pre><code class="language-ts">// packages/auth-identity/src/access.ts. Pure.
+export type Grant =
+  | (GrantCommon &amp; { kind: &#39;trial&#39; })
+  | (GrantCommon &amp; { kind: &#39;included&#39;; payer: Payer; note: string })
+  | (GrantCommon &amp; { kind: &#39;complimentary&#39;; note: string; stopsBilling: boolean });
+export type Payer = { kind: &#39;organization&#39;; organizationId: OrganizationId; name: string } | { kind: &#39;named&#39;; name: string };
+
+export type AccessFacts = {
+  now: Instant;
+  staff: boolean;
+  hold: Hold | null;                       // suspended | deletion_scheduled
+  grants: readonly Grant[];                // ends_at NOT NULL; nothing is open-ended
+  stripe: readonly StripeSubscription[];   // Stripe status verbatim
+};
+
+export type AccessDecision =
+  | { access: &#39;blocked&#39;; hold: Hold }
+  | { access: &#39;allowed&#39;; basis: &#39;staff&#39; }
+  | { access: &#39;allowed&#39;; basis: &#39;covered&#39;; coverage: Coverage; alsoCovering: readonly Coverage[] }
+  | { access: &#39;walled&#39;; cause: &#39;trial_ended&#39; | &#39;grant_ended&#39; | &#39;subscription_ended&#39; | &#39;payment_failed&#39; | &#39;never_covered&#39;; since: Instant | null };
+
+export function decideAccess(facts: AccessFacts): AccessDecision;
+// active | trialing: until min(period end, cancel_at); no period end = not paid.
+// past_due: until period start + PAST_DUE_GRACE_DAYS (7). Everything else: not paid.
+export function paidThrough(sub: StripeSubscription, now: Instant): { until: Instant; renews: boolean; pastDue: boolean } | null;
+// Checkout guard asks this, never the winning basis, so a paying staff member cannot double-subscribe.
+export function hasRenewingSubscription(stripe: readonly StripeSubscription[], now: Instant): boolean;
+</code></pre>
+<p>Order: hold, staff, coverage, walled. A hold beats staff so a compromised admin can be switched off. The command policy refuses suspending yourself, removing your own staff role, and removing the last staff member.</p>
+<h2>Where it is enforced</h2>
+<p><code>resolveSession</code> loads identity, hold, staff, grants and Stripe rows in one D1 batch on every request, then calls <code>decideAccess</code>. A D1 error is a 503, never &quot;allowed&quot;. No identity row means no session. The two fail-open branches of today&#39;s wall go away.</p>
+<ul>
+<li>App gate (replaces <code>trial-wall.ts</code>): blocked and walled sessions see one page with one message per cause. Wall exits stay open: checkout, portal link, unpublish, delete page or video, export, delete my account, sign out. Holds get no exits except sign out.</li>
+<li>Admin API: <code>requireStaff(session)</code>, refusing impersonated sessions.</li>
+<li>Money and identity self-service (checkout, portal, export, delete): <code>requireOwnSession</code>, refusing impersonated sessions.</li>
+</ul>
+<h2>Stripe</h2>
+<p>The webhook is a doorbell. It verifies the signature, extracts the subscription id, and calls <code>syncStripeSubscription</code>, which fetches the subscription and upserts <code>stripe_subscriptions</code>. Order and duplicates stop mattering. A fetch older than the stored <code>synced_at</code> is dropped and triggers one more fetch. A subscription Clarity cannot link is stored with <code>user_id NULL</code> and listed for Ace, never retried forever. The nightly <code>scheduled()</code> refresh lists every Stripe subscription. The same function serves the panel&#39;s Refresh button and the wall page.</p>
+<p>The nightly refresh also converges intent. For every live complimentary grant with <code>stopsBilling</code>, if the user still has a renewing subscription, it sets <code>cancel_at_period_end</code>. So &quot;make complimentary&quot; protects access at once and billing stops even if the first Stripe call failed.</p>
+<h2>Admin portal</h2>
+<p>One account panel. Its top line is a sentence from <code>accessHeadline</code>, such as &quot;Can get in until 31 Jul 2027. Included, paid by the Boardroom sponsor. Last changed by Ace on 2 Oct 2026.&quot; Below it are Access (every grant and subscription, with <code>alsoCovering</code>), Organizations, Staff, History, and a Danger zone.</p>
+<p>Three routes: <code>GET /api/admin/accounts?q=</code>, <code>GET /api/admin/accounts/:id</code>, <code>POST /api/admin/commands</code>. Every write is an <code>AdminCommand</code> (a closed union) run by <code>runAdminCommand</code>: parse, load before, pure <code>refuseCommand</code>, apply, audit in one batch. The command id is the audit key, so a double click replays.</p>
+<table>
+<thead>
+<tr>
+<th>Ace&#39;s task</th>
+<th>Command</th>
+<th>Reason</th>
+<th>Typed confirm</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Extend a trial / grant access</td>
+<td><code>grant_access</code>, <code>change_grant_end</code></td>
+<td>only when shortening</td>
+<td></td>
+</tr>
+<tr>
+<td>Move paying to free</td>
+<td><code>make_complimentary</code></td>
+<td>note</td>
+<td></td>
+</tr>
+<tr>
+<td>Access someone else pays for</td>
+<td><code>grant_access</code> included, payer org or name</td>
+<td>note</td>
+<td></td>
+</tr>
+<tr>
+<td>Renew a sponsor&#39;s period</td>
+<td><code>renew_included_access</code> on the org</td>
+<td>note</td>
+<td>count</td>
+</tr>
+<tr>
+<td>End access early</td>
+<td><code>end_grant</code></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Suspend, unsuspend</td>
+<td><code>suspend</code>, <code>unsuspend</code></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>New person</td>
+<td><code>create_account</code> (WorkOS user + row + grant + membership + set-password email)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Organizations</td>
+<td>create, rename, archive, merge, add, remove, set role</td>
+<td>merge</td>
+<td>merge: org name</td>
+</tr>
+<tr>
+<td>Cancel, refund, cadence</td>
+<td><code>stripe_cancel_at_period_end</code>, <code>stripe_cancel_now</code>, <code>stripe_refund_last_payment</code>, <code>stripe_switch_cadence</code></td>
+<td>cancel now, refund</td>
+<td>cancel now</td>
+</tr>
+<tr>
+<td>Payer Clarity cannot see</td>
+<td><code>stripe_link</code> from the unlinked list</td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Take a lapsed user&#39;s pages down</td>
+<td><code>unpublish_all</code></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Export, delete</td>
+<td><code>export_data</code>, <code>request_deletion</code></td>
+<td>delete</td>
+<td>the email</td>
+</tr>
+<tr>
+<td>Login email</td>
+<td><code>change_email</code> (new mailbox must confirm)</td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Staff</td>
+<td><code>set_staff</code></td>
+<td>yes</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>Customer Admin self-serve later is a second <code>Actor</code> variant with a narrower <code>refuseCommand</code> branch over the organization commands.</p>
+<h2>Boardroom</h2>
+<p><code>/boardroom</code> links to <code>/join/boardroom</code>. A signed-in visitor gets the offer applied. A new visitor carries a signed 30-minute cookie through AuthKit, and provisioning applies it once: a 10-month included grant paid by the existing Boardroom organization, plus membership. <code>signup_completed</code> carries <code>offer: boardroom</code>. The page is <code>noindex</code>. Ace reviews the organization list against the sponsor&#39;s roster and uses <code>renew_included_access</code> when the sponsor pays a period. A GoHighLevel sync, if revived, reads grants and memberships and never grants access.</p>
+<h2>Organizations</h2>
+<p>Membership is the only organization link. A membership grants nothing by itself. It tags, names a payer, and carries customer contact sharing (re-keyed from <code>legacy_corp_id</code>, so about 60 users see no change). Journey-page sharing by corp or affiliate id is deleted. Organization-paid seats, later, would add <code>organization_id</code> to <code>stripe_subscriptions</code> and count as coverage for members.</p>
+<h2>End of life</h2>
+<p><code>request_deletion</code> places a 7-day hold, then an idempotent purge walks each store (Stripe, public pages, workspace media and Mux, contacts, auth email, PostHog, WorkOS, identity row last). The <code>users</code> row stays as a tombstone with a scrubbed email so the address can sign up again. Export uses the same store list read-only.</p>
+<h2>Migration order</h2>
+<p>Each step is one PR or one data run with its own proof. The census (read-only, extending <code>scripts/account-spine-entitlement-diff.mjs</code>) computes the old and the new decision for every prod user and lists each flip by class. It gates every step. It runs from a scratch checkout and stays off main, since merged code only guards what CI runs.</p>
+<ol>
+<li><strong>Safety PR.</strong> Wall exits for takedown. Extend refuses corporate and internal accounts and any date earlier than current access (the period end for a paying account). Dates end at the end of the day. Delete Activate, its endpoint, the dead Extend guard, and &quot;Cancel free trial&quot; where no Stripe subscription exists. Refuse billing writes from impersonated sessions. <code>noindex</code> on <code>/boardroom</code>.</li>
+<li><strong>Census and Stripe diff, data run.</strong> The census script against today&#39;s rule. The Stripe diff lists every Stripe subscription against D1 and classifies it as linked fresh, linked stale, unlinked with owner hint, or no match. This feeds WIL-3433 and the decision on the 72 recorded subscribers. It needs a read-only Stripe key.</li>
+<li><strong>Grants PR.</strong> Add <code>access_grants</code> and <code>admin_actions</code>. The migration backfills a grant per future <code>expiration_date</code>. <code>decideEntitlement</code> gains one independent rule, that a live grant allows whatever the kind, and keeps reading <code>expiration_date</code> as a legacy source until step 6b, so a write in the deploy gap is never lost. Signup, invitation acceptance and Extend write grants. Stripe events stop writing <code>kind</code> and <code>expiration_date</code>, which ends the comp-erasure bug. They keep writing <code>status = inactive</code> on cancellation until the recorded-subscriber rule dies. Extend becomes <code>grant_access</code> through <code>runAdminCommand</code>, with audit. Census proof: zero flips.</li>
+<li><strong>Boardroom PR.</strong> The offer route, cookie, provisioning hook, <code>noindex</code> kept, and the organization list filter with CSV and &quot;ends within 30 days&quot;. Ace grants early signups by hand.</li>
+<li><strong>Account panel, holds and staff PR,</strong> after William names the staff to keep and a logged data run clears the rest. Adds <code>resolveSession</code> as the one fail-closed batch, holds, the staff bypass, search, the panel, History and the account commands. Deletes the row menu, the billing dialog, the old admin endpoints, WorkOS invitations and their UI.</li>
+<li><strong>a. Stripe mirror PR and data run.</strong> <code>stripe_subscriptions</code>, the doorbell webhook, the nightly refresh with intent convergence, the unlinked list, Stripe commands and <code>make_complimentary</code>. The old <code>subscriptions</code> rows keep being written for one release. The data run compares the mirror with the old rows. <strong>b. Cutover PR and data run.</strong> Convert the legacy classes per William&#39;s answers, idempotent by source. <code>decideAccess</code> takes its final form. Delete the exempt and recorded-subscriber rules, the <code>expiration_date</code> read, the old sync, and every Stripe write to <code>users</code>. Merge gate: the census lists every flip, and each belongs to a decided class.</li>
+<li><strong>Organizations PR and data run.</strong> The organization page and commands. Memberships become the only link. Delete the organization billing stub.</li>
+<li><strong>End of life PR.</strong> Export, deletion, the tombstone, and the new-mailbox confirmation on email change.</li>
+<li><strong>Drops PR,</strong> after 5 to 8 are live. Drop the <code>users</code> columns, the old <code>subscriptions</code> table and <code>support_invitations</code>. Legacy organization ids stay.</li>
+</ol>
+<h2>Grafts and rejections</h2>
+<ul>
+<li>From Fable: the census as the permanent proof, run at every step; reasons only where they matter; the explicit panel contract.</li>
+<li>From Astra: impersonated sessions refused for money, identity and privacy; an explicit takedown command instead of &quot;impersonate and click&quot;; new-mailbox proof on email change; never evicting uncertain legacy access without review.</li>
+<li>From the cross-judge: a named payer without an organization; the checkout guard asks about renewing subscriptions, not the winning basis; grants count independently of kind during the transition; the legacy date stays a source until cutover; complimentary intent converges on the nightly refresh; legacy organization columns stay.</li>
+<li>Rejected from Astra: fenced leases, reconciliation generations, the operations queue, preview-then-confirm tokens, session versions, subscription schedules, user merge, staff grants. Each solves a failure mode that 164 subscriptions and one support person do not have, and together they would double the new surface. Session versions come back only if forced sign-out without suspension is ever needed.</li>
+<li>Rejected from Fable: keeping WorkOS invitations as offers by email; a column-extended <code>subscriptions</code> table, whose CHECK constraints block the later drops.</li>
+<li>Cross-judge note: the judge ran on the same model as the Astra candidate and ranked it first. Its defect findings were checked against the code and adopted; its base pick was not.</li>
+</ul>
+<h2>Open decisions for William</h2>
+<ol>
+<li>The 72 recorded subscribers with no payment found: complimentary until 2026-12-31 marked &quot;payment unverified&quot; (default), longer, or the wall.</li>
+<li>Which System Admins stay.</li>
+<li><code>/boardroom</code> open with review (default) or a code in the URL.</li>
+<li>Legacy customer contact sharing: keep through membership (default) or end.</li>
+<li>Past-due grace: 7 days (default).</li>
+<li>GoHighLevel: revive PR #645 or close it.</li>
+<li>A read-only Stripe key in the keychain for step 2.</li>
+</ol>
+</main></body></html>
