@@ -1,27 +1,68 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finish your video: state cleanup</title>
-<style>body{font:15px/1.5 system-ui,sans-serif;margin:0 auto;max-width:1500px;padding:32px;color:#111;background:#f6f7fb}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:40px 0 4px}p{max-width:760px;margin:4px 0 12px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pair figure{margin:0}.pair img{width:100%;border:1px solid #dde;border-radius:8px;background:#fff}figcaption{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}.m{grid-template-columns:repeat(2,minmax(0,300px))}ul{max-width:760px}</style>
-<h1>Finish your video: state cleanup</h1>
-<p>Every state of the recorder's finish screen, before and after, rendered from a scripted offline take. The account and video are mock data.</p>
-<p><b>Rules the after column follows.</b></p><ul><li>The header shows the title only. Problems appear in one place, as red rows above the video, and a row carries a Retry when there is something to retry.</li><li>Each button keeps one label. A spinner carries the wait. "Copied" is the one swap.</li><li>A button is disabled when pressing it could only fail.</li><li>The dock is a rounded rectangle, so its buttons have an 8px radius inside a 10px outline. Only the round play button is a circle.</li><li>Trim and Edit Preview both commit with "Done".</li></ul>
-<h2>Dock at rest</h2><p>Trim and Edit Preview were pill buttons inside a pill outline. They now keep the 8px button radius inside a 10px outline, which matches the dock&#x27;s own rounded rectangle. The play button stays round.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/13-dock-rest-closeup.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/13-dock-rest-closeup.png"></figure></div>
-<h2>Dock in trim mode</h2><p>The commit button said &quot;Trim&quot;, the same word as the button that opens trim mode. It now says &quot;Done&quot;, like Edit Preview. The outline is a rounded rectangle on phone too, where it used to become a pill.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/14-dock-trim-closeup.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/14-dock-trim-closeup.png"></figure></div>
-<h2>Just stopped, link on its way</h2><p>Copy link used to read &quot;Preparing link…&quot;. It now always reads &quot;Copy link&quot;, with a spinner while it waits. Open page stays disabled until the take&#x27;s record exists, because pressing it earlier could only fail.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/01-uploading-preparing-link.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/01-uploading-preparing-link.png"></figure></div>
-<div class="pair m" style="margin-top:12px"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/01-uploading-preparing-link-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/01-uploading-preparing-link-m.png"></figure></div>
-<h2>Ready</h2><p>&quot;Changes saved&quot; is gone from the header. It appeared before you had changed anything, because it was reporting the upload&#x27;s own first save.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/02-link-ready-idle.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/02-link-ready-idle.png"></figure></div>
-<div class="pair m" style="margin-top:12px"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/02-link-ready-idle-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/02-link-ready-idle-m.png"></figure></div>
-<h2>Just copied</h2><p>Unchanged. &quot;Copied&quot; is the one label swap left, because it reports a finished result.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/03-copied.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/03-copied.png"></figure></div>
-<h2>Share link failed</h2><p>The button used to turn into &quot;Retry link&quot; while a red row said the same thing. Now the row carries the Retry, the same pattern as a failed upload, and the button keeps its name.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/04a-share-link-failed.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/04a-share-link-failed.png"></figure></div>
-<h2>Share link failed, then a save landed</h2><p>Bug fixed. A later save used to wipe the red row, which left &quot;Retry link&quot; with no explanation. The row now comes from the link failure itself, so it stays.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/04b-share-link-failed-row-cleared.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/04b-share-link-failed-row-cleared.png"></figure></div>
-<h2>Opening the page</h2><p>The button used to say &quot;Opening…&quot; while the header said &quot;Saving changes…&quot;. Now there is one signal, a spinner on Open page.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/05-open-page-opening.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/05-open-page-opening.png"></figure></div>
-<h2>Upload failed</h2><p>Two red rows used to report one failure, and Copy link claimed &quot;Preparing link…&quot; while nothing was preparing. Now there is one row with Retry, and both actions are disabled with no spinner.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/06-upload-failed.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/06-upload-failed.png"></figure></div>
-<div class="pair m" style="margin-top:12px"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/06-upload-failed-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/06-upload-failed-m.png"></figure></div>
-<h2>Open page pressed during upload</h2><p>Used to fail with &quot;Unable to open the page.&quot; Open page is now disabled until the link is ready.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/12-open-page-during-upload.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/12-open-page-during-upload.png"></figure></div>
-<h2>A background save failed</h2><p>The header chip said &quot;Couldn&#x27;t save&quot; and a row said &quot;Unable to save changes.&quot; Only the row is left. All error copy now starts with &quot;Couldn&#x27;t…&quot;.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/10c-chip-couldnt-save.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/10c-chip-couldnt-save.png"></figure></div>
-<h2>Saving right after upload</h2><p>The header chip is gone, so this state now looks like Ready.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/10a-chip-saving-after-upload.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/10a-chip-saving-after-upload.png"></figure></div>
-<h2>Save queued behind another</h2><p>The grey &quot;Changes pending&quot; chip is gone.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/10b-chip-changes-pending.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/10b-chip-changes-pending.png"></figure></div>
-<h2>Trim mode</h2><p>Commit reads &quot;Done&quot;.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/07-trim-open.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/07-trim-open.png"></figure></div>
-<div class="pair m" style="margin-top:12px"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/07-trim-open-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/07-trim-open-m.png"></figure></div>
-<h2>Trim saving</h2><p>The header chip is gone. Done and Cancel disable while the save runs.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/08-trim-committing.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/08-trim-committing.png"></figure></div>
-<h2>Edit Preview mode</h2><p>The radius matches the rest of the dock.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/09-edit-preview-open.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/09-edit-preview-open.png"></figure></div>
-<h2>Hovering Trim</h2><p>The hover tint follows the 8px radius instead of a pill.</p><div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/11-dock-trim-hover.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/11-dock-trim-hover.png"></figure></div>
-<h2>Share link retry, after only</h2><p>Pressing Retry in the link row, then the ready state.</p><div class="pair"><figure><img loading="lazy" src="after/04c-share-link-retry-ready.png"></figure></div>
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finish your video: states and errors</title>
+<style>body{font:15px/1.5 system-ui,sans-serif;margin:0 auto;max-width:1500px;padding:32px;color:#111;background:#f6f7fb}h1{font-size:24px;margin:0 0 4px}h2{font-size:20px;margin:48px 0 0;border-top:1px solid #dde;padding-top:24px}h3{font-size:16px;margin:32px 0 4px}p{max-width:760px;margin:4px 0 12px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pair figure{margin:0}.pair img{width:100%;border:1px solid #dde;border-radius:8px;background:#fff}figcaption{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}.m{grid-template-columns:repeat(2,minmax(0,300px));margin-top:12px}ul{max-width:760px}</style>
+<h1>Finish your video: states and errors</h1>
+<p>Round two. Before is the finish screen on main, and after is this branch. Everything is rendered from a scripted offline take with mock data.</p>
+<p><b>How errors work now.</b></p><ul><li>Every error row has a title saying what failed, one line on what is still safe or what to check, and a button that fixes it.</li><li>Rows appear under the action buttons, so nothing you are about to click moves.</li><li>When a row's fix works, the row goes away.</li><li>Red means something failed. Amber means you can carry on another way.</li></ul>
+<h2>The dock</h2>
+<h3>At rest</h3><p>Trim and Edit Preview are plain ghost buttons now, with no outline around the pair. Hover tints them with an 8px radius.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/13-dock-rest-closeup.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/13-dock-rest-closeup.png"></figure></div>
+<h3>Hovering Trim</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/11-dock-trim-hover.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/11-dock-trim-hover.png"></figure></div>
+<h3>Trim mode</h3><p>Done and Cancel, also plain ghost buttons.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/14-dock-trim-closeup.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/14-dock-trim-closeup.png"></figure></div>
+<h2>Errors</h2>
+<h3>Upload failed</h3><p>One row instead of two. It says what failed, that the recording is still safe, and has Try again. Rows now sit under the buttons, so they never push the video or the button you just pressed.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/06-upload-failed.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/06-upload-failed.png"></figure></div>
+<div class="pair m"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/06-upload-failed-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/06-upload-failed-m.png"></figure></div>
+<h3>Upload failed, after Try again</h3><p>The row goes away and the link comes through.</p>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/06b-upload-retry-ready.png"></figure></div>
+<h3>Share link failed</h3><p>Try again sits in the row. The Copy link button keeps its name.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/04a-share-link-failed.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/04a-share-link-failed.png"></figure></div>
+<h3>Share link failed, then a save landed</h3><p>The row used to vanish here, leaving &quot;Retry link&quot; with no explanation. It stays now.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/04b-share-link-failed-row-cleared.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/04b-share-link-failed-row-cleared.png"></figure></div>
+<h3>Share link, after Try again</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/04c-share-link-retry-ready.png"></figure></div>
+<h3>A background save failed</h3><p>One row with Try again, in place of a header chip plus a row with no action.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/10c-chip-couldnt-save.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/10c-chip-couldnt-save.png"></figure></div>
+<h3>Background save, after Try again</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/10d-save-retry-ok.png"></figure></div>
+<h3>Trim failed to save</h3><p>Named after what failed. Trim mode stays open, and Try again commits the trim again.</p>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/17-trim-commit-failed.png"></figure></div>
+<div class="pair m"><figure><figcaption>Phone</figcaption><img loading="lazy" src="after/17-trim-commit-failed-m.png"></figure></div>
+<h3>Trim, after Try again</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/17b-trim-retry-ok.png"></figure></div>
+<h3>Clipboard refused</h3><p>Says why, and offers Open page as the way around.</p>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/16-copy-link-failed.png"></figure></div>
+<h3>Clipboard, after Try again</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/16b-copy-retry-ok.png"></figure></div>
+<h3>Open page failed to save first</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/15a-open-page-failed-save.png"></figure></div>
+<h3>Open page during upload</h3><p>Disabled until the take&#x27;s record exists. It used to fail on click.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/12-open-page-during-upload.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/12-open-page-during-upload.png"></figure></div>
+<h3>Hovering Try again</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/18-try-again-hover.png"></figure></div>
+<h2>Recording screen</h2>
+<h3>Camera missing</h3><p>Amber, since you can still record. &quot;Record screen only&quot; switches the layout and asks for a screen.</p>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/19-prerecord-camera-missing.png"></figure></div>
+<div class="pair m"><figure><figcaption>Phone</figcaption><img loading="lazy" src="after/19-prerecord-camera-missing-m.png"></figure></div>
+<h3>After Record screen only</h3>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/19b-prerecord-screen-only.png"></figure></div>
+<h3>Camera and microphone blocked</h3><p>Says where to fix it, with Reload.</p>
+<div class="pair"><figure><figcaption>Now</figcaption><img loading="lazy" src="after/19c-prerecord-devices-denied.png"></figure></div>
+<h2>Everything else</h2>
+<h3>Just stopped</h3><p>Copy link with a spinner. No header chip.</p>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/01-uploading-preparing-link.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/01-uploading-preparing-link.png"></figure></div>
+<div class="pair m"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/01-uploading-preparing-link-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/01-uploading-preparing-link-m.png"></figure></div>
+<h3>Ready</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/02-link-ready-idle.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/02-link-ready-idle.png"></figure></div>
+<h3>Copied</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/03-copied.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/03-copied.png"></figure></div>
+<h3>Opening the page</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/05-open-page-opening.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/05-open-page-opening.png"></figure></div>
+<h3>Trim mode</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/07-trim-open.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/07-trim-open.png"></figure></div>
+<div class="pair m"><figure><figcaption>Before, phone</figcaption><img loading="lazy" src="before/07-trim-open-m.png"></figure><figure><figcaption>After, phone</figcaption><img loading="lazy" src="after/07-trim-open-m.png"></figure></div>
+<h3>Trim saving</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/08-trim-committing.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/08-trim-committing.png"></figure></div>
+<h3>Edit Preview mode</h3>
+<div class="pair"><figure><figcaption>Before</figcaption><img loading="lazy" src="before/09-edit-preview-open.png"></figure><figure><figcaption>After</figcaption><img loading="lazy" src="after/09-edit-preview-open.png"></figure></div>
