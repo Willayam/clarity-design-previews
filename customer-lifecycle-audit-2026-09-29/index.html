@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Customer lifecycle audit and plan · 2026-09-29</title>
+<style>
+  :root { color-scheme: light dark; --fg:#1a1a1a; --muted:#666; --bg:#fff; --card:#f6f6f4; --line:#e2e2de; --accent:#2a5bd7; --warn:#b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#ececec; --muted:#a0a0a0; --bg:#141414; --card:#1e1e1e; --line:#333; --accent:#7aa2ff; --warn:#ff8a80; } }
+  body { font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color:var(--fg); background:var(--bg); margin:0; }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 18px 80px; }
+  h1 { font-size: 1.6rem; line-height:1.25; margin: 0 0 6px; }
+  h2 { font-size: 1.25rem; margin: 40px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 24px 0 8px; }
+  p, li { margin: 6px 0; }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+  .warn { color: var(--warn); font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 10px 0; }
+  th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 7px 8px 7px 0; }
+  th { font-weight: 600; }
+  code { font: .88em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--card); padding: 1px 4px; border-radius: 4px; }
+  .pr { font-weight: 600; white-space: nowrap; }
+  a { color: var(--accent); }
+  .toc a { display:inline-block; margin: 2px 10px 2px 0; }
+</style>
+</head>
+<body>
+<main>
+<h1>Customer lifecycle audit and plan</h1>
+<p class="meta">2026-09-29 · origin/main c471ed0a · seven read-only audit lanes (signup, billing and access, organizations and invites, admin tooling, end of life, a production data census, Linear history) and one independent critique. Security specifics went to William directly.</p>
+
+<p class="toc"><a href="#today">1. What support can do today</a><a href="#root">2. The root problem</a><a href="#model">3. Target model</a><a href="#console">4. What support gets</a><a href="#boardroom">5. Boardroom</a><a href="#findings">6. Other findings</a><a href="#plan">7. Plan</a><a href="#decisions">8. Decisions</a></p>
+
+<h2 id="today">1. What support can do today</h2>
+
+<h3>Move a paying user to free without losing access</h3>
+<p>Clarity has no free plan. Today "free" means a far-future access date. The order of steps matters.</p>
+<ol>
+  <li>In Stripe, cancel the subscription and choose <b>at the end of the current period</b>. Do not cancel immediately. Do not pick a custom date, because Clarity reads a custom cancel date as still active.</li>
+  <li>In Clarity, open Admin → Users → the user → Billing. Wait until it reads "cancelled".</li>
+  <li>Choose <b>Extend expiration</b> and pick a date <b>two days after</b> the agreed end. The date ends at midnight UTC, which is the evening before in US time.</li>
+  <li>Afterwards, never click <b>Activate</b> on this user. Never send them a checkout or billing-portal link, and never create a Stripe subscription for them. Any of these can erase the free date.</li>
+  <li>Write the agreement on the support ticket. Clarity stores no note yet.</li>
+</ol>
+<div class="card">
+<p><b>What goes wrong in other orders.</b></p>
+<ul>
+  <li>Cancelling immediately locks the user out until step 3 lands.</li>
+  <li>Extending first leaves a window where any Stripe renewal or edit erases the free date.</li>
+  <li>Cancelling and then clicking Activate grants free access forever, and the account looks exactly like a paying one.</li>
+</ul>
+<p>The user will see "Pro free trial" wording. That is cosmetic.</p>
+</div>
+
+<h3>Boardroom members</h3>
+<p><code>/boardroom</code> is live. Its copy says the Boardroom membership includes Clarity, but the button creates the normal 14-day trial. Members hit the paywall on day 15.</p>
+<p>Until the fix ships, support can:</p>
+<ul>
+  <li><b>Members without an account:</b> send them an invitation from Admin → Users → Add users. Choose the existing Boardroom organization, set access to "included" with an end date 10 months out, and add a note naming the payer. This already gives the tag, the end date and the "Included with" label.</li>
+  <li><b>Members who already signed up from /boardroom:</b> invitations cannot reach existing accounts, so use Extend by 10 months. It is safe on these accounts because they are new trials. Keep a list of them until the tag ships.</li>
+</ul>
+
+<h2 id="root">2. The root problem</h2>
+<p>Four stored facts decide access: the account kind, the account status, a trial end date, and Stripe rows. Every admin button and every Stripe event overwrites some of them. So each support action can undo another.</p>
+<ul>
+  <li><b>Extend</b> rewrites the kind to <code>trial</code>. On a staff or corporate account that turns permanent access into access that ends on the chosen date. It also accepts past dates and pre-fills today.</li>
+  <li><b>Activate</b> on a lapsed subscriber grants access forever, in one click with no confirmation.</li>
+  <li><b>Any "active" Stripe event</b> resets the kind to <code>subscriber</code> and clears the free date support set.</li>
+  <li><b>Status</b> means nothing for most kinds. Nothing ever writes <code>locked</code>, so support has no off switch.</li>
+  <li><b>Nothing records who changed what, or why.</b></li>
+</ul>
+<p>The admin screen cannot answer "why is this person locked out?" It shows "Plan: Pro" on locked-out accounts and hides the trial end, the kind and the access decision.</p>
+
+<h2 id="model">3. The target model</h2>
+<div class="card">
+<p><b>A person has access when Stripe says they are paid, or they hold an access grant that has not ended, and they are not suspended.</b></p>
+</div>
+<ul>
+  <li><b>Stripe subscription.</b> Only the Stripe webhook writes it, and it writes nothing else. "Paid" is defined in one function, including how long a failed renewal (past due) keeps access, and whether a row with no period end counts. Today it does, and that is how a few cancelled customers keep access.</li>
+  <li><b>Access grant.</b> One row per reason someone has access without paying Stripe: signup trial, trial extension, included by a payer, complimentary. Each has an end date, a note, a payer where one exists, an optional organization, and who created it. Support can move the end date. Every change is logged.</li>
+  <li><b>Suspension.</b> One flag, checked where the session is resolved on every request, so it wins over everything and a database blip cannot lift it.</li>
+  <li><b>System Admins bypass the access check.</b> This replaces the "internal" kind and means support can never lock themselves out.</li>
+  <li><b>Admin action log.</b> Every admin write records actor, target, before and after. A typed reason is required only for ending access, suspending and changing an email, so routine grants stay fast.</li>
+</ul>
+<p>The account kind becomes a label computed from these facts, not something anyone can overwrite. "Move to free" becomes one action. It adds a complimentary grant and sets the Stripe subscription to end at period end. The order stops mattering because nothing overwrites anything.</p>
+
+<h2 id="console">4. What support gets</h2>
+<table>
+<tr><th>Task</th><th>Today</th><th>After</th></tr>
+<tr><td>See why someone can or cannot get in</td><td>Needs SQL</td><td>One account panel: decision, reason, every grant, Stripe state, history</td></tr>
+<tr><td>Extend a trial</td><td>Extend, which can demote or shorten</td><td>Grant access until a date</td></tr>
+<tr><td>Move paying to free</td><td>Five ordered steps in two tools</td><td>"Make complimentary until DATE"</td></tr>
+<tr><td>Access someone else pays for</td><td>Invitation, new emails only</td><td>Grant "included, paid by X" on any account</td></tr>
+<tr><td>End access early</td><td>Misuse Extend</td><td>End grant, confirmed</td></tr>
+<tr><td>Suspend or unsuspend</td><td>Not possible</td><td>Suspend with a reason</td></tr>
+<tr><td>Add or remove someone from an organization</td><td>SQL</td><td>Organization page</td></tr>
+<tr><td>Tag and report on a cohort</td><td>Not possible</td><td>Filter by organization, CSV, "ends in 30 days"</td></tr>
+<tr><td>Take down a lapsed user's pages</td><td>Not possible</td><td>Unpublish works for walled users and support</td></tr>
+<tr><td>Refund or change billing cadence</td><td>Stripe, through William</td><td>Restricted Stripe role for support</td></tr>
+<tr><td>Delete an account, export data</td><td>Not possible</td><td>One job with a typed confirmation</td></tr>
+<tr><td>See who changed an account</td><td>Not possible</td><td>History on the account panel</td></tr>
+</table>
+
+<h2 id="boardroom">5. Boardroom</h2>
+<p>Boardroom needs no new concept. A Boardroom member holds an "included" grant tied to the Boardroom organization, with an end date and the payer named.</p>
+<ol>
+  <li><code>/boardroom</code> sends the visitor to signup with a signed marker, the same mechanism invitations already use.</li>
+  <li>On account creation, Clarity adds a 10-month included grant and a membership in the existing Boardroom organization.</li>
+  <li>For members who already have an account, support uses "Grant access" on the account panel and picks the organization.</li>
+  <li>Support filters the account list by the organization, exports CSV, and sees whose access ends within 30 days.</li>
+  <li>At month 10 the sponsor pays outside Stripe. Support moves the grant's end date forward for the paid period. "Paid outside Stripe" is just an included grant with a payer, so no new state is needed.</li>
+  <li>If a GoHighLevel sync is revived, it sends the organization as a tag. Boardroom does not depend on it.</li>
+</ol>
+<p><b>Who can use the page.</b> Recommended: open signup, the page marked <code>noindex</code> so search engines stop promoting it, and support reviewing the tagged list against the sponsor's roster. The sponsor only pays at month 10 for people he recognises, so a stray signup costs little. The stricter option is a member code in the link, changed by a deploy when it leaks.</p>
+
+<h2 id="findings">6. Other findings</h2>
+<ul>
+  <li><b>Organizations.</b> Customer Admins have no powers. The old team portals return 410, and organization billing returns "not implemented". Accepting an invitation adds a membership that grants nothing. Several organizations have no admin, and imported organizations have no name, so support creates duplicates.</li>
+  <li><b>Invitations.</b> They cannot reach anyone who already has an account, though the runbook says they can. An expired invitation blocks a new one until support presses Resend. The two "included" invitations sent so far were never accepted.</li>
+  <li><b>Free forever.</b> 72 accounts have unlimited access with no payment behind them. Some may be real payers whose Stripe link never landed, so they cannot be switched off blind.</li>
+  <li><b>Stale billing data.</b> About four in five Stripe rows in Clarity have not refreshed since June. Linear ticket WIL-3433 tracks active payers who may be locked out now.</li>
+  <li><b>Deletion.</b> No account deletion or data export exists. The privacy policy promises both within a month.</li>
+  <li><b>Lapsed users.</b> They cannot unpublish pages, which keep serving and collecting leads. Support cannot help, because impersonation hits the same wall. The wall tells former paying customers "Your trial has expired".</li>
+  <li><b>Trial claim.</b> The 30-day claim on the wall closes 2026-09-30. After that the only way past the wall is paying.</li>
+  <li><b>Smaller items.</b> "Cancel free trial" appears to change nothing, based on reading the code, not an observed run. A Stripe payment event for a customer Clarity cannot match retries forever. Deleting a folder leaves its videos' Mux assets billed.</li>
+</ul>
+
+<h2 id="plan">7. The plan</h2>
+<p>Each item is one pull request or one data run with its own proof. Phases run in order.</p>
+
+<h3>Phase 0. Stop the harm (this week)</h3>
+<table>
+<tr><td class="pr">P0.1</td><td>Extend is safe on the server. It refuses corporate and internal accounts and refuses a date earlier than current access (for a cancelling subscriber, the period end). Dates end at the end of the day. Delete the dead guard. No dialog work, since P1.3 replaces the screen. Ending access early waits for P1.4.</td></tr>
+<tr><td class="pr">P0.2</td><td>Delete the Activate button and endpoint.</td></tr>
+<tr><td class="pr">P0.3</td><td>Boardroom signups get the 10-month included access and join the existing Boardroom organization, using today's included-access path. Mark the page <code>noindex</code>. Support moves the early signups over.</td></tr>
+<tr><td class="pr">P0.4</td><td>Walled users and support can unpublish and delete pages. This is one allow-list entry.</td></tr>
+<tr><td class="pr">P0.5</td><td>WIL-3433 alone. Find the active payers missing from Clarity and restore their access.</td></tr>
+<tr><td class="pr">P0.6</td><td>Fix the runbook (invitations and existing users) and the wall copy (trial ended, subscription ended).</td></tr>
+</table>
+<p>The full Stripe refresh does not belong here. Run through today's code it would promote and wall people. Run it as a read-only diff now, and apply it after P1.2.</p>
+
+<h3>Phase 1. One access model</h3>
+<table>
+<tr><td class="pr">P1.1</td><td>Admin action log.</td></tr>
+<tr><td class="pr">P1.2</td><td>Access grants, suspension at session resolution, the System Admin bypass, and one definition of "paid". Signup, trial claim, invitations and Extend write grants. Stripe events stop writing account fields. Backfill grants from today's dates.</td></tr>
+<tr><td class="pr">P1.3</td><td>Account panel and server-side search.</td></tr>
+<tr><td class="pr">P1.4</td><td>Grant actions: grant until, change end, end now, make complimentary (with the Stripe change), suspend.</td></tr>
+<tr><td class="pr">P1.5</td><td>Apply the Stripe refresh. Convert the free-forever and exempt accounts to grants per decision 3. Inactive exempt accounts get none. Delete the free-forever rule. Drop the stored kind in its own later PR.</td></tr>
+</table>
+
+<h3>Phase 2. Organizations</h3>
+<table>
+<tr><td class="pr">P2.1</td><td>Memberships become the only organization link. This ends legacy company contact sharing unless decision 5 keeps it.</td></tr>
+<tr><td class="pr">P2.2</td><td>Organization page for support: members, add an existing user, promote, remove, rename, archive, merge unnamed duplicates. Delete the organization billing stub. Use "Customer Admin" everywhere.</td></tr>
+</table>
+
+<h3>Phase 3. End of life</h3>
+<table>
+<tr><td class="pr">P3.1</td><td>Delete-account and export job. It is safe to re-run and leaves a tombstone row (WIL-3400).</td></tr>
+</table>
+<p><b>Later.</b> A self-serve team page for Customer Admins, and a restricted Stripe role for support.</p>
+
+<h2 id="decisions">8. Decisions for William</h2>
+<ol>
+  <li><b>Boardroom access.</b> Open signup with support review (recommended), or a member code.</li>
+  <li><b>GoHighLevel.</b> The roadmap says it was deleted, while an open PR restores the sync and a ticket waits on a new GHL account. Revive it or close it.</li>
+  <li><b>The 72 free-forever accounts.</b> After the Stripe diff, give real payers their Stripe link back. For the rest, give each a dated grant, or let them hit the wall.</li>
+  <li><b>The trial claim.</b> Let it close tomorrow as planned, or extend it.</li>
+  <li><b>Legacy company sharing.</b> About 60 users in legacy customer companies share contacts through old company links. Page sharing through those links is already inert. Keep contact sharing as an organization feature, or end it.</li>
+  <li><b>Support in Stripe.</b> A restricted dashboard role, or refunds built into Clarity.</li>
+</ol>
+</main>
+</body>
+</html>
