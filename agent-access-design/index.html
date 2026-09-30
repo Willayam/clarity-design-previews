@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agents on Clarity: recommended design</title>
+<style>
+:root{--ink:#14202e;--muted:#5a6a7d;--line:#dfe6ee;--brand:#1f5fd6;--bg:#fff;--code:#f5f8fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .4em;letter-spacing:-.01em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.6em 0 .4em}
+p,li{max-width:72ch}
+a{color:var(--brand)}
+code{font:.86em/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);padding:.1em .3em;border-radius:4px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.8rem;white-space:pre}
+.table-wrap{overflow-x:auto;margin:1em 0}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:640px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#f3f6fa;font-weight:600}
+main>p:first-of-type{color:var(--muted)}
+</style></head><body><main>
+<h1>Agents on Clarity</h1>
+<p>A recommended design for letting an AI agent do everything a Clarity user can do. Written 2026-09-30. Nothing here is built yet. Every decision in the last section is yours to make.</p>
+<h2>The short answer</h2>
+<p>Build one set of Clarity operations on the server, and put a remote MCP server in front of it first. Claude Code, Codex, Cursor, ChatGPT and claude.ai all connect to that one MCP server over OAuth. The <code>clarity</code> CLI comes second, as a client of the same operations, because it is cheaper in tokens for the agents that have a shell.</p>
+<p>Use WorkOS for the OAuth part. AuthKit already works as the authorization server for MCP clients, and Clarity users already are WorkOS users, so an agent signs in with the same account and the same password or Google login. Clarity keeps one small table of its own that says what each connected agent may do and lets you revoke it instantly.</p>
+<p>The surprise from walking the code is that the API mostly exists. Journey pages, the library, uploads, transcripts, publishing, stats, leads, contacts and brand all have first-party routes in the router Worker today. What is missing is narrower.</p>
+<ol>
+<li>No way to authenticate anything but a browser cookie.</li>
+<li>Four workflows that only the editor knows how to finish: the resumable upload, saving an AI generation to the page, applying a theme or composing blocks, and knowing when a video is ready.</li>
+<li>No guard against the editor&#39;s autosave overwriting an agent&#39;s change.</li>
+<li>Pages go live the moment they are created, which is fine for a person and risky for an agent.</li>
+</ol>
+<p>The first slice that proves the whole path (local video to published page URL, from all five hosts) is about four to five engineer-weeks after a two to three day WorkOS spike.</p>
+<h2>What exists today</h2>
+<p>Four read-only explorers walked the router, workspace-tree, r2-media, the Convex AI lane and the editor. This is the capability map they produced, checked by hand where it mattered.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Where it lives</th>
+<th>Reachable by a non-browser client today?</th>
+<th>Gap for agents</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Upload a video</td>
+<td><code>/api/media/recording-sessions/*</code> (router to r2-media), then <code>POST /api/tree/media/videos/accept-original</code></td>
+<td>Only with a session cookie, and only by replaying the browser&#39;s protocol (fingerprint, 8 MiB parts with checksums, seal, complete, accept)</td>
+<td>Server op that folds seal, complete and accept into one idempotent call. A shared uploader. A browser handoff for remote hosts</td>
+<td>M</td>
+</tr>
+<tr>
+<td>Record a video</td>
+<td>Editor recorder, browser camera APIs</td>
+<td>No</td>
+<td>An agent has no camera. The handoff page can open the recorder for the person</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Processing status</td>
+<td>Readiness sits in workspace-tree asset metadata. <code>/api/tree/render/jobs*</code> returns 404 by design</td>
+<td>Partly (transcript has a status read)</td>
+<td>A job view derived from existing state</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Transcript</td>
+<td><code>GET /api/tree/assets/:id/transcript</code></td>
+<td>Yes, with a cookie</td>
+<td>Adapter with length limits</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Library (list, search, folders, move, rename, delete)</td>
+<td><code>/api/tree/*</code> proxied to workspace-tree</td>
+<td>Yes, with a cookie</td>
+<td>Adapters. The proxy forwards an admin role for System Admins, so agent calls must never carry it</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Trim, looping preview, title, button</td>
+<td><code>POST /api/tree/media/videos/:id/edit</code></td>
+<td>Yes, with a cookie</td>
+<td>Adapter</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Create a journey page</td>
+<td><code>POST /api/journey-pages</code> takes a complete block document</td>
+<td>Yes, if the caller builds the whole document</td>
+<td>Server op that builds the default document with Customer Brand applied</td>
+<td>S</td>
+</tr>
+<tr>
+<td>AI generation</td>
+<td>Convex <code>generate.start</code> produces a document. The editor (<code>ConvexAiLane.tsx</code>) saves it to the page and acknowledges</td>
+<td>No. Saving the result only happens in an open editor tab</td>
+<td>Server-side persistence, idempotent per generation</td>
+<td>M</td>
+</tr>
+<tr>
+<td>Edit blocks, apply a theme</td>
+<td>Whole-document <code>PUT</code>. Presets and block edits are editor code over <code>packages/journey-page-domain</code></td>
+<td>Only by rewriting the whole document, with no conflict check</td>
+<td>Server ops over the shared domain package, plus a revision check on every writer</td>
+<td>M</td>
+</tr>
+<tr>
+<td>Publish, unpublish, password</td>
+<td><code>PATCH /api/journey-pages/:id/access</code>. Page create and the video share page also mint a live link as a side effect</td>
+<td>Yes, with a cookie</td>
+<td>Every route that makes something public goes behind the publish approval</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Page stats, leads</td>
+<td><code>/api/journey-pages/:id/stats</code>, <code>/submissions</code></td>
+<td>Yes, with a cookie</td>
+<td>Adapters. Leads are personal data and get their own permission</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Contacts, Customer Brand</td>
+<td><code>/api/contacts/*</code>, <code>/api/tree/brand</code></td>
+<td>Yes, with a cookie</td>
+<td>Adapters</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Billing</td>
+<td>Stripe broker routes in the router</td>
+<td>Yes, with a cookie</td>
+<td>None. Agents never get billing mutations</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Account, sign-in, admin, impersonation</td>
+<td><code>/auth/*</code>, <code>/api/admin/*</code></td>
+<td>Yes, with a cookie</td>
+<td>None. Never exposed to agents</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Team and organizations</td>
+<td>Mostly unused; the workspace is one user</td>
+<td>n/a</td>
+<td>Waits for real organization sharing</td>
+<td>later</td>
+</tr>
+</tbody></table></div>
+<p>Two findings shape everything below. Every one of those routes authenticates through one function, <code>resolveAuthSessionContext</code> in <code>workers/frontend-router/src/auth-session.ts</code>, which reads the <code>clarity_session</code> cookie. And the gap is smaller than feared. It is four workflows and one missing credential type, not a missing API.</p>
+<p><code>control-clarity.mjs</code> is not the seed. It is a good verification harness (Playwright, test-account logins, direct D1 writes for stats seeding, production guards). None of that belongs in a customer tool. Once the real CLI exists, verify-loop can use it for API-level checks.</p>
+<h2>Recommended design</h2>
+<h3>One set of operations, three thin transports</h3>
+<p>Each capability is written once as an operation: a name, a zod input and output schema, a required permission, an effect class (read, write, publish, destructive, spend), and a function that does the work. One <code>dispatch</code> function runs every check in one place: permission, input validation, entitlement, spend limits, rate limit, approval, audit. Operations never branch on who is calling beyond that.</p>
+<p>The transports hold no logic.</p>
+<ul>
+<li><strong>Remote MCP at <code>clarity.video/mcp</code>.</strong> Stateless, per the 2026-07-28 MCP spec. It exposes a curated set of about 15 workflow tools, not one tool per route. This is the only thing claude.ai, ChatGPT web and the Claude mobile apps can use, and Claude Code, Codex and Cursor speak it too.</li>
+<li><strong>An uploader.</strong> <code>npx @clarity-video/upload &lt;file&gt; &lt;upload-url&gt;</code>, a small Node script that runs the resumable protocol against a one-session, write-only upload URL the MCP server hands out. It has no login of its own. It is the part of the CLI that exists in the first slice.</li>
+<li><strong>The <code>clarity</code> CLI.</strong> Second. It fetches the operation catalog at runtime, so a new operation ships with a Worker deploy and no CLI release. It adds JSON output when stdout is not a terminal, fixed exit codes, <code>--dry-run</code>, and a <code>setup</code> command that installs a skill file for Claude Code, Codex and Cursor.</li>
+</ul>
+<p>The operations live in <code>workers/frontend-router/src/agent/</code>. The router already holds all three D1 databases, every service binding, page persistence and the Convex token. Operations call extracted cores (a <code>page-core.ts</code> pulled out of <code>journey-pages-native.ts</code>, for example), never the router&#39;s own HTTP routes. One reviewer argued for a separate Worker so agent traffic and extra dependencies cannot affect public page rendering. I would start in the router behind a kill switch and split only if cold starts on public pages measurably regress.</p>
+<p>Why MCP first and not the CLI first. The research is real that CLIs are cheaper in tokens and more reliable for coding agents. Scalekit measured MCP using 4 to 32 times more tokens than <code>gh</code> for the same GitHub tasks. But a CLI reaches only three of your five hosts, and it needs its own login path. MCP reaches all five with one OAuth path, and hosts now defer tool loading, which takes most of the token cost away at 15 tools. The one thing MCP cannot do is move a 2 GB file, and the uploader script covers that without a second auth story. Supabase found agents did best with MCP plus a skill file that explains the workflow, 71 percent task success against 58 for MCP alone, so the skill ships in the first slice too.</p>
+<h3>What an agent does</h3>
+<p>In Claude Code, with a 2 GB recording on disk:</p>
+<pre><code>tool clarity_uploads_start {&quot;title&quot;:&quot;Acme discovery call&quot;,&quot;bytes&quot;:2147483648,&quot;idempotency_key&quot;:&quot;acme-call-1&quot;}
+→ {&quot;upload&quot;:{&quot;id&quot;:&quot;up_7Qm2&quot;,&quot;uploadUrl&quot;:&quot;https://clarity.video/api/agent/v1/uploads/up_7Qm2?t=…&quot;,&quot;expiresAt&quot;:&quot;…&quot;},
+   &quot;browserUrl&quot;:&quot;https://clarity.video/upload/up_7Qm2&quot;,
+   &quot;next&quot;:&quot;Run: npx @clarity-video/upload ./call.mp4 &lt;uploadUrl&gt; --background, then call clarity_jobs_wait with job_upl_7Qm2.&quot;}
+
+$ npx @clarity-video/upload ./call.mp4 &quot;https://clarity.video/api/agent/v1/uploads/up_7Qm2?t=…&quot; --background
+{&quot;upload&quot;:&quot;up_7Qm2&quot;,&quot;status&quot;:&quot;running&quot;,&quot;resume&quot;:&quot;rerun the same command&quot;}
+
+tool clarity_jobs_wait {&quot;id&quot;:&quot;job_upl_7Qm2&quot;,&quot;maxSeconds&quot;:45}
+→ {&quot;job&quot;:{&quot;state&quot;:&quot;succeeded&quot;,&quot;result&quot;:{&quot;videoId&quot;:&quot;vid_a91c&quot;},&quot;next&quot;:&quot;job_vid_a91c&quot;}}
+
+tool clarity_jobs_wait {&quot;id&quot;:&quot;job_vid_a91c&quot;,&quot;until&quot;:&quot;transcript&quot;}
+→ {&quot;job&quot;:{&quot;state&quot;:&quot;succeeded&quot;,&quot;steps&quot;:{&quot;playable&quot;:&quot;done&quot;,&quot;poster&quot;:&quot;done&quot;,&quot;transcript&quot;:&quot;done&quot;}}}
+
+tool clarity_pages_generate {&quot;videoId&quot;:&quot;vid_a91c&quot;,&quot;prompt&quot;:&quot;Follow-up for Priya at Acme. Growth plan. Book at calendly.com/…&quot;,&quot;idempotency_key&quot;:&quot;acme-page-1&quot;}
+→ {&quot;page&quot;:{&quot;id&quot;:&quot;pg_5d0e&quot;,&quot;access&quot;:&quot;private&quot;,&quot;editUrl&quot;:&quot;https://clarity.video/edit/pg_5d0e&quot;},&quot;job&quot;:{&quot;id&quot;:&quot;job_gen_k57h&quot;,&quot;state&quot;:&quot;running&quot;}}
+
+tool clarity_jobs_wait {&quot;id&quot;:&quot;job_gen_k57h&quot;}
+→ {&quot;job&quot;:{&quot;state&quot;:&quot;succeeded&quot;},&quot;page&quot;:{&quot;id&quot;:&quot;pg_5d0e&quot;,&quot;revision&quot;:2,&quot;blocks&quot;:[&quot;hero&quot;,&quot;story&quot;,&quot;story&quot;,&quot;pricing&quot;,&quot;form&quot;]}}
+
+tool clarity_pages_apply_theme {&quot;pageId&quot;:&quot;pg_5d0e&quot;,&quot;preset&quot;:&quot;editorial&quot;,&quot;ifRevision&quot;:2}
+→ {&quot;page&quot;:{&quot;id&quot;:&quot;pg_5d0e&quot;,&quot;revision&quot;:3,&quot;theme&quot;:{&quot;preset&quot;:&quot;editorial&quot;}}}
+
+tool clarity_pages_publish {&quot;pageId&quot;:&quot;pg_5d0e&quot;,&quot;ifRevision&quot;:3}
+→ {&quot;error&quot;:{&quot;code&quot;:&quot;approval_required&quot;,&quot;message&quot;:&quot;Publishing makes Acme follow-up public.&quot;,
+   &quot;approvalUrl&quot;:&quot;https://clarity.video/approve/apr_Jd8w&quot;,&quot;job&quot;:&quot;job_apr_Jd8w&quot;}}
+
+tool clarity_jobs_wait {&quot;id&quot;:&quot;job_apr_Jd8w&quot;}
+→ {&quot;job&quot;:{&quot;state&quot;:&quot;succeeded&quot;},&quot;page&quot;:{&quot;access&quot;:&quot;public&quot;,&quot;url&quot;:&quot;https://clarity.video/page/k3P9xa&quot;}}
+</code></pre>
+<p>These ids, tool names and URLs are illustrative. The agent never pulls the transcript into its own context. <code>pages.generate</code> reads it server-side. The uploader runs in the background because a 2 GB upload outlives Claude Code&#39;s Bash timeout and Codex&#39;s 60 second tool limit, and it resumes from the last acknowledged part if it is rerun.</p>
+<p>In claude.ai or ChatGPT there is no shell, so the video comes in through the person. <code>clarity_uploads_start</code> returns a <code>browserUrl</code>. The page requires the same signed-in Clarity user (no pre-authenticated links, as the MCP spec requires for URL handoffs), offers drag-and-drop and the recorder, and runs the same uploader the Library uses. From there the tool calls are identical. Import from a Drive or Dropbox link comes later, once server-side fetching has SSRF, size and timeout limits.</p>
+<p>When something is refused, the error says what to do next.</p>
+<pre><code>{&quot;error&quot;:{&quot;code&quot;:&quot;insufficient_permission&quot;,&quot;permission&quot;:&quot;leads:read&quot;,
+  &quot;message&quot;:&quot;This connection cannot read leads.&quot;,&quot;hint&quot;:&quot;Turn on Leads for Claude in Settings &gt; Connected agents.&quot;}}
+{&quot;error&quot;:{&quot;code&quot;:&quot;connection_revoked&quot;,&quot;message&quot;:&quot;This connection was revoked on 2026-10-02.&quot;,&quot;hint&quot;:&quot;Reconnect Clarity in your agent.&quot;}}
+{&quot;error&quot;:{&quot;code&quot;:&quot;unknown_operation&quot;,&quot;message&quot;:&quot;No operation billing.cancel.&quot;,
+  &quot;hint&quot;:&quot;Billing, sign-in and admin actions are not available to agents.&quot;}}
+</code></pre>
+<h3>Authentication</h3>
+<p><strong>WorkOS AuthKit, used as the OAuth server for MCP.</strong> This is what WorkOS built for exactly this case. Clarity serves a Protected Resource Metadata document at <code>/.well-known/oauth-protected-resource</code> pointing at the AuthKit domain. The host discovers it on the first 401, registers itself with a Client ID Metadata Document (the MCP spec&#39;s preferred method; Dynamic Client Registration stays on for older clients), and sends the user to AuthKit&#39;s hosted login. Clarity users are already WorkOS users, and the invite flow already uses AuthKit&#39;s hosted login, so they sign in with what they have. The access token is a JWT with <code>sub</code> set to the WorkOS user id.</p>
+<p><strong>How the router checks a token.</strong> On <code>/mcp</code> and <code>/api/agent/v1/*</code> only, the router verifies the JWT locally against the AuthKit JWKS (cached), checks issuer, audience (the Clarity resource URL) and expiry, requires <code>sub</code>, <code>client_id</code> and <code>sid</code>, and rejects a request that carries both a bearer token and a cookie. It maps <code>sub</code> through the same <code>findIdentityByWorkosUserId</code> read the cookie path uses and refuses accounts that are not active. It then builds an <code>Actor</code> with only an owner id, a workspace id and a WorkOS user id. The type has no role, admin, impersonator or Stripe fields, so no operation can reach an admin path by accident. Agent tokens never go through <code>resolveAuthSessionContext</code>, and the existing cookie routes do not change.</p>
+<p><strong>What each connection may do lives in Clarity.</strong> WorkOS tokens for MCP clients carry only the OpenID scopes. The WorkOS docs say clients that register themselves &quot;cannot have scopes assigned per client&quot;, and a user with no organization has no roles to resolve. So Clarity keeps an <code>agent_connections</code> row per (user, client, consent) with the permissions, status and last use, read on every request. The first call from a new connection returns an approval link to a Clarity page where you pick what it may do.</p>
+<ul>
+<li><strong>Read.</strong> Library, videos, transcripts, pages, stats.</li>
+<li><strong>Build.</strong> Read, plus upload, create and edit private pages, AI generation, themes and brand.</li>
+<li><strong>Leads and contacts.</strong> A separate switch, because they are other people&#39;s personal data and the most likely thing a prompt injection would try to leak.</li>
+<li><strong>Publish and delete</strong> are never standing permissions in the first release. Each one returns an approval link bound to the exact page revision and payload. You approve on a Clarity page with a POST from your own non-impersonated session, the page cannot be framed, and it shows the client&#39;s real host next to its self-declared name.</li>
+</ul>
+<p><strong>Revocation.</strong> Settings gets a Connected agents list. Revoking marks the row, which blocks the next request immediately. It also deletes the authorized application at WorkOS so refresh tokens stop working. Queued work (a generation in flight) re-checks the connection before it writes.</p>
+<p><strong>Audit.</strong> An <code>agent_audit</code> row per write, denial, approval and revocation (connection, operation, target ids, outcome, cost, request id), shown per connection in Settings. WorkOS Audit Logs require an organization.</p>
+<p><strong>The CLI, later.</strong> It registers like any MCP client: its own Client ID Metadata Document hosted by Clarity, authorization code with PKCE on a loopback port, the same audience, the same verifier. I dropped the WorkOS device-code flow. Its device authorization request takes no resource indicator, so CLI tokens would carry a different audience from MCP tokens, and one-click device links are a known phishing pattern. A paste-the-code page can cover SSH sessions later.</p>
+<h3>Server-side work that closes the gaps</h3>
+<ul>
+<li><strong>Upload.</strong> The resumable protocol driver moves into <code>packages/recording-session-protocol</code> with a pluggable byte source and resume store. The uploader script uses it first; the editor moves onto it afterwards and its copy is deleted. A new <code>uploads.finish</code> step does seal, complete and accept-original in one call, keyed on the session so a retry converges.</li>
+<li><strong>AI generation is saved by the server.</strong> A Convex completion callback calls <code>persistGeneration</code> in the router. The generation row records the connection that started it and the page revision it started from. Persisting checks page ownership, checks the connection is still live, writes a one-time receipt per generation together with the page, and never overwrites a page that changed since the generation started (the output is kept as an unapplied draft instead). The editor&#39;s own save-and-acknowledge bridge is deleted once it uses the same path, so a closed tab no longer strands a generation.</li>
+<li><strong>Revision on every page write.</strong> <code>journey_pages</code> gains a revision number. Every writer sends it, including the editor&#39;s autosave, and a stale write gets a 409 with the current revision. Without this the editor silently erases an agent&#39;s theme change within a second. The editor&#39;s conflict behavior is real design work (reload, or rebase by block id) and is sized as such.</li>
+<li><strong>Jobs are views, not a table.</strong> A job id names a row that already holds the state: the upload session, the workspace-tree derivations (playable, poster, transcript), the Convex generation row, or the approval row. <code>jobs.wait</code> polls server-side for at most 45 seconds and returns with a retry hint. Nothing depends on the MCP Tasks extension, which no host confirms supporting yet.</li>
+<li><strong>Page operations.</strong> <code>pages.create</code> builds the default document with Customer Brand, <code>pages.apply_theme</code> runs the existing preset macros from ADR 0007, <code>pages.edit_blocks</code> edits by durable Block id. All read, modify and write under the revision check.</li>
+<li><strong>Undo.</strong> Each agent write keeps the previous document, so a bad theme or block edit can be rolled back.</li>
+</ul>
+<h3>Safety</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>What stops it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>An agent creates a page and it is instantly live</td>
+<td>Agent-created pages get a Share ID that starts disabled. Every path that activates a public link (page create, the access route, the route endpoint, the per-video share page) sits behind the publish approval for agents. Whether people&#39;s own pages should also start private is your call (roadmap WIL-3226 already asks for it).</td>
+</tr>
+<tr>
+<td>Edits to a page that is already public</td>
+<td>Treated as publishing, so they go through approval too</td>
+</tr>
+<tr>
+<td>Prompt injection from a transcript, lead note or contact note</td>
+<td>Those texts are written by other people. Deletes and publishing need a person. Leads and contacts are off unless you turn them on. Billing, sign-in and admin are absent from the operation list, not guarded.</td>
+</tr>
+<tr>
+<td>Deletes</td>
+<td>Approval link bound to the exact targets, single use, 15 minute expiry. The approval page is the dry run.</td>
+</tr>
+<tr>
+<td>Retries and crashes</td>
+<td>Creating operations take an <code>idempotency_key</code> argument (a tool argument, because MCP has no portable header), stored on the domain row it creates. Upload and generation converge on their natural keys.</td>
+</tr>
+<tr>
+<td>AI spend</td>
+<td>A daily generation cap per workspace inside Convex <code>generate.start</code>. This is new for people too; today there is no cap.</td>
+</tr>
+<tr>
+<td>Container and storage cost</td>
+<td>Daily upload bytes and concurrent processing jobs per workspace for agent connections</td>
+</tr>
+<tr>
+<td>Floods</td>
+<td>A Workers rate-limit binding per connection, the same mechanism as the existing auth lookup limiter</td>
+</tr>
+<tr>
+<td>Trial wall and Pro</td>
+<td><code>decideEntitlement</code> on every write and spend operation, failing closed. Reads follow today&#39;s browser rule. Whether agent access is a paid feature is an open decision.</td>
+</tr>
+<tr>
+<td>A bad deploy or abuse</td>
+<td>An <code>AGENT_GATEWAY</code> switch (off, read-only, on) that works without a deploy. The gateway is off on PR previews.</td>
+</tr>
+</tbody></table></div>
+<h3>Ergonomics for the agent</h3>
+<ul>
+<li>JSON everywhere. The CLI prints JSON when stdout is not a terminal and progress as NDJSON on stderr.</li>
+<li>One error shape: a stable <code>code</code>, a sentence the model can repeat to the user, a <code>hint</code> with the next action, and structured extras (<code>permission</code>, <code>approvalUrl</code>, <code>currentRevision</code>, <code>retryAfterSeconds</code>). One table maps each code to an HTTP status, a CLI exit code and an MCP error result.</li>
+<li>Readable ids and names in results, bounded lists with pagination, and a concise or detailed output switch, following Anthropic&#39;s tool-writing guidance.</li>
+<li>Discoverable without docs. MCP lists tools with schemas. The CLI&#39;s <code>clarity ops</code> and <code>clarity describe &lt;op&gt;</code> read the same catalog. The skill file explains the workflow order (upload, wait, generate, theme, request publish).</li>
+</ul>
+<h2>Phasing and size</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>What</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Spike on staging. AuthKit MCP OAuth with CIMD for an org-less user from claude.ai, ChatGPT developer mode, Claude Code, Codex and Cursor. Audience binding. What deleting an authorized application does to live tokens and how to map <code>client_id</code> to it. Whether <code>sid</code> is stable across refresh. Confirm Connect pricing with WorkOS. Gate: if AuthKit fails, fall back to Clarity&#39;s own OAuth server on <code>@cloudflare/workers-oauth-provider</code>.</td>
+<td>2 to 3 days</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Foundations, each shippable alone. Page revision and the editor&#39;s conflict handling. <code>page-core.ts</code>. Actor-scoped workspace-tree headers. The upload driver in the shared package.</td>
+<td>about 1 week</td>
+</tr>
+<tr>
+<td>2</td>
+<td>The first end-to-end slice. Gateway with token checks, connections, the approval page and a minimal Connected agents list. Dispatcher with audit, entitlement, limits and the kill switch. About 12 operations. <code>/mcp</code>. The uploader script and skill file. The browser handoff page. Server-side generation saving. Private creation for agent pages. Acceptance is the walkthrough above on staging from all five hosts, including an interrupted 2 GB upload, a crash between save and acknowledge, a revoke during a generation, and an editor open on the same page.</td>
+<td>3 to 4 weeks</td>
+</tr>
+<tr>
+<td>3</td>
+<td>The CLI with catalog-driven commands and <code>setup</code>. Remaining adapters (library management, block editing, video edits, stats, leads, contacts, brand). Delete operations. The audit view.</td>
+<td>2 to 3 weeks</td>
+</tr>
+<tr>
+<td>4</td>
+<td>The editor moves onto the same operations and each old route is deleted with its last caller. URL import. Revisit WorkOS Agent Auth once it is generally available and works without organizations.</td>
+<td>ongoing</td>
+</tr>
+</tbody></table></div>
+<p>Sizes assume one engineer working with coding agents. The three designs estimated the first slice between three and six engineer-weeks; this lands in the middle after the critics cut scope.</p>
+<p>Docs that change: a new ADR 0010 for agent access. Addenda to ADR 0002 (delegated agent auth next to the cookie session), 0006 (page revision, private initial access for agent pages) and 0008 (entitlement for agent calls). ARCHITECTURE.md boundary 4 gains agent token verification. CONTEXT.md gains Agent connection, Operation, Job, Approval and Upload handoff, and clarifies that an allocated Share ID is not the same as a live one.</p>
+<h2>Alternatives I rejected</h2>
+<h3>Surfaces</h3>
+<ul>
+<li><strong>CLI first.</strong> Cheapest in tokens for coding agents, but it reaches three of five hosts and needs its own login. It comes second.</li>
+<li><strong>Bearer tokens on every existing route.</strong> Teach the cookie resolver to accept tokens and generate tools from the routes. It is the fastest start, and it fails three ways. Every future route becomes agent-reachable by default. Role and admin flags flow into agent calls. And the agent still has to replay the browser&#39;s upload and whole-document save protocols, which is exactly where agents fail.</li>
+<li><strong>Let the agent drive the editor.</strong> Grow <code>control-clarity.mjs</code> or use computer use. No remote hosts, no permissions, no reliable 2 GB upload, and every UI change breaks it.</li>
+<li><strong>Code Mode (one <code>execute</code> tool over a typed SDK).</strong> Right for Cloudflare&#39;s 2,500 endpoints. At about 30 operations, named tools with host tool search are cheaper to run and easier to audit.</li>
+<li><strong>A separate agent backend in Convex.</strong> Pages, media and identity live in D1 and R2 behind the router, so every Convex action would call back into the router with a second identity hop.</li>
+<li><strong>Adopt BuilderIO&#39;s agent-native framework</strong> (the pattern WIL-3245 cites). It assumes Postgres and Nitro. The idea carries over and is the core of this design: one registry of typed actions that the UI and every agent surface call.</li>
+</ul>
+<h3>Auth</h3>
+<ul>
+<li><strong>Clarity runs its own OAuth server</strong> (<code>workers-oauth-provider</code>). Two of three designers picked this. It gives checkbox scopes on the consent page and one grant store. It also makes Clarity own token issuance, refresh rotation, registration abuse and consent security for a very small team, when WorkOS already does this and Clarity already pays for WorkOS. It stays the fallback if the spike fails.</li>
+<li><strong>WorkOS Standalone Connect</strong> (your own login page as the Login URI, with custom consent options). I proposed this in the first draft and two critics took it apart. Its completion API creates or updates users by an external id that Clarity&#39;s WorkOS users do not have, and a new id with an existing email fails. Standard AuthKit login already knows your users.</li>
+<li><strong>WorkOS API Keys.</strong> User keys require an organization membership, and validation is a remote call on every request. Useful later for headless jobs if Clarity adopts organizations.</li>
+<li><strong>WorkOS Agent Auth and Agent Registration</strong> (launched 2026-08 and 2026-09). Early access, organization-bound, and Agent Registration must be switched on by the WorkOS account team. Worth revisiting.</li>
+<li><strong>A personal WorkOS organization per user</strong> to unlock RBAC, API keys, audit logs and Agent Auth. Thousands of synthetic organizations to obtain credentials, and it collides with the real Customer Organization concept that is coming.</li>
+<li><strong>WorkOS device-code flow for the CLI.</strong> No resource indicator on the request, so a second audience to accept, plus the device phishing pattern.</li>
+</ul>
+<h2>What WorkOS ships for agents today</h2>
+<p>Checked against WorkOS docs and changelog on 2026-09-30.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Status</th>
+<th>Works without organizations?</th>
+<th>Use here</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AuthKit as OAuth server for MCP (CIMD, DCR, PKCE, resource indicators, JWKS)</td>
+<td>GA. CIMD support dated 2025-11-30</td>
+<td>Yes. Token has <code>sub</code> and no <code>org_id</code></td>
+<td>Yes, the core of the design</td>
+</tr>
+<tr>
+<td>Standalone Connect (your own login page)</td>
+<td>GA, 2025-08-22</td>
+<td>Yes, but needs <code>external_id</code> on users</td>
+<td>No, see above</td>
+</tr>
+<tr>
+<td>CLI Auth (device code)</td>
+<td>GA</td>
+<td>Yes</td>
+<td>Not in the first release</td>
+</tr>
+<tr>
+<td>API Keys, user-scoped</td>
+<td>GA, user keys 2026-05-19</td>
+<td>No, requires a membership</td>
+<td>Later, if organizations arrive</td>
+</tr>
+<tr>
+<td>M2M client credentials</td>
+<td>GA</td>
+<td>No, bound to one organization</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Agent Auth / Agent Blueprints</td>
+<td>Early access, 2026-09-02</td>
+<td>Autonomous mode needs an org; delegated mode unconfirmed</td>
+<td>Revisit</td>
+</tr>
+<tr>
+<td>Agent Registration and <code>auth.md</code></td>
+<td>Early access, 2026-08-04, enabled by the account team</td>
+<td>Unconfirmed</td>
+<td>Revisit</td>
+</tr>
+<tr>
+<td>RBAC permissions, FGA</td>
+<td>GA</td>
+<td>No, keyed on memberships</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Audit Logs</td>
+<td>GA, priced per event volume</td>
+<td>No, requires <code>organization_id</code></td>
+<td>No, Clarity keeps its own</td>
+</tr>
+<tr>
+<td>Enterprise-Managed Authorization for MCP</td>
+<td>Early access, 2026-09-04</td>
+<td>Enterprise IdP context</td>
+<td>No</td>
+</tr>
+</tbody></table></div>
+<p>The pattern is clear. WorkOS assumes a B2B shape with organizations. Clarity&#39;s workspace is one person, so WorkOS answers who the user is and Clarity answers what the agent may do. If Customer Organizations become shared workspaces, several of these open up, and only the token check changes.</p>
+<h2>Decisions for you</h2>
+<ol>
+<li><strong>Should agent-created pages start private until you approve publishing?</strong> I recommend yes. Should people&#39;s own pages follow (WIL-3226)?</li>
+<li><strong>Is publishing always approved per page, or can you grant a standing &quot;publish without asking&quot; to an agent you trust?</strong> I recommend per-page approval for the first release.</li>
+<li><strong>What does &quot;put a video together&quot; mean to you?</strong> Trim and a looping preview, the per-video share page, a Journey Page around one video, or stitching several videos into one? The last one is new product work, not an API.</li>
+<li><strong>Is agent access a paid feature, or open to live trials under the same entitlement rule?</strong></li>
+<li><strong>What daily AI generation cap per workspace?</strong> It is new for people too.</li>
+<li><strong>Directory listing.</strong> Do you want Clarity in the Claude and ChatGPT connector directories, or is adding it as a custom connector enough for now? Directory listing adds review, a privacy page and a support contact.</li>
+<li><strong>Where should the operations live if cold starts matter?</strong> In the router behind a switch (my pick) or in a separate Worker from day one.</li>
+</ol>
+<h2>What I could not verify</h2>
+<ul>
+<li>Whether AuthKit MCP OAuth works end to end for a Clarity user with no organization in each of the five hosts. The docs say a token without <code>org_id</code> is valid; nobody has run it. This is the Phase 0 spike.</li>
+<li>What deleting an authorized application at WorkOS does to access tokens already issued, and whether MCP clients registered by CIMD appear in that list.</li>
+<li>Whether the consent id (<code>sid</code>) stays the same across refresh.</li>
+<li>Connect pricing. The WorkOS pricing page lists no separate Connect line and AuthKit is free to one million monthly users, which suggests no extra cost. Not confirmed.</li>
+<li>Whether any host supports the MCP Tasks extension. The design does not depend on it.</li>
+<li>Host limits I took from docs, not measurements: claude.ai&#39;s 240 second tool call and 10 second OAuth endpoint limits, Codex&#39;s 60 second default tool timeout, Claude Code&#39;s 25k token result limit.</li>
+<li>How Mux, the closest precedent (a video API on WorkOS for MCP auth), handles uploads through MCP. Their docs do not say.</li>
+<li>The explorers traced route dispatch and key handlers, not every handler body. Sizes are estimates.</li>
+</ul>
+<h2>How this was made</h2>
+<p>Four gpt-6-sol explorers mapped the codebase. Two Opus researchers read current WorkOS docs and the MCP and host landscape. Three designers on Fable, gpt-6-astra and Opus each produced a full design independently. A gpt-6-astra judge scored them blind. The base came from the astra design (private creation, server-side generation saving, revision checks, Clarity-side grants on WorkOS). The operation registry, the no-role <code>Actor</code> and derived jobs came from the Opus design. Upload package placement and response limits came from the Fable design. Three critics (Fable, gpt-6-astra, Opus) then attacked the combined recommendation. They changed it in five places: standard AuthKit instead of Standalone Connect, no device-code flow, publishing behind approval, leads as a separate permission, and a smaller first slice that leads with MCP.</p>
+<h3>Sources</h3>
+<ul>
+<li>WorkOS: <a href="https://workos.com/docs/authkit/mcp">MCP</a>, <a href="https://workos.com/docs/authkit/connect/token-claims">Connect token claims</a>, <a href="https://workos.com/docs/authkit/connect/standalone">Standalone Connect</a>, <a href="https://workos.com/docs/authkit/cli-auth">CLI Auth</a>, <a href="https://workos.com/docs/authkit/api-keys">API Keys</a>, <a href="https://workos.com/changelog/agent-auth">Agent Auth</a>, <a href="https://workos.com/changelog/agent-registration">Agent Registration</a>, <a href="https://workos.com/pricing">pricing</a>.</li>
+<li>MCP: <a href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">2026-07-28 changelog</a>, <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">authorization</a>, <a href="https://modelcontextprotocol.io/extensions/tasks/overview">Tasks extension</a>, <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2631">SEP-2631 file transfer draft</a>.</li>
+<li>Hosts: <a href="https://code.claude.com/docs/en/mcp">Claude Code MCP</a>, <a href="https://claude.com/docs/connectors/building/authentication">Claude connectors auth</a>, <a href="https://developers.openai.com/plugins/build/auth">ChatGPT plugin auth</a>, <a href="https://cursor.com/docs/context/mcp">Cursor MCP</a>.</li>
+<li>Evidence on tools: <a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Anthropic, writing tools for agents</a>, <a href="https://www.scalekit.com/blog/mcp-vs-cli-use">Scalekit MCP vs CLI</a>, <a href="https://supabase.com/blog/supabase-agent-skills">Supabase agent skills</a>, <a href="https://github.com/cloudflare/workers-oauth-provider">Cloudflare workers-oauth-provider</a>, <a href="https://blog.cloudflare.com/mcp-v2/">Cloudflare MCP v2</a>, <a href="https://docs.stripe.com/mcp">Stripe MCP</a>, <a href="https://github.com/BuilderIO/agent-native">BuilderIO agent-native</a>.</li>
+</ul>
+
+</main></body></html>
