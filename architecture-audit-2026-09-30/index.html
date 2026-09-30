@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clarity architecture audit, 2026-09-30 (fourth pass)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose", flowchart: { curve: "basis" } });
+</script>
+<style>
+  .leak { color: #dc2626; }
+  .good { color: #047857; }
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  .mermaid { display: flex; justify-content: center; }
+  details > summary { cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .75rem; border-bottom: 1px solid #e2e8f0; font-size: .875rem; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; }
+  code { font-size: .8em; background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+  .prose-p p { margin-bottom: .75rem; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main class="max-w-5xl mx-auto px-5 py-10 space-y-14">
+
+<header class="space-y-4">
+  <p class="schem text-slate-500">Clarity · origin/main 33467d13 · 2026-09-30 · fourth pass</p>
+  <h1 class="font-serif text-4xl">What to delete, what to make impossible, and what would make the loop feel instant</h1>
+  <p class="text-slate-600 max-w-3xl">Six explorers read the code at today's main, one lane measured the running product (staging signed in, production read-only), one lane merged the findings, and three models critiqued the result independently: Fable 5.1, Opus 5.5 and GPT-6 Astra. I checked the claims the ranking rests on against the code myself. Security specifics are kept off this public page; William has them in chat. Page names are withheld because the pages are real customer pages.</p>
+</header>
+
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Deployables</p><p class="text-3xl font-serif">4 + Convex</p><p class="text-xs text-slate-500">router, workspace-tree, auth-email, r2-media</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Databases</p><p class="text-3xl font-serif">5 D1s</p><p class="text-xs text-slate-500">all in Eastern Europe, read replication off</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Prospect first byte, phones</p><p class="text-3xl font-serif leak">818 ms</p><p class="text-xs text-slate-500">real users, p50. The lab from Sweden saw 116 to 181 ms</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Player loads that never play</p><p class="text-3xl font-serif leak">80%</p><p class="text-xs text-slate-500">829 loads, 163 plays in 7 days, yet each downloads video</p></div>
+</section>
+
+<!-- SHORT ANSWER -->
+<section class="space-y-4 prose-p max-w-3xl">
+  <h2 class="font-serif text-2xl">The short answer</h2>
+  <p>The vendors are right and most rules exist exactly once: who may use the product (<code>decideEntitlement</code>), what plays (<code>resolvePlayback</code>), what a page is (the block document). A rebuild would keep Cloudflare, D1, Mux, WorkOS and Stripe. The cost sits in how many pieces there are and in the seams between them. One Journey Page lives in two databases behind two Workers. A video's truth is split between Mux, a JSON bag and the browser tab that recorded it. Every boundary is typed by hand, so the compiler believes whatever the code says the database returned. Most of the bugs that keep coming back sit on those seams.</p>
+  <p><strong>The move that closes the most gap.</strong> Fold workspace-tree and auth-email into the router (four PRs), then merge the page and Library databases into <code>AUTH_DB</code> (four PRs, the first gives previews their own data). After that a page, its Library card, its address and its form submissions are written in one transaction, and a whole family of "exists in one place but not the other" bugs cannot happen. You deferred the fold on 21 Sept. What changed since is that the reason workspace-tree was a separate Worker, its render Durable Object, was deleted on 22 Sept, and this pass found three new bugs that live on that seam.</p>
+  <p><strong>Before that, this week.</strong> A dozen small changes carry most of the customer-visible gain. The largest is one attribute on the public video player. Phones currently download 2 to 11 MB of video behind posters before anyone taps play. Another is one config line that may cut the 818 ms prospects wait for a public page, because the Worker runs next to the prospect while every database statement travels to Eastern Europe and back, one after another.</p>
+</section>
+
+<!-- THIS WEEK -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Fix this week</h2>
+  <p class="text-slate-600 max-w-3xl">Each row is one small PR with no design question behind it. All were checked against the code. Order matters only for rows 3 and 4.</p>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>#</th><th>Change</th><th>Who notices</th><th>Evidence</th></tr>
+    <tr><td>1</td><td><code>preload="none"</code> on every public <code>&lt;mux-player&gt;</code>, warmed on pointer-down or when the first player scrolls into view.</td><td>Prospects on phones stop downloading 2 to 11 MB before a tap.</td><td><code>mux-player.ts:49-56</code> sets no preload; <code>render-media.ts:101</code> renders the player hidden behind the preview and it still loads.</td></tr>
+    <tr><td>2</td><td>Pin and self-host the Mux player instead of <code>cdn.jsdelivr.net/npm/@mux/mux-player@3</code>.</td><td>Every public page stops depending on a floating version and a third-party CDN. It also gives a fixed variable for the 15.8% playback failure rate.</td><td><code>mux-player.ts:20</code>; resolved to 3.13.4 today, 308 kB brotli.</td></tr>
+    <tr><td>3</td><td>Exclude <code>/assets/*</code> from <code>run_worker_first</code> and serve hashed assets <code>immutable</code>.</td><td>Reps. A repeat visit to Home revalidated 72 of 73 assets and was no faster than a cold one.</td><td><code>wrangler.jsonc:24</code> runs the Worker first for <code>/*</code>; <code>editor/public/_headers</code> has one rule for one file.</td></tr>
+    <tr><td>4</td><td>Smart Placement on the router, plus <code>Server-Timing</code> and the Cloudflare colo in RUM for a day.</td><td>Prospects and reps outside Europe, if the hypothesis holds.</td><td><code>wrangler d1 info</code>: all production D1s in EEUR, replication disabled. No <code>placement</code> key. A public view is two sequential reads plus one service call per image or document.</td></tr>
+    <tr><td>5</td><td><code>[triggers] crons = []</code> in <code>workers/r2-media/wrangler.toml</code>, then confirm the error count drops.</td><td>Whoever reads Sentry. r2-media threw 1,709 exceptions in 7 days, 17% of its invocations.</td><td>be292584 deleted the triggers block instead of emptying it. Wrangler keeps deployed crons when the key is absent. Inferred, logs API was 403.</td></tr>
+    <tr><td>6</td><td>Load the font-picker specimen stylesheet only when the picker opens.</td><td>Reps. Opening a page in the editor took 0.5 to 4.3 s, waiting on Google Fonts.</td><td><code>EditorWorkspace.tsx:190-191</code> mounts every font family with React's <code>precedence</code>, which holds the canvas until it loads.</td></tr>
+    <tr><td>7</td><td>The recorder passes the folder the rep is in.</td><td>Reps. Recordings always land in the Library root (WIL-3348).</td><td><code>recording-save-session.ts:457</code> and <code>:489</code> pass <code>parentId: null</code>.</td></tr>
+    <tr><td>8</td><td>Folder delete collects descendant Mux asset ids and discards them.</td><td>The Mux bill. Deleting a folder today leaves every video inside it on Mux.</td><td><code>workspace-tree/src/index.ts:930-943</code> discards only when the deleted node itself is a video.</td></tr>
+    <tr><td>9</td><td>Delete the page list handler.</td><td>Nobody, which is the point. It reads every page in the database per call and no screen calls it.</td><td><code>journey-pages-native.ts:215-237</code>; the only client use of the path is the create POST.</td></tr>
+    <tr><td>10</td><td>One open checkout intent per account, its id sent as the Stripe idempotency key.</td><td>Customers who open Checkout twice (WIL-3318: two tabs, two subscriptions, two charges).</td><td><code>account-billing.ts:128</code> creates the session with no idempotency key and cleans up duplicates afterwards.</td></tr>
+    <tr><td>11</td><td>Store <code>page_id</code> on playback events.</td><td>Reps, later. Watches cannot be tied to the page they happened on.</td><td>Players send it (<code>render-client-script.ts:248</code>); nothing in the stats code reads it.</td></tr>
+    <tr><td>12</td><td>Resize customer images through the <code>IMAGES</code> binding r2-media already has.</td><td>Prospects on phones. One page loads a 1.29 MB logo at upload size.</td><td>Bound in every environment in <code>workers/r2-media/wrangler.toml</code>, referenced by no code.</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- THE MOVE -->
+<section class="space-y-4">
+  <h2 class="font-serif text-2xl">The move: one app Worker, one app database</h2>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="rounded-lg border border-slate-200 bg-white p-4">
+      <p class="schem text-slate-500 mb-2">Today</p>
+<pre class="mermaid">
+flowchart TB
+  B[Browser] --> R[frontend-router]
+  R -->|signed headers| T[workspace-tree]
+  R -->|JSON bridge| E[auth-email]
+  R -->|RPC| M[r2-media]
+  R --> A[(AUTH_DB)]
+  R --> P[(PUBLIC_PAGE_DB)]
+  R --> V[(VIDEO_STATS_DB)]
+  T --> TD[(TREE_DB)]
+  E --> ED[(EMAIL_DB)]
+  B --> CX[Convex]
+</pre>
+    </div>
+    <div class="rounded-lg border border-slate-200 bg-white p-4">
+      <p class="schem text-slate-500 mb-2">After the move</p>
+<pre class="mermaid">
+flowchart TB
+  B[Browser] --> APP[clarity app Worker]
+  APP --> A[(app DB: AUTH_DB grown)]
+  APP --> V[(events DB)]
+  APP -->|RPC| M[r2-media]
+  B --> CX[Convex, until streaming generation]
+</pre>
+    </div>
+  </div>
+  <div class="prose-p max-w-3xl">
+    <p>A Journey Page's content, address and submissions live in <code>PUBLIC_PAGE_DB</code>. Its folder, position and Library card live in <code>WORKSPACE_TREE_DB</code>, behind another Worker reached over HTTP with signed identity headers. After every save the router copies the page into the tree in the background, and on every Library load it joins three databases back together by hand. When the copy fails, the page exists and the Library does not show it. That is how a recorder's share page ends up live and unfindable after its video is deleted, how a PR preview writes the page to production and its card to a preview database, and why a script exists whose only job is finding pages and cards that disagree.</p>
+    <p>workspace-tree was split off to host the clip render pipeline and its Durable Object. That pipeline left with the Mux cutover. The tree already dispatches through a route table with declared access per route, so it can be mounted inside the router nearly as it is.</p>
+  </div>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>PR</th><th>What it does</th><th>Revertible alone</th></tr>
+    <tr><td>1</td><td>Bind <code>WORKSPACE_TREE_DB</code> and the Mux secrets on the router. Move the tree source under the router and replace <code>env.WORKSPACE_TREE.fetch</code> with an in-process dispatch that keeps today's wire shape.</td><td>Yes, router-only deploy.</td></tr>
+    <tr><td>2</td><td>Replace the internal HTTP hops (card materialization, ownership lookups, public media, brand, stats authorization, admin counts, the Mux event relay) with function calls that take the caller's identity. Delete the identity headers, the shared secret and the proxy's one-path fence. This also closes WIL-3395.</td><td>Yes.</td></tr>
+    <tr><td>3</td><td>Fold auth-email the same way. Its database stays as a router binding.</td><td>Yes.</td></tr>
+    <tr><td>4</td><td>Move the tree cron into the router's scheduled handler with one catch per source. Delete the tree Worker, the stack deploy mode, <code>deploy-plan.mjs</code>'s regex scan and the per-PR tree Worker.</td><td>Yes. One deploy and one rollback from here on.</td></tr>
+    <tr><td>5</td><td>Previews get their own seeded app database, with a CI check that rejects any production database id in a preview config. Without this, the merge would move preview Library writes onto production.</td><td>Yes.</td></tr>
+    <tr><td>6</td><td>Add the page and Library tables to <code>AUTH_DB</code> as new tables (users is never rebuilt). Copy rows with a batched script under a short write freeze, verify counts, switch the bindings.</td><td>Yes, until the old database is dropped.</td></tr>
+    <tr><td>7</td><td>Write page, route and Library node in one batch. The Library card becomes a row that references the page and reads its title by join. Delete the projection, the sweep ordering and the stray-card handling.</td><td>Yes.</td></tr>
+    <tr><td>8</td><td>Drop the old bindings and databases, in their own PR, per the drop rule.</td><td>No, which is why it waits.</td></tr>
+  </table>
+  </div>
+  <div class="prose-p max-w-3xl">
+    <p><strong>What it deletes.</strong> About 1,500 to 2,000 lines for the fold (the identity codec, the proxy, the tree's HTTP marshalling, the webhook relay, the stack deploy mode, two Wrangler configs) and 600 to 900 for the merge (the card projection, the cross-database joins, three of four outbox table copies, the coverage audit script). More important are the questions it removes. Which Worker am I in? Is this caller a service or a user? Does this route accept service callers? Which deploy mode does this diff need? Did the card write land?</p>
+    <p><strong>Why <code>AUTH_DB</code> and not a new content database.</strong> A lead form writes a submission to the page database and then a contact to <code>AUTH_DB</code>, best effort. Merging into <code>AUTH_DB</code> puts contacts, pages, Library and grants in one transaction; a separate content database would leave that split. All four production databases together are 310 MB, so size is not the constraint. <code>VIDEO_STATS_DB</code> stays separate as the append-only events store, and r2-media stays separate because it owns its own host and edge cache.</p>
+    <p><strong>Where the panel split.</strong> GPT-6 Astra ranked a server-owned recording lifecycle first and the fold fifth. Its point stands. The recorder is the hottest bug area and its fix does not strictly need the fold. I still put the fold first because the lifecycle's last steps (create the share page as a Library item in the same transaction as the video, and make deleting a video delete or flag its page) need page and Library in one database, and because the fold is mechanical. The lifecycle's first two PRs can run in parallel inside the folded code.</p>
+  </div>
+</section>
+
+<!-- ERROR CLASSES -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Error classes to make impossible, not rarer</h2>
+  <p class="text-slate-600 max-w-3xl">Counts are construction sites found in the code, not incident totals. "Impossible" is meant literally only where the fix is a transaction, a constraint or a type; vendor effects can only be made recoverable.</p>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>Class</th><th>Today</th><th>The construction that removes it</th></tr>
+    <tr><td><strong>One fact in two stores.</strong> A write succeeds in one place and the second half is logged and forgotten.</td><td>11 cross-store write paths. 3 kinds of record nothing can navigate to: Mux assets whose browser claim never ran, recorder share pages with no card, assets left by failed deletes.</td><td>One app database written in one <code>batch()</code>. Vendor effects become job rows written in the same batch, so a delete cannot commit without its Mux discard job.</td></tr>
+    <tr><td><strong>Saves without a revision.</strong> Last writer wins, and a late save can undelete a page.</td><td>4 write families: page upsert (it sets <code>deleted_at</code> from the incoming row), tree node update, node move, contact update. Three client caches exist to paper over it (WIL-3294, 3297, 3398, 3411).</td><td><code>revision</code> on every mutable row; <code>UPDATE … WHERE revision = ? AND deleted_at IS NULL</code>; a <code>saved | conflict | gone</code> result; delete as its own statement. The tree's metadata compare-and-swap is the house pattern to generalize.</td></tr>
+    <tr><td><strong>Types the compiler trusts and nothing checks.</strong></td><td>87 hand-typed D1 row reads, 167 raw <code>prepare(</code> lines, 32 cast API responses in the editor, 3 service contracts declared twice, 33 optional Env fields. No schema library in the repo.</td><td>A Drizzle schema that generates the migrations and infers row types, adopted module by module after the fold. Hono routes with zod validators and the typed client, so the editor's types come from the server. Env parsed once. A lint that bans raw row generics outside the repository module.</td></tr>
+    <tr><td><strong>Ordered string dispatch.</strong></td><td>27 ordered path checks in the router; the admin prefix swallows every suffix and its own comment records a route it made unreachable.</td><td>A route table carrying method, path, access policy, limiter and input schema, with overlaps rejected. workspace-tree's <code>TREE_ROUTES</code> already does this; the router should adopt it (WIL-3401).</td></tr>
+    <tr><td><strong>Work acknowledged before it is durable, and retries that never end.</strong></td><td>4 webhook paths answer 200 before the work is saved. 4 retry loops have no dead state. 9 <code>waitUntil</code> sites carry work that matters. 4 vendor calls have no timeout (two Stripe clients, WorkOS sign-in, Resend).</td><td>A <code>vendor_events</code> inbox written before the 200. One jobs table with <code>pending | done | dead</code> and a visible dead count. One adapter per vendor that owns the timeout, so no caller can forget it.</td></tr>
+    <tr><td><strong>Contradictory state in bags.</strong></td><td>Video facts, edit intent, clip job state and retired flags share a 60-key JSON column guarded by two hand-kept lists. The recorder holds five failure booleans. Block media fields admit seven overlapping sources.</td><td>A <code>videos</code> table with typed columns for what the server owns; the JSON keeps only the rep's edit intent. Discriminated unions at the boundaries; CHECK constraints for exclusive fields.</td></tr>
+    <tr><td><strong>The browser coordinates a distributed transaction.</strong></td><td>3 flows: recording (upload, claim, metadata in two rounds, settle, share page), page create, AI generation (Convex row, D1 save, acknowledge).</td><td>The server creates the records when the workflow starts; the browser moves bytes and shows progress. For recording, the upload route creates the video with its folder and title, and the share page with its Library item.</td></tr>
+    <tr><td><strong>Two implementations of one thing.</strong></td><td>9 block kinds rendered twice with a selector-only parity test. 2 SQLite test adapters that disagree about batch atomicity, beside 33 files that fake SQL by matching its text. 3 player stacks. 4 copies of the outbox table.</td><td>One React block renderer for editor and public page. <code>@cloudflare/vitest-pool-workers</code> against real D1 with migrations applied, and a lint against <code>query.includes(</code>. One pinned player.</td></tr>
+    <tr><td><strong>One server fact in several client caches.</strong></td><td>The Library listing lives in React Query, sessionStorage, a warmed promise, a latest-node map and synthetic upload rows, synced by a custom event with 22 call sites. <code>/auth/me</code> is fetched twice per shell and the admin session three times.</td><td>After revisions, React Query as the only owner, persisted for warm starts and fed by mutation results. One <code>useCurrentUser()</code>.</td></tr>
+    <tr><td><strong>Previews that write production.</strong></td><td>A labeled PR's router binds the three production router databases, production email and production media.</td><td>Previews generated from a sandbox description, and a CI check that fails any preview config naming a production database id.</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- DELETIONS -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Deletions, largest first</h2>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>Delete</th><th>Lines</th><th>What leaves your head</th><th>Waits on</th></tr>
+    <tr><td>Fold workspace-tree and auth-email</td><td>1,500 to 2,000</td><td>Internal auth, service versus user callers, two deploy modes, router-only rollback</td><td>Nothing</td></tr>
+    <tr><td>Legacy R2 video tiers, the segment cache's video half, and the response filter that buffers and regex-signs every router JSON and HTML body</td><td>about 1,000</td><td>"Which of four tiers plays this video?" and "why is every API response uncacheable?"</td><td>A backfill that writes Mux ids where they exist and re-ingests or marks the rest</td></tr>
+    <tr><td>Convex</td><td>about 1,000 net</td><td>A second platform with its own auth (JWT plus JWKS), deploy, schema language and no error sink; previews cannot test AI</td><td>A streaming generation route (WIL-3234) that keeps the per-workspace cap and reload recovery</td></tr>
+    <tr><td>Merge page and Library databases</td><td>600 to 900</td><td>"The card is a copy of the page"</td><td>The fold and preview data isolation</td></tr>
+    <tr><td>The string renderer, once blocks render from React</td><td>about 1,560 plus the parity test</td><td>"Change every block twice, in two markup languages"</td><td>A publish snapshot, so render cost is paid once per publish</td></tr>
+    <tr><td>Editor cache layers in front of React Query</td><td>300 to 400</td><td>Which of six caches drew this card</td><td>Revisions</td></tr>
+    <tr><td>The recorder's claim, settle and announce dance</td><td>about 300</td><td>"The browser is the transaction coordinator"</td><td>Server-owned recording lifecycle</td></tr>
+    <tr><td>Dead code: the page list handler, a fetcher that always returns null, <code>sliceForKind</code>, <code>/auth/impersonate</code>, the <code>/page-d1</code> and <code>/page-elixir</code> routes, the <code>derivation_published</code> health check, <code>recording-session-protocol</code>, the unused <code>stops_billing</code> flag</td><td>about 200</td><td>False leads an agent greps into</td><td>Nothing; <code>stops_billing</code> needs a yes or no</td></tr>
+    <tr><td>The Convex staging cutover script that runs on every staging deploy</td><td>about 80</td><td>A destructive migration step in a routine path</td><td>Confirming the cutover is done</td></tr>
+    <tr><td>Five scripts nothing references</td><td>about 515</td><td>Scripts an agent might run by mistake</td><td>Archive rather than delete; two are cited in code comments</td></tr>
+  </table>
+  </div>
+  <p class="text-sm text-slate-500 max-w-3xl">Keep: <code>resolvePlayback</code>, the edit manifest, <code>decideEntitlement</code>, the analytics outbox's deterministic ids and pruning, and the four lint and budget ratchets while their debt exists. <code>handleAppApiProxy</code> looks like a legacy proxy but serves <code>/api/me</code>; rename it, don't delete it. The tables named <code>legacy_contact_*_snapshots</code> hold live contacts.</p>
+</section>
+
+<!-- IDEAL STACK -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">If we built it from scratch today</h2>
+  <p class="text-slate-600 max-w-3xl">Same product, one founder directing agents that merge about ten PRs a day. The stack that fits that team has the fewest places to be wrong: one deployable, one transactional store, types that come from the schema, tests that run the real runtime.</p>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>Area</th><th>Today</th><th>From scratch</th><th>Close it</th></tr>
+    <tr><td>Deployables</td><td>4 Workers plus Convex</td><td>One app Worker (SPA assets, API, public pages, webhooks, crons) plus r2-media</td><td>The move, PRs 1 to 4</td></tr>
+    <tr><td>Data</td><td>5 D1s in Eastern Europe, no placement, no replication</td><td>App database plus events database; Worker placed near them; read replicas for anonymous reads once they leave beta</td><td>Placement this week; merge in the move</td></tr>
+    <tr><td>Schema and types</td><td>Hand-written rows and contracts</td><td>Drizzle schema generating migrations and row types; zod at every HTTP edge; Env parsed once</td><td>Module by module after the fold</td></tr>
+    <tr><td>API contract</td><td>27 ordered checks, casts on the client</td><td>Hono routes with method, path, policy and schema; the editor calls a typed client derived from them</td><td>Starts from the tree's route table</td></tr>
+    <tr><td>Editor</td><td>Vite SPA, React Router, React Query plus five other caches, blank screens while identity loads</td><td>Same SPA; loaders that start at route match; React Query as the only server cache; identity and profile inlined in the shell HTML the Worker already resolved</td><td>After revisions</td></tr>
+    <tr><td>Public page</td><td>String renderer, rebuilt from D1 per view, never cached</td><td>The editor's React block components rendered to HTML at publish into a snapshot served from the edge cache; no React shipped to prospects; a small tracking and player script</td><td>With draft and publish (WIL-3226)</td></tr>
+    <tr><td>Video</td><td>Pure Mux; truth split across Mux, a JSON bag and the recording tab</td><td>Pure Mux; a typed <code>videos</code> table; the server creates the video at upload; webhook plus read-time settlement (keep both); clips as a Cloudflare Workflow; a nightly Mux inventory</td><td>Recording lifecycle</td></tr>
+    <tr><td>Auth</td><td>WorkOS; identity re-read at up to 5 call sites per request</td><td>WorkOS; identity resolved once per request and passed as an Actor</td><td>A request context, 2 to 3 PRs</td></tr>
+    <tr><td>Billing</td><td>Stripe; five inputs to access; checkout cleans up duplicates after the fact</td><td>Stripe Checkout and Customer Portal; webhook as the only writer; one grants ledger; one open checkout intent per account by constraint</td><td>The accounts program (WIL-3461 to 3470) plus the checkout intent</td></tr>
+    <tr><td>Background work</td><td>Outbox (analytics only), <code>waitUntil</code>, cron sweeps, browser retries</td><td>One jobs table written with the change, one drain, a dead count on a health page; Workflows only for clips</td><td>3 PRs</td></tr>
+    <tr><td>Realtime and AI</td><td>Polling; Convex for one generation feature</td><td>One Durable Object per workspace with hibernating WebSockets: "prospect viewing now", Library updates, video ready, streamed AI blocks</td><td>When WIL-3234 or WIL-3239 is scheduled</td></tr>
+    <tr><td>Tests</td><td>57k lines of editor tests hosting most Worker tests; SQL-text fakes; two SQLite adapters</td><td>Tests beside their code, run inside workerd against real D1 with migrations; Playwright on the core loop as a required gate</td><td>2 to 3 PRs after the fold</td></tr>
+    <tr><td>Deploy</td><td>786-line workflow, two modes, router-only rollback, previews on production data</td><td>One versioned upload per merge, gradual rollout, full rollback, expand/contract lint on migrations, seeded previews</td><td>Mostly falls out of the fold</td></tr>
+  </table>
+  </div>
+  <details class="rounded-lg border border-slate-200 bg-white p-4">
+    <summary class="font-semibold">Where this differs from the 24 Sept greenfield section, and which assumptions it rests on</summary>
+    <div class="prose-p text-sm text-slate-700 mt-3">
+      <p>The 24 Sept report said to merge databases only if dual writes keep biting. They are biting: orphan recorder pages, cards that disagree with pages, best-effort contact linking. It said never adopt Workflows; the clip reconciler is now a hand-written state machine stored in JSON, driven by a cron sweep and <code>waitUntil</code>, which is what Workflows replaces. It put the typed router seam before the fold; the tree already has the route table, so fold first and let the router adopt it. It put one renderer "later"; on-page editing (WIL-3276 and WIL-3277) makes the React canvas the product, and every inline control widens the gap with the string renderer. It had no prospect read path at all.</p>
+      <p>Fast-moving assumptions. D1 read replication still needs the Sessions API and its beta status is unclear, so treat replicas as an experiment. Smart Placement's effect with D1 must be measured, which is why row 4 comes with <code>Server-Timing</code>. <code>_headers</code> rules on Static Assets have been reported to apply inconsistently when the Worker runs first, which is why row 3 excludes <code>/assets/*</code> from <code>run_worker_first</code>. Hono's typed client stays fast on a few hundred routes when split into sub-apps. Workflows and the Workers Vitest pool are GA and support the Vitest version this repo uses.</p>
+      <p>Where the panel did not agree. Opus and Fable would retire Convex for a Worker route; Astra would keep it until a replacement proves the per-workspace cap, expiry and reload recovery. I side with retiring it when streaming generation is built, and not before. Opus and Fable want a per-workspace Durable Object for realtime; Astra would start with polling. The Durable Object is the end state, but it is not in the next quarter's plan except as the push that replaces the processing page's full-page poll.</p>
+    </div>
+  </details>
+</section>
+
+<!-- CORE LOOP -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">The core loop, measured, and what instant would take</h2>
+  <p class="text-slate-600 max-w-3xl">Numbers from today's runs on staging and production. Lab runs came from Sweden, near the database, on a flaky local network, so field numbers carry more weight where both exist.</p>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>Step</th><th>Today</th><th>Target</th><th>What gets it there</th></tr>
+    <tr><td>Stop recording to a copyable link</td><td class="good">1.1 s</td><td>Keep</td><td>Already good. But the page lands in the root, is titled after the file (<code>ClarityRecordedVideo_….mp4</code> in the prospect's tab) and has no Library card.</td></tr>
+    <tr><td>Stop to a playable page for the prospect</td><td>10 to 13.5 s, with a bare "Video processing" spinner on a blank page</td><td>Title, sender and poster at once; plays when ready without a reload</td><td>Render the known page around the pending video; replace the full-page poll (every 5 to 30 s for 30 minutes) with a small readiness push or endpoint.</td></tr>
+    <tr><td>New page to a shareable link</td><td>3.8 s and 3 clicks; the link stays disabled until the first save, explained only on hover</td><td>Link exists when the editor opens</td><td>Client-minted page id and a tenant-scoped insert.</td></tr>
+    <tr><td>Edits reaching the prospect</td><td>Every autosave is live on the shared link</td><td>Only what the rep publishes</td><td>Draft and publish (WIL-3226), which is also the cache boundary for the snapshot.</td></tr>
+    <tr><td>Open a page in the editor</td><td>0.5 to 4.3 s</td><td>Under 1 s</td><td>Font specimens off the boot path; fetch the page at route match.</td></tr>
+    <tr><td>Home, cold and warm</td><td>1.0 to 1.2 s cold; warm no better; 91 requests, 12 API calls five levels deep</td><td>Warm under 400 ms</td><td>Immutable assets; identity and profile inlined in the shell; one <code>useCurrentUser</code>; stored page outlines instead of reading up to 200 page documents per load.</td></tr>
+    <tr><td>Prospect first byte</td><td class="leak">p50 818 ms, p75 1,321 ms on phones (real users)</td><td>About 50 ms from cache</td><td>Placement and <code>Server-Timing</code> now; publish snapshot from the edge cache next. <code>s-maxage</code> alone does nothing on a Worker response.</td></tr>
+    <tr><td>Bytes before the prospect taps play</td><td class="leak">2 to 11 MB on a phone</td><td>Poster only</td><td><code>preload="none"</code>, resized images, versioned CSS and script instead of 46 kB inlined per view.</td></tr>
+    <tr><td>Tap to first frame</td><td>711 ms median (980 on phones), better than Mux's customer average</td><td>Under 700 ms on phones</td><td>Warm the first player on intent.</td></tr>
+    <tr><td>Playback failures</td><td class="leak">15.8% of views (Mux average 4.9%); 29% on desktop Chrome; top error <code>demuxer_error_could_not_parse</code></td><td>At or below Mux average</td><td>Pin the player, then split Mux Data by player version and asset. Some failures were automation, so reproduce before changing anything.</td></tr>
+    <tr><td>Rep sees engagement</td><td>Only by opening a modal whose request re-reads every event for the video and rewrites up to 3,600 rows</td><td>A card badge within a second of a view</td><td>Rollups kept current on write; a Visit record tying page, video and contact; push from the workspace hub (WIL-3239).</td></tr>
+  </table>
+  </div>
+  <details class="rounded-lg border border-slate-200 bg-white p-4">
+    <summary class="font-semibold">Smaller rough edges seen during the runs</summary>
+    <ul class="list-disc pl-5 text-sm text-slate-700 mt-3 space-y-1">
+      <li>A portrait video sits in a 16:9 frame on a phone, using about a third of the width.</li>
+      <li>The editor preview shows "Section title" and "Add image or video" placeholders the prospect never sees, with no warning before sharing.</li>
+      <li>The save pill says "Up to date" for a page that does not exist yet and "Saved" after the first edit.</li>
+      <li>"image loading" text hides behind the "PAGE PREVIEW" chip.</li>
+      <li>Home card buttons take a click only after hover; a plain click lands on an overlay, which a tablet may never get past.</li>
+      <li>The app area is blank while route code and two identity requests load, and a transient identity failure sends the rep to login.</li>
+      <li>A walled account can load the editor and then get "Your trial has ended" on save, even when access came from a grant.</li>
+      <li>Only the first form on a page accepts submissions, and a retried submit inserts twice.</li>
+      <li>A trim that fails on the server keeps playing the old clip with no message (WIL-3453).</li>
+      <li>Contacts cannot remove the last email or phone, and CSV import stops halfway on the first error.</li>
+    </ul>
+  </details>
+</section>
+
+<!-- PLAN -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Ranked plan</h2>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>#</th><th>Work</th><th>Size</th><th>What it buys</th></tr>
+    <tr><td>1</td><td>The this-week bundle above</td><td>about 12 small PRs</td><td>Most of the prospect-visible gain; the Mux bill; two customer bugs</td></tr>
+    <tr><td>2</td><td>Fold, then merge into the app database</td><td>8 PRs</td><td>One deploy and rollback; page and Library in one transaction; previews off production</td></tr>
+    <tr><td>3</td><td>Revisions on pages, nodes and contacts; draft and publish</td><td>3 to 4 PRs, can start on pages before the merge</td><td>No silent overwrites or undeletes; autosave stops reaching prospects; the cache boundary for 6</td></tr>
+    <tr><td>4</td><td>Server-owned recording lifecycle and a typed <code>videos</code> table</td><td>4 to 5 PRs</td><td>The hottest bug area; closed-tab recordings kept; share pages that are real Library pages</td></tr>
+    <tr><td>5</td><td>Jobs table, vendor event inbox, vendor adapters with deadlines</td><td>3 PRs</td><td>Nothing stuck silently; a list of what is stuck</td></tr>
+    <tr><td>6</td><td>One React block renderer and a publish snapshot served from the edge cache</td><td>4 to 6 PRs</td><td>Fast prospect pages anywhere; blocks built once</td></tr>
+    <tr><td>7</td><td>Drizzle, Hono and a request context, module by module</td><td>6 to 8 PRs</td><td>A renamed column fails the build; identity read once per request</td></tr>
+    <tr><td>8</td><td>Real-runtime tests; delete the SQL-text fakes</td><td>2 to 3 PRs</td><td>CI tests the query, not a fake of it</td></tr>
+    <tr><td>9</td><td>Legacy video backfill, then delete the R2 video tiers and the response signing filter</td><td>data-gated</td><td>About 1,000 lines and cacheable API responses</td></tr>
+    <tr><td>10</td><td>Workspace hub and streaming generation; retire Convex</td><td>4 to 6 PRs</td><td>"Prospect viewing now"; block-by-block AI; one platform</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- DECISIONS -->
+<section class="space-y-3 max-w-3xl prose-p">
+  <h2 class="font-serif text-2xl">Decisions only you can make</h2>
+  <p><strong>Reopen the Worker fold (WIL-3165)?</strong> You deferred it on 21 Sept. The case for it is that the render Durable Object that justified the split was deleted the next day, three bugs found this pass live on the seam, and the work is mechanical. The case against is that it is eight PRs of plumbing before the recorder lifecycle gets full attention, and the database merge needs a short write freeze. My recommendation is yes.</p>
+  <p><strong>Stop moving things into Convex?</strong> WIL-3306 (email on Convex) and WIL-3309 (Library on Convex) point the other way from this plan. WIL-3309 in particular would split a page and its card across two platforms instead of two databases. My recommendation is to close both and replace Convex when streaming generation is built.</p>
+  <p><strong>Should shared pages stop changing while the rep edits?</strong> Today every autosave is live on a link a prospect may have open. A publish step fixes that and makes public pages cacheable, at the cost of one more button. My recommendation is yes, with publish as the default action after the first save so the fast path stays one click.</p>
+  <p><strong>The unused <code>stops_billing</code> flag on access grants.</strong> It is stored and shown in support tools, set to false everywhere, and read by nothing. Either it should cancel billing when a grant starts, or it should go.</p>
+</section>
+
+<!-- SINCE LAST -->
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">What happened to the 24 Sept candidates</h2>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table>
+    <tr><th>Candidate</th><th>Status</th><th>Note</th></tr>
+    <tr><td>01 Mux video lifecycle</td><td>Partly</td><td>Reads now ask Mux instead of waiting for the webhook; a direct video delete tries Mux cleanup. Closed-tab uploads, folder deletes and failed deletes still orphan assets.</td></tr>
+    <tr><td>02 Page store with revisions and a scoped list</td><td>Untouched</td><td>Delete now disables routes in the same batch (WIL-3412). The save still undeletes.</td></tr>
+    <tr><td>03 One access, token and rate-limit module</td><td>Not assessed publicly</td><td>In chat.</td></tr>
+    <tr><td>04 Previews get their own data</td><td>Partly</td><td>The tree has a preview database; the three router databases are production.</td></tr>
+    <tr><td>05 One failure sink, timeouts</td><td>Partly</td><td>Sentry covers all four Workers and the browser. Four vendor calls still have no timeout; Convex has no sink.</td></tr>
+    <tr><td>06 Docs match code</td><td>Partly</td><td>Stale docs purged. Still wrong: the tree cron comment, two skills on previews and deploy failures, DESIGN.md calling the public page static.</td></tr>
+    <tr><td>07 Typed router seam</td><td>Untouched</td><td>WIL-3401.</td></tr>
+    <tr><td>08 Fold workers</td><td>Untouched</td><td>Deferred on 21 Sept.</td></tr>
+    <tr><td>09 One home per concept</td><td>Untouched</td><td>The accounts program added grants and an audited support path, which is the right direction for access.</td></tr>
+    <tr><td>10 One renderer</td><td>Untouched</td><td></td></tr>
+    <tr><td>11 React Query as the only cache</td><td>Partly</td><td>The tree uses Query; five other layers remain.</td></tr>
+    <tr><td>12 Real packages, tests near owners, SQLite</td><td>Partly</td><td>workspace-tree has a real-SQLite adapter with a D1 contract test. Packages still have no manifests; 103 editor test files import Worker code.</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- SOUND -->
+<section class="space-y-3 max-w-3xl">
+  <h2 class="font-serif text-2xl">Checked and sound</h2>
+  <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+    <li>The vendor set, and pure Mux for video.</li>
+    <li><code>decideEntitlement</code> as one pure rule, and the <code>access_grants</code> schema with its CHECK constraints and partial unique index.</li>
+    <li><code>resolvePlayback</code> as the only playback decision.</li>
+    <li>The block document with durable block ids, shared by editor, Worker and generation.</li>
+    <li>The Mux client: branded ids, parsed facts, fixed asset settings the browser cannot change. Raw-body webhook verification. Read-time settlement so nothing depends on the webhook arriving.</li>
+    <li>Node metadata compare-and-swap with a typed result and a lint behind it. Video tombstones that stop a replayed claim from recreating a deleted node.</li>
+    <li>workspace-tree's route table with declared access per route. The router should copy it.</li>
+    <li>Stripe subscription writes ordered by event time, with a 503 on a failed write so Stripe retries.</li>
+    <li>The analytics outbox's same-transaction triggers, deterministic event ids and 90-day pruning.</li>
+    <li>The trial wall failing open on a database error rather than locking everyone out.</li>
+    <li>The CI gate on the exact commit, the invariants script, and the ratchets holding debt flat.</li>
+    <li>Sentry in all four Workers and the browser, with scrubbing.</li>
+  </ul>
+</section>
+
+<!-- METHOD -->
+<section class="space-y-3 max-w-3xl">
+  <h2 class="font-serif text-2xl">How this was done</h2>
+  <div class="prose-p text-sm text-slate-700">
+    <p>Six read-only explorers on GPT-6 Sol covered the router and billing, video and Library, pages and rendering, the editor, data and consistency, and delivery. One Opus lane built the editor, timed three most-viewed public pages on production without signing in, drove staging with the QA account (and deleted what it created), and pulled Mux Data, RUM and Cloudflare Worker metrics for the last seven days. A Fable lane merged everything into one explanation and checked the most consequential claims. Fable 5.1, Opus 5.5 and GPT-6 Astra then critiqued it independently. Fix-commit history since 1 Sept was used to see where bugs actually land: the recorder route, the tree's HTTP adapter and the video readiness files lead.</p>
+    <p>Corrections made along the way. Checkout sessions are created without an idempotency key (the synthesis said otherwise). <code>handleAppApiProxy</code> is live, not legacy. The public string renderer is about 1,560 lines, not 3,800; the larger figure is the whole delivery directory. The r2-media cron explanation and the geography behind the field TTFB gap are inferences; each has a one-day check in the plan.</p>
+  </div>
+</section>
+
+</main>
+</body>
+</html>
