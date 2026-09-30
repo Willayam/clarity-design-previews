@@ -21,7 +21,7 @@ th{background:#f3f6fa;font-weight:600}
 main>p:first-of-type{color:var(--muted)}
 </style></head><body><main>
 <h1>Agents on Clarity</h1>
-<p>A recommended design for letting an AI agent do everything a Clarity user can do. Written 2026-09-30. Nothing here is built yet. Every decision in the last section is yours to make.</p>
+<p>A recommended design for letting an AI agent do everything a Clarity user can do. Written 2026-09-30. Nothing here is built yet. The open decisions are listed under Decisions for you.</p>
 <h2>The short answer</h2>
 <p>Build one set of Clarity operations on the server, and put a remote MCP server in front of it first. Claude Code, Codex, Cursor, ChatGPT and claude.ai all connect to that one MCP server over OAuth. The <code>clarity</code> CLI comes second, as a client of the same operations, because it is cheaper in tokens for the agents that have a shell.</p>
 <p>Use WorkOS for the OAuth part. AuthKit already works as the authorization server for MCP clients, and Clarity users already are WorkOS users, so an agent signs in with the same account and the same password or Google login. Clarity keeps one small table of its own that says what each connected agent may do and lets you revoke it instantly.</p>
