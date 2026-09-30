@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR 842: a read asks Mux instead of waiting for the webhook</title>
+<style>
+  body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0 auto; max-width: 860px; padding: 24px 16px 64px; color: #111; }
+  h1 { font-size: 22px; line-height: 1.3; }
+  h2 { font-size: 18px; margin-top: 36px; }
+  img { max-width: 100%; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 8px 0 4px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+  .cap { font-size: 14px; color: #555; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td, th { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; vertical-align: top; }
+  pre { background: #f6f6f6; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  .red { color: #b91c1c; font-weight: 600; } .green { color: #15803d; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>PR 842: a stuck "Preparing video" take settles on the next read, no webhook needed</h1>
+<p>Staging, 2026-09-30. One test video, <code>smoke-upload-video-1790759819718</code>, was put into the exact stored shape of the five stuck production takes (<code>mux_pending: true</code>, no duration) after Mux had long finished it and after its webhook had already been delivered. No webhook arrives for it again, so whatever settles it is a read.</p>
+
+<h2>Before: main's code</h2>
+<div class="pair">
+  <div><img src="red-card.png" alt="Library card showing PREPARING VIDEO"><div class="cap"><span class="red">Red.</span> Card on main's workspace-tree (staging router ecc379cb). Six samples over two minutes, all "Preparing video", duration null. Harness exit 1.</div></div>
+  <div><img src="mixed-modal.png" alt="Edit Video modal saying Playback unavailable"><div class="cap"><span class="red">Red.</span> The Edit modal on a first branch build that settled the card but left the old flag in place. Main's editor still read it, so the fix now clears it.</div></div>
+</div>
+
+<h2>After: the branch's workspace-tree</h2>
+<div class="pair">
+  <div><img src="green-card.png" alt="Library card with duration 0:02 and no preparing badge"><div class="cap"><span class="green">Green.</span> The first library read after a reset answers ready, with duration 1.866978 s written and <code>mux_pending</code> cleared. In my run the reset landed at 11:36:47 and the D1 row's <code>updated_at</code> became 11:36:52.684, inside that first read. The independent run's first read after its reset (11:39:21) was ready too; this card is from its second session.</div></div>
+  <div><img src="green-modal.png" alt="Edit Video modal showing the video frame"><div class="cap"><span class="green">Green.</span> The Edit modal plays it: readyState 4, currentTime 0.0012 s to 1.51 s over 1.5 s. Independent re-run by a separate Codex agent (gpt-6-astra): VERIFIED.</div></div>
+</div>
+
+<h2>Fresh recording on the branch</h2>
+<p>One real 10 s camera take (screenshots withheld, they show a person). The create response read <code>preparing</code> with no <code>mux_pending</code> key; the first library sample read ready with duration 10.07 s; the Edit modal played (currentTime 0.002 s to 1.514 s). Staging delivers Mux webhooks, so this run cannot tell which writer settled it; the reset video above is the no-webhook case.</p>
+
+<h2>Repro test: <code>workers/workspace-tree/tests/mux-video-settles-on-read.test.ts</code></h2>
+<p class="red">On main (5 of 6 fail):</p>
+<pre>× reads as playable once Mux has the asset ready, with no webhook
+× keeps what it learned, so the next read does not ask Mux again
+× still answers the listing when Mux is down, and asks again next time
+× learns the asset of a take claimed before its upload finished
+× reads as failed when the upload died before Mux made an asset</pre>
+<p class="green">On the branch: 14 of 14 pass, workspace-tree suite 178 of 178, editor suite 2543 of 2543.</p>
+
+<h2>What was deployed</h2>
+<table>
+  <tr><th>Piece</th><th>Build</th></tr>
+  <tr><td>workspace-tree (staging)</td><td>branch fix/mux-readiness-from-mux b5bf5738a, version 632cf17d. Rolled back to 39450362 afterwards, because staging belongs to another agent's branch today.</td></tr>
+  <tr><td>router and editor (staging)</td><td>accounts/boardroom-offer 21be066d, main's Mux code. The green run is on this mixed deploy, which is also what production sees for a few minutes during a stack deploy.</td></tr>
+</table>
+</body>
+</html>
