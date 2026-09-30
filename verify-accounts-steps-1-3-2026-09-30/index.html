@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Verify: accounts steps 1 and 3 on staging</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-900"><main class="max-w-4xl mx-auto p-5 space-y-8">
+<section class="rounded-xl bg-emerald-600 text-white p-5">
+<p class="text-2xl font-semibold">VERIFIED on staging</p>
+<p class="mt-1">PR #838 (step 1) and PR #839 (step 3, stacked). Target https://staging.clarity.video at commit 9a9a0b0b, doctor green. Evidence run by the author, then an independent check by a fresh agent: VERIFIED. 2026-09-30.</p>
+</section>
+<section><h2 class="text-xl font-semibold mb-3">Checks</h2>
+<table class="w-full text-sm bg-white rounded-xl overflow-hidden"><thead class="bg-slate-100 text-left"><tr><th class="p-2">Check</th><th class="p-2">Result</th><th class="p-2">Note</th></tr></thead><tbody class="divide-y">
+<tr><td class="p-2">Migration 0018 backfill on staging</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">114 users with an end date, 114 grants (104 trial, 10 complimentary). Applied deliberately with allow_branch_migrations.</td></tr>
+<tr><td class="p-2">Signup writes a 14-day trial grant</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Both runs: one grant, source signup, ends 14 days after creation.</td></tr>
+<tr><td class="p-2">Activate is gone</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Row menu shows Billing, Access account, Grant access, Change email. POST /activate is 404.</td></tr>
+<tr><td class="p-2">Grant access through the admin dialog</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Complimentary (author run) and Included with payer (independent run) through the real UI. One grant row and one audit row with before walled, after allowed. users.kind and expiration_date unchanged.</td></tr>
+<tr><td class="p-2">End of day in Los Angeles</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Dec 31 stored as 2027-01-01T07:59:59.999Z; Nov 15 as 2026-11-16T07:59:59.999Z.</td></tr>
+<tr><td class="p-2">Replay and refusals</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Same command id returns the stored result and writes nothing, also under three parallel requests; reuse on another account is 409. Past date, missing note, payer rules and bad input are 400.</td></tr>
+<tr><td class="p-2">Walled user takedown</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Edit and publish 402. Set private 200, then the public link 404. Delete page 200, delete tree node 200. App shell redirects to /trial-expired. Control: the same request on main returned 402.</td></tr>
+<tr><td class="p-2">Grant restores access</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">App shell and page edits return 200 after the grant.</td></tr>
+<tr><td class="p-2">Stripe events do not erase a grant</td><td class="p-2 text-emerald-700">pass (partial)</td><td class="p-2">Test-mode checkout, then cancel at period end in the portal: grants, kind and date unchanged. An immediate-delete event was not produced; unit-tested only.</td></tr>
+<tr><td class="p-2">Paid then comped customer screen</td><td class="p-2 text-emerald-700">pass after fix</td><td class="p-2">Found by the independent check: showed "Cancelled, access until" the period end with Reactivate. Fixed in 9a9a0b0b; now shows included access until Feb 1, 2027, no Reactivate.</td></tr>
+<tr><td class="p-2">Access dates by time zone</td><td class="p-2 text-emerald-700">pass after fix</td><td class="p-2">Showed a day late east of Los Angeles. Now formatted in Los Angeles; same date in LA and Stockholm.</td></tr>
+<tr><td class="p-2">/boardroom noindex</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">robots noindex on staging; /tony has none. Sitemap: staging serves no sitemap, so the check ran against branch source (7 entries, no /boardroom).</td></tr>
+<tr><td class="p-2">Impersonated billing write is 403</td><td class="p-2 text-amber-700">not run live</td><td class="p-2">Needs a WorkOS dashboard impersonation session. Unit-tested.</td></tr>
+<tr><td class="p-2">Staging critical e2e suite</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">2 of 2 at 15c31c30 and again at 9a9a0b0b.</td></tr>
+<tr><td class="p-2">Root pnpm test, lint, typecheck, LOC ratchet</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Editor 2,496 tests, router 53, workspace-tree 171. Test type errors 275, budget lowered from 310.</td></tr>
+<tr><td class="p-2">Console and network</td><td class="p-2 text-emerald-700">pass</td><td class="p-2">Every failed request and console error is a deliberate refusal probe (400, 404, 409). No app errors.</td></tr>
+</tbody></table></section>
+<section><h2 class="text-xl font-semibold mb-3">Before and after: paying customer moved to free</h2>
+<div class="grid md:grid-cols-2 gap-4">
+<figure><img class="rounded-lg border" src="img/ind-44-before-fix.png"><figcaption class="text-sm mt-1">Before 9a9a0b0b. Subscription cancelled at period end plus a complimentary grant to Feb 1. The screen said cancelled with a Reactivate button.</figcaption></figure>
+<figure><img class="rounded-lg border" src="img/08-paid-then-comped-Stockholm.png"><figcaption class="text-sm mt-1">After. Same account, viewed in Stockholm time. Included, access until February 1, 2027, no Reactivate.</figcaption></figure>
+</div></section>
+<section><h2 class="text-xl font-semibold mb-3">Screenshots</h2><div class="grid md:grid-cols-2 gap-4">
+<figure><img class="rounded-lg border" src="img/01-row-menu-no-activate.png"><figcaption class="text-sm mt-1">/admin/users row menu. No Activate; Extend is now Grant access.</figcaption></figure>
+<figure><img class="rounded-lg border" src="img/06-settings-included.png"><figcaption class="text-sm mt-1">Customer Settings after an Included grant named "Boardroom sponsor". Screenshot taken before the time zone fix, so the date reads August 1.</figcaption></figure>
+<figure><img class="rounded-lg border" src="img/07-paid-then-comped-LA.png"><figcaption class="text-sm mt-1">Paid then comped customer, Los Angeles time, after the fix.</figcaption></figure>
+</div><p class="text-sm text-slate-600 mt-3">Screenshots showing test account email addresses (the Grant access dialog, the save notice, the Stripe portal) stay in the local evidence folders and are not published here.</p></section>
+<section class="text-sm text-slate-600"><h2 class="text-xl font-semibold mb-2 text-slate-900">Environment notes</h2>
+<p>The scheduled "Staging Follows Main" workflow redeployed main to staging at 08:55Z, mid-run. The independent check caught it, redeployed the branch and re-ran everything. Fixture accounts created by this run stay on staging as test data.</p></section>
+</main></body></html>
