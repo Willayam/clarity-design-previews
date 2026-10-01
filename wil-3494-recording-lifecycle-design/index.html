@@ -1,0 +1,938 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WIL-3494 design: server-owned recording lifecycle</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:20px;background:#f6f7f9;color:#111;line-height:1.5}
+main{max-width:1100px;margin:0 auto}
+section.card{background:#fff;border:1px solid #e3e5e8;border-radius:10px;padding:16px 20px;margin:0 0 18px}
+section.signoff{border-color:#c7d7fe;background:#f5f8ff}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:18px;margin:22px 0 8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px} h3{font-size:16px;margin:16px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;display:block;overflow-x:auto} th,td{border:1px solid #e5e7eb;padding:5px 7px;vertical-align:top;text-align:left} th{background:#f3f4f6}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#f3f4f6;padding:1px 4px;border-radius:4px}
+pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12.5px;line-height:1.45} pre code{background:none;color:inherit;padding:0}
+details{margin:10px 0} summary{cursor:pointer;font-weight:600}
+.toc ul{margin:4px 0 4px 18px;padding:0} .toc li{margin:2px 0;font-size:14px}
+@media (max-width:600px){body{padding:10px} section.card{padding:12px}}
+</style></head><body><main>
+<section class="card signoff"><h1 id="wil-3494-design-the-server-owns-every-recording">WIL-3494 design: the server owns every recording</h1>
+<p>Linear: <a href="https://linear.app/cocco/issue/WIL-3494/server-owned-recording-lifecycle-and-a-typed-videos-table">WIL-3494</a>. Status: <strong>waiting for your sign-off</strong>. No migration or code PR starts until you approve it.</p>
+<h2 id="the-decision">The decision</h2>
+<p>Today the browser tab runs the recording's transaction. The server only learns a take exists when the tab claims it after Stop, so every closed tab, dropped request or race leaves a stranded take or an error on screen.</p>
+<p>This design flips that around:
+- <strong>The server creates the video when you press Record.</strong> The video, its Library entry and its share page are created in one database transaction. A take therefore always has its link, or nothing exists at all.
+- <strong>Facts get their own table.</strong> What Mux and the server know (upload, asset, readiness, duration, poster, clip, timestamps) moves from a 169-key JSON blob into a typed <code>videos</code> table that no browser request can write. The JSON keeps only what the rep edits.
+- <strong>One module owns the lifecycle.</strong> A module with five methods (grant, finish, observe, settle, discard) decides every state change through one tested state table. The webhook, read-time settling and a nightly Mux inventory all feed that same table.
+- <strong>The recorder becomes thin.</strong> It keeps a take's bytes on disk until the server says the video is ready. The only message it can still show is "Couldn't upload your recording", and only when Mux rejected the content, with no dead-end Try again. Everything else retries quietly, and the browser's own "Leave site?" prompt is the only warning, shown only while closing would lose work.</p>
+<h2 id="what-reps-notice">What reps notice</h2>
+<p>Nothing new on screen. The share-link, save and size errors are already gone (shipped today: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/900">#900</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/901">#901</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/903">#903</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/902">#902</a>; see the <a href="https://willayam.github.io/clarity-design-previews/record-video-states/">states page</a>). After this program, a closed tab, a lost connection or Mux being slow no longer strands a take. The upload error appears only for content Mux cannot use.</p>
+<h2 id="what-you-are-approving">What you are approving</h2>
+<ul>
+<li><strong>A schema change to the videos data.</strong></li>
+<li>A new <code>videos</code> table and a rebuilt <code>jobs</code> table, so clips and Mux deletions become retried jobs.</li>
+<li>A backfill of 7,515 production videos, gated on zero differences.</li>
+<li>A final shrink of the old JSON. Every row's original JSON is archived first, and the shrink is blocked if any of the 169 keys is unmapped.</li>
+<li><strong>Nine stacked PRs, expand then flip,</strong> each proven on staging. Effort is about 33 to 51 engineer-days. Old tabs keep working for their 7 days, and old recovery journals keep working indefinitely.</li>
+<li><strong>A nightly Mux inventory</strong> that reports only, until you have seen a week of its reports. After that it deletes orphaned Mux objects tagged with its own environment.</li>
+</ul>
+<h2 id="questions-only-you-can-answer">Questions only you can answer</h2>
+<ol>
+<li>Should a take still being recorded show in the Library? The default is yes, as "processing".</li>
+<li>When Mux rejects a take, should the recorder drop the stale detail line ("It's still safe in this tab. Check your connection...") and the Try again button? That removes copy, it doesn't add any.</li>
+<li>How long should an upload stay open? This needs a probe of Mux's timeout before PR 5. A 12-hour take needs about 13 hours.</li>
+<li>When should never-finished takes be swept? The default is 14 days.</li>
+<li>When should the inventory delete, and what happens to preview environments? The default is after two completed scans plus 48 hours, and never for untagged objects.</li>
+<li>Should the poster be the browser's frame grab or Mux's still? The black-poster history argues for Mux.</li>
+<li>Where should a failed trim clip show outside the recorder, using existing copy?</li>
+<li>Analytics: count a video as added when it is finished (this design), or at Record?</li>
+<li>Should a 403 count as a terminal rejection or a pause?</li>
+</ol>
+<h2 id="how-the-design-was-made">How the design was made</h2>
+<ol>
+<li>An investigation mapped today's flow, the 12 ways a take strands, the data and the open tickets (section links below).</li>
+<li>Three models designed it independently: Fable, GPT-6 Astra and Opus.</li>
+<li>A cross-judge scored them. I based the synthesis on the smallest sound design (Opus) and grafted in Astra's correctness fixes.</li>
+<li>Three models then reviewed the result adversarially. They agreed on five real defects, and the revision fixes all of them (see "Interrogate review" below).</li>
+<li>A recheck confirmed 17 of 23 items fixed and none missed. It found one new defect in the order the grant checks for retries, which is now fixed, along with five partial items.</li>
+</ol>
+<p>The full design follows. The type sketch is at the bottom.</p></section>
+<section class="card"><details><summary>Contents</summary><div class="toc"><div class="toc">
+<ul>
+<li><a href="#wil-3494-design-server-owned-recording-lifecycle-and-a-typed-videos-table">WIL-3494 design: server-owned recording lifecycle and a typed videos table</a><ul>
+<li><a href="#problem">Problem</a></li>
+<li><a href="#usage-callers-view">Usage (caller's view)</a></li>
+<li><a href="#shape">Shape</a><ul>
+<li><a href="#load-bearing-decisions">Load-bearing decisions</a></li>
+<li><a href="#data-shape">Data shape</a></li>
+<li><a href="#the-fate-of-todays-keys">The fate of today's keys</a></li>
+<li><a href="#the-state-machine">The state machine</a></li>
+<li><a href="#jobs-and-inventory">Jobs and inventory</a></li>
+<li><a href="#the-recorder-and-the-uploader-as-thin-clients">The recorder and the uploader as thin clients</a></li>
+<li><a href="#module-home-and-the-share-page-port">Module home and the share-page port</a></li>
+<li><a href="#sequences">Sequences</a></li>
+<li><a href="#acceptance-criteria">Acceptance criteria</a></li>
+<li><a href="#security-note">Security note</a></li>
+</ul>
+</li>
+<li><a href="#synthesis-decision">Synthesis decision</a></li>
+<li><a href="#interrogate-review">Interrogate review</a></li>
+<li><a href="#tradeoffs-accepted">Tradeoffs accepted</a></li>
+<li><a href="#alternatives-considered">Alternatives considered</a></li>
+<li><a href="#open-questions-for-william">Open questions for William</a></li>
+<li><a href="#the-pr-stack">The PR stack</a></li>
+<li><a href="#next-implementation-step">Next implementation step</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div></details><h1 id="wil-3494-design-server-owned-recording-lifecycle-and-a-typed-videos-table">WIL-3494 design: server-owned recording lifecycle and a typed videos table</h1>
+<p>Synthesized from the architect arena (base Opus, grafts per <code>arena/SYNTHESIS.md</code>), revised against <code>interrogate/VERDICT.md</code>. Path prefixes follow <code>investigation.md</code>: <code>E/</code> is <code>editor/src/</code>, <code>W/</code> is <code>workers/workspace-tree/src/</code>, <code>R/</code> is <code>workers/frontend-router/src/</code>, <code>M/</code> is <code>workers/frontend-router/migrations-auth/</code>.</p>
+<h2 id="problem">Problem</h2>
+<p>The browser runs the take's transaction today. It mints the take, asks Mux for an upload, claims a node after Stop, polls for about 88 s, writes metadata twice and then deletes its journal (<code>investigation.md</code>, section 1). The server learns a take exists only at the claim (<code>W/mux-video-ingest.ts:297-331</code>), and the share page commits in a second batch that can fail after the first committed (<code>R/video-share-page.ts:180-204</code>). Every stranded state in rows A to L follows from one of three facts. The server has no row yet (C, D, L). The row and the page commit apart (F). The browser decides a take is done (J, WIL-3451).</p>
+<p>Constraints the shape honors: one database with <code>db.batch</code> and no branching on reads; the node id <code>asset:&lt;ws&gt;:video:&lt;firstUploadId&gt;</code> and <code>asset_id = firstUploadId</code> baked into pages and documents; six endpoints old tabs call for 7 days; v1 journals that outlive deploys; a 255-character passthrough; one Mux environment (Spike) shared by staging and previews; no new recorder UI or copy; the Library running in-process in the router with router-only functions (<code>docs/SECURITY.md:13</code>); and a second grant client, the Library file uploader (<code>E/lib/workspace-asset-upload.ts:141-158</code>), which shares the grant and claim endpoints.</p>
+<h2 id="usage-callers-view">Usage (caller's view)</h2>
+<p>One module, <code>W/video-lifecycle.ts</code>, inside the Library. Every actor that learns something about a take calls it. None of them write or read video SQL.</p>
+<pre><code class="language-ts">const videos = library.videos;   // createLibrary({ ..., sharePages }) builds it per request and per cron tick
+
+// Router, POST /api/tree/media/mux/uploads (recorder Start, Library upload, journal recovery, retry grant)
+const granted = await videos.grant(scope, { kind: 'recording', clientKey, parentId, retryOf: body.retryOfUploadId ?? null });
+//  -&gt; granted {take, upload} | received {take} | rejected {take} | discarded {take}
+//  Never 409, never retry_unavailable. The same clientKey replays the same take and the same uploadUrl.
+
+// Router, POST /api/tree/media/videos/mux-original (recorder Stop, uploader finish, old tabs' claim and settle poll)
+const take = await videos.finish(scope, videoId, { title, parentId, posterUrl, filename, captureStartedAt, captureStoppedAt });
+
+// Mux webhook (after the HMAC check), settle-on-read and the nightly inventory share one entry
+for (const o of videos.observationsFrom(verifiedRef, facts)) await videos.observe(o);
+//  contended -&gt; 503 so Mux redelivers (WIL-3426); missing or foreign namespace -&gt; 200, counted
+
+// Library delete, recorder Re-record, uploader cancel, the sweep; folder delete uses the set-based form
+await videos.discard(scope, videoId, 'rep');
+await videos.discardMany(scope, subtreeVideoIds, 'library_delete');   // statements for the subtree batch
+</code></pre>
+<p>The recorder sees only <code>TakeView</code>, derived from the row and never stored.</p>
+<pre><code class="language-ts">type TakeView = {
+  videoId: VideoId; shareUrl: string | null;    // null for Library uploads, which have no page
+  muxHasBytes: boolean;        // an asset exists; closing the tab loses nothing, so atRisk clears
+  journalReleasable: boolean;  // true at ready; the only thing that deletes a journal besides discard
+  playable: boolean;
+  rejection: null | 'unplayable';   // terminal content rejection; the only cause of &quot;Couldn't upload&quot;
+  discarded: boolean;               // reset the recorder, delete the journal; not a problem row
+};
+</code></pre>
+<p>The thin recorder in the editor:</p>
+<pre><code class="language-ts">const take = createRecorderTake({ api, journal, editSaver });   // module scope; survives SPA navigation
+take.start(parentId);    // grant in background, keyed by the journal session id; capture never waits on it
+take.stop();             // finish (pending until acknowledged) + final chunk; the link came from the grant
+take.atRisk();           // the only input to beforeunload
+take.view();             // TakeView | null, polled while !journalReleasable
+take.discard();          // Re-record
+</code></pre>
+<p>The router hands the Library one narrow port so the page can join the take's batch without an upward import:</p>
+<pre><code class="language-ts">const sharePages: SharePagePort = { newTakePage: (input) =&gt; ({ pageId, shareUrl, statements }) };
+</code></pre>
+<h2 id="shape">Shape</h2>
+<h3 id="load-bearing-decisions">Load-bearing decisions</h3>
+<ol>
+<li>The server creates the take at grant for every request that carries a <code>clientKey</code> (the thin recorder's journal session id, the uploader's existing <code>clientId</code>). Requests without a key (old tabs) keep creation at the claim, through adoption. The creation batch is one plain <code>INSERT</code> into <code>videos</code> plus the node and, for recordings, the page draft, publication and route from the port. A conflict on <code>client_key</code> or <code>node_id</code> aborts the whole batch, port statements included; the caller re-reads by key and replays. No <code>ON CONFLICT DO NOTHING</code> on creation, so a losing grant leaves no companion rows. Its Mux upload is enqueued for <code>mux_discard</code>.</li>
+<li>Delivery is what Mux has (<code>uploading</code>, <code>processing</code>, <code>ready</code>, <code>failed</code>, <code>stalled</code>). The rep's two acts are stamps on the row, <code>finished_at</code> and <code>discarded_at</code>, independent of delivery. No asset event touches them. <code>failed</code> is a content rejection, which is terminal. <code>stalled</code> means no usable asset and bytes can still revive the take.</li>
+<li>Every upload-sourced observation is fenced on <code>current_upload_id</code>; a regrant is fenced on the upload it replaces (<code>retryOf</code>). <code>current_upload_id</code> and <code>upload_generation</code> stay on the row through <code>processing</code>. Legacy imports have no upload provenance, and upload-sourced transitions refuse them.</li>
+<li>One pure reducer, <code>transition(video | null, event, now)</code>, returns <code>applied {next, effects}</code>, <code>noop</code> or <code>refused {reason}</code>. The shell writes <code>UPDATE videos ... WHERE node_id = ? AND rev = ?old</code> and every effect in the batch is <code>INSERT ... SELECT ... WHERE (SELECT rev FROM videos WHERE node_id = ?) = ?new</code>. Job effects are <code>ON CONFLICT DO NOTHING</code>. Three lost CAS tries return <code>contended</code>. <code>refused</code> reaches the caller so the saver can retry instead of losing intent.</li>
+<li>Effects are rows, never calls. Mux mutations happen only in job runners. Mux reads happen only in <code>grant</code>, <code>settle</code> and the inventory, and come back in through <code>observationsFrom</code> and <code>observe</code>.</li>
+<li>Typed facts, intent JSON. <code>videos</code> holds every fact the server owns. <code>workspace_nodes.metadata</code> keeps an allowlist of intent keys. One projection at the store's read boundary, a <code>json_set</code> fenced on <code>rev</code>, merges typed columns back into the legacy keys until old tabs are gone.</li>
+</ol>
+<h3 id="data-shape">Data shape</h3>
+<pre><code class="language-sql">-- M/0029_videos.sql (expand; 0028 is the jobs rebuild, below)
+CREATE TABLE videos (
+  node_id             TEXT PRIMARY KEY,   -- asset:&lt;ws&gt;:video:&lt;firstUploadId&gt;; outlives the node as the tombstone
+  workspace_id        TEXT NOT NULL,
+  owner_id            TEXT NOT NULL,
+  kind                TEXT NOT NULL CHECK (kind IN ('recording','upload','import')),
+  client_key          TEXT,               -- journal session id or uploader clientId; NULL for adopted and legacy rows
+  source_upload_id    TEXT,               -- = workspace_nodes.asset_id; NULL for legacy imports
+  current_upload_id   TEXT,               -- the upload the take waits on; NULL only for legacy imports
+  upload_generation   INTEGER NOT NULL DEFAULT 1 CHECK (upload_generation &gt;= 1),
+  upload_url          TEXT,               -- private credential; NULL once Mux has an asset or on discard; never logged
+  delivery            TEXT NOT NULL CHECK (delivery IN ('uploading','processing','ready','failed','stalled')),
+  mux_asset_id        TEXT,               -- stalled may keep the last errored or lost asset; see the table
+  mux_playback_id     TEXT,
+  duration_seconds    REAL,
+  aspect_ratio        TEXT,
+  error               TEXT,
+  poster_url          TEXT,
+  thumbnail_url       TEXT,
+  poster_generated_at TEXT,
+  clip_revision       INTEGER NOT NULL DEFAULT 0,  -- bumped by the reducer when the manifest's trim changes
+  clip_asset_id       TEXT,
+  clip_playback_id    TEXT,
+  clip_start_seconds  REAL,
+  clip_end_seconds    REAL,
+  original_filename   TEXT,               -- page-name fallback, R/video-share-page.ts:300
+  content_type        TEXT,
+  library_hidden      INTEGER NOT NULL DEFAULT 0 CHECK (library_hidden IN (0, 1)),
+  share_page_id       TEXT,
+  edit_committed_at   TEXT,               -- server-stamped, W/video-edit-routes.ts:125
+  rev                 TEXT NOT NULL,
+  granted_at          TEXT NOT NULL,      -- server time
+  capture_started_at  TEXT,               -- client telemetry, labelled as such
+  capture_stopped_at  TEXT,               -- client telemetry
+  finished_at         TEXT,               -- server time of the first finish; the Stop stamp
+  asset_created_at    TEXT,
+  ready_at            TEXT,
+  discarded_at        TEXT,
+  updated_at          TEXT NOT NULL,
+  CHECK (delivery NOT IN ('processing','ready') OR mux_asset_id IS NOT NULL),
+  CHECK (delivery &lt;&gt; 'uploading' OR mux_asset_id IS NULL),
+  CHECK (delivery &lt;&gt; 'ready' OR mux_playback_id IS NOT NULL),
+  CHECK ((clip_asset_id IS NULL) = (clip_playback_id IS NULL))
+);
+CREATE UNIQUE INDEX videos_client_key ON videos (workspace_id, client_key) WHERE client_key IS NOT NULL;
+CREATE INDEX videos_unsettled  ON videos (workspace_id, updated_at) WHERE delivery IN ('uploading','processing') AND discarded_at IS NULL;
+CREATE INDEX videos_unfinished ON videos (workspace_id, granted_at) WHERE finished_at IS NULL AND discarded_at IS NULL;
+CREATE INDEX videos_by_asset   ON videos (mux_asset_id);
+CREATE INDEX videos_by_upload  ON videos (current_upload_id);
+CREATE INDEX videos_by_page    ON videos (share_page_id);
+
+CREATE TABLE video_metadata_archive (     -- the full original JSON, verbatim, never read by product code
+  node_id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, metadata TEXT NOT NULL,
+  source_digest TEXT NOT NULL, archived_at TEXT NOT NULL
+);
+CREATE TABLE mux_inventory_scans (        -- resumable cursors, advanced by the minute cron
+  namespace TEXT NOT NULL, scan_id TEXT NOT NULL, kind TEXT NOT NULL CHECK (kind IN ('upload','asset')),
+  cursor TEXT, started_at TEXT NOT NULL, completed_at TEXT, PRIMARY KEY (namespace, scan_id, kind)
+);
+CREATE TABLE mux_inventory_objects (      -- one row per Mux object this namespace has seen
+  namespace TEXT NOT NULL, kind TEXT NOT NULL, object_id TEXT NOT NULL,
+  class TEXT NOT NULL CHECK (class IN ('live','stray','orphan','foreign','unknown')),
+  first_seen_at TEXT NOT NULL, completed_scans_seen INTEGER NOT NULL DEFAULT 0, last_scan_id TEXT,
+  PRIMARY KEY (namespace, kind, object_id)
+);
+-- Owner-scoped source uniqueness replaces the global index (M/0020_page_tables.sql:33-35). The same PR
+-- scopes findJourneyPageBySourceVideoId and its callers by owner (R/public-page-delivery/journey-page-content-store.ts:363-379).
+CREATE UNIQUE INDEX journey_pages_source_by_owner ON journey_pages (owner_id, source_video_id)
+  WHERE source_video_id IS NOT NULL AND deleted_at IS NULL;
+
+-- M/0028_jobs_kinds.sql: SQLite cannot alter a CHECK, so rebuild jobs as 0026 did.
+--   kind CHECK IN ('journey_page_generation','mux_clip','mux_discard');
+--   not_before INTEGER NOT NULL DEFAULT 0;   -- backoff: lease released (lease_until NULL, state 'running'
+--                                            --   relaxed to allow it), not_before in the future
+--   failures   INTEGER NOT NULL DEFAULT 0;   -- spends the budget; attempts stays the lease fence
+--   dedupe_key TEXT UNIQUE;                  -- unique across running, done and dead
+--   the one-running-per-subject index stays; every job insert in a batch is ON CONFLICT DO NOTHING.
+</code></pre>
+<p><code>video_lifecycles</code> folds into <code>videos</code>; a tombstone is <code>discarded_at</code>. <code>video_acceptances</code> has had no writer since the R2 path retired (<code>W/mux-video-ingest.ts:27-32</code>) and is dropped at the end.</p>
+<h3 id="the-fate-of-todays-keys">The fate of today's keys</h3>
+<p>The backfill enumerates all 169 production keys into a checked mapping. An unmapped key blocks the destructive shrink. Every row's full JSON is archived with a digest before anything is removed.</p>
+<p>Group (a), server facts, become typed columns. No browser route writes them, so WIL-3459 closes as a class.</p>
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>fate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mux_upload_id</code>, <code>mux_retry_upload_id</code></td>
+<td><code>source_upload_id</code>; <code>current_upload_id = COALESCE(mux_retry_upload_id, mux_upload_id)</code>, matching today's fence (<code>W/mux-video-ingest.ts:375</code>)</td>
+</tr>
+<tr>
+<td><code>mux_asset_id</code>, <code>mux_playback_id</code>, <code>playback_id</code></td>
+<td><code>mux_asset_id</code>, <code>mux_playback_id</code></td>
+</tr>
+<tr>
+<td><code>duration</code>, <code>mux_aspect_ratio</code>, <code>mux_error</code></td>
+<td><code>duration_seconds</code>, <code>aspect_ratio</code>, <code>error</code></td>
+</tr>
+<tr>
+<td><code>poster_url</code>, <code>thumbnail_url</code>, <code>poster_generated_at</code></td>
+<td>columns. Written by <code>finish</code>, both PATCH routes (dual-write phase) and the edit route. Precedence stays <code>thumbnail_url</code> first (<code>packages/served-file-policy/src/index.ts:129</code>)</td>
+</tr>
+<tr>
+<td><code>filename</code>, <code>file_type</code></td>
+<td><code>original_filename</code>, <code>content_type</code>. Kept typed because the share page reads <code>filename</code> as a name fallback (<code>R/video-share-page.ts:300</code>)</td>
+</tr>
+<tr>
+<td><code>library_hidden</code></td>
+<td>column; the 57 WIL-3478 rows stay hidden</td>
+</tr>
+<tr>
+<td><code>user_id</code>, <code>id</code>, <code>inserted_at</code>, <code>updated_at</code>, <code>status</code>, <code>record_type</code>, <code>source</code></td>
+<td>derived in the projection (<code>status</code>: ready is <code>active</code>, processing is <code>uploaded</code>, otherwise <code>pending</code>)</td>
+</tr>
+<tr>
+<td><code>clientId</code></td>
+<td><code>workspace_nodes.client_id</code> holds it; for uploads it is also the <code>client_key</code></td>
+</tr>
+<tr>
+<td><code>directory</code>, <code>location</code>, <code>url</code></td>
+<td>archived. Read only for R2 videos, which no longer exist</td>
+</tr>
+</tbody>
+</table>
+<p>Group (b), rep intent, stays in JSON. The allowlist is <code>title</code> (mirrored to the node <code>name</code>), <code>description</code>, <code>preferred_thumbnail</code>, the six <code>cta_*</code> keys, <code>cta_color</code> and <code>button_color</code>. <code>edit_manifest</code> stays in JSON but only the edit route writes it. <code>poster_time_seconds</code> folds into <code>edit_manifest.posterTimeSeconds</code>. <code>edit_committed_at</code> is a column because the server stamps it.</p>
+<p>Group (c), clip work. <code>mux_clip_pending</code> becomes one <code>mux_clip</code> job per video. <code>mux_clip_asset_id</code>, <code>mux_clip_playback_id</code> and <code>mux_clip_span</code> become the four <code>clip_*</code> columns.</p>
+<p>Group (d), the residue. The backfill folds every value still read as a fallback into its owner, following the precedence <code>manifest.ts</code> and served-file-policy apply today, including the source-time conversions at <code>packages/video-derivations/src/manifest.ts:157-174</code>. The verify script proves <code>manifest.ts</code>, served-file-policy and <code>public-media</code> produce identical output from the folded row, with fixtures per precedence case. Then everything outside the allowlist moves verbatim to <code>video_metadata_archive</code>.</p>
+<p>The delivery mapping is a total function with a fixture per cohort from <code>investigation.md</code> section 5. Rows with a playback id become <code>ready</code>. The 7 <code>uploaded</code> rows and the 7 <code>active</code> rows with an asset and no playback become <code>processing</code>, for settle to decide. The 53 R2-era <code>pending</code> rows with no asset and the 5 <code>active</code> rows with no asset become <code>failed</code> with <code>error = 'legacy source missing'</code>, hidden state unchanged, so their card never reads "This upload did not finish." The 4 errored imports become <code>failed</code> with Mux's message. The 75 tombstones get <code>discarded_at</code>. Legacy rows have <code>current_upload_id = NULL</code>, and the reducer refuses upload-sourced events for them.</p>
+<h3 id="the-state-machine">The state machine</h3>
+<p>Each row is one case of <code>transition</code>. "Live" means <code>discarded_at IS NULL</code>. Every applied transition rewrites <code>rev</code> and <code>updated_at</code>. Effects are rev-fenced rows in the same batch; job inserts are <code>ON CONFLICT DO NOTHING</code>. A legacy row (no upload provenance) refuses rows 3, 5 and 11 with <code>no_upload_provenance</code>.</p>
+<table>
+<thead>
+<tr>
+<th>state (delivery)</th>
+<th>event</th>
+<th>guard</th>
+<th>next</th>
+<th>effects in the same batch</th>
+<th>replay or refusal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>none</td>
+<td><code>granted{kind, clientKey, uploadId, parentId}</code></td>
+<td>no live row for <code>(ws, clientKey)</code>; parent <code>EXISTS</code> as a folder in this workspace, else root</td>
+<td>uploading, gen 1, <code>upload_url</code>, <code>granted_at</code></td>
+<td>video node with <code>analytics_environment NULL</code>; for recordings the page draft, publication and route via the port, no card</td>
+<td>plain INSERT. A <code>client_key</code> or <code>node_id</code> conflict aborts the batch; the caller re-reads by key and replays; the losing upload is enqueued for <code>mux_discard</code></td>
+</tr>
+<tr>
+<td>none</td>
+<td><code>adopted{kind, firstUpload, uploadId, facts, parentId}</code> (key-less old-tab claim, v1 journal recovery)</td>
+<td>passthrough names this workspace; no tombstone; parent check. The node id derives from the passthrough's first upload (v2 <code>id</code>, v1 <code>nodeId</code>), never from <code>retryOf</code>; <code>kind</code> comes from the claim's <code>sharePage</code> flag</td>
+<td>by facts (uploading, stalled, processing or ready)</td>
+<td>the same companion rows as <code>granted</code>, a page only for recordings. A cross-owner <code>source_video_id</code> collision gives the take its own page and a <code>repair</code> telemetry row</td>
+<td>plain INSERT; a <code>node_id</code> conflict aborts and the caller reads that row and continues as in grant (b)</td>
+</tr>
+<tr>
+<td>uploading or stalled</td>
+<td><code>regranted{retryOf, uploadId, uploadUrl}</code></td>
+<td><code>retryOf = current_upload_id AND (mux_asset_id IS NULL OR delivery = 'stalled')</code></td>
+<td>uploading, gen + 1, <code>current_upload_id</code>, <code>upload_url</code>, <code>error = NULL</code>, <code>mux_asset_id = NULL</code></td>
+<td><code>mux_discard upload:&lt;retryOf&gt;</code>; if stalled remembered an asset, <code>mux_discard asset:&lt;it&gt;</code> (the new upload supersedes it)</td>
+<td><code>retryOf &lt;&gt; current</code> refuses <code>superseded</code>; <code>grant</code> replays the current upload and <code>upload_url</code></td>
+</tr>
+<tr>
+<td>any live</td>
+<td><code>finished{intent}</code></td>
+<td><code>finished_at IS NULL</code>; parent check</td>
+<td><code>finished_at</code>, capture telemetry</td>
+<td>intent keys through the allowlist, node name and parent, rename the draft and publication from the title, stamp <code>analytics_environment</code> and write the <code>library_added</code> outbox row</td>
+<td><code>finished_at</code> set returns noop</td>
+</tr>
+<tr>
+<td>uploading or stalled</td>
+<td><code>assetCreated{uploadId, assetId}</code></td>
+<td><code>uploadId = current_upload_id AND mux_asset_id IS NULL</code></td>
+<td>processing, asset, <code>asset_created_at</code>, <code>upload_url = NULL</code></td>
+<td>if discarded, <code>mux_discard asset:&lt;id&gt;</code></td>
+<td>equal asset is noop in any state. A stale <code>uploadId</code> is noop plus <code>mux_discard asset:&lt;id&gt;</code></td>
+</tr>
+<tr>
+<td>processing or ready</td>
+<td><code>assetCreated</code> with a different asset</td>
+<td>any of this take's uploads</td>
+<td>unchanged</td>
+<td><code>mux_discard asset:&lt;stray&gt;</code></td>
+<td>dedupe</td>
+</tr>
+<tr>
+<td>uploading, stalled or processing</td>
+<td><code>assetReady{uploadId?, assetId, playback, duration, aspect}</code></td>
+<td>from uploading or processing: asset equal, or asset NULL and <code>uploadId = current_upload_id</code>. From stalled: only <code>mux_asset_id IS NULL</code>, so a remembered errored or gone asset is never re-adopted</td>
+<td>ready, facts, <code>ready_at</code></td>
+<td>from uploading also row 5's</td>
+<td>equal facts noop</td>
+</tr>
+<tr>
+<td>ready</td>
+<td><code>assetReady</code> with a new aspect only</td>
+<td>asset equal</td>
+<td>ready</td>
+<td>none</td>
+<td>monotonic</td>
+</tr>
+<tr>
+<td>uploading or processing</td>
+<td><code>assetErrored{uploadId, assetId, code, message}</code>, <code>classify = content_rejection</code></td>
+<td>asset equal, or NULL with matching upload</td>
+<td>failed, <code>error</code></td>
+<td>none</td>
+<td>same noop</td>
+</tr>
+<tr>
+<td>uploading or processing</td>
+<td><code>assetErrored</code>, <code>classify = operational</code></td>
+<td>as above</td>
+<td>stalled, asset kept, <code>error</code></td>
+<td>none. The asset is discarded only when a regrant supersedes it</td>
+<td>same noop. A surviving journal revives it through the existing recovery card</td>
+</tr>
+<tr>
+<td>uploading</td>
+<td><code>uploadEnded{uploadId, reason}</code></td>
+<td><code>uploadId = current_upload_id AND mux_asset_id IS NULL</code></td>
+<td>stalled, <code>error = 'This upload did not finish.'</code>, <code>upload_url = NULL</code></td>
+<td>none</td>
+<td>stale upload id noop</td>
+</tr>
+<tr>
+<td>processing or ready</td>
+<td><code>assetGone{assetId}</code> (confirmed by a fresh read)</td>
+<td>asset equal</td>
+<td>stalled, playback NULL, asset kept, <code>error = 'Mux no longer has this video.'</code></td>
+<td>none</td>
+<td>equal noop</td>
+</tr>
+<tr>
+<td>any live</td>
+<td><code>discarded{cause}</code></td>
+<td>none</td>
+<td><code>discarded_at</code>, <code>upload_url = NULL</code></td>
+<td>delete the video node and card, retire the route, mark the page deleted, <code>mux_discard</code> for the source asset, the clip asset and an open upload</td>
+<td>discarded noop. The row is the tombstone</td>
+</tr>
+<tr>
+<td>uploading or stalled, <code>finished_at IS NULL</code></td>
+<td><code>swept</code> (nightly)</td>
+<td><code>granted_at</code> older than the horizon</td>
+<td>discarded</td>
+<td>as <code>discarded</code></td>
+<td>as <code>discarded</code></td>
+</tr>
+<tr>
+<td>any live</td>
+<td><code>edited{manifest, expectedClipRevision}</code></td>
+<td><code>clip_revision = expected</code></td>
+<td>manifest stored; if <code>manifest.trim</code> changed, <code>clip_revision + 1</code>, <code>edit_committed_at</code></td>
+<td>manifest JSON; if trim changed, one <code>mux_clip</code> job with subject = node, <code>ON CONFLICT DO NOTHING</code> on the running index</td>
+<td>mismatch refuses <code>conflict</code>; the saver re-reads and reapplies only the rep's fields. Poster and preview edits never cut a clip</td>
+</tr>
+<tr>
+<td>ready</td>
+<td><code>clipReady{assetId, playback, span, clipRevision}</code></td>
+<td><code>clipRevision = clip_revision</code></td>
+<td>clip columns</td>
+<td><code>mux_discard</code> previous clip asset; job done</td>
+<td><code>clipRevision &lt; clip_revision</code> refuses <code>stale</code>; the runner discards its asset and loops in the same job</td>
+</tr>
+<tr>
+<td>any live, many</td>
+<td><code>discardMany{videoIds}</code> (folder delete)</td>
+<td>set-based <code>WHERE node_id IN (subtree) AND discarded_at IS NULL</code></td>
+<td><code>discarded_at</code></td>
+<td>set-based: retire the routes and mark the share pages deleted for rows with <code>share_page_id</code>, and job inserts from the rows' asset and upload ids, all in the same batch as the subtree delete</td>
+<td>idempotent by the WHERE</td>
+</tr>
+</tbody>
+</table>
+<p><code>TakeView</code> derives from the row. <code>muxHasBytes</code> is true when <code>mux_asset_id</code> is set and delivery is not stalled. <code>journalReleasable</code> is true at <code>ready</code>. <code>playable</code> is <code>delivery = ready</code>. <code>rejection</code> is <code>unplayable</code> when delivery is failed. <code>discarded</code> is <code>discarded_at IS NOT NULL</code>. A take with no <code>finished_at</code> lists in the Library as processing, the card state that exists today.</p>
+<p><code>classifyMuxAssetError(code, message)</code> is a named function with fixtures. The four 2026-05 imports ("unusable audio or video stream") are content rejections. The default is operational, which is now recoverable because the journal survives until <code>ready</code>. The classifier is verified on Spike with a deliberately corrupt upload before PR 5 flips.</p>
+<h3 id="jobs-and-inventory">Jobs and inventory</h3>
+<p><code>mux_clip</code> is one job per video, subject = node. The runner reads <code>videos.clip_revision</code> at every step, never its payload span, waits (no failure counted) while delivery is not <code>ready</code>, and fences promotion on the revision it cut. On a stale promotion it discards its asset and loops. When it would go dead and <code>clip_revision</code> advanced since its last cut, it re-arms instead. The runner writes the returned asset id into the payload under the lease fence as soon as Mux answers; a crash before that leaves a namespace-tagged stray the inventory removes after two scans. After 8 failures the job is dead and <code>projectVideoMetadata</code> exposes <code>mux_clip_failed: true</code> with the job's error from the dead row (WIL-3453).</p>
+<p><code>mux_discard</code> takes <code>asset:&lt;id&gt;</code> or <code>upload:&lt;id&gt;</code> as subject and <code>dedupe_key</code>, unique across all states, so a double discard is one row. 404 is done. A 400 counts only after a re-read proves absence (<code>packages/mux/src/client.ts:353</code> tolerates only 404 today). After 12 failures the job is dead. Ids come only from <code>videos</code> rows.</p>
+<p>Policy shared by all kinds. <code>expiredJobs</code> filters by kind and <code>not_before &lt;= now</code>. A failure releases the lease and sets <code>not_before</code> to <code>5 s x 2^failures</code>, capped at 10 min for clips and 6 h for discards. The 7-day purge deletes <code>done</code> rows; dead rows are purged after 90 days once resolved. <code>rearmJob(id)</code> moves <code>dead</code> back to <code>running</code> after the caller revalidates ownership; its callers are the clip runner's own re-arm, the inventory and the editor's clip retry. Dispatch by kind with budgets of 3 generation, 5 clip and 10 discard per tick (<code>R/journey-page-generation.ts:280-296</code> ignores kind today). The per-workspace cap is optional per kind; discards have none.</p>
+<p>Settle-on-read and the webhook both stay. <code>settle(scope, ids)</code> loads the <code>videos</code> rows in <code>uploading</code> or <code>processing</code>, at most 3 per read newest first, asks Mux and feeds each answer through <code>observationsFrom</code> and <code>observe</code>. The webhook does the same after the HMAC check. <code>observe</code> takes a <code>VerifiedMuxRef</code> (<code>{namespace, workspaceId, by: 'upload' | 'asset' | 'opToken', id}</code>) that only the verified webhook parser and the scoped settle loader can build, and resolves the row itself. <code>missing</code> and foreign-namespace events answer 200 and are counted; <code>contended</code> answers 503.</p>
+<p>The inventory runs from the router cron in production and staging. The passthrough becomes v2, <code>{v:2, n:&lt;namespace&gt;, w:&lt;workspaceId&gt;, id:&lt;firstUploadId&gt;, k:&lt;clientKey or opToken&gt;}</code>, length-checked under 255 (namespace 12, workspace 41, upload id 32, key 36, labels 30). The namespace is the <code>MUX_NAMESPACE</code> var the deploy workflow sets from the D1 database id for previews and fixes to <code>prod</code> and <code>stg</code> otherwise (<code>.github/workflows/cloudflare-deploy.yml:200</code>). The parser keeps reading v1. The nightly tick opens a scan of uploads and assets; the minute cron advances bounded pages and stores cursors. Classes: <code>live</code> (a live row owns it), <code>stray</code> (a discarded row owns it, or a second asset of a take), <code>orphan</code> (tagged with this namespace, no row), <code>foreign</code> (another namespace), <code>unknown</code> (untagged). Only <code>stray</code> and <code>orphan</code> are eligible. Deletion needs two completed scans that saw the object plus a fresh reference check against <code>videos</code> and running jobs, and always runs as a <code>mux_discard</code> job. <code>foreign</code> and <code>unknown</code> are quarantined and counted, never deleted, which is how staging leaves preview assets alone. The scan also feeds <code>assetGone</code> for rows whose asset Mux lacks, sweeps unfinished rows past the horizon, and settles anything unsettled for 24 h. Counts land in <code>video-telemetry</code>. The first release reports only.</p>
+<h3 id="the-recorder-and-the-uploader-as-thin-clients">The recorder and the uploader as thin clients</h3>
+<p>The browser owns capture, the bytes until the server says they are releasable, the chunked PUT, unacknowledged finish and edit intent, and the leave prompt.</p>
+<p>The journal is the bytes of a take. A v2 journal records <code>{clientKey, videoId, uploadId, generation, status}</code>. It is deleted when <code>journalReleasable</code> is true, on discard, or on Re-record. On <code>rejection</code> it is marked <code>rejected</code> with a TTL equal to the sweep horizon, kept, and never offered for automatic recovery. A take that stalls after processing (operational error, asset gone) keeps its journal, so the existing recovery card on the next <code>/record</code> visit revives it. A v1 journal has an <code>uploadId</code> and no <code>videoId</code>; recovery sends <code>grant({clientKey: sessionId, retryOf: uploadId})</code>.</p>
+<p>Grant precedence, stated once, key first. (a) A live row for <code>clientKey</code>. (b) No keyed row, and a row whose source or current upload is <code>retryOf</code>. (c) A key-less or v1 request whose <code>retryOf</code> no row owns: adopt when the passthrough names this workspace, deriving the node id from the passthrough's first upload, else a fresh take. A request that carries a key never adopts. (d) Otherwise create. On a row found by (a) or (b): delivery is <code>processing</code> or <code>ready</code> (Mux holds a usable asset), answer <code>received</code>; <code>retryOf</code> is the current upload, or the current upload has ended (<code>upload_url</code> NULL), regrant against it; otherwise replay the current upload and <code>upload_url</code>. A replay therefore never hands back a null URL, and a retry naming a long-superseded upload returns the current one instead of adopting a second take. The losing Mux upload of any race is enqueued for <code>mux_discard</code>.</p>
+<p>Local state is <code>{phase: idle | capturing | paused | stopped, take, bytesHeldLocally, finishUnacked, editsUnacked, discardUnacked}</code>. The predicate is</p>
+<pre><code>atRisk = !take?.discarded &amp;&amp; (capturing || paused || (!take?.muxHasBytes &amp;&amp; bytesHeldLocally)
+         || finishUnacked || editsUnacked || discardUnacked)
+</code></pre>
+<p>where <code>bytesHeldLocally</code> covers a journal with bytes and memory-only capture (row H). The module-scoped take manager arms <code>beforeunload</code> on it and nothing else. The "upload" problem row shows iff <code>take.rejection !== null</code>, with the existing title and no Try again. A discarded take resets the recorder. Memory-only capture is the one case where closing after <code>muxHasBytes</code> can still lose bytes to a later operational error; that is accepted so the prompt does not stay up through processing.</p>
+<p>Edits ride #901's saver (<code>E/lib/recorder-edit-saver.ts</code>) with its give-up removed. <code>finish</code> intent and edit intent are both pending until the server acknowledges a revision. An API refusal keeps the pending intent, keeps the prompt armed and emits <code>recorder_edit_refused</code> telemetry. A <code>refused conflict</code> re-reads the row and reapplies only the rep's changed fields. <code>flush()</code> resolves when the captured revision is acknowledged.</p>
+<p>The Library uploader (<code>E/lib/workspace-asset-upload.ts</code>) sends <code>kind: 'upload'</code> with its <code>clientId</code> as <code>clientKey</code>, gets a row and node with no page and no card, calls <code>finish</code> instead of the claim and <code>discard</code> on cancel.</p>
+<p>Every transient failure (network, 5xx, 408, 409, 429, 401 while the session refreshes) retries quietly with the backoff from the quiet-upload-retry branch. A Mux 4xx on a chunk regrants with <code>retryOf</code> rather than giving up.</p>
+<h3 id="module-home-and-the-share-page-port">Module home and the share-page port</h3>
+<p><code>W/video-lifecycle.ts</code> owns the lifecycle, because settle-on-read is a Library read concern and <code>docs/SECURITY.md:13</code> wants router-only calls as functions on <code>createLibrary</code>. The router passes one port, <code>sharePages</code>, into <code>createLibrary</code>: <code>newTakePage</code> returns plain INSERTs for the creation batch, and <code>renamePage</code> and <code>retirePages</code> take the rev fence, so a lost CAS writes none of their rows. The page is born cardless, as #893 and #894 decided (<code>R/public-page-delivery/journey-page-content-store.ts:182-206</code>); the card arrives on the first edit. That port is the one admitted leak. The webhook, the cron and the inventory call <code>library.videos.*</code>. There is no upward import.</p>
+<h3 id="sequences">Sequences</h3>
+<p>Normal take. Start opens the journal and calls <code>grant</code> in the background with the session id as <code>clientKey</code>; the server reads by key, calls Mux <code>createDirectUpload</code> (passthrough v2, the probed timeout), then commits one batch and returns <code>{take, upload}</code>. Chunks stream from the journal. Stop sends <code>finish</code> (pending until acknowledged) and the final PUT, in either order; the link has been in hand since the grant. Mux's <code>upload.asset_created</code> makes the take processing and clears the prompt; <code>asset.ready</code> makes it ready and releases the journal. Edits go to the saver; a trim bumps <code>clip_revision</code> and enqueues the one clip job.</p>
+<p>The strands. The table above covers each; this list names only the delta.
+- A, closed while recording. The prompt arms during capture. The row is <code>uploading</code>, unfinished, listed as processing. In the same browser, recovery regrants (a) and resends. If the rep never returns, the sweep discards it.
+- B, closed after Stop, prompt ignored. <code>finished_at</code> is set, the link may be shared. The upload times out, <code>stalled</code>, card reads "This upload did not finish." Recovery regrants into the same video.
+- C, recovered take whose upload died. (a) finds the row. A v1 journal with no row is adopted with its page in one batch, then regranted. If Mux forgot the upload, a fresh take. No branch answers <code>retry_unavailable</code>.
+- D, retry grant beats the claim. Gone. A regrant needs only the row.
+- E, Mux rejects the content. <code>failed</code>, <code>rejection = unplayable</code>, the existing title once, no Try again. The journal is marked rejected with a TTL. An operational error instead goes <code>stalled</code> and the surviving journal revives it.
+- F, share page fails. It cannot fail apart from the video; a failed batch is retried quietly. A cross-owner collision on adoption gives the take its own page and reports the collision.
+- G, Back to Library mid-upload. The take manager survives navigation.
+- H, no journal. Memory bytes keep the prompt until <code>muxHasBytes</code>.
+- I, journal cannot be reassembled. The loss is real; the row stalls and is swept or shows the stalled card.
+- J, settle times out, then Mux errors. The client never declares success; it keeps the journal until <code>ready</code>. A late content rejection is <code>unplayable</code>; a late operational error stalls and the journal revives it.
+- K, finalize throws at Stop. <code>stop()</code> seals the journal regardless; the pump sends the sealed bytes.
+- L, Stop before the grant returned. The pump queues behind the grant, which retries the same <code>clientKey</code>. A lost response replays; a racing create aborts on the key and replays.
+- Uploader. Grant with <code>kind: 'upload'</code>, bytes, <code>finish</code>. Cancel is <code>discard</code>. The webhook beating <code>finish</code> is harmless because <code>finished</code> is a stamp, not a state.</p>
+<h3 id="acceptance-criteria">Acceptance criteria</h3>
+<ul>
+<li>No share-link-failed state. The page commits with the video at grant or at adoption, or neither commits; a losing batch leaves no page.</li>
+<li>No save-failed state. Server facts are not browser writes. Finish and edit intent stay pending until acknowledged; a <code>refused</code> answer is retried, never dropped.</li>
+<li>"Couldn't upload your recording" only on a terminal rejection, never a dead-end Try again. It shows iff <code>rejection</code> is non-null, which needs the classifier's content rejection. Discard is not a rejection. C loses its dead end because the grant always answers; E loses it because no Try again is offered.</li>
+<li>Transient failures retried quietly under the leave prompt. Every non-rejection outcome is a wait, and <code>atRisk</code> covers capture, pause, unreceived bytes, unacked finish, unacked edits and unacked discards.</li>
+<li>No new UI or copy. <code>TakeView</code> replaces state and adds none. The recovery card and the processing card exist today. The only candidate copy change is removing a line (open question 2).</li>
+</ul>
+<h3 id="security-note">Security note</h3>
+<p>Every browser-reachable lifecycle method takes a <code>WorkspaceScope</code> the router built from the session, never from the body (<code>docs/SECURITY.md:11-12</code>). <code>observe</code> is router-only and takes a <code>VerifiedMuxRef</code> only the HMAC-verified parser or the scoped settle loader can construct (<code>:13</code>, <code>:17</code>). Mux ids, readiness and posters are columns no browser route maps to; browser JSON writes pass an allowlist. A discard deletes only ids read from <code>videos</code>. <code>upload_url</code> is a credential, stored until Mux has an asset, cleared after, never logged. Playback ids leave the server only through the projection on reads already scoped by workspace or by a live publication (<code>:23</code>); <code>TakeView</code> carries none. <code>parentId</code> is checked against a folder in this workspace at grant, finish and adoption, else root. The inventory deletes only objects tagged with its own namespace and referenced by no row. A <code>finish</code> posterUrl must resolve to this workspace's R2 upload prefix or it is dropped.</p>
+<h2 id="synthesis-decision">Synthesis decision</h2>
+<p>The judge (gpt-6-astra) scored Astra 27, Opus 17 and Fable 12 and recommended Astra. The judge is the same model as the Astra runner, so self-preference is possible. The orchestrator read all three and chose Opus as the base on interface depth and smallness: one table, a pure reducer with rev-fenced row effects, five methods, a derived <code>TakeView</code> and a module-scoped take manager. Astra's correctness wins graft into Opus's shape at a fraction of its eleven new tables (per the Laziness Protocol).</p>
+<p>Grafted from Astra: <code>client_key</code> replay instead of request and attempt tables; upload fencing kept through <code>processing</code>; adoption with the page in one batch and owner-scoped page uniqueness; content rejection versus operational failure with a named classifier; the edit outbox that never drops intent; jobs safety (dedupe across states, dead retention, rearm, a 400 that counts only after a re-read); the namespace-tagged inventory that scans everything and deletes only after two scans; the multi-term <code>atRisk</code>; honest record-to-share timestamps; the exact-key migration gate. From Fable: <code>not_before</code> as a column, the state table format, the Library as the module's home. Kept from Opus: <code>edit_committed_at</code> as a column, <code>filename</code> typed, <code>thumbnail_url</code>-first posters. Hidden-until-kept stays out pending a product decision.</p>
+<p>Rejected: Astra's <code>video_requests</code>, <code>video_upload_attempts</code>, <code>video_intent_receipts</code>, <code>video_batch_fence</code>, <code>video_share_pages</code> and <code>video_clips</code>; Astra's eight-value single enum; Fable's <code>companions</code> statement lists; Opus's blanket journal deletion on rejection and its 30-day inventory window. Opus's two-axis disposition was later removed by the interrogate review (below). The two inventory tables are the one storage addition beyond Opus.</p>
+<h2 id="interrogate-review">Interrogate review</h2>
+<p>Reviewers: Fable (13 findings), gpt-6-astra (7), Opus (18). The lead verdict and the per-reviewer files are in <code>interrogate/</code>; <code>VERDICT.md</code> lists 18 binding items, all applied here.</p>
+<p>Consensus findings and their resolution. All three found that a losing grant race committed orphan page, route and card rows because port statements cannot be rev-fenced; resolved by abort semantics (plain INSERT, decision 1). All three found that <code>assetCreated</code> promoting <code>recording</code> to <code>kept</code> let a webhook forge Stop and drop the rep's intent; resolved by deleting the disposition axis, making <code>finished_at</code> a stamp any delivery state accepts once, and tracking <code>finishUnacked</code> in the client. All three found that a per-revision clip job collided with the retained one-running-per-subject index; resolved by one job per video that tracks <code>clip_revision</code> at every step, loops on stale promotion, re-arms instead of dying, and a <code>failures</code> column. Two of three found the journal deleted at <code>processing</code> before an operational error could need it; resolved by <code>muxHasBytes</code> (drives the prompt) split from <code>journalReleasable</code> (drives deletion at <code>ready</code>), and the errored asset kept until a regrant supersedes it. Two found the regrant unfenced against the upload it replaces; resolved by <code>retryOf</code> in the guard and the grant precedence stated once. Two found legacy rows unrepresentable; resolved by a nullable upload fence, <code>COALESCE</code> in the backfill and a total delivery mapping with cohort fixtures. Opus alone found the Library uploader and the page card at grant, both confirmed in code; resolved by <code>GrantRequest.kind</code> and a cardless page renamed at <code>finished</code>.</p>
+<p>The remaining items (dual-write completeness and the <code>json_set</code> projection, the discard runner shipping with its first producer, create-at-grant only for keyed requests, set-based folder delete, <code>VerifiedMuxRef</code> and <code>observationsFrom</code>, <code>edited</code> versus <code>trimmed</code>, reducer outcomes, discard not a rejection, <code>parentId</code> checks, owner-scoped lookups, one analytics source, webhook answers) are each reflected in the table, the predicate, the jobs policy or the PR stack.</p>
+<p>A focused recheck by the Opus reviewer (<code>interrogate/opus-recheck.md</code>) found 17 of 23 items resolved, 6 partly resolved and none missed, plus one new critical: the grant tried adoption before the key replay, so a retry naming an upload superseded twice adopted a second take. That, and the partial items (adoption's kind from the claim flag, a fenced page rename, set-based discard retiring pages and routes, a stalled row never re-adopting its remembered asset, no null URL on a replay of an ended upload), are fixed in the table, the grant precedence and the sketch.</p>
+<p>Two consequences of applying the verdict are worth naming. Keeping the errored asset (item 4) means <code>stalled</code> may carry <code>mux_asset_id</code>, so item 3's regrant guard reads <code>mux_asset_id IS NULL OR delivery = 'stalled'</code>, and the regrant is the supersession point that enqueues the old asset's discard. Item 9's "keyed requests only" makes the server PR inert under the old client, so the thin client ships immediately after it rather than needing an adapter.</p>
+<p>The five acceptance criteria were re-checked against the revised table and predicate and still hold; the acceptance section above states each.</p>
+<h2 id="tradeoffs-accepted">Tradeoffs accepted</h2>
+<ul>
+<li>We accept an empty Mux upload when a grant's batch fails after the Mux create, in exchange for no request or attempt tables. The loser is enqueued for discard once a runner exists, else it expires and the inventory reports it.</li>
+<li>We accept a row and a cardless page for every abandoned keyed take plus a sweep, in exchange for the grant being the single creation point that removes C, D, F and L.</li>
+<li>We accept one port, <code>sharePages.newTakePage</code>, handed from the router into the Library, in exchange for one batch per take without moving the page builder across the boundary.</li>
+<li>We accept a stray clip asset when the runner dies between the Mux create and its payload write, in exchange for no clip operation table.</li>
+<li>We accept keeping bytes on disk until <code>ready</code>, including a rejected journal under a TTL, in exchange for operational errors after processing being recoverable without new UI.</li>
+<li>We accept that memory-only capture can lose bytes to an operational error after processing, in exchange for the prompt clearing once Mux has an asset.</li>
+<li>We accept a reducer plus rev CAS over pure-SQL guarded updates, in exchange for one readable, testable source of truth for every transition, creation included.</li>
+<li>We accept <code>videos</code> rows outliving their nodes with no foreign key, in exchange for retiring <code>video_lifecycles</code>.</li>
+</ul>
+<h2 id="alternatives-considered">Alternatives considered</h2>
+<ul>
+<li>A request table written before the Mux call (Astra's shape). It attributes every Mux object. It lost because the same replay comes from a key column plus abort semantics, and the residual case is an expiring upload.</li>
+<li>Two axes, delivery and disposition (the original Opus shape). It lost in review because any rule that lets an asset event move disposition forges Stop, and a rule that forbids it leaves <code>kept</code> with no purpose a stamp does not serve.</li>
+<li>Create at Stop with the page in that batch. Simpler and fixes F, but leaves C, D and L, and has no record-start timestamp.</li>
+<li>A server-minted take id in the passthrough. Cleaner identity, but it breaks the one-id scheme in pages and documents.</li>
+<li>A Cloudflare Workflow per take. A second durable store beside a row the webhook and settle already converge on.</li>
+</ul>
+<h2 id="open-questions-for-william">Open questions for William</h2>
+<ol>
+<li>Hidden until finished. Should a take still being recorded show in the Library? The default is visible as "processing", because that needs no new UI.</li>
+<li>On a terminal rejection, should the recorder drop the detail line "It's still safe in this tab. Check your connection..." and the Try again action? Dropping is removing copy, not adding it.</li>
+<li>The Mux direct-upload timeout. A 12-hour take needs the upload alive for 13 hours and the staging "Upload timed_out" rows suggest the default bites (<code>packages/mux/src/client.ts:303-319</code> sends none). Needs a probe on Spike before PR 5.</li>
+<li>The sweep horizon for never-finished takes, which is also the rejected-journal TTL. 14 days is the default. Safari evicts journals at about 7 days (<code>docs/RELIABILITY.md:60</code>).</li>
+<li>Inventory deletion window and preview namespaces. Two completed scans plus 48 hours is the default. Should staging ever delete objects tagged with a retired preview namespace, and who records that a preview database is gone?</li>
+<li>Poster ownership. Keep the browser frame grab and R2 upload at Stop, or make the poster Mux's still at <code>posterTimeSeconds</code>? The black-poster history argues for Mux.</li>
+<li>Where should the dead clip state show outside the recorder, using existing copy? The projection exposes <code>mux_clip_failed</code>, but the editor has no reader for it yet, and the clip retry needs a caller.</li>
+<li><code>library_added</code> now comes only from <code>finished</code> (the grant inserts <code>analytics_environment NULL</code>). WIL-3491 touches the same trigger; should its fix stamp the environment on every insert, which would re-count at grant?</li>
+<li>Should a 403 from the router count as a rejection or a pause? Access suspension is not proof the bytes are bad.</li>
+</ol>
+<h2 id="the-pr-stack">The PR stack</h2>
+<p>Expand, then flip. Migration PRs are proven on staging with <code>allow_branch_migrations</code>; editor-only PRs also get a preview. Effort is in engineer-days. Risk classes are migration, external effect and client lifetime.</p>
+<ol>
+<li>Jobs rebuild and dispatch by kind. Scope: migration 0028 (kinds, <code>not_before</code>, <code>failures</code>, <code>dedupe_key</code>, relaxed running CHECK), <code>expiredJobs</code> by kind and <code>not_before</code>, per-kind budgets, purge keeps <code>dead</code> 90 days, <code>rearmJob</code>. No new kind produced. Pre-step: confirm the retired tree Worker crons are off. Staging proof: a generation job runs, backs off through <code>not_before</code>, finishes; row counts equal before and after. Rollback: none needed, the table is a superset. Old tabs and journals: unchanged. Effort 1 to 2. Risk: migration (pick a quiet hour).</li>
+<li>Lifecycle module, dual-write, discard runner. Scope: migration 0029 (<code>videos</code>, archive, inventory tables, owner-scoped page index) with <code>findJourneyPageBySourceVideoId</code> and callers scoped by owner; <code>video-lifecycle.ts</code> with the reducer and a table test per row, including two concurrent first grants and concurrent adoption asserting one complete row set; the v2 passthrough parser and <code>observationsFrom</code>; every fact writer converted (claim, settle, webhook, retry grant, delete, both PATCH routes for <code>poster_url</code>, <code>thumbnail_url</code>, <code>filename</code>, <code>file_type</code>, the edit route's manifest and poster clearing, clip completion) writing typed columns and the <code>json_set</code> projection fenced on <code>rev</code>, with the old digest CAS removed; the <code>mux_discard</code> runner, since the reducer is its first producer; webhook 503 on <code>contended</code>, 200 counted on <code>missing</code> or foreign. Staging proof: record, upload, trim, poster, delete, concurrent settle; <code>scripts/videos-verify.mjs</code> reports zero diffs continuously, not at a point in time. Rollback: revert the code; rows are inert. Old tabs and journals: unchanged. Effort 7 to 10. Risk: migration (additive) and external effect (the discard runner deletes).</li>
+<li>Backfill and verify. Scope: the checked key mapping over all 169 keys, migration 0030 (<code>INSERT ... SELECT</code>, <code>COALESCE</code> for the upload fence, cohort mapping, tombstones from <code>video_lifecycles</code>, archive with digest), the folds with precedence fixtures, the cohort fixtures, the verify script. Staging proof: zero unmapped keys, zero diffs over 466 rows. Production: dry-run verify on a read-only copy, migrate, verify over 7,515 rows. Rollback: rows are inert. Old tabs and journals: unchanged. Effort 3 to 5. Risk: migration (data, idempotent).</li>
+<li>Flip reads and the browser allowlist. Scope: <code>projectVideoMetadata</code> at the store read boundary, settle selection from <code>videos</code>, served-file-policy fed by the projection, both PATCH routes on the intent allowlist with server facts dropped without error. Gate: continuous parity after edit, clip completion and concurrent settle. Staging proof: Library, share page, public media and editor screenshots match; a planted <code>mux_asset_id</code> PATCH is ignored. Rollback: code revert, safe because PR 2 dual-writes. Old tabs: identical shapes. Effort 2 to 4. Risk: client lifetime.</li>
+<li>The server creates at grant for keyed requests. Scope: <code>GrantRequest.kind</code> and <code>clientKey</code>, the creation batch through the port with abort semantics, the grant precedence, <code>finish</code> as a stamp replacing the claim body, adoption at claim for key-less old tabs, <code>parentId</code> checks, the probed Mux upload timeout, passthrough v2 writes, the classifier with Spike fixtures, <code>library_added</code> from <code>finished</code>. Inert until a keyed request arrives. Staging proof: every strand A to L and the uploader driven by <code>control-clarity</code> with a killed tab where needed; a lost grant response replays; a lost retry response replays; two concurrent retries leave one current upload; a v1 journal from the old bundle recovers; an old-bundle tab drives the six endpoints and its reload Re-record leaves no rows; a corrupt upload classifies as content rejection. Rollback: code revert to PR 4; rows created at grant stay valid because PR 2's claim path adopts an existing row. Old tabs: creation at claim through adoption, retry grant never 409. Effort 5 to 8. Risk: external effect (Mux creates with a new timeout) and client lifetime.</li>
+<li>The thin recorder and uploader, editor only, previewable. Lands directly after PR 5, after #901 and the quiet-upload-retry branch. Scope: <code>recorder-take.ts</code>, the <code>TakeView</code> endpoint, Re-record as <code>discard</code>, journal v2 with the rejected mark and TTL, deletion keyed on <code>journalReleasable</code>, the saver with <code>finishUnacked</code> and no give-up, the module-scoped take manager, the uploader sending <code>kind: 'upload'</code> with its <code>clientId</code>, <code>finish</code> and <code>discard</code>, deletion of <code>recording-save-session.ts</code>'s settle loop and second metadata round. Proof: preview A/B against itself with every strand on staging, both journal generations, a paused-capture prompt, SPA survival, memory-only close guard, processing followed by an operational error with a reload between, a rejection with no Try again, a discard from another tab resetting the recorder, an upload cancel, and a computed-style check that no new element renders. Rollback: a revert, the server serves both clients. Old tabs: keep the old client. Effort 6 to 9. Risk: client lifetime (v1 and v2 journals coexist).</li>
+<li>Clips as jobs. Scope: the <code>mux_clip</code> runner, migration 0031 converting <code>mux_clip_pending</code> rows to one job per video, <code>mux_clip_failed</code> projected, the editor's retry calling <code>rearmJob</code>. Staging proof: a trim converges; a trim saved mid-job gets served by the same job; a trim before <code>ready</code> waits; a poster scrub cuts nothing; a forced failure after a newer trim re-arms; a forced dead job is visible. Rollback: a revert with the projection still reading the clip columns; never re-enable the unfenced sweep. Old tabs: the edit endpoint is unchanged. Effort 3 to 5. Risk: external effect and migration.</li>
+<li>Inventory, report only. Scope: <code>mux-inventory.ts</code>, the nightly cron, the minute-cron page advance, <code>MUX_NAMESPACE</code> set by the deploy workflow. Staging proof: a full scan completes over days, preview objects count as <code>foreign</code>, untagged as <code>unknown</code>, nothing enqueued. Rollback: remove the cron. Effort 3 to 4. Risk: external effect (list reads).
+   8b. Deletes on, after a week of reports William has seen. Effort 1. Risk: external effect, gated by two scans and the reference check.</li>
+<li>Delete the old paths, after 7 days without old-tab or old-uploader traffic on the claim-poll path. Scope: metadata dual-writes, <code>SERVER_OWNED_*</code> denylists, the <code>mux_clip_pending</code> expression index, <code>video_lifecycles</code> reads and <code>muxVideoStateFrom</code>'s JSON branch go; migration 0032 moves non-allowlist keys to the archive, gated on zero unmapped keys; migration 0033 drops <code>video_lifecycles</code> and <code>video_acceptances</code> in its own PR per <code>DEPLOY.md:11</code>. Journal adoption stays past the window. Staging proof: archive row count equals video count; a sampled restore matches; old-bundle fixtures still project. Rollback: the archive holds every blob. Effort 2 to 3. Risk: migration (destructive, gated).</li>
+</ol>
+<h2 id="next-implementation-step">Next implementation step</h2>
+<p>Write migration 0028 and the reducer's table test, one case per row of the state table plus the two concurrent-creation cases, so PR 1 and PR 2 can start in parallel.</p></section>
+<section class="card"><h2 id="sketch">Type sketch and module map (sketch.ts)</h2><pre><code>// WIL-3494 type sketch and module map (arena synthesis, revised per interrogate/VERDICT.md). Bodies are `not implemented`.
+//
+// Module map
+//   workers/workspace-tree/src/video-lifecycle.ts   OWNER. library.videos (5 methods + discardMany + observationsFrom),
+//                                                   transition(), takeView(), VerifiedMuxRef construction.
+//   workers/workspace-tree/src/video-row.ts         VideoRow parse (legacy cohorts included), rev-fenced batch, projectVideoMetadata().
+//   workers/workspace-tree/src/video-jobs.ts        runMuxClipJob, runMuxDiscardJob (the only Mux mutators).
+//   workers/workspace-tree/src/mux-inventory.ts     nightly scan, minute-cron page advance, classify, report.
+//   workers/workspace-tree/src/mux-error-classifier.ts  classifyMuxAssetError with fixtures.
+//   workers/frontend-router/src/jobs-store.ts       JobKind widened; not_before, failures, dedupe_key, rearmJob, per-kind budgets.
+//   workers/frontend-router/src/mux-webhook.ts      HMAC, then verifiedRefFromWebhook -&gt; observationsFrom -&gt; observe.
+//   workers/frontend-router/src/video-share-page.ts exports newTakePage, the SharePagePort the router passes in.
+//   editor/src/lib/recorder-take.ts                 thin client: createRecorderTake, recorderAtRisk.
+//   editor/src/lib/recorder-edit-saver.ts           #901&#x27;s saver with revision acks, carrying finish intent too.
+//   editor/src/lib/workspace-asset-upload.ts        the uploader as a grant client (kind &#x27;upload&#x27;).
+// Deleted by the end of the stack: recording-save-session.ts settle loop, mux-video-node.ts settle,
+// grantMuxRetryUpload, attachRecordingSharePage, mux_clip_pending code, SERVER_OWNED_* denylists, node-metadata-cas digest CAS.
+
+import type { MuxAssetFacts, MuxUploadResolution } from &#x27;@clarity/mux&#x27;;   // packages/mux/src/index.ts:60-72
+import type { D1Database, D1PreparedStatement } from &#x27;@cloudflare/workers-types&#x27;;
+
+declare const brand: unique symbol;
+type Brand&lt;T, B extends string&gt; = T &amp; { readonly [brand]: B };
+
+export type WorkspaceId = Brand&lt;string, &#x27;WorkspaceId&#x27;&gt;;
+export type OwnerId = Brand&lt;string, &#x27;OwnerId&#x27;&gt;;
+/** `asset:&lt;ws&gt;:video:&lt;firstUploadId&gt;` for takes; legacy imports keep whatever node id they have. Never minted here. */
+export type VideoId = Brand&lt;string, &#x27;VideoId&#x27;&gt;;
+/** The browser&#x27;s journal session id, or the uploader&#x27;s clientId. Replays a grant. NULL for adopted and legacy rows. */
+export type ClientKey = Brand&lt;string, &#x27;ClientKey&#x27;&gt;;
+export type MuxUploadId = Brand&lt;string, &#x27;MuxUploadId&#x27;&gt;;
+export type MuxAssetId = Brand&lt;string, &#x27;MuxAssetId&#x27;&gt;;
+/** A credential (SECURITY.md:23). Never on TakeView, never in a browser-writable path. */
+export type MuxPlaybackId = Brand&lt;string, &#x27;MuxPlaybackId&#x27;&gt;;
+/** A credential. Stored until Mux has an asset, then NULL. Never logged. */
+export type UploadUrl = Brand&lt;string, &#x27;UploadUrl&#x27;&gt;;
+export type IsoTime = Brand&lt;string, &#x27;IsoTime&#x27;&gt;;
+export type Rev = Brand&lt;string, &#x27;Rev&#x27;&gt;;
+/** Bound to the database&#x27;s lifetime: &#x27;prod&#x27;, &#x27;stg&#x27;, or the preview&#x27;s D1 id prefix. */
+export type MuxNamespace = Brand&lt;string, &#x27;MuxNamespace&#x27;&gt;;
+
+/** Built by the router from the session. Never from a body. */
+export type WorkspaceScope = { workspaceId: WorkspaceId; ownerId: OwnerId; namespace: MuxNamespace };
+
+// ---------------------------------------------------------------------------------------------
+// The row. One delivery axis. The rep&#x27;s acts are stamps. The upload fence is null for legacy imports.
+
+export type UploadFence = { currentUpload: MuxUploadId; generation: number };
+
+export type Delivery =
+  | { kind: &#x27;uploading&#x27;; fence: UploadFence; uploadUrl: UploadUrl | null }
+  /** No usable asset. `rememberedAsset` is the errored or lost asset, discarded when a regrant supersedes it. */
+  | { kind: &#x27;stalled&#x27;; fence: UploadFence | null; rememberedAsset: MuxAssetId | null; error: string }
+  | { kind: &#x27;processing&#x27;; fence: UploadFence | null; asset: MuxAssetId; assetCreatedAt: IsoTime }
+  | {
+    kind: &#x27;ready&#x27;; fence: UploadFence | null; asset: MuxAssetId; playback: MuxPlaybackId;
+    durationSeconds: number | null; aspectRatio: string | null; readyAt: IsoTime;
+  }
+  /** Content rejection, or a legacy row with no source (&#x27;legacy source missing&#x27;). Terminal. */
+  | { kind: &#x27;failed&#x27;; fence: UploadFence | null; asset: MuxAssetId | null; error: string };
+
+export type Clip = { asset: MuxAssetId; playback: MuxPlaybackId; startSeconds: number; endSeconds: number };
+
+export type Video = {
+  id: VideoId;
+  workspaceId: WorkspaceId;
+  ownerId: OwnerId;
+  kind: &#x27;recording&#x27; | &#x27;upload&#x27; | &#x27;import&#x27;;
+  clientKey: ClientKey | null;
+  sourceUpload: MuxUploadId | null;   // null for legacy imports
+  delivery: Delivery;
+  finishedAt: IsoTime | null;         // the Stop stamp; set once by finish in any delivery state
+  discardedAt: IsoTime | null;        // the tombstone
+  clipRevision: number;
+  clip: Clip | null;
+  poster: { posterUrl: string | null; thumbnailUrl: string | null; generatedAt: IsoTime | null };
+  original: { filename: string | null; contentType: string | null };
+  libraryHidden: boolean;
+  sharePageId: string | null;         // null for uploads and imports
+  editCommittedAt: IsoTime | null;
+  grantedAt: IsoTime;                 // server time
+  capture: { startedAt: IsoTime | null; stoppedAt: IsoTime | null }; // client telemetry, labelled
+  rev: Rev;
+};
+
+// ---------------------------------------------------------------------------------------------
+// Events. Every actor speaks one of these; none writes SQL. Creation events take `video = null`.
+
+export type MuxObservation =
+  | { type: &#x27;assetCreated&#x27;; upload: MuxUploadId; asset: MuxAssetId }
+  | {
+    type: &#x27;assetReady&#x27;; upload: MuxUploadId | null; asset: MuxAssetId;
+    playback: MuxPlaybackId; durationSeconds: number | null; aspectRatio: string | null;
+  }
+  | { type: &#x27;assetErrored&#x27;; upload: MuxUploadId | null; asset: MuxAssetId; code: string | null; message: string }
+  | { type: &#x27;uploadEnded&#x27;; upload: MuxUploadId; reason: &#x27;timed_out&#x27; | &#x27;cancelled&#x27; | &#x27;errored&#x27; | &#x27;unknown&#x27; }
+  | { type: &#x27;assetGone&#x27;; asset: MuxAssetId }   // only observationsFrom builds this, after a fresh read
+  | { type: &#x27;clipReady&#x27;; clip: Clip; clipRevision: number };
+
+export type FinishIntent = {
+  title?: string; parentId?: string | null; posterUrl?: string | null; filename?: string; contentType?: string;
+  captureStartedAt?: IsoTime; captureStoppedAt?: IsoTime;
+};
+
+export type DiscardCause = &#x27;rep&#x27; | &#x27;library_delete&#x27; | &#x27;upload_cancel&#x27; | &#x27;swept&#x27;;
+
+export type LifecycleEvent =
+  | MuxObservation
+  | { type: &#x27;granted&#x27;; kind: &#x27;recording&#x27; | &#x27;upload&#x27;; clientKey: ClientKey; upload: MuxUploadId; uploadUrl: UploadUrl; parentId: string | null }
+  /** Key-less and v1 requests only. kind comes from the old claim&#x27;s sharePage flag; the node id derives from the
+   *  passthrough&#x27;s first-upload id (v2 `id`) or v1 `nodeId`, never from retryOf. */
+  | { type: &#x27;adopted&#x27;; kind: &#x27;recording&#x27; | &#x27;upload&#x27;; firstUpload: MuxUploadId; upload: MuxUploadId; facts: MuxUploadResolution; parentId: string | null }
+  | { type: &#x27;regranted&#x27;; retryOf: MuxUploadId; upload: MuxUploadId; uploadUrl: UploadUrl }
+  | { type: &#x27;finished&#x27;; intent: FinishIntent }
+  | { type: &#x27;edited&#x27;; manifest: EditManifest; expectedClipRevision: number }
+  | { type: &#x27;discarded&#x27;; cause: DiscardCause }
+  | { type: &#x27;swept&#x27;; horizonDays: number };
+
+export type EditManifest = { version: number; trim: { startSeconds: number; endSeconds: number } | null; posterTimeSeconds: number | null; preview: unknown };
+
+/** Rows a transition owes, written in the same batch. Creation rows are plain INSERTs that abort on conflict;
+ *  everything else is fenced on the new rev; job rows are ON CONFLICT DO NOTHING. */
+export type Effect =
+  | { kind: &#x27;createNode&#x27;; parentId: string | null }                       // analytics_environment NULL
+  | { kind: &#x27;createPage&#x27; }                                                // via SharePagePort; cardless
+  | { kind: &#x27;nodeIntent&#x27;; patch: IntentPatch; name?: string; parentId?: string | null }
+  | { kind: &#x27;renamePage&#x27;; title: string }                                 // draft and publication
+  | { kind: &#x27;manifest&#x27;; manifest: EditManifest }
+  | { kind: &#x27;deleteNodes&#x27;; nodeIds: string[] }
+  | { kind: &#x27;retirePage&#x27;; pageId: string }
+  | { kind: &#x27;enqueueDiscard&#x27;; subject: `asset:${string}` | `upload:${string}` }
+  | { kind: &#x27;enqueueClip&#x27; }                                               // one per video, ON CONFLICT DO NOTHING
+  | { kind: &#x27;completeJob&#x27;; jobId: string }
+  | { kind: &#x27;analytics&#x27;; event: &#x27;library_added&#x27; }                         // only from finished
+  | { kind: &#x27;telemetry&#x27;; event: &#x27;repair&#x27; | &#x27;stray_asset&#x27;; detail: Record&lt;string, string&gt; }
+  | { kind: &#x27;projectLegacyMetadata&#x27; };                                    // json_set fenced on rev; dual-write phase only
+
+export type RefusalReason = &#x27;superseded&#x27; | &#x27;conflict&#x27; | &#x27;stale&#x27; | &#x27;no_upload_provenance&#x27; | &#x27;discarded&#x27;;   // a missing parent falls back to root
+
+export type Outcome =
+  | { kind: &#x27;applied&#x27;; next: Video; effects: Effect[] }
+  | { kind: &#x27;noop&#x27; }
+  | { kind: &#x27;refused&#x27;; reason: RefusalReason };
+
+/** The whole state machine, creation included. Pure and total. One test case per row of the table,
+ *  plus two concurrent first grants and concurrent adoption asserting one complete row set. */
+export function transition(video: Video | null, event: LifecycleEvent, now: IsoTime): Outcome {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** Content rejection is terminal (failed). The default is operational (stalled, journal survives). */
+export function classifyMuxAssetError(code: string | null, message: string): &#x27;content_rejection&#x27; | &#x27;operational&#x27; {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+// ---------------------------------------------------------------------------------------------
+// What the recorder, the uploader and old-tab adapters see.
+
+export type TakeView = {
+  videoId: VideoId;
+  shareUrl: string | null;      // null for uploads
+  muxHasBytes: boolean;         // drives atRisk
+  journalReleasable: boolean;   // drives journal deletion; true at ready
+  playable: boolean;
+  rejection: null | &#x27;unplayable&#x27;;
+  discarded: boolean;
+};
+
+export function takeView(video: Video, shareUrl: string | null): TakeView {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+// ---------------------------------------------------------------------------------------------
+// The lifecycle&#x27;s public surface.
+
+export type GrantRequest = {
+  kind: &#x27;recording&#x27; | &#x27;upload&#x27;;
+  clientKey: ClientKey | null;      // null only from old tabs, which create at claim through adoption
+  parentId: string | null;
+  retryOf: MuxUploadId | null;
+};
+
+export type GrantOutcome =
+  | { status: &#x27;granted&#x27;; take: TakeView; upload: { uploadId: MuxUploadId; uploadUrl: UploadUrl } }
+  | { status: &#x27;received&#x27;; take: TakeView }    // Mux has an asset; stop sending, poll
+  | { status: &#x27;rejected&#x27;; take: TakeView }    // content rejection; terminal
+  | { status: &#x27;discarded&#x27;; take: TakeView };  // reset the recorder
+
+export type ObserveOutcome = &#x27;applied&#x27; | &#x27;unchanged&#x27; | &#x27;refused&#x27; | &#x27;missing&#x27; | &#x27;contended&#x27;;
+
+/** A Mux-side reference the lifecycle resolves to a row itself. Only verifiedRefFromWebhook (after the HMAC
+ *  check) and the scoped settle loader construct it; the brand keeps browser-reachable code out. */
+export type VerifiedMuxRef = Brand&lt;
+  { namespace: MuxNamespace; workspaceId: WorkspaceId; by: &#x27;upload&#x27; | &#x27;asset&#x27; | &#x27;opToken&#x27;; id: string },
+  &#x27;VerifiedMuxRef&#x27;
+&gt;;
+
+export interface VideoLifecycle {
+  /** Precedence, key first: (a) a live row for clientKey; (b) no keyed row, a row whose source or current upload is
+   *  retryOf; (c) key-less or v1 retryOf with no row: adopt (node id from the passthrough&#x27;s first upload), else a fresh
+   *  take; (d) create. On a row from (a) or (b): processing or ready -&gt; received; retryOf = current upload, or the current
+   *  upload ended (upload_url NULL) -&gt; regrant against it; otherwise replay the current upload and upload_url. */
+  grant(scope: WorkspaceScope, request: GrantRequest): Promise&lt;GrantOutcome&gt;;
+  /** The Stop stamp. Applies intent once, keyed on finished_at IS NULL, in any delivery state. Adopts for old tabs. */
+  finish(scope: WorkspaceScope, videoId: VideoId, intent: FinishIntent): Promise&lt;TakeView&gt;;
+  /** Webhook, settle and inventory. Resolves the row from the ref. */
+  observe(ref: VerifiedMuxRef, observation: MuxObservation): Promise&lt;ObserveOutcome&gt;;
+  /** The only constructor of observations from Mux facts; assetGone only after a fresh read. */
+  observationsFrom(ref: VerifiedMuxRef, facts: MuxAssetFacts | MuxUploadResolution): MuxObservation[];
+  /** Read-time settlement over ids a scoped read already loaded. At most 3 Mux reads, newest first. */
+  settle(scope: WorkspaceScope, videoIds: VideoId[]): Promise&lt;void&gt;;
+  discard(scope: WorkspaceScope, videoId: VideoId, cause: DiscardCause): Promise&lt;TakeView | null&gt;;
+  /** Set-based, for the caller&#x27;s subtree batch: stamps discarded_at, retires the routes and marks the share pages
+   *  deleted for rows with share_page_id, and inserts discard jobs. The per-row reducer is for single takes. */
+  discardMany(scope: WorkspaceScope, videoIds: VideoId[], cause: DiscardCause): D1PreparedStatement[];
+}
+
+/** The one admitted leak. The router&#x27;s page builder, handed into createLibrary. Creation statements are plain
+ *  INSERTs (the batch aborts on conflict); every other statement takes the rev fence so a lost CAS writes nothing. */
+export type SharePagePort = {
+  newTakePage(input: {
+    ownerId: OwnerId; workspaceId: WorkspaceId; videoId: VideoId; sourceVideoId: MuxUploadId; title: string; now: IsoTime;
+  }): { pageId: string; shareUrl: string; statements: D1PreparedStatement[] };
+  renamePage(pageId: string, title: string, fence: { nodeId: VideoId; rev: Rev }): D1PreparedStatement[];
+  retirePages(pageIds: string[], fence: { nodeId: VideoId; rev: Rev } | null): D1PreparedStatement[];   // null: set-based discardMany
+};
+
+export type VideoLifecycleDeps = {
+  db: D1Database;
+  mux: MuxPort | null;
+  sharePages: SharePagePort;
+  now: () =&gt; IsoTime;
+  newRev: () =&gt; Rev;
+  namespace: MuxNamespace;
+  uploadTimeoutSeconds: number;   // probed on Spike before PR 5 (open question 3)
+  sweepHorizonDays: number;
+};
+
+export function createVideoLifecycle(deps: VideoLifecycleDeps): VideoLifecycle {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+// ---------------------------------------------------------------------------------------------
+// video-row.ts: storage, private to the lifecycle except for the projection.
+
+/** Creation: plain INSERTs (videos, node, port statements); a conflict aborts the batch and the caller re-reads.
+ *  Update: UPDATE videos ... WHERE node_id = ? AND rev = ?old, then each effect as
+ *  INSERT/UPDATE/DELETE ... WHERE (SELECT rev FROM videos WHERE node_id = ?) = ?new; job rows ON CONFLICT DO NOTHING. */
+export function transitionStatements(db: D1Database, before: Rev | null, outcome: Outcome &amp; { kind: &#x27;applied&#x27; }): D1PreparedStatement[] {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** Parses any row, including the legacy cohorts (asset-only ready, asset-only processing, no-source failed, tombstone). */
+export function parseVideoRow(row: Record&lt;string, unknown&gt;): Video {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** The read-boundary merge that keeps old tabs, served-file-policy and public-media working. Removed in PR 9. */
+export function projectVideoMetadata(intent: IntentJson, video: Video, clipJob: JobSummary | null): Record&lt;string, unknown&gt; {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** The browser-writable keys. An allowlist; anything else in a PATCH is dropped, not rejected. */
+export const VIDEO_INTENT_KEYS = [
+  &#x27;title&#x27;, &#x27;description&#x27;, &#x27;preferred_thumbnail&#x27;,
+  &#x27;cta_calendar_label&#x27;, &#x27;cta_calendar_link&#x27;, &#x27;cta_custom_label&#x27;, &#x27;cta_custom_link&#x27;,
+  &#x27;cta_pricing_label&#x27;, &#x27;cta_pricing_link&#x27;, &#x27;cta_color&#x27;, &#x27;button_color&#x27;,
+] as const;
+export type IntentPatch = Partial&lt;Record&lt;(typeof VIDEO_INTENT_KEYS)[number], string | null&gt;&gt;;
+export type IntentJson = IntentPatch &amp; { edit_manifest?: EditManifest };
+
+// ---------------------------------------------------------------------------------------------
+// Jobs: the only code that mutates Mux.
+
+export type JobKind = &#x27;journey_page_generation&#x27; | &#x27;mux_clip&#x27; | &#x27;mux_discard&#x27;;
+export type JobSummary = { state: &#x27;running&#x27; | &#x27;done&#x27; | &#x27;dead&#x27;; error: string | null };
+
+/** failures spend the budget; attempts is the lease fence. During backoff the lease is released and not_before is in the future. */
+export const JOB_POLICY: Record&lt;JobKind, { leaseMs: number; maxFailures: number; backoffCapMs: number; perTick: number; perWorkspace: number | null }&gt; = {
+  journey_page_generation: { leaseMs: 130_000, maxFailures: 3, backoffCapMs: 60_000, perTick: 3, perWorkspace: 3 },
+  mux_clip: { leaseMs: 90_000, maxFailures: 8, backoffCapMs: 600_000, perTick: 5, perWorkspace: 20 },
+  mux_discard: { leaseMs: 60_000, maxFailures: 12, backoffCapMs: 21_600_000, perTick: 10, perWorkspace: null },
+};
+
+export type MuxClipPayload = { opToken: string; cutRevision: number | null; createdAsset: MuxAssetId | null };
+
+/** One job per video. Reads videos.clip_revision at every step, waits while not ready, writes the created asset
+ *  under the lease fence, promotes through observe({clipReady}); on `stale` discards and loops; re-arms instead of dying
+ *  when clip_revision advanced since its last cut. */
+export function runMuxClipJob(job: { id: string; subject: VideoId; payload: MuxClipPayload }, deps: { lifecycle: VideoLifecycle; mux: MuxPort; db: D1Database }): Promise&lt;void&gt; {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** Subject `asset:&lt;id&gt;` deletes, `upload:&lt;id&gt;` cancels. 404 is done. 400 is done only after a re-read proves absence. */
+export function runMuxDiscardJob(job: { subject: `asset:${string}` | `upload:${string}` }, deps: { mux: MuxPort; db: D1Database }): Promise&lt;void&gt; {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** dead -&gt; running with attempts + 1 and failures reset. Callers revalidate ownership first. */
+export function rearmJob(db: D1Database, jobId: string): Promise&lt;boolean&gt; {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+// ---------------------------------------------------------------------------------------------
+// mux-inventory.ts
+
+export type InventoryClass = &#x27;live&#x27; | &#x27;stray&#x27; | &#x27;orphan&#x27; | &#x27;foreign&#x27; | &#x27;unknown&#x27;;
+export type InventoryReport = {
+  namespace: MuxNamespace; mode: &#x27;report&#x27; | &#x27;act&#x27;; scanId: string; completed: boolean;
+  counts: Record&lt;InventoryClass, number&gt;; enqueuedDiscards: number; observed: number; swept: number;
+};
+
+/** The nightly tick opens a scan; the minute cron advances one bounded page per kind. Deletion needs two completed
+ *  scans plus a fresh reference check, and is always a mux_discard job. Never acts on foreign or unknown. */
+export function advanceMuxInventory(deps: {
+  lifecycle: VideoLifecycle; mux: MuxPort; db: D1Database; namespace: MuxNamespace; mode: &#x27;report&#x27; | &#x27;act&#x27;; now: () =&gt; IsoTime;
+}): Promise&lt;InventoryReport&gt; {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+/** v2 keeps a locator so the webhook never needs video SQL. Length checked under 255 at the Mux boundary. */
+export type Passthrough =
+  | { v: 2; n: MuxNamespace; w: WorkspaceId; id: MuxUploadId; k: ClientKey | string }
+  | { v: 1; nodeId: string | null; ownerId: OwnerId; workspaceId: WorkspaceId };
+
+// ---------------------------------------------------------------------------------------------
+// editor/src/lib/recorder-take.ts: the thin client.
+
+export type RecorderPhase = &#x27;idle&#x27; | &#x27;capturing&#x27; | &#x27;paused&#x27; | &#x27;stopped&#x27;;
+
+/** Journal v2. A v1 journal has uploadId only and recovers through grant({ clientKey: sessionId, retryOf }). */
+export type JournalRecord = {
+  sessionId: ClientKey; videoId: VideoId | null; uploadId: MuxUploadId | null; generation: number;
+  status: &#x27;bytes&#x27; | &#x27;rejected&#x27;; expiresAt: IsoTime | null;   // rejected: kept under a TTL, never auto-recovered
+};
+
+export type RecorderTake = {
+  start(parentId: string | null): void;
+  stop(): void;
+  discard(): Promise&lt;void&gt;;
+  view(): TakeView | null;
+  /** The only input to beforeunload. */
+  atRisk(): boolean;
+  subscribe(listener: () =&gt; void): () =&gt; void;
+};
+
+/** Pure. &quot;Couldn&#x27;t upload your recording&quot; shows iff this returns &#x27;upload&#x27;. Discard is not a problem. */
+export function recorderProblem(take: TakeView | null): &#x27;upload&#x27; | null {
+  return take?.rejection ? &#x27;upload&#x27; : null;
+}
+
+export function recorderAtRisk(state: {
+  phase: RecorderPhase; take: TakeView | null; bytesHeldLocally: boolean;
+  finishUnacked: boolean; editsUnacked: boolean; discardUnacked: boolean;
+}): boolean {
+  if (state.take?.discarded) return false;
+  return state.phase === &#x27;capturing&#x27;
+    || state.phase === &#x27;paused&#x27;
+    || (!state.take?.muxHasBytes &amp;&amp; state.bytesHeldLocally)
+    || state.finishUnacked
+    || state.editsUnacked
+    || state.discardUnacked;
+}
+
+/** Module-scoped so SPA navigation does not end the upload. */
+export function createRecorderTake(deps: { api: RecorderApi; journal: JournalPort; editSaver: EditSaver }): RecorderTake {
+  throw new Error(&#x27;not implemented&#x27;);
+}
+
+export type RecorderApi = {
+  grant(request: GrantRequest): Promise&lt;GrantOutcome&gt;;
+  finish(videoId: VideoId, intent: FinishIntent): Promise&lt;TakeView&gt;;
+  take(videoId: VideoId): Promise&lt;TakeView&gt;; // GET; settles server-side
+  discard(videoId: VideoId): Promise&lt;void&gt;;
+};
+
+export type JournalPort = {
+  read(): Promise&lt;JournalRecord | null&gt;;
+  write(record: JournalRecord): Promise&lt;void&gt;;
+  hasBytes(): Promise&lt;boolean&gt;;
+  remove(): Promise&lt;void&gt;;
+};
+
+/** #901&#x27;s saver with revision acknowledgements. Carries finish intent as well as edits. A refusal never clears pending intent. */
+export type EditSaver = {
+  queueFinish(intent: FinishIntent): void;
+  queue(patch: IntentPatch | { manifest: EditManifest }): void;
+  unacked(): { finish: boolean; edits: boolean };
+  flush(): Promise&lt;void&gt;;   // resolves when the captured revision is acknowledged
+};
+
+// ---------------------------------------------------------------------------------------------
+// Ports (existing shapes, narrowed to the package&#x27;s types).
+
+export type MuxPort = {
+  createDirectUpload(input: { corsOrigin: string; passthrough: string; timeoutSeconds: number }): Promise&lt;{ uploadId: MuxUploadId; uploadUrl: UploadUrl }&gt;;
+  readUpload(id: MuxUploadId): Promise&lt;MuxUploadResolution&gt;;
+  readAsset(id: MuxAssetId): Promise&lt;MuxAssetFacts | null&gt;;   // null means 404, the input to assetGone
+  cancelUpload(id: MuxUploadId): Promise&lt;void&gt;;
+  deleteAsset(id: MuxAssetId): Promise&lt;void&gt;;
+  createClip(input: { source: MuxAssetId; startSeconds: number; endSeconds: number; passthrough: string }): Promise&lt;MuxAssetId&gt;;
+  listAssets(cursor: string | null): Promise&lt;{ items: MuxAssetFacts[]; next: string | null }&gt;;
+  listUploads(cursor: string | null): Promise&lt;{ items: MuxUploadResolution[]; next: string | null }&gt;;
+};
+</code></pre></section>
+</main></body></html>
