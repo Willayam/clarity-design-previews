@@ -1,0 +1,181 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why public playback fails: diagnosis, 2 Oct 2026</title>
+<style>
+  :root { color-scheme: light dark; --ink: #16181d; --dim: #5c6370; --rule: #dfe3e8; --bg: #fff; --hot: #b3261e; --cool: #0d6b47; --wash: #f6f7f9; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e6e8ec; --dim: #9aa2ae; --rule: #2c3038; --bg: #14161a; --hot: #ff8a80; --cool: #6ee7b7; --wash: #1b1e24; }
+  }
+  body { font: 16px/1.6 -apple-system, system-ui, sans-serif; color: var(--ink); background: var(--bg); margin: 0 auto; max-width: 54rem; padding: 2.5rem 1.25rem 6rem; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .4rem; letter-spacing: -.02em; }
+  h2 { font-size: 1.25rem; margin: 2.6rem 0 .6rem; letter-spacing: -.01em; }
+  h3 { font-size: 1rem; margin: 1.8rem 0 .4rem; }
+  .sub { color: var(--dim); margin: 0 0 2rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0 1.2rem; font-size: .94rem; }
+  th, td { text-align: left; padding: .42rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-weight: 600; color: var(--dim); font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hot { color: var(--hot); font-weight: 600; }
+  .cool { color: var(--cool); font-weight: 600; }
+  .lede { background: var(--wash); border-left: 3px solid var(--ink); padding: 1rem 1.2rem; margin: 1.6rem 0; }
+  .lede p { margin: .4rem 0; }
+  code { font: .88em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--wash); padding: .1em .35em; border-radius: 3px; }
+  ol.rank { padding-left: 1.4rem; }
+  ol.rank > li { margin: 1.4rem 0; }
+  ol.rank > li > strong { display: block; font-size: 1.02rem; margin-bottom: .2rem; }
+  footer { color: var(--dim); font-size: .88rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .note { color: var(--dim); font-size: .88rem; }
+</style>
+
+<h1>Why public playback fails</h1>
+<p class="sub">Diagnosis for the 9.78% Mux playback failure rate, the 70% of player loads that never play, and the 31% of played sessions that freeze. Production read only. Window: 7 days to 2026-10-01 21:00Z.</p>
+
+<div class="lede">
+<p><strong>The 9.78% is mostly robots.</strong> Four datacenter networks produced 13 views in the week. Every one of the 13 failed, with zero playing time. Microsoft's AS8075 alone is 10 of them. Take those 13 out and real viewers failed 9 times in 212 views, which is 4.25%, under Mux's 4.89% global average.</p>
+<p><strong>The 70% never-play figure measured our own hidden players, not prospects.</strong> Our <code>loaded</code> counter fires on the media element's <code>loadeddata</code>. Until <code>preload="none"</code> reached production on 30 Sept at 22:00Z, every hidden player downloaded video on page render and booked a load with no human involved. In the 23 hours after that deploy, 21 of 29 loads played. That is 72%, not 30%.</p>
+<p><strong>The 31% freeze figure is mostly slow startup counted as a freeze.</strong> 29 of the 54 frozen sessions report exactly one frozen second, and 33 of 54 report it before the second of playback. The sampler starts ticking on <code>play</code> and the clock has not moved yet.</p>
+<p><strong>One number did get worse, and it is real.</strong> Median startup went from 693 ms to 1,580 ms across the same deploy. We bought the byte saving with a second of waiting after the tap, and we are now slower than Mux's 1,169 ms global median.</p>
+</div>
+
+<h2>What the week actually looked like</h2>
+
+<table>
+<tr><th>Measure</th><th class="n">7 days to 1 Oct 21:00Z</th><th class="n">Mux global</th></tr>
+<tr><td>Views</td><td class="n">225</td><td class="n"></td></tr>
+<tr><td>Playback failure</td><td class="n hot">9.78% (22 views)</td><td class="n">4.89%</td></tr>
+<tr><td>Playback failure, datacenter networks removed</td><td class="n cool">4.25% (9 of 212)</td><td class="n">4.89%</td></tr>
+<tr><td>Rebuffer percentage</td><td class="n cool">1.12%</td><td class="n">8.79%</td></tr>
+<tr><td>Median video startup</td><td class="n">1,070 ms</td><td class="n">1,169 ms</td></tr>
+<tr><td>Player</td><td class="n">mux-player 3.13.4 on 221 of 225 views</td><td class="n"></td></tr>
+</table>
+
+<p>Rebuffering is the number worth pausing on. Mux measures us at an eighth of the global rebuffer rate while our own counters claim a third of sessions freeze. Two systems watching the same playback cannot both be right, and the one with the suspicious number is ours.</p>
+
+<h2>Where the 22 failures came from</h2>
+
+<h3>By network</h3>
+<table>
+<tr><th>Network</th><th class="n">Views</th><th class="n">Failures</th><th>Read</th></tr>
+<tr><td>AS8075 Microsoft</td><td class="n">10</td><td class="n hot">10 (100%)</td><td>624 ms total watch time across 10 views, 0 ms playing. 9 unique viewers for 10 views. Regions: Washington 5, California 2, Iowa 1, Illinois 1, Ireland 1.</td></tr>
+<tr><td>AS20473 Vultr</td><td class="n">1</td><td class="n hot">1 (100%)</td><td>Hosting provider.</td></tr>
+<tr><td>AS36183 Akamai</td><td class="n">1</td><td class="n hot">1 (100%)</td><td>Reported a Safari user agent from a CDN network.</td></tr>
+<tr><td>AS32934 Facebook</td><td class="n">1</td><td class="n hot">1 (100%)</td><td>Facebook's own fetcher, with the Facebook in-app user agent.</td></tr>
+<tr><td>Unresolved ASN</td><td class="n">29</td><td class="n">4</td><td>All four are desktop Chrome on build strings 142.0.7444.175, 142.0.7444.162 and 135.0.0.0, the same builds the Microsoft fleet reports.</td></tr>
+<tr><td>Consumer and carrier networks</td><td class="n">~183</td><td class="n cool">5</td><td>All five are Instagram's Android in-app webview.</td></tr>
+</table>
+
+<p>Microsoft's fleet hit 6 distinct pages, two of them legacy <code>/journey_pages/landing/&lt;uuid&gt;</code> links, which is the shape that sits in old email. A detonation sandbox following a link out of a mailbox fits every signal: datacenter egress from Azure regions, a fresh viewer identity per view, headless Chrome 146 beside stale Chrome builds, and a view that ends after 62 ms with nothing played.</p>
+
+<h3>By error code</h3>
+<table>
+<tr><th>Code</th><th>Message Mux reports</th><th class="n">Views</th><th>Who got it</th></tr>
+<tr><td>2</td><td>a network error caused the media download to fail</td><td class="n">9</td><td>5 Instagram Android webview on carrier networks in Tunisia, India and Nepal. 3 Microsoft. 1 Facebook fetcher.</td></tr>
+<tr><td>3</td><td>a media error caused playback to be aborted, the media could be corrupt or your browser does not support this format</td><td class="n">9</td><td>Desktop Chrome builds 135 to 143 on Windows 10 and macOS 10.15.7, every single one. 5 from Microsoft, 4 unresolved.</td></tr>
+<tr><td>4</td><td>pipelinestatus::demuxer_error_could_not_parse, and one unsupported-format variant</td><td class="n">4</td><td>Datacenter networks only: 2 Microsoft, 1 Akamai, 1 Vultr.</td></tr>
+</table>
+
+<p>Code 3 and code 4 together are 13 of the 22 failures, and they are the codes a browser gives when it cannot decode H.264 or AAC. A Chromium build without the proprietary codec set behaves exactly like this. No human-shaped client produced either code all week.</p>
+
+<p>21 of the 22 failures recorded no CDN at all, which means the client never got far enough into Mux delivery for a CDN header to come back. Where delivery did happen it worked: 86 views through Fastly failed 1.2% and 42 through edgemv failed 0%.</p>
+
+<h3>By browser and device</h3>
+<table>
+<tr><th>Surface</th><th class="n">Views</th><th class="n">Failure</th><th>Note</th></tr>
+<tr><td>Instagram in-app webview</td><td class="n">90</td><td class="n">5.6%</td><td>Biggest single surface we have. All 5 failures are code 2.</td></tr>
+<tr><td>Desktop Chrome</td><td class="n">62</td><td class="n hot">19.4%</td><td>8 of its 12 failures are Microsoft's fleet.</td></tr>
+<tr><td>Chrome Mobile</td><td class="n">28</td><td class="n">3.6%</td><td></td></tr>
+<tr><td>Safari Mobile</td><td class="n">20</td><td class="n cool">0%</td><td></td></tr>
+<tr><td>Edge</td><td class="n">10</td><td class="n cool">0%</td><td></td></tr>
+<tr><td>Safari desktop</td><td class="n">9</td><td class="n">11.1%</td><td>Its one failure came off a CDN network, not a home connection.</td></tr>
+<tr><td>Phone overall</td><td class="n">145</td><td class="n cool">4.8%</td><td></td></tr>
+<tr><td>Desktop overall</td><td class="n">78</td><td class="n hot">16.7%</td><td>Desktop is where the robots are.</td></tr>
+</table>
+
+<h3>Not the assets</h3>
+<p>Every one of the 14 Mux assets that carried a failure is <code>status=ready</code> with both a video track and an audio track and an empty error list. They were created between 2024-07-27 and 2026-09-30, and they include both the old direct uploads and the batch re-ingested by URL on 22 Sept. Failures do not pile onto any one asset: the busiest asset took 61 views and failed 3.3%, and every asset showing 100% failure has between 1 and 3 views, which is a crawler visiting once. The legacy-rendition theory is dead.</p>
+
+<h2>Why 70% of player loads never played</h2>
+
+<p>Our <code>loaded</code> row comes from a <code>loadeddata</code> listener on each element carrying <code>data-video-id</code>. <code>loadeddata</code> needs no user gesture. It fires as soon as the browser has a first frame, so before 30 Sept any player the page had rendered, visible or hidden, booked a load while it buffered. The fix that stopped hidden players downloading video also stopped the phantom loads. Splitting the same week at the deploy makes that plain.</p>
+
+<table>
+<tr><th>Mux-hosted videos</th><th class="n">Sessions with a load</th><th class="n">Sessions that played</th><th class="n">Play rate</th></tr>
+<tr><td>7 days before 30 Sept 22:00Z</td><td class="n">404</td><td class="n">70</td><td class="n hot">17.3%</td></tr>
+<tr><td>30 Sept 22:00Z to 1 Oct 21:00Z</td><td class="n">29</td><td class="n">21</td><td class="n cool">72.4%</td></tr>
+</table>
+
+<p>Mux never believed the 70% either. Mux opens a view on a playback attempt, and it counted 178 views in the pre-fix window against our 404 loads. Only 3 views in the whole week ended with <code>exit_before_video_start</code>. Our counter was measuring something Mux does not call a view, and our dashboards read it as refusal to watch.</p>
+
+<p>Two smaller contributors sit under the same number. Pages carry more than one video: of 583 sessions with a load, 127 loaded three videos and 3 loaded four, so one session can book four loads and one play. And 214 of the 407 sessions that loaded without playing never sent a <code>page_unload</code> beacon at all, which is what a client that does not run <code>pagehide</code> looks like.</p>
+
+<p>One corroborating signal from page RUM over the same week. Of 594 desktop public page loads, 211 reported a largest-contentful-paint and 383 did not. Mobile reported one on 664 of 740. Desktop Safari and Firefox do not implement the LCP API, so some of that gap is browser support, but not two thirds of it.</p>
+
+<h2>Why 31% of played sessions looked frozen</h2>
+
+<p>The stall sampler reads <code>currentTime</code> once a second while the element is nominally playing and counts the seconds it did not move. It starts on the <code>play</code> event. Between the tap and the first frame the clock sits at zero while the player fetches its manifest and first segment, and the sampler books those seconds as a freeze.</p>
+
+<table>
+<tr><th>Frozen sessions in the week</th><th class="n">Sessions</th></tr>
+<tr><td>Total with frozen_seconds &gt; 0</td><td class="n">54 of 176 played</td></tr>
+<tr><td>Exactly 1 frozen second, longest stall 1 s</td><td class="n">29</td></tr>
+<tr><td>Freeze first reported before 3 s of playback</td><td class="n">33</td></tr>
+<tr><td>3 or more frozen seconds</td><td class="n">21</td></tr>
+<tr><td>Worst two sessions</td><td class="n">179 s and 159 s</td></tr>
+</table>
+
+<p>Median startup is now 1,580 ms and the slower half of sessions sits well past two seconds, which is exactly long enough for the sampler to find the clock unmoved between its first and second tick. Strip the startup artifact and the real freeze rate is at most 21 of 176, around 12%, and Mux's independent rebuffer measurement of 1.12% suggests even that is generous. The long stalls are real and worth chasing, but they are a handful of sessions, not a third of them.</p>
+
+<h2>The cost of the preload fix</h2>
+
+<table>
+<tr><th>Window</th><th class="n">Views</th><th class="n">Median startup</th><th class="n">Playback failure</th></tr>
+<tr><td>7 days before 30 Sept 22:00Z</td><td class="n">178</td><td class="n cool">693 ms</td><td class="n hot">11.24%</td></tr>
+<tr><td>30 Sept 22:00Z to 1 Oct 21:00Z</td><td class="n">47</td><td class="n hot">1,580 ms</td><td class="n cool">4.26%</td></tr>
+<tr><td>Mux global</td><td class="n"></td><td class="n">1,169 ms</td><td class="n">4.89%</td></tr>
+</table>
+
+<p>The post-fix window has 47 views and 2 failures, so its 4.26% carries a wide error bar. The startup move is the firmer of the two: 693 to 1,580 ms is more than a doubling, it is consistent with cutting 10 MB of speculative download, and it puts us behind the global median instead of ahead of it. A prospect on a phone now waits a second and a half after tapping play. Warming metadata for the first player only, or on poster press, would get most of the byte saving back without the wait.</p>
+
+<h2>Ranked causes</h2>
+
+<ol class="rank">
+<li><strong>Datacenter crawlers, counted as prospects (13 of 22 failures, likely 17)</strong>
+Four datacenter networks produced 13 views and 13 failures with zero playing time. Four more failures carry the Microsoft fleet's exact Chrome build strings with no resolvable ASN. We send Mux no metadata at all, so there is no dimension in Mux Data that separates a crawler from a buyer and this had to be reconstructed from ASN lookups. Fix: tag each view server-side from the request's network and user agent, and consider not booting the player for datacenter clients at all.</li>
+
+<li><strong>A load counter that fires without a human (the whole 70%)</strong>
+<code>loadeddata</code> is not a play. The <code>preload="none"</code> change on 30 Sept already took the measured play rate from 17% to 72% without anyone touching the metric. The native-file path still ships <code>preload="metadata"</code> and still books loads with no gesture, so the counter stays wrong for file-backed videos. Fix: record play intent on the <code>play</code> event and stop inferring it.</li>
+
+<li><strong>A stall sampler that counts startup as a freeze (33 of 54 frozen sessions)</strong>
+The sampler begins at <code>play</code>, when the clock is still at zero. Fix: do not count a frozen second until the element has advanced at least once in the session. Startup already has its own measurement in RUM and in Mux.</li>
+
+<li><strong>Startup regressed to 1,580 ms (real, and ours)</strong>
+Median startup more than doubled across the preload deploy and is now above the Mux global median. This is the one number in the brief that got worse rather than being measured wrong.</li>
+
+<li><strong>Instagram's Android in-app webview on slow carrier networks (5 of 22 failures)</strong>
+Every failure that belongs to a real viewer landed here, all of them error code 2, on carriers in Tunisia, India and Nepal. The webview is also our single biggest surface at 90 of 225 views, and it fails 5.6%. Modest, network-bound, and the only one of these causes that costs a customer a sale today.</li>
+</ol>
+
+<h2>Ruled out</h2>
+<ul>
+<li><strong>Bad or legacy renditions.</strong> All 14 assets behind a failure are ready, complete and error-free, old uploads and 22 Sept re-ingests alike.</li>
+<li><strong>A player version.</strong> 221 of 225 views ran mux-player 3.13.4. The 4 views on other versions are too few to read.</li>
+<li><strong>A CDN or region.</strong> Fastly 1.2% on 86 views, edgemv 0% on 42. 21 of 22 failures never reported a CDN, so they failed before delivery.</li>
+<li><strong>Autoplay.</strong> 20 views with autoplay on, 0 failures.</li>
+<li><strong>A single bad page.</strong> The 22 failures spread across 11 pages, and the 6 pages Microsoft touched account for most of the concentration.</li>
+</ul>
+
+<h2>What I could not determine</h2>
+<ul>
+<li>Whether the 4 unresolved-ASN failures are the same Microsoft fleet. The build strings match exactly, but Mux returned no ASN for them and I have no second source to join on.</li>
+<li>Per-view detail. <code>/data/v1/views</code> returns 404 for this account and real-time monitoring returns 402, so there is no view-level record to open. Everything here comes from filtered breakdowns.</li>
+<li>Cloudflare bot scores for the public pages. The API token in this environment has no zone access, so I could not confirm the crawler share from Cloudflare's side.</li>
+<li>Whether the two long freezes (179 s and 159 s) were network stalls or a player bug. One session each, no error reported, nothing else to join on.</li>
+<li>Whether <code>preload="none"</code> suppresses <code>loadeddata</code> on mux-player by construction. I inferred it from the measured zero bytes before interaction and from loads matching plays after the deploy, rather than reading the player's source.</li>
+<li>The post-fix failure rate within useful bounds. 47 views and 2 failures is not enough. It needs another week.</li>
+<li>PostHog and Sentry corroboration. Neither credential is present in this environment.</li>
+</ul>
+
+<footer>
+Diagnosis run 2026-10-02. Sources: Mux Data metrics and breakdown APIs with ASN, browser, error-code, asset and page filters; the Mux Video asset API; production <code>VIDEO_STATS_DB</code> read-only; the production RUM dataset in Analytics Engine; and the 1 Oct measurement lane's saved page HTML. Production took no writes. Customer names, page identifiers and playback identifiers are left out on purpose.
+</footer>
