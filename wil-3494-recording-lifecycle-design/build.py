@@ -4,6 +4,22 @@ root = here.parent
 design = (root / 'design.md').read_text()
 sketch = (root / 'sketch.ts').read_text()
 summary = (here / 'summary.md').read_text()
+import re
+def spaced_lists(text):
+    out, prev = [], ''
+    in_code = False
+    for line in text.split('\n'):
+        if line.startswith('```'):
+            in_code = not in_code
+        is_item = bool(re.match(r'^(\s*)([-*]|\d+\.)\s', line))
+        prev_item = bool(re.match(r'^(\s*)([-*]|\d+\.)\s', prev))
+        if not in_code and is_item and prev.strip() and not prev_item and not prev.startswith('|'):
+            out.append('')
+        out.append(line)
+        prev = line
+    return '\n'.join(out)
+design = spaced_lists(design)
+summary = spaced_lists(summary)
 md = markdown.Markdown(extensions=['tables', 'fenced_code', 'toc', 'sane_lists'])
 body_summary = md.convert(summary)
 md.reset()
