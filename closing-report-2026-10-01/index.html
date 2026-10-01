@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Closing report, 1 Oct 2026: the move is done, except step 8</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .75rem; border-bottom: 1px solid #e2e8f0; font-size: .875rem; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; }
+  code { font-size: .8em; background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+  .prose-p p { margin-bottom: .75rem; }
+  .ok { color: #047857; } .warn { color: #b45309; } .bad { color: #dc2626; }
+  ol.flags > li { margin-bottom: 1rem; }
+  a { color: #0369a1; } a:hover { text-decoration: underline; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main class="max-w-4xl mx-auto px-5 py-10 space-y-12">
+
+<header class="space-y-3">
+  <p class="schem text-slate-500">Clarity · closing report · 2026-10-01</p>
+  <h1 class="font-serif text-4xl">The move is done, except the step that waits on purpose</h1>
+  <p class="text-slate-600">The 30 September audit's database move finished today; only step 8 remains, dropping the two old databases on or after 8 October. This program shipped 18 PRs to production between 08:24 and 18:51 UTC, three of them hardening fixes (#897, #898, #899). Next William regroups on the recording lifecycle, WIL-3494, in a fresh session; until step 8 the old databases sit untouched as recovery material.</p>
+</header>
+
+<section class="space-y-2">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">PRs shipped</p><p class="text-3xl font-serif ok">18</p><p class="text-xs text-slate-500">by this program, 08:24 to 18:51 UTC</p></div>
+    <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Runtime lines, net</p><p class="text-3xl font-serif">-1,714</p><p class="text-xs text-slate-500">8,394 added, 10,108 removed; tests +1,198</p></div>
+    <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Convex lines removed</p><p class="text-3xl font-serif">3,031</p><p class="text-xs text-slate-500">Convex itself is fully gone</p></div>
+    <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Workers deleted</p><p class="text-3xl font-serif">~103</p><p class="text-xs text-slate-500">8 named, about 95 stale previews</p></div>
+  </div>
+  <p class="text-xs text-slate-500">Line counts compare main to the 30 September baseline (33467d13) and include three recorder PRs another thread shipped today (#888, #890, #900). Those three are not part of this program.</p>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">What changed for users</h2>
+  <p class="text-slate-600 text-sm">The lead-form fix is the oldest debt here; those forms had been broken since 7 September.</p>
+  <div class="overflow-x-auto rounded-lg border bg-white"><table>
+    <tr><th>Area</th><th>What changed</th></tr>
+    <tr><td>Lead forms</td><td>Lead and password forms on public pages work again; a Referrer-Policy change had made the browser's Origin null and broken them since 7 September.</td></tr>
+    <tr><td>Share links</td><td>A deleted page's link can no longer be turned back on by a publish racing the delete.</td></tr>
+    <tr><td>Email delivery</td><td>A delivery callback that fails partway can no longer be marked a duplicate and lost; its receipt, event and status are written in one batch.</td></tr>
+    <tr><td>Library deletes</td><td>A Library delete uses an index instead of scanning the table; a large workspace delete went from 16 s to 15 ms in a production-scale test.</td></tr>
+  </table></div>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">What changed for whoever maintains this next</h2>
+  <p class="text-slate-600 text-sm">Less to know, and less to break.</p>
+  <div class="overflow-x-auto rounded-lg border bg-white"><table>
+    <tr><th>Shape</th><th>What it means now</th></tr>
+    <tr><td>One database, one binding</td><td>Page and Library content lives in AUTH_DB, reached through a single binding, <code>PAGE_LIBRARY_DB</code>; the retired migration directories are deleted.</td></tr>
+    <tr><td>Previews isolated</td><td>Previews run on their own databases and cannot touch production data; local dev and tests use one content database.</td></tr>
+    <tr><td>Old services gone</td><td>Convex is gone end to end, the auth-email Worker is retired with email sent in-process by the router, and the four idle Workers plus the already-folded workspace-tree Workers are deleted.</td></tr>
+    <tr><td>One-batch writes</td><td>A page and its Library card are written in one batch; cards reference the page instead of carrying copies, and the old projection is deleted.</td></tr>
+  </table></div>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Shipped today</h2>
+  <p class="text-slate-600 text-sm">Eighteen PRs, in merge order. Times are UTC.</p>
+  <div class="overflow-x-auto rounded-lg border bg-white"><table>
+    <tr><th>PR</th><th>Merged</th><th>What it does</th></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/881">#881</a></td><td>08:24</td><td>The preview cleanup deletes stale previews before the 7-day grace.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/880">#880</a></td><td>09:05</td><td>Adds the page and Library tables to AUTH_DB, with a write freeze and a resumable copy.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/882">#882</a></td><td>09:17</td><td>Points the page and Library bindings at AUTH_DB. The freeze ran 09:09 to 09:24Z and the copy moved 77,806 rows. Its deploy needed a manual production dispatch; see Attention.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/883">#883</a></td><td>09:30</td><td>Closes the four findings from the second review of the move.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/884">#884</a></td><td>10:20</td><td>Lead and password forms on public pages work again.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/886">#886</a></td><td>11:17</td><td>The public page unlock secret is provisioned on staging and production.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/887">#887</a></td><td>11:21</td><td>The freeze gate and copy tooling are deleted.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/889">#889</a></td><td>11:38</td><td>Each page stores its title.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/885">#885</a></td><td>12:04</td><td>The router sends email in-process; the auth-email Worker is retired.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/868">#868</a></td><td>12:56</td><td>Smart Placement puts the router next to its databases.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/892">#892</a></td><td>13:37</td><td>Library page cards read their name from the page.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/893">#893</a></td><td>14:17</td><td>A page and its Library card are written in one batch; the old projection is deleted.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/894">#894</a></td><td>14:42</td><td>Page cards become references. 6,025 cards were archived whole, 6,015 of them QA-account pollution, and 317 owner cards were backfilled.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/891">#891</a></td><td>16:02</td><td>Previews get their own databases and cannot touch production data; local dev and tests use one content database.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/896">#896</a></td><td>17:15</td><td>One content binding, <code>PAGE_LIBRARY_DB</code>; the retired migration directories are deleted.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/899">#899</a></td><td>17:46</td><td>A deleted page's link cannot be turned back on by a concurrent publish, and the Mux webhook is exempt from the origin guard.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/897">#897</a></td><td>18:05</td><td>A Library delete uses an index instead of a table scan; 16 s to 15 ms on a production-scale workspace delete.</td></tr>
+    <tr><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/898">#898</a></td><td>18:51</td><td>A Resend delivery callback is recorded in one batch.</td></tr>
+  </table></div>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Ops done today</h2>
+  <ul class="list-disc pl-5 text-sm text-slate-800 space-y-1">
+    <li>Convex is fully gone. Projects clarity-06cda, the old clarity project and clarity-ai-spike are deleted, along with the Convex secrets in GitHub and on the routers.</li>
+    <li>Workers deleted: the two workspace-tree Workers, four idle Workers, the two auth-email Workers, and about 95 stale preview Workers.</li>
+    <li>Resend runs on new router keys and webhooks; the old webhooks and keys were deleted and revoked between 18:31 and 18:42Z.</li>
+    <li>Preview databases created: <code>clarity-auth-preview</code> and <code>clarity-video-stats-preview</code>.</li>
+  </ul>
+</section>
+
+<section class="space-y-3 max-w-3xl">
+  <h2 class="font-serif text-2xl">How it was verified</h2>
+  <p class="text-sm text-slate-800">Every PR got an independent GPT-6 Astra review, repeated until it came back clean; #891 took five rounds. Every change was proven on staging except #899, whose race is covered by an interleaving test and a production probe. After each deploy came read-only production checks and a probe per behavior: page create, title and delete; publish, unpublish, republish and delete; a Library folder create and delete; password reset delivery; a Mux webhook origin probe; and EXPLAIN on the production database.</p>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">What's left</h2>
+  <ul class="list-disc pl-5 text-sm text-slate-800 space-y-1">
+    <li>Step 8, <a href="https://linear.app/cocco/issue/WIL-3495">WIL-3495</a>, runs on or after 8 October and drops <code>clarity-public-pages-production</code> and <code>clarity-workspace-tree-production</code>, both untouched since the freeze.</li>
+    <li>The next program is <a href="https://linear.app/cocco/issue/WIL-3494">WIL-3494</a>, the recording lifecycle, started in a fresh session from the handoff file. A pre-existing Mux asset-create 400 is active in Sentry, 38 events, and sits in its scope.</li>
+    <li>The move's parent ticket, WIL-3165, went to Linear's trash at 16:52Z; the final status lives on WIL-3495.</li>
+  </ul>
+  <div class="overflow-x-auto rounded-lg border bg-white"><table>
+    <tr><th>Ticket</th><th>Follow-up</th></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3488">WIL-3488</a></td><td>Security follow-up. Details stay on the ticket.</td></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3490">WIL-3490</a></td><td>A private security finding. Details stay on the ticket.</td></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3491">WIL-3491</a></td><td>The analytics trigger skips videos.</td></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3492">WIL-3492</a></td><td>Deploy failures are not reported to Linear.</td></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3493">WIL-3493</a></td><td>A sidebar overlap at 1440x900.</td></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3496">WIL-3496</a></td><td>A delete can still leave a live link on a page's first share route.</td></tr>
+    <tr><td><a href="https://linear.app/cocco/issue/WIL-3497">WIL-3497</a></td><td>Security follow-up. Details stay on the ticket.</td></tr>
+  </table></div>
+</section>
+
+<section class="space-y-3 max-w-3xl">
+  <h2 class="font-serif text-2xl">Attention</h2>
+  <p class="text-sm text-slate-800">Reviewed by gpt-6-astra.</p>
+  <p class="text-slate-600 text-sm">Ten flags from the cross-model trail review, each with what the coordinator's follow-up checks found. Most important first.</p>
+  <ol class="flags list-decimal pl-5 text-sm text-slate-800">
+    <li><strong>Was the freeze complete?</strong> Three production-bound previews, pr-674, pr-674-workspace-tree and pr-888, lived until 16:00Z. Checked. The newest writes in the old databases all predate the 09:09Z freeze; the latest is from 08:20Z, so nothing reached them afterwards.</li>
+    <li><strong>The old databases are recovery material, not a rollback.</strong> Writes diverged at 09:24Z. The real undo is D1 Time Travel on AUTH_DB, which keeps 30 days; bookmarks were taken before the freeze and before migration 0026. Step 8 drops the old databases on or after 8 October, as William decided.</li>
+    <li><strong>#894's archive is not a complete undo.</strong> Surviving cards' stripped keys were copies of page data and were not archived. The complete undo is the AUTH_DB bookmark taken at 14:42Z, before 0026.</li>
+    <li><strong>Three security follow-ups stay open.</strong> WIL-3488, WIL-3490 and WIL-3497 are filed and queued. Details stay on the tickets.</li>
+    <li><strong>#899 shipped without a staging proof.</strong> Deliberate. An interleaving test covers the publish race, and production probes covered normal publish and the webhook origin path. The sibling race is filed as WIL-3496.</li>
+    <li><strong>The auth-email retirement removed old infrastructure in eleven minutes.</strong> The router path was proven twice in production, before and after. Recovery would mean rebuilding the old Worker, which is not planned.</li>
+    <li><strong>The Convex deletion evidence for the older project is thin.</strong> William asked for the old projects to be deleted, and no code referenced them.</li>
+    <li><strong>The Mux asset-create 400 looked like it was rising.</strong> Checked. Production had 4 events, all on 30 September; today's rise is entirely staging video-edit tests. It stays in WIL-3494's scope.</li>
+    <li><strong>#882 needed a manual production dispatch.</strong> A duplicate cancelled CI run blocked the deploy's CI wait. It is an operational follow-up, not yet filed.</li>
+    <li><strong>#868's attribution is corrected.</strong> It shipped on the coordinator's call within the step-by-step queue. One latency sample from Sweden is not a performance result; RUM by colo over the next day is.</li>
+  </ol>
+</section>
+
+</main>
+</body>
+</html>
