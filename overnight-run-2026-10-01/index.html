@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Overnight run, 30 Sept to 1 Oct: merged, ready, and the order</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .75rem; border-bottom: 1px solid #e2e8f0; font-size: .875rem; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; }
+  code { font-size: .8em; background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+  .prose-p p { margin-bottom: .75rem; }
+  .ok { color: #047857; } .warn { color: #b45309; } .bad { color: #dc2626; }
+  ol.steps > li { margin-bottom: 1rem; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main class="max-w-4xl mx-auto px-5 py-10 space-y-12">
+
+<header class="space-y-3">
+  <p class="schem text-slate-500">Clarity · overnight run · 2026-09-30 to 2026-10-01</p>
+  <h1 class="font-serif text-4xl">What merged, what is ready for you, and the order</h1>
+  <p class="text-slate-600">Every PR below was built by an owner agent, reviewed by at least one model other than the one that wrote it (usually GPT-6 Astra, with Fable and Opus as well on the riskiest), and the big changes were run on staging. Seven small PRs merged. After each deploy I confirmed production runs the new version and its main pages and assets answer. The behavior itself was proven by tests, review and staging, not in production. The four programs you approved are built and waiting for your watched merge.</p>
+</header>
+
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Merged tonight</p><p class="text-3xl font-serif ok">7</p><p class="text-xs text-slate-500">each deploy confirmed live</p></div>
+  <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Ready for you</p><p class="text-3xl font-serif">14</p><p class="text-xs text-slate-500">reviewed; big ones staging-proven</p></div>
+  <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Review findings fixed</p><p class="text-3xl font-serif">~30</p><p class="text-xs text-slate-500">several would have lost data</p></div>
+  <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Production changed by me</p><p class="text-3xl font-serif">7 PRs</p><p class="text-xs text-slate-500">no data writes, no migrations</p></div>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Merged and live</h2>
+  <div class="overflow-x-auto rounded-lg border bg-white"><table>
+    <tr><th>PR</th><th>What changed for people</th></tr>
+    <tr><td>#869</td><td>The editor no longer waits on Google Fonts to open a page (canvas in about 1.0 s instead of 3.9 s on a slow font server).</td></tr>
+    <tr><td>#861</td><td>Public pages stop downloading video before a tap (up to 11 MB per phone). Views now count real engagement, as you chose; WIL-3479 tracks recounting history.</td></tr>
+    <tr><td>#859</td><td>The unused page-list endpoint that read every customer's pages is gone.</td></tr>
+    <tr><td>#857</td><td>r2-media's leftover five-minute cron is cleared; its deploy now lists no schedule. Expect its roughly 285 errors a day to stop.</td></tr>
+    <tr><td>#858</td><td>A recording saves into the folder it was started from (WIL-3348).</td></tr>
+    <tr><td>#863</td><td>Deleting a folder now deletes the Mux videos inside it, and only the ones actually deleted.</td></tr>
+    <tr><td>#878</td><td>Test-only, and not on your list. Main's CI went red at midnight UTC because the trial offer window closed and two tests used the real clock. Fixed; main is green. I merged it because every PR's CI was failing on it; it had CI and an independent review.</td></tr>
+  </table></div>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">Your morning merges, in order</h2>
+  <p class="text-slate-600 text-sm">Each merge deploys production. Wait for each deploy to finish before the next. Stacked PRs need their base retargeted to <code>main</code> after the one below merges; retargeting needs a close and reopen to start CI. If a PR's CI fails only in <code>trial-offer.test.ts</code>, GitHub tested it against a main from before #878. Click "Update branch" and it goes green; #866 needed exactly that tonight.</p>
+  <ol class="steps list-decimal pl-5 text-sm text-slate-800">
+    <li><strong>Accounts PRs from the other session</strong> (#855, #860, then #856) if you want them first. I did not review them. #855 and #860 each merge cleanly alone but conflict with each other in either order, in <code>AccountPanelRoute.tsx</code> and <code>boardroom-offer.ts</code>, so the second needs a rebase after the first lands. #856 now conflicts with main on <code>editor/tests/trial-offer.test.ts</code> (keep its deletion) and will conflict with the publish chain on <code>editor/tests/trial-wall.test.ts</code>.</li>
+    <li><strong>Small PRs, any order.</strong> #864 (page_id on playback events; carries a migration), #865 (Mux player pinned and served from our own domain), #866 (hashed assets cached for a year; misses never cached). All approved.</li>
+    <li><strong>Publish step.</strong> merge #871 and let it deploy. Only then merge #875; it switches public links to the published copy. After it deploys, open a page that was published before and confirm it shows the same thing. Editor tabs opened before #875 will be asked to reload.</li>
+    <li><strong>Convex replacement, straight after #875.</strong> Merge #873, then #874 immediately (tabs served between #875 and #874 can't resolve a save conflict), then #876. After #876, delete the GitHub secrets <code>CONVEX_STAGING_DEPLOY_KEY</code>, <code>CONVEX_PRODUCTION_DEPLOY_KEY</code>, <code>CONVEX_JWT_PRIVATE_JWK</code>; run <code>wrangler secret delete CONVEX_JWT_PRIVATE_JWK</code> on both routers; decommission the Convex deployment when ready. Add an <code>AI_GATEWAY_TOKEN</code> GitHub secret if you want calls to go through AI Gateway (they go straight to OpenAI until then).</li>
+    <li><strong>Server-Timing.</strong> Merge #867, which is restacked on #876.</li>
+    <li><strong>Worker fold, restacked on top of the above with conflicts pre-resolved.</strong> First re-set the GitHub secrets <code>MUX_TOKEN_ID</code> and <code>MUX_TOKEN_SECRET</code> from the production Mux token, the one <code>clarity-workspace-tree-production</code> uses. The fold's production deploy copies them onto the router. They were set on 22 Sept, no workflow has read them since, and GitHub can't show their values, so re-setting is the only way to be sure. If they're missing, the deploy stops before uploading anything; if they're from the wrong Mux environment, uploads and clips break. Merge #862, wait for its deploy, and record its router version from the deploy log as the rollback floor. Merge #870; from then on roll back only by a revert PR. Remove the cron triggers on <code>clarity-workspace-tree-staging</code> and <code>-production</code> in the dashboard, then merge #872. Keep the tree Workers and their secrets for a day, then delete them. If you roll the router back after #872, restore the tree Workers' cron triggers too, or the clip sweep and analytics delivery stop.</li>
+    <li><strong>Later.</strong> #877 (Library card shows Draft / Changes not published / Unpublished). #868 (Smart Placement) about a day after #867, so Server-Timing gives a before and after; check cold asset timing outside Europe.</li>
+  </ol>
+</section>
+
+<section class="space-y-3">
+  <h2 class="font-serif text-2xl">What the staging runs proved</h2>
+  <div class="overflow-x-auto rounded-lg border bg-white"><table>
+    <tr><th>Change</th><th>Result on staging</th></tr>
+    <tr><td>Worker fold (#862, #870)</td><td>Library, uploads, a real recording to a playing link, page save and card, a public page with an image, and critical e2e all pass. Router-only Library routes answer 404 to the browser and write nothing. A 2 MiB body gets 413.</td></tr>
+    <tr><td>Publish step (#871, #875)</td><td>Six existing pages served identical content across the switch. Draft edits stay off the link until Publish; password applies live; unpublish gives 404 and republish reuses the link; the recorder link works about 1 s after Stop. Critical e2e passes with updated specs.</td></tr>
+    <tr><td>Generation without Convex (#873, #874, #876)</td><td>With the real model, a new page generated in 13.2 s, an existing one in 5.2 s, both into the draft. Reload mid-run picks the job up. Two tabs merge. A fourth concurrent generation gets the "three running" message. Nothing references Convex.</td></tr>
+    <tr><td>Everything together</td><td id="integration"><strong class="ok">Pass.</strong> I built origin/main plus all 13 PRs, merged in your order (no conflicts), and deployed it to staging. Library folders, upload and a recording inside a folder all work; the link played 8.5 s after Stop. The router-only Library paths answer 404, and an oversized body gets 413. The full publish lifecycle works, and the Library cards show each stage. Real-model generation took 2.8 to 8.8 s, a reload mid-run adopts the result, and two tabs merge. Server-Timing is present. Hidden players fetch nothing before a tap. The Mux Player loads from our own domain. Hashed assets are cached a year and misses are never cached. Playback events carry the page id. Nothing calls Convex. Critical e2e passes.</td></tr>
+  </table></div>
+</section>
+
+<section class="space-y-3 prose-p max-w-3xl text-sm text-slate-800">
+  <h2 class="font-serif text-2xl">Things you should know</h2>
+  <p><strong>Concurrent saves now merge instead of overwriting the whole page.</strong> Page saves carry the revision they started from, and the server refuses a stale one. The writer then merges its changes into the latest draft, field by field. Two limits remain. When two tabs change the same field, or the same list, the later save wins and the earlier text in that field is replaced. And an edit beats a delete: if one tab deletes a block while another edits it, the block comes back with the edit.</p>
+  <p><strong>One rare case is accepted, not fixed. Please judge it yourself.</strong> If a save reaches the server but its answer is lost on the network, a block the rep deleted moments before can come back. At the next generation the editor then says "We couldn't confirm your last save. If you deleted something just now, check it's still gone." At the next ordinary save conflict it happens with no notice. Closing it needs server-side write history, which I judged not worth building overnight. I told the final #874 reviewer not to re-raise this case, so its approval doesn't cover it.</p>
+  <p><strong>Library errors in Sentry</strong> are now tagged <code>worker=clarity-frontend</code> instead of <code>clarity-workspace-tree</code> once the fold lands. Alerts filtered on the old tag will stop matching.</p>
+  <p><strong>stops_billing stays,</strong> as you decided, for accounts step 6a (WIL-3467).</p>
+  <p><strong>I took staging during the accounts session's window.</strong> I had promised it 45 minutes of staging after my merges at about 22:20 UTC. It didn't answer the handoff, so I used staging for these proofs. If it was still working then, any staging evidence it took after 22:21 UTC may have run against my builds. Staging's page database now also has the new publications and jobs tables. They are additive and harmless to main.</p>
+  <p><strong>Not verified anywhere.</strong> The Mux webhook relay after the fold (readiness settles through reads, so nothing depends on it), Safari's clipboard path for Publish, the cron takeover of a generation whose runner was cut off, and the AI Gateway path.</p>
+</section>
+
+<section class="space-y-3 max-w-3xl text-sm text-slate-800">
+  <h2 class="font-serif text-2xl">Follow-ups worth a ticket</h2>
+  <ul class="list-disc pl-5 space-y-1">
+    <li>Recount historical views with the engagement definition (WIL-3479; retention denominators shift too).</li>
+    <li>PATCH <code>/api/media/videos</code> still reads the browser body without a size limit (older than tonight).</li>
+    <li>Dead code: <code>adminSummary</code> in the tree store, and <code>MEDIA_FIELD_CONFIG</code> in the editor, which builds a <code>/tree/public/video/</code> URL that 404s after the fold. Neither has a caller.</li>
+    <li>Home cards' <code>MiniPage</code> still loads its theme font in a way that can wait on Google Fonts.</li>
+    <li>Remove the legacy <code>access</code> field from GET <code>/access</code> one release after #875.</li>
+    <li>The page API still accepts form-encoded bodies nothing sends.</li>
+    <li>The self-hosted Mux Player sits at a version-pinned path but is served <code>max-age=0, must-revalidate</code>, so every public page revalidates it. It could be cached as immutable.</li>
+    <li>A durable job for Mux asset disposal (WIL-3426): folder deletes now clean up, but a failed Mux call is only logged.</li>
+    <li>Recorder share pages created before #875 whose route mint failed have no publication and answer 404 until published from the editor.</li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>
