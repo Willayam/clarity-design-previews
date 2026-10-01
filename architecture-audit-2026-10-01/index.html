@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clarity architecture audit, 2026-10-01 (fifth pass)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .75rem; border-bottom: 1px solid #e2e8f0; font-size: .875rem; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; }
+  code { font-size: .8em; background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+  .p p { margin-bottom: .75rem; }
+  .p li { margin-bottom: .4rem; }
+  h2 { font-family: ui-serif, Georgia, serif; font-size: 1.75rem; margin-bottom: 1rem; }
+  h3 { font-weight: 600; margin: 1.25rem 0 .5rem; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main class="max-w-5xl mx-auto px-5 py-10 space-y-14">
+
+<header class="space-y-4">
+  <p class="schem text-slate-500">Clarity · origin/main eea27d9c · 2026-10-01 · fifth pass</p>
+  <h1 class="font-serif text-4xl">The platform is right. Most errors now come from data shapes nothing enforces.</h1>
+  <div class="text-slate-600 max-w-3xl p">
+    <p>Six explorers (GPT-6 Sol) read the code at today's main. One lane (Opus) measured production read-only and timed staging signed in. Fable merged the findings, and three models critiqued the result independently: Fable 5.1, Opus 5.5 and GPT-6 Astra. I checked against the code each claim the ranking rests on, and two of them changed as a result (see "Corrections"). Security specifics are kept off this public page. Page names are withheld because they are real customer pages.</p>
+  </div>
+</header>
+
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Deployables</p><p class="text-3xl font-serif">2 Workers</p><p class="text-xs text-slate-500">router (with Library and mail in process), r2-media. Was 4 plus Convex on 30 Sept</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Router, 7 days</p><p class="text-3xl font-serif">15 ms</p><p class="text-xs text-slate-500">p50 wall, 1.5 ms CPU, 141,678 requests, 2 exceptions</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Hand-typed D1 reads</p><p class="text-3xl font-serif">92</p><p class="text-xs text-slate-500"><code>.first&lt;T&gt;()</code> / <code>.all&lt;T&gt;()</code>, none derived from the schema</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Fixes to one hook</p><p class="text-3xl font-serif">10</p><p class="text-xs text-slate-500"><code>use-editor-page.ts</code> since 23 Sept, the densest cluster in the repo</p></div>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>Bottom line</h2>
+  <p>Every lane reached the same verdict on its own: keep Cloudflare Workers, D1, R2, Mux, WorkOS, Stripe and Resend. The September work (the worker fold, the Convex removal, page and Library tables moved into one database) closed the topology gap. Nothing in the measurements argues for a different platform. The router does 15 ms of wall time per request, the public page renders in 15 to 43 ms of server time, and production threw 2 exceptions in a week.</p>
+  <p>What's left is the layer between the parts. Row types, request bodies, video state and Env are each typed by hand in more than one place, and nothing checks that the copies agree. The bugs that keep coming back live in two places where a hard problem is built from the wrong material. Document sync is a state machine hidden in nine React refs. Video lifecycle is a JSON bag in one text column. Fix those two, and make the schema the one source of types, and most of the recurring fix stream has nowhere to come from.</p>
+  <p>For the customer, the 30 Sept performance problems are mostly fixed. What's left is cheap. Images go out at upload size. The video start got slower when preload was turned off. One 325 kB player file is revalidated on every visit. And a rep can publish a completely blank page.</p>
+</section>
+
+<section class="p">
+  <h2>Since 30 September, measured</h2>
+  <table>
+    <tr><th>30 Sept finding</th><th>Then</th><th>Now</th><th>Verdict</th></tr>
+    <tr><td>Hidden players download video before a tap</td><td>11.2 MB on a phone, three-video page</td><td>843 KB, 0 KB video. Every player has <code>preload="none"</code></td><td>Fixed</td></tr>
+    <tr><td>Hashed app assets not cached</td><td>72 of 73 assets revalidated on repeat</td><td><code>immutable</code>, warm repeat moves 300 bytes</td><td>Fixed</td></tr>
+    <tr><td>Editor waits on Google Fonts</td><td>Up to 3 s</td><td>Self-hosted Geist. Click to editable 240 to 510 ms</td><td>Fixed</td></tr>
+    <tr><td>r2-media exception storm</td><td>~285 a day</td><td>Stopped about 22:00Z on 30 Sept, 0 on 1 Oct</td><td>Fixed</td></tr>
+    <tr><td>Public HTML never edge-cached</td><td><code>s-maxage=60</code> with no cache call</td><td>Same. The router never calls the Cache API</td><td>Unchanged</td></tr>
+    <tr><td>Field mobile TTFB</td><td>p50 818 ms</td><td>p50 878, p75 1,447 ms (n=667). Worker time is 15 to 43 ms, so the gap is round trips and distance, not CPU</td><td>Slightly worse</td></tr>
+    <tr><td>Playback failure (Mux Data)</td><td>15.8%</td><td>9.8% of 225 views, against a Mux average of 4.9%</td><td>Better, still 2x</td></tr>
+    <tr><td>Median video startup</td><td>712 ms</td><td>1,070 ms, the cost of <code>preload="none"</code></td><td>Worse</td></tr>
+    <tr><td>Player loads that never play</td><td>80%</td><td>70%</td><td>Better, cause undiagnosed</td></tr>
+  </table>
+  <p class="text-sm text-slate-600 mt-3">Create to working public link on staging: 4 clicks, 1.32 s. That flow is good; keep it as the guard rail for everything below.</p>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>If we rebuilt it today</h2>
+  <p>On the same platform, with these differences. Each one maps to a gap in today's code.</p>
+  <ul class="list-disc pl-5">
+    <li><b>Data.</b> One D1 database for accounts, pages, Library, jobs and mail state. Analytics stays separate. Migrations are the source of truth and row types are generated from them. Tenant-scoped tables have <code>(workspace_id, id)</code> keys and real foreign keys. Lifecycle state lives in columns with CHECK constraints, copying the <code>jobs</code> table, which is the best schema in the repo. <i>Today</i>: one physical database with two binding names, 92 hand-typed reads, almost no foreign keys, video state in JSON.</li>
+    <li><b>API contract.</b> One route table. Each row declares path, method, audience, entitlement, origin policy and rate tier, and dispatch, the trial wall and the origin guard are generated from it. Bodies and provider payloads are parsed at the edge, and handlers get a parsed context with identity already resolved. The editor imports the response types. <i>Today</i>: about 30 ordered decisions in <code>index.ts</code>, plus separate path logic in the wall, the origin guard and the auth table. The editor's <code>apiRequest&lt;T&gt;</code> casts every response, and its own comment says a 200 can carry an error.</li>
+    <li><b>Client state.</b> TanStack Query owns everything remote, including writes, and mutations return the committed revision. The editor document lives in one plain store with a named save state machine, which React subscribes to. <i>Today</i>: 24 queries, 0 mutations, plus a session cache, a sessionStorage user, a warm-root promise map, custom events and a node overlay.</li>
+    <li><b>Rendering.</b> String SSR for prospects and React for reps, sharing the block registry, CSS and a typed block view model. Same as today minus the legacy step-media translation. Not a unified renderer (see "Dismissed").</li>
+    <li><b>Video.</b> Mux, with typed <code>videos</code> and <code>video_clip_jobs</code> tables and one module that owns every transition. The browser expresses intent and never names server fields.</li>
+    <li><b>Jobs and providers.</b> The <code>jobs</code> pattern extended to a provider-event inbox (Stripe, Resend, Mux) keyed by event id, and a cleanup and send outbox written in the same batch as the business change, both drained by the one-minute cron. No Queues and no Durable Objects at this volume. A table you can SELECT beats a queue you can't.</li>
+    <li><b>Deploy.</b> Build once, promote the artifact, one plan generator called by both the workflow and <code>just</code>. Today the same policy is spread over about 1,475 lines in four dialects.</li>
+  </ul>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>The highest-leverage move</h2>
+  <p><b>Make the migrations the one source of row types, and route every D1 read through them.</b> A script applies <code>migrations-auth</code> to in-memory SQLite, reads each table's columns and writes the row types. A lint rule then forbids a type argument on <code>.first</code> or <code>.all</code> that doesn't come from that generated module. The hard half already exists: six test helpers apply the real migrations in Node today. Converting the 92 reads is mechanical and checkable, which is the kind of work agents do well and a human can review fast.</p>
+  <p>Why this first. It turns the next three moves into schema edits instead of risky changes. The typed <code>videos</code> table (WIL-3494), composite tenant keys and foreign keys all become changes the compiler follows into every reader, not a hunt for every hand-written row interface that silently disagrees. Opus picked this move. Astra picked the video lifecycle module and Fable picked a real package graph. I side with Opus. WIL-3494 is already in flight and gets cheaper with generated types, and the package graph lost most of its urgency when its headline bug turned out not to be live.</p>
+  <p><b>In parallel, because it's where the fixes land:</b> move the editor's document session out of React into one store with a named save state machine (<code>idle</code>, <code>saving</code> against revision N, <code>conflict</code>, <code>adopting</code>) and a single serialized writer. All three critics ranked this the costliest error class. The nine refs exist because hook state can't express "exactly one save in flight against revision N". A store can. The accepted merge rules (later save wins per field, edit beats delete) stay as they are.</p>
+</section>
+
+<section class="p">
+  <h2>Error classes to make impossible</h2>
+  <table>
+    <tr><th>#</th><th>Class</th><th>Cost evidence</th><th>Structure that ends it</th><th>Size</th></tr>
+    <tr><td>1</td><td>Editor save and adoption races</td><td>10 fixes on <code>use-editor-page.ts</code>, 6 on <code>use-ai-generate.ts</code>, 5 on <code>generation-runs.ts</code>, a same-day run of save-ordering fixes on 1 Oct</td><td>External document store with a named state type, one writer, <code>useSyncExternalStore</code></td><td>3 to 5 days</td></tr>
+    <tr><td>2</td><td>Contradictory video state, work parked invisibly</td><td>26 fixes across Library and recorder files. WIL-3453, 3451, 3450, 3426, 3424, 3459. <code>nextClipStep</code> has an unreachable branch (line 132), which shows the ladder has outgrown review</td><td>WIL-3494 typed tables with CHECK states, due and error as columns, terminal states the UI must render. It must move clip state out of the JSON, not add columns beside it</td><td>1 to 2 weeks</td></tr>
+    <tr><td>3</td><td>Browser-planted server fields</td><td>About 60 denylisted names in <code>workspace-tree-core.ts:102-197</code>, including both spellings of retired fields. The code comment records one hole the list already missed</td><td>Parse the PATCH body into a typed patch of what a rep may change (name, parent, position, trim, poster). Unknown keys drop by construction. A denylist fails open; an allowlist fails closed</td><td>Half a day</td></tr>
+    <tr><td>4</td><td>Hand-typed rows and cast payloads</td><td>92 reads, casts at webhook and model boundaries, a card-preview union variant the editor's copy lacks</td><td>Generated row types plus lint (the move above), parsers at HTTP and webhook entry, typed values across the in-process Library call instead of a reparsed <code>Response</code></td><td>Script in a day, then file by file</td></tr>
+    <tr><td>5</td><td>Provider work lost after the business write</td><td>WIL-3426, 3433, 3474, 3497. A Stripe event with no matching account gets a 200 and is never retried, while the invoice path returns 503. That's two policies ten lines apart. A mail row can wedge in <code>processing</code></td><td>Provider-event inbox keyed by event id, an outbox in the same batch, stable idempotency keys, the existing cron as the drainer</td><td>1 to 2 weeks</td></tr>
+    <tr><td>6</td><td>Route, wall and origin policy drift</td><td>Two origin-guard exemption fixes on 1 Oct alone. Identity is resolved twice per guarded request</td><td>One route table (WIL-3401). <code>AUTH_ROUTES</code> is already the in-repo template</td><td>3 to 4 days, by route group</td></tr>
+    <tr><td>7</td><td>Valid TypeScript, invalid deployment</td><td>41 optional Env fields, 503s at request time, <code>c6321544</code>. <code>if (!env.LIBRARY)</code> tests the database binding while the real failure is a missing Mux token</td><td>Parse Env once into typed capabilities, and fail the deploy instead of the request</td><td>2 to 3 days</td></tr>
+    <tr><td>8</td><td>Relationships the schema doesn't state</td><td>WIL-3496 (route outlives delete; the first-route INSERT lacks a liveness guard), a cross-owner title join fixed at read time (<code>e39d7cb7</code>)</td><td>Composite tenant keys and foreign keys, now possible because everything shares one database. That's the merge's payoff, so far uncollected</td><td>One clause for WIL-3496, a week for the keys</td></tr>
+  </table>
+</section>
+
+<section class="p">
+  <h2>Deletions and simplifications, ranked</h2>
+  <table>
+    <tr><th>#</th><th>What</th><th>Removes</th><th>Safe when</th></tr>
+    <tr><td>1</td><td>Legacy account and contact representations</td><td>About 1,000 lines (<code>contacts-api.ts</code> 707, profile projections, dual <code>id</code>/<code>legacy_user_id</code> lookups) and two identity rules</td><td>WIL-3463 census and WIL-3470 cutover. The live contacts sit in tables named <code>legacy_contact_*_snapshots</code>, so migrate them, never drop them</td></tr>
+    <tr><td>2</td><td>Synthetic step-media adapter in public delivery</td><td>300 to 400 lines and one translation per prospect view. Typed block media is turned into <code>step_1_*</code>/<code>step_2_*</code> keys on a <code>Record&lt;string, unknown&gt;</code> and back</td><td>The media renderer takes block media directly, and the render-compare harness runs clean</td></tr>
+    <tr><td>3</td><td>Deploy policy in four dialects</td><td>500 to 700 of about 1,475 lines (workflow 785, <code>deploy-cloudflare.sh</code> 308, <code>cloudflare-ops.sh</code> 246, justfile)</td><td>One plan generator. A staging cycle proves parity, and manual dispatch stops skipping the CI wait</td></tr>
+    <tr><td>4</td><td>Parallel client caches and legacy URL aliases</td><td>About 500 lines: sessionStorage user, warm-root map, event store, node overlay, <code>LeadsRoute.tsx</code> duplicating Contacts, <code>?tab=media</code>/<code>?library</code> aliases</td><td>A Query-owned session store exists, and logs show no hits on the aliases</td></tr>
+    <tr><td>5</td><td>The build fingerprint cache</td><td>About 100 lines of hand-kept input lists and three cache keys that rarely hit across commits, because the SHA is in the fingerprint. Keep the old-asset retention</td><td>Now</td></tr>
+    <tr><td>6</td><td>The small basket</td><td>Second binding name plus the 26-line rename adapter and the "proxy" names, dormant columns, move bookkeeping tables, the unused <code>degraded</code> variant, a CHECK that only allows <code>'legacy_api'</code>, stale R2-fallback comments, 410 handlers</td><td>After the 8 Oct drop window for schema changes, and a week of logs for the 410s</td></tr>
+  </table>
+</section>
+
+<section class="p">
+  <h2>Performance and customer experience, ranked by impact per hour</h2>
+  <table>
+    <tr><th>#</th><th>Change</th><th>Evidence</th><th>Effort</th></tr>
+    <tr><td>1</td><td>Resize customer images through the <code>IMAGES</code> binding r2-media already declares and never calls</td><td>An image-heavy page moves 2.3 MB to a phone, 2.0 MB of it PNGs, including a 1.29 MB logo. Images are now the whole weight of such pages</td><td>Hours to 2 days</td></tr>
+    <tr><td>2</td><td>Warm the first player: <code>preload="metadata"</code> on the first visible player, or warm on poster hover or scroll-in</td><td>Startup rose from 712 to 1,070 ms. Lab click-to-first-frame on a phone reached 1.7 to 4.2 s. The play tap is the point of the page</td><td>An attribute plus a comparison run</td></tr>
+    <tr><td>3</td><td>Refuse to publish an empty page. Fit portrait video to its aspect on phones</td><td>A rep can publish a title on a white screen, and the deliberate Publish step makes it look intentional. Portrait takes show black bars at phone width. <code>validateJourneyPageDocument</code> exists and nothing calls it</td><td>A day</td></tr>
+    <tr><td>4</td><td>Content-hash the self-hosted player file and drop the Cast SDK if casting isn't a feature</td><td>325 kB brotli, the largest file on a public page, revalidated every visit because the version is in a directory, not a hash. Cast costs 2 to 3 third-party requests a view</td><td>Hours</td></tr>
+    <tr><td>5</td><td>Replace the processing poll with a readiness endpoint and an in-place player swap</td><td>A waiting viewer refetches and reparses the whole page every 5 to 30 s for up to 30 minutes, uncacheable, then reloads it</td><td>A day</td></tr>
+    <tr><td>6</td><td>End the blank app moments</td><td>First paint waits on <code>/auth/me</code> then <code>/me</code> behind null fallbacks. Admin session is asked twice. Card Edit and Actions ignore a click until hover settles. Identity is resolved twice per request on the server (a per-request memo is five lines)</td><td>2 to 4 days</td></tr>
+    <tr><td>7</td><td>Edge-cache published HTML, keyed by publication revision, password pages excluded</td><td>Field mobile TTFB p50 878 ms. Smart Placement is already on, so what's left is round trips and caching</td><td>3 to 6 days, the work is invalidation</td></tr>
+  </table>
+  <p class="mt-3 max-w-3xl">Two numbers deserve a diagnosis lane of their own before anyone ranks a fix. 70% of player loads never play, and playback fails 9.8% of the time, twice the Mux average and 19% on desktop Chrome. If even a third of the non-plays are a product problem, they outweigh everything in this table. A lead form that fails validation also throws away what the prospect typed, and on two-form pages it validates against the wrong form. Fix that when the delivery code moves for item 2 of the deletions.</p>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>This week, small and independent</h2>
+  <ol class="list-decimal pl-5">
+    <li>Metadata PATCH: denylist to allowlist parse.</li>
+    <li><code>preload="metadata"</code> on the first player, measured against today's 1,070 ms.</li>
+    <li>Content-hash or special-case the player path for immutable caching.</li>
+    <li>Empty-page publish guard, wired to the existing validator.</li>
+    <li>WIL-3496's liveness clause on the first-route INSERT, and publication plus route activation in one batch.</li>
+    <li>Per-request identity memo in the router.</li>
+    <li>Wire <code>IMAGES</code> into the r2-media read path.</li>
+    <li>Delete the build fingerprint cache lists (keep asset retention).</li>
+    <li>Delete the unreachable clip branch and the <code>degraded</code> variant; fix the stale R2-fallback comments.</li>
+  </ol>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>Corrections, dismissals and disagreements</h2>
+  <ul class="list-disc pl-5">
+    <li><b>Stale production bundle, downgraded to latent.</b> I first confirmed that the build fingerprint covers only 3 of the 11 packages the editor imports. Astra then pointed out that the deploy script puts the commit SHA into the fingerprint, so every new commit builds fresh. The hole only bites a direct build without those variables. Fable and Opus had both ranked it on my first reading. The real lesson runs the other way: the cache is mostly dead weight.</li>
+    <li><b>"48% of page cards in the wrong tenant", overstated.</b> 6,015 of the 6,024 cards were in one QA workspace, and the rest followed from a deliberate design change. Composite tenant keys are still worth doing, on the merits of class 8.</li>
+    <li><b>Renderer unification, dismissed.</b> The canvas and the SSR already share the registry, CSS, layout, theme and sanitizers. Unifying them would pull editing affordances toward the Worker for no customer-visible gain. Delete the step-media adapter instead.</li>
+    <li><b>Test adapter consolidation, low priority.</b> Every SQLite helper already applies the real migrations, so merging them is tidiness, not risk reduction. Their real value is as the base for type generation.</li>
+    <li><b>Geography, not a config fix.</b> Smart Placement is already on. Per-colo TTFB rests on 75 events, so treat it as a direction only.</li>
+    <li><b>Kept, praised by all three critics.</b> The <code>jobs</code> table (fenced leases, CHECK states), idempotent publish per revision, page delete as one batch, CAS metadata writes, the analytics outbox, and <code>decideEntitlement</code> as the one access rule. Copy these rather than replace them.</li>
+  </ul>
+</section>
+
+<footer class="text-xs text-slate-500 border-t border-slate-200 pt-6">
+  Method: six read-only explorers, one measurement lane (production read-only; one staging test page created and deleted), one synthesis, three independent critics, lead verification against eea27d9c. Previous passes: 21, 22, 24 and 30 September.
+</footer>
+</main>
+</body>
+</html>
