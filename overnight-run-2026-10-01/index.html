@@ -25,6 +25,8 @@
   <p class="text-slate-600">Every PR below was built by an owner agent, reviewed by at least one model other than the one that wrote it (usually GPT-6 Astra, with Fable and Opus as well on the riskiest), and the big changes were run on staging. Seven small PRs merged. After each deploy I confirmed production runs the new version and its main pages and assets answer. The behavior itself was proven by tests, review and staging, not in production. The four programs you approved are built and waiting for your watched merge.</p>
 </header>
 
+<section class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"><strong>Update, 1 Oct 06:00 UTC.</strong> Everything below except #868 shipped to production between 05:05 and 05:57 UTC, with a production check after each deploy. #868 waits about a day for Server-Timing baseline numbers. Still to do by hand: remove the tree Worker cron triggers, then after a day delete the tree Workers and the Convex secrets and decommission Convex. The Mux secrets are already re-set from the verified production token.</section>
+
 <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Merged tonight</p><p class="text-3xl font-serif ok">7</p><p class="text-xs text-slate-500">each deploy confirmed live</p></div>
   <div class="rounded-lg border bg-white p-4"><p class="schem text-slate-500">Ready for you</p><p class="text-3xl font-serif">14</p><p class="text-xs text-slate-500">reviewed; big ones staging-proven</p></div>
