@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>WIL-3401 route table and Env parse: design for sign-off</title>
+<style>
+  :root {
+    --ink: #1a1d21; --muted: #5b6470; --rule: #d9dde3; --bg: #ffffff;
+    --soft: #f4f6f8; --accent: #0b5fa5; --chip: #fff3df; --chip-ink: #8a5300;
+    --code-bg: #f4f6f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e6e9ed; --muted: #9aa4b1; --rule: #343a42; --bg: #16181c;
+      --soft: #1e2126; --accent: #6ab0e8; --chip: #3a2f14; --chip-ink: #e8c26a;
+      --code-bg: #1e2126;
+    }
+  }
+  html { background: var(--bg); }
+  body {
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink); margin: 0 auto; max-width: 1080px; padding: 48px 28px 80px;
+  }
+  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 4px; }
+  h2 { font-size: 21px; margin: 44px 0 10px; }
+  h3 { font-size: 17px; margin: 28px 0 8px; }
+  p, li { max-width: 76ch; }
+  .meta { color: var(--muted); margin-bottom: 28px; }
+  a { color: var(--accent); }
+  code, pre {
+    font: 13px/1.5 ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  }
+  code { background: var(--code-bg); padding: 1px 4px; border-radius: 4px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--rule); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0 6px; font-size: 13.5px; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 9px; border-bottom: 1px solid var(--rule); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  tbody tr:nth-child(even) { background: var(--soft); }
+  tr.group td {
+    background: none; border-bottom: 2px solid var(--rule); padding-top: 20px;
+    font-weight: 600; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
+  }
+  td code { white-space: nowrap; }
+  .chip {
+    background: var(--chip); color: var(--chip-ink); border-radius: 4px;
+    font-size: 11px; font-weight: 600; padding: 1px 6px; white-space: nowrap;
+  }
+  .small { font-size: 13.5px; color: var(--muted); }
+  .footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13.5px; }
+  ol li, ul li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<h1>Route table and Env parse: design for sign-off</h1>
+<p class="meta">
+  <a href="https://linear.app/cocco/issue/WIL-3401/router-replace-the-ordered-if-chain-with-a-route-table-and-parse-env">WIL-3401</a>
+  &nbsp;|&nbsp; 2 October 2026 &nbsp;|&nbsp; code read at origin/main <code>acf3e023</code>
+  &nbsp;|&nbsp; evidence: <a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-01/">1 Oct architecture audit</a>, error classes 1 and 2
+</p>
+
+<p>This is the design pass WIL-3401 requires before any code. Nothing here has shipped.
+It proposes one route table that owns dispatch order, method checks, audience, trial-wall
+policy, origin policy and rate tier per route, and one parse of <code>Env</code> into typed
+capabilities. It ends with a migration order where every step is independently verifiable,
+and a short list of decisions I need from you.</p>
+
+<h2>The problem, measured</h2>
+
+<p>Five files decide routing policy today, and none of them can see the others:</p>
+
+<table>
+  <thead><tr><th>Decider</th><th>Where</th><th>What it owns</th></tr></thead>
+  <tbody>
+    <tr><td>Ordered if-chain</td><td><code>index.ts:115-321</code></td><td>Dispatch order, about 30 top-level decisions. Position in the file is the only statement of whether a route is public or app.</td></tr>
+    <tr><td>Trial wall</td><td><code>trial-wall.ts:194-246</code></td><td>Re-classifies the same paths from its own lists: <code>isGatedApiRequest</code>, <code>isProspectTelemetryRequest</code>, <code>isWalledAppShellRequest</code>, <code>OPEN_WHILE_WALLED_PATHS</code>, plus two wall-exit regexes.</td></tr>
+    <tr><td>Origin guard</td><td><code>security-headers.ts:54-69</code></td><td>Refuses cross-origin mutations, with a hand-kept three-path exemption set for provider webhooks.</td></tr>
+    <tr><td>Auth route table</td><td><code>auth-session.ts:113-152</code></td><td>13 rows with a rate tier each. The right idea, locked inside one module, and every handler still repeats its own OPTIONS, 405 and not-configured blocks.</td></tr>
+    <tr><td>CORS</td><td><code>router-http.ts:41-48</code> and <code>auth-session.ts:1911-1915</code></td><td>Two copies of the local-dev origin list. The origin guard has no local allowance at all, so the three files disagree about what a local origin may do.</td></tr>
+  </tbody>
+</table>
+
+<p>This drifts in production, not in theory. Three origin-guard fixes shipped on 1 October alone:
+<code>b27ecdf3</code> (the guard refused the public page's own lead and password forms),
+<code>17628f38</code> (Resend webhook missing from the exemption set),
+<code>c1ab6814</code> (Mux webhook missing from the same set). Each was found by a failure,
+not by review, because adding a route does not force choosing a policy anywhere.</p>
+
+<p>The same shape of problem exists for configuration. <code>Env</code> declares 41 optional
+fields in <code>router-env.ts</code>, more arrive through intersected module types, and 329
+source lines read <code>env.UPPER_CASE</code> ad hoc. Each handler re-decides what a missing
+binding means, and the answers differ: <code>/auth/me</code> answers 503, the trial wall
+silently lets everyone through (<code>trial-wall.ts:65-67</code>), session resolution reports
+"not signed in" (<code>auth-session.ts:369-371</code>). The misdiagnosis the ticket names:
+<code>if (!env.LIBRARY)</code> answers "Workspace tree service is not configured"
+(<code>index.ts:702-708</code>), but <code>LIBRARY</code> exists whenever
+<code>PAGE_LIBRARY_DB</code> is bound (<code>workspace-tree-in-process.ts:18-20</code>). When
+Mux credentials are the missing piece, the 503 blames the wrong subsystem and the operator
+searches the wrong config.</p>
+
+<p>One more cost the table removes: the wall resolves the session, then the destination
+handler resolves it again, so every guarded request pays the D1 identity read twice
+(<code>trial-wall.ts:73</code>, then for example <code>contacts-api.ts:60</code>).</p>
+
+<h2>The row type</h2>
+
+<pre><code>type Method = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+type RouteMatch =
+  | { kind: 'exact'; path: string }
+  | { kind: 'prefix'; path: string }                  // '/api/tree'
+  | { kind: 'pattern'; pattern: RegExp };             // named groups become params
+
+type RateTier = { tier: 'standard' | 'strict'; scope: string } | 'none';
+// standard = 60/min per key, strict = 10/min, the two existing Cloudflare
+// bindings. scope keys the counter so routes cannot drain each other.
+
+type OriginPolicy =
+  | 'same-origin'        // cross-origin mutations answer 403 (the default)
+  | 'provider-signature' // webhook authenticates its raw body; origin ignored
+  | 'app-cors';          // same-origin plus the one local-dev origin list
+
+type WallPolicy =
+  | 'open'       // never walled: public web, auth, infrastructure
+  | 'reads-open' // walled account may GET/HEAD; writes answer 402
+  | 'exit'       // reachable while walled: claim, checkout, takedowns
+  | 'gated';     // every method walled (shell rows redirect, API rows 402)
+
+type RouteRow = {
+  name: string;                      // unique; used by logs, tests, telemetry
+  match: RouteMatch;
+  methods: readonly Method[];        // dispatcher answers 405 + Allow
+  audience: 'anyone' | 'account' | 'staff' | 'provider';
+  wall: WallPolicy;
+  origin: OriginPolicy;
+  rate: RateTier;
+  surface: 'api' | 'html';           // wall style, 404 shape, frame headers
+  handle: (ctx: RouteContext) =&gt; Promise&lt;Response&gt;;
+};</code></pre>
+
+<p>Two deliberate choices. First, the table stays ordered and dispatch takes the first
+match, exactly today's rule, so the characterization suite (step 0 below) stays meaningful
+and no specificity algorithm needs inventing. A table test flags a row that an earlier
+prefix row shadows. Second, <code>audience</code> and <code>wall</code> stay separate
+columns: audience is an authentication question (who may call at all), the wall is an
+entitlement question (what a signed-in but lapsed account may still do). Collapsing them
+is what today's code does implicitly, and it is why the wall needs its own path lists.</p>
+
+<p><code>RouteContext</code> carries the request, URL, matched params, the parsed
+capabilities, and, for <code>account</code> and <code>staff</code> rows, the identity the
+dispatcher already resolved once. In the real code the row type refines per audience
+(a discriminated union) so a <code>provider</code> row cannot carry a wall policy and an
+<code>account</code> handler receives a non-optional identity. The sketch above shows the
+columns; the union is an implementation detail the first PR fixes in types.</p>
+
+<h2>The route inventory, with proposed values</h2>
+
+<p>This is the center of the sign-off: every route the router serves today, in dispatch
+order, with the policy each row would declare. Values marked
+<span class="chip">change</span> alter edge behavior deliberately; everything else is
+today's behavior restated as data. Group headers match the migration waves.</p>
+
+<table>
+  <thead><tr><th>Route</th><th>Match</th><th>Methods</th><th>Audience</th><th>Wall</th><th>Origin</th><th>Rate</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr class="group"><td colspan="8">Infrastructure (wave 1)</td></tr>
+    <tr><td>analytics-config</td><td><code>/api/analytics/config</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td><span class="chip">change</span> today any method answers</td></tr>
+    <tr><td>deploy-info</td><td><code>/__deploy-info</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td><span class="chip">change</span> same tightening</td></tr>
+    <tr><td>robots</td><td><code>/robots.txt</code></td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>sitemap</td><td><code>/sitemap.xml</code></td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>404 off production hosts</td></tr>
+
+    <tr class="group"><td colspan="8">Provider webhooks (wave 2)</td></tr>
+    <tr><td>mux-webhook</td><td><code>/api/mux/webhook</code></td><td>POST</td><td>provider</td><td>open</td><td>provider-signature</td><td>none</td><td>raw-body signature; limiting would drop real events</td></tr>
+    <tr><td>resend-webhook</td><td><code>/api/resend/webhook</code></td><td>POST</td><td>provider</td><td>open</td><td>provider-signature</td><td>none</td><td>Svix signature</td></tr>
+    <tr><td>stripe-webhook</td><td><code>/api/billing/stripe/webhook</code></td><td>POST</td><td>provider</td><td>open</td><td>provider-signature</td><td>none</td><td>moves up from the billing group it sits in today</td></tr>
+
+    <tr class="group"><td colspan="8">Auth and session (wave 3), absorbing the 13-row table at <code>auth-session.ts:113-152</code></td></tr>
+    <tr><td>impersonation-return</td><td><code>/auth/impersonation-return</code> + <code>/continue</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>today runs before the auth table</td></tr>
+    <tr><td>logout</td><td><code>/logout</code></td><td>GET, POST</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>auth-password</td><td><code>/auth/password</code></td><td>POST</td><td>anyone</td><td>open</td><td>app-cors</td><td>standard:password_login</td><td>per-email strict limit stays in the handler</td></tr>
+    <tr><td>auth-register</td><td><code>/auth/register</code></td><td>POST</td><td>anyone</td><td>open</td><td>app-cors</td><td>strict:password_register</td><td></td></tr>
+    <tr><td>auth-lookup</td><td><code>/auth/lookup</code></td><td>POST</td><td>anyone</td><td>open</td><td>app-cors</td><td>standard:auth_lookup</td><td></td></tr>
+    <tr><td>authkit-start</td><td><code>/auth/initiate</code>, <code>/auth/invite</code>, <code>/login?invitation_token</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>standard:oauth_start</td><td></td></tr>
+    <tr><td>auth-impersonate</td><td><code>/auth/impersonate</code></td><td>any</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>retired, answers 410</td></tr>
+    <tr><td>change-password</td><td><code>/auth/change-password</code></td><td>POST</td><td>account</td><td>open</td><td>app-cors</td><td>standard:password_change</td><td></td></tr>
+    <tr><td>forgot-password</td><td><code>/auth/forgot</code></td><td>POST</td><td>anyone</td><td>open</td><td>app-cors</td><td>strict:password_forgot</td><td>per-email strict limit stays in the handler</td></tr>
+    <tr><td>reset-password</td><td><code>/auth/reset-password</code></td><td>POST</td><td>anyone</td><td>open</td><td>app-cors</td><td>standard:password_reset</td><td></td></tr>
+    <tr><td>oauth-google / oauth-microsoft</td><td><code>/auth/google</code>, <code>/auth/microsoft</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>tier revisit is a later decision, not this design</td></tr>
+    <tr><td>oauth-callback</td><td><code>/auth/callback</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>auth-me</td><td><code>/auth/me</code></td><td>GET</td><td>account</td><td>open</td><td>app-cors</td><td>none</td><td></td></tr>
+
+    <tr class="group"><td colspan="8">Public prospect surfaces (wave 4)</td></tr>
+    <tr><td>boardroom-join</td><td><code>/join/boardroom</code></td><td>GET</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>root</td><td><code>/</code></td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>302 to /home when signed in, else marketing shell. <span class="chip">change</span> today any method redirects</td></tr>
+    <tr><td>legacy-redirects</td><td><code>/editor</code>, misspellings, legacy prefixes</td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>one row per family, from <code>legacy-redirects.ts</code></td></tr>
+    <tr><td>watch</td><td><code>/watch/:videoId</code></td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>share-link playback page</td></tr>
+    <tr><td>public-page</td><td><code>/page/:shareId</code></td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>served snapshot</td></tr>
+    <tr><td>public-page-forms</td><td><code>/page/:shareId</code> sub-paths</td><td>POST</td><td>anyone</td><td>open</td><td>same-origin</td><td>standard:page-form</td><td><span class="chip">change</span> anonymous writes gain a tier; today none</td></tr>
+    <tr><td>contact-form</td><td><code>/api/contact_us_landing_page</code></td><td>POST</td><td>anyone</td><td>open</td><td>same-origin</td><td>strict:contact</td><td>tier already exists; the row makes it visible</td></tr>
+    <tr><td>page-events</td><td><code>/api/pages/events</code></td><td>POST</td><td>anyone</td><td>open</td><td>same-origin</td><td>standard:page-events</td><td><span class="chip">change</span> new tier</td></tr>
+    <tr><td>rum-events</td><td><code>/api/rum/events</code></td><td>POST</td><td>anyone</td><td>open</td><td>same-origin</td><td>standard:rum-events</td><td><span class="chip">change</span> new tier</td></tr>
+    <tr><td>video-stats-write</td><td><code>/api/videos/stats/:id/events</code>, <code>/api/videos/video_portions</code></td><td>POST</td><td>anyone</td><td>open</td><td>same-origin</td><td>standard:video-events</td><td><span class="chip">change</span> new tier; the retired <code>/import</code> sub-path keeps its 410</td></tr>
+    <tr><td>legacy-landing</td><td><code>/journey_pages/landing/:id</code></td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>302 to live route, else 404</td></tr>
+
+    <tr class="group"><td colspan="8">App API (wave 5); audience account implies the dispatcher resolved identity once</td></tr>
+    <tr><td>trial-offer</td><td><code>/api/trial-offer</code></td><td>GET</td><td>account</td><td>exit</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>trial-offer-claim</td><td><code>/api/trial-offer/claim</code></td><td>POST</td><td>account</td><td>exit</td><td>same-origin</td><td>none</td><td>refuses impersonated sessions in the handler</td></tr>
+    <tr><td>journey-pages-takedown</td><td><code>DELETE /api/journey-pages/:id</code>, <code>POST .../unpublish</code></td><td>DELETE, POST</td><td>account</td><td>exit</td><td>same-origin</td><td>none</td><td>today two regexes in <code>trial-wall.ts:227-233</code></td></tr>
+    <tr><td>journey-pages</td><td><code>/api/journey-pages</code> prefix</td><td>per sub-route</td><td>account</td><td>reads-open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>share-page-api</td><td><code>/api/videos/:id/share-page</code></td><td>POST</td><td>account</td><td>reads-open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>video-stats-read</td><td><code>/api/videos/stats/:id</code></td><td>GET</td><td>account</td><td>open</td><td>same-origin</td><td>none</td><td>owner check via Library stays in the handler</td></tr>
+    <tr><td>media-videos</td><td><code>/api/media/videos</code> prefix</td><td>per sub-route</td><td>account</td><td>reads-open</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>upload-session</td><td><code>/api/media/upload-session</code></td><td>POST</td><td>account</td><td>gated</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>upload-proxy</td><td><code>/api/media/upload</code></td><td>PUT</td><td>account</td><td>gated</td><td>app-cors</td><td>none</td><td>5 GiB ceiling stays in the handler</td></tr>
+    <tr><td>tree-takedown</td><td><code>DELETE /api/tree/nodes/:id</code></td><td>DELETE</td><td>account</td><td>exit</td><td>same-origin</td><td>none</td><td></td></tr>
+    <tr><td>tree</td><td><code>/api/tree</code> prefix</td><td>per sub-route</td><td>account</td><td>reads-open</td><td>same-origin</td><td>none</td><td>in-process Library; credential stripping stays</td></tr>
+    <tr><td>me-group</td><td><code>/api/me</code>, <code>/api/notifications</code>, <code>/api/contacts*</code>, 2 legacy reads</td><td>GET, PUT per path</td><td>account</td><td>reads-open</td><td>same-origin</td><td>none</td><td>honest name for <code>handleAppApiProxy</code></td></tr>
+    <tr><td>stripe-checkout</td><td><code>/api/billing/stripe/checkout-sessions</code> + <code>/return</code></td><td>POST / GET</td><td>account</td><td>exit</td><td>same-origin</td><td>none</td><td>exact paths; the "prefix would expose detach" worry becomes structural</td></tr>
+    <tr><td>stripe-billing</td><td>remaining <code>/api/billing/stripe/*</code> paths, exact plus attach/detach patterns</td><td>per path</td><td>account</td><td>reads-open</td><td>same-origin</td><td>none</td><td>payment-method writes stay gated by method</td></tr>
+
+    <tr class="group"><td colspan="8">Staff (wave 5)</td></tr>
+    <tr><td>admin-organizations</td><td><code>/api/admin/organizations</code> (+ <code>/editor/api</code> alias)</td><td>GET, POST</td><td>staff</td><td>open</td><td>same-origin</td><td>none</td><td>staff accounts are entitled by definition</td></tr>
+    <tr><td>admin-accounts</td><td><code>/api/admin</code> prefix</td><td>per sub-route</td><td>staff</td><td>open</td><td>same-origin</td><td>none</td><td>role check moves from handler to column</td></tr>
+
+    <tr class="group"><td colspan="8">Tombstones, shell, assets (wave 6)</td></tr>
+    <tr><td>editor-api-tombstone</td><td><code>/editor/api</code> prefix</td><td>any</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>410. <span class="chip">change</span> today a walled account gets 402 before the 410</td></tr>
+    <tr><td>api-tombstone</td><td><code>/api</code> prefix, unmatched</td><td>any</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>410, same change</td></tr>
+    <tr><td>trial-wall-page</td><td><code>/trial-expired</code></td><td>GET</td><td>account</td><td>open</td><td>same-origin</td><td>none</td><td>anonymous 302 to /login; entitled 302 to /home; frame-deny stays</td></tr>
+    <tr><td>shell-open</td><td><code>/login</code>, <code>/signup</code>, <code>/forgot-password</code>, <code>/reset-password</code>, marketing paths</td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>surface html; marketing head injection stays</td></tr>
+    <tr><td>shell-app</td><td><code>/home</code>, <code>/new</code>, <code>/record</code>, <code>/edit/:id</code>, <code>/admin/*</code>, rest of <code>EXACT_APP_SHELL_ROUTES</code></td><td>GET, HEAD</td><td>anyone</td><td>gated</td><td>same-origin</td><td>none</td><td>anonymous gets the shell (SPA redirects); walled gets 302 to /trial-expired, as today</td></tr>
+    <tr><td>assets</td><td>everything else</td><td>GET, HEAD</td><td>anyone</td><td>open</td><td>same-origin</td><td>none</td><td>terminal row; hashed-asset caching and hard 404s stay</td></tr>
+  </tbody>
+</table>
+
+<p class="small">OPTIONS is absent from the methods column on purpose: the dispatcher
+answers preflights centrally from the origin column, which deletes every per-handler
+OPTIONS branch. The media-signing and Sentry wrappers stay exactly where they are; the
+table replaces only the chain inside <code>router.fetch</code>.</p>
+
+<h3>The rate column, and the gap it closes</h3>
+
+<p>Today a rate tier exists only where a module author remembered one: the auth table,
+the contact form, and a per-email check inside WorkOS authentication. Four files total.
+Every anonymous write surface a prospect can reach outside those files carries no tier.
+The column makes that a decision each row states. The new tiers reuse the two existing
+Cloudflare bindings with scoped keys, so wave 4 needs no wrangler change, and the
+per-isolate fallback floor in <code>rate-limit.ts</code> keeps covering environments
+without bindings. Specific thresholds are a tuning question; the design point is that
+"none" becomes something a reviewer sees in a diff instead of an absence.</p>
+
+<h2>What derives from the table</h2>
+
+<p><b>Dispatch.</b> A ~100-line interpreter: find the first matching row, answer 405 with
+<code>Allow</code> if the method is absent, answer OPTIONS from the origin column, apply
+the origin guard, resolve identity once if the audience needs it, evaluate the wall from
+the wall column, check the rate column, then call the handler with a typed context.
+No handler re-checks any of this.</p>
+
+<p><b>The trial wall.</b> <code>maybeEnforceTrialWall</code> keeps its entitlement logic
+(the D1 read, the Stripe re-check from WIL-3327, suspension) and loses all path
+knowledge: its input becomes the matched row's wall policy plus the resolved identity.
+The five path lists in <code>trial-wall.ts</code> and the positional "everything below
+this line is the app" comment in <code>index.ts:185-187</code> are deleted. A new route
+cannot land on the wrong side of the wall because there is no side, only a required
+column.</p>
+
+<p><b>The origin guard.</b> <code>rejectCrossOriginMutation</code> stops consulting
+<code>PROVIDER_CALLBACK_PATHS</code> and reads the matched row's origin policy. Adding a
+webhook forces writing <code>provider-signature</code> in the row, which is exactly the
+decision the two 1 Oct fixes added after the fact. A table test asserts every
+provider-signature row's handler verifies a signature.</p>
+
+<p><b>CORS and local origins.</b> One constant owns the local-dev origin list; the CORS
+builder and the guard both read it, with the guard accepting those origins only when the
+deployment is not production. That closes the ticket's "they disagree about local
+origins" finding with one deliberate rule instead of three accidental ones.</p>
+
+<p><b>Security headers.</b> <code>withSecurityHeaders</code> keeps running response-wide
+and reads the matched row's surface to decide frame denial, instead of re-deriving
+shell-ness from <code>isAppShellRoute</code>.</p>
+
+<h2>Parse Env once</h2>
+
+<p>One module parses raw <code>Env</code> into capability groups, once per isolate, pure
+string checks, no I/O. Each group is a discriminated union, so a handler cannot read a
+secret without the compiler asking what happens when the group is unconfigured:</p>
+
+<pre><code>type Unconfigured = { configured: false; missing: readonly string[] };
+
+type Capabilities = {
+  assets: AssetsFetcher;                        // required; absent fails loudly
+  build: { sha?: string; short?: string; branch?: string };
+  auth: { db: D1Database; cookieSecret: string } | Unconfigured;
+  workos: { apiKey: string; clientId: string; redirectUri: string;
+            baseUrl?: string; dashboardEnvironmentId?: string;
+            impersonationReturnSecret?: string } | Unconfigured;
+  library: { db: D1Database;
+             mux: { tokenId: string; tokenSecret: string } | Unconfigured;
+             webhookSecret?: string } | Unconfigured;
+  email: { db: D1Database; resendKey: string; sender: string;
+           webhookSecret?: string; logoUrl?: string } | Unconfigured;
+  publicPages: { db: D1Database; unlockSecret?: string } | Unconfigured;
+  stripe: { secretKey: string; webhookSecret: string;
+            prices: { monthly?: string; annual?: string } } | Unconfigured;
+  stats: { db: VideoStatsDatabase } | Unconfigured;
+  mediaSigning: { secret: string; ttlSeconds?: number; bucketSeconds?: number } | Unconfigured;
+  r2Media: R2MediaBinding | Unconfigured;
+  ai: { openaiKey: string; gateway?: { id: string; token: string } } | Unconfigured;
+  analytics: PostHogDestination | Unconfigured;   // environment stays per-request
+  rate: { lookup?: RateLimiter; strict?: RateLimiter };  // absent = fallback floor
+  contactRecipient?: string;
+  boardroomOrganizationId?: string;
+};</code></pre>
+
+<p>Consequences worth the change on their own:</p>
+
+<ul>
+  <li><b>503s name the real missing thing.</b> The library capability is configured when
+  the database binding exists; whether Mux calls can work is its own sub-capability. The
+  tree route's failure message stops blaming the workspace tree when the missing piece is
+  a Mux token.</li>
+  <li><b>Fail-open becomes a registry, not an accident.</b> Every place a policy is
+  skipped because a capability is unconfigured goes through one <code>failOpen(name)</code>
+  helper that logs and counts. The ticket's worst case today: the trial wall waves
+  everyone through on a missing binding with no log and no counter. The registry is a
+  short list in code; a test asserts no other fail-open exists.</li>
+  <li><b>Expectations per environment.</b> The parser takes the deployment environment
+  and a required-capability set for it (production requires auth, workos, library.mux,
+  email, stripe, publicPages, mediaSigning, stats, rate; previews require less, in line
+  with preview email being off). A violation reports to Sentry once per isolate, and
+  <code>/__deploy-info</code> gains a <code>capabilities</code> list of configured group
+  names, values never included, so a bad deploy is visible in the first curl instead of
+  the first customer 503.</li>
+  <li><b>Test fakes stop being env fields.</b> <code>LIBRARY</code> and <code>MAILER</code>
+  leave <code>Env</code>; tests hand typed fakes to the parse
+  (<code>parseCapabilities(env, { library, mailer })</code>), which also deletes the
+  per-request env shallow-copy at <code>index.ts:121-126</code>. The per-request analytics
+  environment string moves into the route context, where request-scoped values belong.</li>
+</ul>
+
+<h2>Migration order, one verifiable unit per step</h2>
+
+<p>The mechanism that keeps every wave safe: the table-first dispatcher falls through to
+the untouched legacy chain for routes not yet in the table. Both exist until wave 7.
+Reverting a wave is reverting one PR; its routes fall back to the chain.</p>
+
+<ol>
+  <li><b>Wave 0: characterization suite.</b> The inventory above, times four identities
+  (anonymous, entitled, lapsed, suspended), times the interesting methods, snapshotting
+  status, <code>Allow</code>, <code>Location</code>, cache and access headers. Lives with
+  the existing router tests, runs under root <code>pnpm test</code>. Unit: the suite is
+  green against main before anything moves. This is the step the ticket demanded, and
+  every later wave's definition of done is "characterization diff empty except the lines
+  the PR names".</li>
+  <li><b>Wave 1: interpreter plus infrastructure rows</b> (4 routes), and the
+  capabilities parser landing alongside. Unit: suite green, preview curl of
+  <code>/__deploy-info</code> shows the capabilities list.</li>
+  <li><b>Wave 2: provider webhooks.</b> Deletes <code>PROVIDER_CALLBACK_PATHS</code>.
+  Unit: existing webhook signature tests green, table invariant test added, suite diff
+  empty.</li>
+  <li><b>Wave 3: the auth group.</b> Absorbs the 13-row table, centralizes OPTIONS, 405
+  and CORS, unifies the local-origin rule. Unit: suite diff is exactly the local-origin
+  lines, auth rate-limit tests green.</li>
+  <li><b>Wave 4: public prospect surfaces.</b> Adds the new rate tiers. Unit: new 429
+  tests per scope red-to-green; a preview loop proves a tier fires; suite diff is the
+  tier lines plus the two method tightenings.</li>
+  <li><b>Wave 5: app API and staff rows.</b> Wall derivation switches on; wall exits
+  become rows; the dispatcher's single identity resolution replaces each handler's own.
+  Unit: the wall matrix in the suite, plus a fake-D1 call-count test proving one identity
+  read per request where today there are two.</li>
+  <li><b>Wave 6: tombstones, shell, wall page, assets.</b> Security headers read the row
+  surface. Unit: suite diff is exactly the 402-to-410 tombstone lines; frame-header tests
+  green.</li>
+  <li><b>Wave 7: delete the legacy chain</b> and the ad-hoc env guards; add the lint rule
+  that keeps <code>env.</code> reads inside the parser, the same pattern as the existing
+  CF-Connecting-IP lint. Unit: lint green, grep for <code>env.UPPER_CASE</code> outside
+  the parser returns zero, suite green at the final head.</li>
+</ol>
+
+<h2>What this deletes</h2>
+
+<ul>
+  <li>The 206-line ordered chain in <code>index.ts:115-321</code> and its positional-order comments.</li>
+  <li>About 15 <code>is*Request</code> path predicates spread across modules; the audit counts 47 path-matching condition lines across index, auth and Stripe dispatch.</li>
+  <li>All five path lists and both wall-exit regexes in <code>trial-wall.ts</code> (~60 lines), leaving a pure entitlement module.</li>
+  <li><code>PROVIDER_CALLBACK_PATHS</code> and the <code>isAppShellRoute</code> re-derivation in <code>security-headers.ts</code>.</li>
+  <li>The auth group's private dispatch plumbing and every per-handler OPTIONS, 405, CORS and not-configured block; <code>handleMeRequest</code> alone carries about 30 lines of it.</li>
+  <li>The duplicate local-origin list in <code>auth-session.ts:1911-1915</code>.</li>
+  <li>One of the two session resolutions per guarded request, a D1 read on every guarded call.</li>
+  <li>The ad-hoc binding guards behind 329 <code>env.UPPER_CASE</code> reads, replaced by typed capability reads; divergent 503 texts collapse into messages the parser derives from the missing field names.</li>
+  <li>The per-request env shallow-copy and the <code>LIBRARY</code>/<code>MAILER</code> test-injection env fields.</li>
+</ul>
+
+<h2>Deliberate behavior changes</h2>
+
+<p>Everything else is bit-identical under the characterization suite. These five change,
+each visible as a named diff in its wave's PR:</p>
+
+<ol>
+  <li>Anonymous public writes gain rate tiers (page forms, page events, RUM events, video events and portions).</li>
+  <li><code>/__deploy-info</code>, <code>/api/analytics/config</code> and the root redirect answer only their listed methods.</li>
+  <li>Retired API paths answer 410 to walled accounts too; today the wall answers 402 before the tombstone.</li>
+  <li>One local-origin rule everywhere, with local dev origins accepted only off production.</li>
+  <li>Wall fail-open on missing configuration still fails open but is logged and counted.</li>
+</ol>
+
+<h2>Alternatives I considered and dropped</h2>
+
+<p><b>Guardrails over the existing chain</b>: a lint for chain length, a wall test
+matrix, no structural change. Cheapest, and it leaves five deciders in five files; the
+origin-guard incidents happened in code that was reviewed and tested. The failure class
+is "adding a route does not force a policy decision", and only a required column removes
+it.</p>
+
+<p><b>A router framework (Hono or similar)</b>: solves path matching, which is not the
+problem, and brings its own ordering semantics, which is. Audience, wall, origin and
+rate columns are Clarity's domain; no framework carries them, so the policy work remains
+while the dependency and the characterization-parity risk are added.</p>
+
+<p><b>Per-group middleware composition</b>: policy as code again, readable only by
+executing the composition in your head, and invariant tests like "every provider row
+authenticates a signature" cannot be written against it. The table is data; tests can
+query it.</p>
+
+<h2>Decisions I need from you</h2>
+
+<ol>
+  <li>The five deliberate behavior changes above: any you want out of scope?</li>
+  <li>Public-write tiers: fine to reuse the existing standard binding with scoped keys, or do you want a third binding with its own threshold before wave 4?</li>
+  <li>First-match-wins ordered table, pinned by tests: agreed, or do you want specificity ranking?</li>
+  <li>The staff column answers 404 or 403 for non-staff accounts: today's per-handler behavior varies; pick one.</li>
+  <li>Wave ordering: webhooks early (wave 2) touches the scariest routes with the strongest existing tests. If you would rather see two boring waves land first, 2 and 4 can swap.</li>
+</ol>
+
+<p class="footer">Prepared by the overnight design lane (Claude Fable), 2 Oct 2026, from
+origin/main <code>acf3e023</code>. Sources: WIL-3401, the
+<a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-01/">1 Oct architecture audit</a>
+(error classes 1 and 2, router gap), and the files cited inline. No code was changed.</p>
+
+</body>
+</html>
