@@ -1,0 +1,703 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Per-PR preview environments plan</title>
+<style>body{font:16px/1.55 -apple-system,system-ui,sans-serif;max-width:860px;margin:0 auto;padding:20px;color:#1a1a1a}code{background:#f3f3f3;padding:1px 4px;border-radius:3px;font-size:.9em;word-break:break-word}pre{overflow-x:auto;background:#f6f6f6;padding:12px}h1,h2,h3{line-height:1.25}h2{border-top:1px solid #ddd;padding-top:16px;margin-top:32px}li{margin:4px 0}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px}</style></head><body>
+<h1>Per-PR preview environments plan</h1>
+<p>Give every labeled PR a disposable environment at <code>https://pr-&lt;n&gt;.clarity-video.workers.dev</code> that runs the branch head end to end. Each PR gets three D1 databases, a media Worker on a preview bucket, and push redeploys. A binding allowlist fails closed on anything a preview must not touch. Staging goes back to serving main alone.
+The rule the program enforces. A preview binds preview-owned resources only, and evidence counts only at the exact head SHA.
+The PR ids in order. P0 (scratch probe, closed unmerged), P1, P2, P3, P4, P5, P6, P7, P8, P9.
+The design is <code>(local evidence file)</code>, decided and binding. This plan encodes it against the worktree <code>the plan worktree</code> at <code>eea27d9c</code>.</p>
+<h2>How to read this</h2>
+<p>One box is one unit of work. Every box names the evidence that checks it. A nested box is a sub-step of the box above it. Check a box only when its evidence exists, a file, a log line, a screenshot, a test run, or a SHA. The body is a how-to. The appendices explain and record.</p>
+<p>The program runs <code>skills/poteto-mode/playbooks/autopilot-full.md</code> under the installed plugin. Sequenced work is merge-then-branch. Every PR targets main and never stacks, because stacked PRs get no CI in this repo. Every merge deploys production, so every merge is an operator gate. Owners stop at merge-ready and William clicks merge, unless William grants landing authority in chat. P0 is the exception. It is a scratch PR that is closed, never merged, after its evidence is captured.</p>
+<p>Pre-merge proof works because <code>pull_request</code> events run the workflow file from the PR&#39;s own merge ref. Labeling a PR with <code>deploy-preview</code> therefore exercises its own workflow and script edits with secrets, and <code>workflow_dispatch --ref &lt;branch&gt;</code> runs that ref&#39;s workflow file. A scratch commit that exercises a path the diff does not trigger is pushed, observed in the run log, then dropped before review.</p>
+<p>Two driver skills carry the live lanes. CI and deploy-script lanes use the <code>run</code> skill (<code>gh run view --log</code>, <code>curl .../__deploy-info</code>, read-only <code>wrangler d1 execute</code>, node scripts). Browser lanes against <code>https://pr-&lt;n&gt;.clarity-video.workers.dev</code> use the <code>verify</code> skill and the repo&#39;s verify-loop CLI (<code>.agents/skills/verify-loop/cli/control-clarity.mjs</code>). A CLI lane&#39;s screenshot is a saved terminal capture or log excerpt as the named <code>.png</code>, with the raw text kept beside it as <code>&lt;slug&gt;.txt</code>.</p>
+<p>Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<h2>Program checklist</h2>
+<h3>Arm the program</h3>
+<ul>
+<li><input disabled="" type="checkbox"> State the protocol and this plan to the operator, then stop. Start execution only on the operator&#39;s explicit go.</li>
+<li><input disabled="" type="checkbox"> On the operator&#39;s go, write the program objective into the standing orders and your todolist with this exact text. &quot;Run docs/plans/per-pr-previews.md in the plan worktree. PR order P0 (scratch, closed unmerged), P1, P2, P3, P4, P5, P6, P7, P8, P9, per the Spawn owners graph. Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. William clicks every merge unless he grants landing authority in chat. Done when P9 merges and the close report is posted.&quot;</li>
+<li><input disabled="" type="checkbox"> Read these from the installed plugin at program start. Re-read them at every tick.<ul>
+<li><input disabled="" type="checkbox"> <code>skills/poteto-mode/playbooks/autopilot-full.md</code></li>
+<li><input disabled="" type="checkbox"> <code>skills/swarm/SKILL.md</code></li>
+<li><input disabled="" type="checkbox"> Claude Code&#39;s <code>run</code> and <code>verify</code> skills, plus the repo&#39;s <code>.agents/skills/verify-loop/SKILL.md</code></li>
+<li><input disabled="" type="checkbox"> <code>skills/poteto-mode/playbooks/opening-a-pr.md</code></li>
+<li><input disabled="" type="checkbox"> <code>skills/show-me-your-work/SKILL.md</code></li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Collect the operator inputs. Park the dependent PR until its input lands.<ul>
+<li><input checked="" disabled="" type="checkbox"> If P0 shows the CI Cloudflare token lacks D1 create or delete, William widens it to Account D1 Edit before P3 starts. Not needed. P0 run 36924657487 created and deleted D1 with HTTP 200.</li>
+<li><input disabled="" type="checkbox"> CI creates the <code>clarity-media-preview</code> bucket and its 14-day lifecycle rule (P0 proved bucket create). William mints R2 API credentials scoped to that bucket for upload presigning, before P6 starts, unless the P6 owner finds the CI token can mint them.</li>
+<li><input disabled="" type="checkbox"> William states whether any owner holds landing authority, per PR or for the program.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Arm the 30-minute audit tick as a real cadence. Never leave the cadence to memory.</li>
+<li><input disabled="" type="checkbox"> Use this tick prompt, verbatim. &quot;Re-read the execution playbook from the installed plugin and the standing orders. Audit the operation against both and fix drift in this tick. Probe every active lane and judge progress by side effects only. Stand down a lane only on affirmative failure evidence, and dispatch its replacement in the same tick. Then send the operator a status message, whether or not anything changed, with the queue table of PR, owner, state, and head SHA, the verdicts since the last tick, what merged, open operator gates, and blockers.&quot;</li>
+<li><input disabled="" type="checkbox"> On the operator&#39;s hold or stand-down, send every owner a zero-writes order at once.</li>
+</ul>
+<h3>Spawn owners</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Spawn one owner per PR with the full lifecycle the execution playbook names.</li>
+<li><input disabled="" type="checkbox"> Follow this dependency graph. Start dependent work only after its parent merges. Branch every PR from current <code>origin/main</code>.<ul>
+<li><input disabled="" type="checkbox"> P0, P1, and P2 are independent and first. All three branch from <code>main</code>. P0 never merges; its probe answers and the trunk baseline unblock P3.</li>
+<li><input disabled="" type="checkbox"> P3 after P1 merges and P0&#39;s probes answer.</li>
+<li><input disabled="" type="checkbox"> P4 after P3. Merge P2 before P4; deleting the migration gate leans on the lint.</li>
+<li><input disabled="" type="checkbox"> P5 after P3.</li>
+<li><input disabled="" type="checkbox"> P6 after P3, and after the preview bucket and R2 credentials exist.</li>
+<li><input disabled="" type="checkbox"> P7 after P6.</li>
+<li><input disabled="" type="checkbox"> P8 after P4 and P6.</li>
+<li><input disabled="" type="checkbox"> P9 after P7 and P8.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Hold the file boundaries.<ul>
+<li><input disabled="" type="checkbox"> P0 touches only a scratch workflow step and <code>scripts/preview-db-probe.mjs</code>, all dropped at close.</li>
+<li><input disabled="" type="checkbox"> P1 touches only <code>scripts/check-preview-databases.mjs</code>, its new test, <code>scripts/preview-wrangler-config.mjs</code>, and <code>scripts/deploy-config.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> P2 touches only <code>scripts/check-migrations-append-only.sh</code>, its test, and <code>.github/workflows/ci.yml</code>.</li>
+<li><input disabled="" type="checkbox"> P3 touches only <code>wrangler.preview.jsonc</code>, <code>scripts/preview-*</code>, <code>scripts/check-preview-databases.mjs</code>, <code>scripts/prepare-preview-databases.sh</code>, <code>scripts/deploy-pr-preview.sh</code>, <code>scripts/deploy-config.test.sh</code>, the preview arm of <code>.github/workflows/cloudflare-deploy.yml</code>, <code>DEPLOY.md</code>, and <code>.agents/skills/verify-loop/ENVIRONMENT.md</code>.</li>
+<li><input disabled="" type="checkbox"> P4 touches only <code>scripts/prepare-preview-databases.sh</code>, <code>scripts/staging-shape-fixtures.mjs</code>, <code>scripts/preview-fixture-assets.json</code>, <code>scripts/deploy-config.test.sh</code>, the preview arm of <code>.github/workflows/cloudflare-deploy.yml</code>, and <code>DEPLOY.md</code>.</li>
+<li><input disabled="" type="checkbox"> P5 touches only <code>scripts/prune-cloudflare-pr-previews.mjs</code>, its new test, <code>.github/workflows/cloudflare-preview-cleanup.yml</code>, and <code>docs/agents/loops.md</code>.</li>
+<li><input disabled="" type="checkbox"> P6 touches only <code>workers/r2-media/**</code>, <code>packages/deployment-surfaces/**</code>, <code>workers/frontend-router/src/public-video-policy.ts</code>, <code>scripts/deploy-pr-preview.sh</code>, <code>scripts/deploy-cloudflare.sh</code>, <code>scripts/preview-wrangler-config.mjs</code>, <code>scripts/check-preview-databases.mjs</code>, <code>scripts/deploy-config.test.sh</code>, the preview arm of <code>.github/workflows/cloudflare-deploy.yml</code>, <code>tests/e2e/staging-critical-flow.spec.ts</code>, and <code>DEPLOY.md</code>.</li>
+<li><input disabled="" type="checkbox"> P7 touches only <code>.github/workflows/cloudflare-deploy.yml</code>, <code>.agents/skills/verify-loop/cli/control-clarity.mjs</code>, <code>scripts/deploy-config.test.sh</code>, <code>DEPLOY.md</code>, <code>.agents/skills/verify-loop/ENVIRONMENT.md</code>, and <code>docs/agents/loops.md</code>.</li>
+<li><input disabled="" type="checkbox"> P8 touches only <code>.github/workflows/cloudflare-deploy.yml</code>, <code>.github/workflows/staging-follow-main.yml</code>, <code>scripts/deploy-config.test.sh</code>, <code>docs/agents/loops.md</code>, and <code>DEPLOY.md</code>.</li>
+<li><input disabled="" type="checkbox"> P9 touches only <code>.agents/skills/**</code>, <code>docs/agents/**</code>, <code>DEPLOY.md</code>, and <code>scripts/deploy-config.test.sh</code>.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Hold the review gate. No PR in this program changes an end-user interaction, so none is review-gated. The merge stop in How to read this still applies to every PR.</li>
+</ul>
+<h3>PR mechanics, for every PR</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Open the PR ready, never draft, with <code>gh pr create</code> and <code>draft: false</code>.</li>
+<li><input disabled="" type="checkbox"> Run the repo&#39;s lint and typecheck once before the PR-facing push. Push with hooks on. Run root <code>pnpm test</code> before the merge-ready report.</li>
+<li><input disabled="" type="checkbox"> Run <code>/deslop</code> before each commit and <code>/no-comments</code> before review.</li>
+<li><input disabled="" type="checkbox"> Add the <code>deploy-preview</code> label so the labeled run exercises the PR&#39;s own workflow and script edits.</li>
+<li><input disabled="" type="checkbox"> Push a scratch commit only to prove a path the diff does not trigger. Observe the run, save the log excerpt, then drop the scratch commit before review.</li>
+<li><input disabled="" type="checkbox"> Triage every Bugbot and security-reviewer comment per <code>skills/poteto-mode/references/bugbot-triage.md</code> under the installed plugin.</li>
+<li><input disabled="" type="checkbox"> Rebase onto current trunk before babysit and again before the merge-ready report.</li>
+</ul>
+<h3>Verdict and merge, for every PR</h3>
+<ul>
+<li><input disabled="" type="checkbox"> At the merge-ready head SHA, run the swarm per <code>skills/swarm/SKILL.md</code>. One gates lane. The ten live lanes from the PR&#39;s <strong>Verify, live</strong> block. The perf lane from its <strong>Verify, perf</strong> block. One audit lane that reads the diff and the receipts and distrusts the PR body.</li>
+<li><input disabled="" type="checkbox"> Clean only when every lane is <code>PASS</code>. Findings go back to the owner. A new head gets a fresh swarm and a fresh verdict.</li>
+<li><input disabled="" type="checkbox"> The owner squash-merges only after William&#39;s click on that PR, or under landing authority William granted in chat. Rebase onto trunk after the verdict with the patch-id unchanged, per <code>skills/poteto-mode/playbooks/shipping.md</code>. P0 closes unmerged instead. After any merge, watch the production deploy and staging-follow-main go green before starting the dependent PR.</li>
+</ul>
+<h3>Boot recipe, for every live lane</h3>
+<p>Each live lane is one <code>swarm workers</code> lane at the PR head, resolved through provider dispatch, in its own worktree or output directory, with its own receipt that records the selected provider, model, and effort. Drive the surface only through the driver skill this plan names. Lanes never push, commit, or label; the owner pushes and labels, lanes observe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>git fetch origin &lt;head-branch&gt; &amp;&amp; git checkout &lt;head SHA&gt;</code> in the lane&#39;s worktree.</li>
+<li><input disabled="" type="checkbox"> The surface is the labeled Actions run and the deployed preview. Wait for ready with <code>gh run watch &lt;run-id&gt;</code>, then <code>node .agents/skills/verify-loop/cli/control-clarity.mjs doctor --base https://pr-&lt;n&gt;.clarity-video.workers.dev --expect-sha &lt;head SHA&gt;</code>.</li>
+<li><input disabled="" type="checkbox"> Deliver input only through the <code>run</code> skill (gh, curl, node scripts, <code>wrangler d1 execute &lt;binding&gt; --remote --command &quot;SELECT ...&quot;</code> reads) or the <code>verify</code> skill (control-clarity sessions). The read-only diagnostics are <code>gh run view --log</code>, <code>curl .../__deploy-info</code>, D1 SELECTs, and dry-run script modes.</li>
+<li><input disabled="" type="checkbox"> Save every screenshot to <code>.context/swarm-&lt;pr-id&gt;/worker-&lt;n&gt;/&lt;slug&gt;.png</code> and return the paths with the receipt path.</li>
+</ul>
+<h2>Probe the account before any build (P0)</h2>
+<p><strong>Depends on.</strong> None. P0 opens first, runs as a scratch PR, and never merges.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Create <code>scripts/preview-db-probe.mjs</code> (scratch; prints resource names and HTTP statuses only, never token or secret values).</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-deploy.yml</code> (scratch; one probe step in the <code>pr-preview</code> job after the secrets-presence check at line 171).</li>
+<li><input disabled="" type="checkbox"> Delete both at close; the branch is discarded, so nothing lands.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Add a probe step that runs <code>scripts/preview-db-probe.mjs</code> with <code>CLOUDFLARE_API_TOKEN</code> and <code>CLOUDFLARE_ACCOUNT_ID</code> from the job env, in the <code>pr-preview</code> job of <code>.github/workflows/cloudflare-deploy.yml</code>.</li>
+<li><input disabled="" type="checkbox"> In <code>scripts/preview-db-probe.mjs</code>, implement six probes against the Cloudflare HTTP API, modeled on the <code>fetch</code> pattern in <code>scripts/prune-cloudflare-pr-previews.mjs</code> line 152. Create a D1 database <code>clarity-pr-probe-auth</code> with the EEUR location hint, list it, delete it, recreate the same name, delete a database still bound by a scratch Worker, create and delete an R2 bucket, count the account&#39;s Worker scripts, and time one cold apply of all three migration chains from <code>scripts/cloudflare-ops.sh</code> lines 137-141 against a fresh database.</li>
+<li><input disabled="" type="checkbox"> Print one line per probe in the form <code>probe=&lt;name&gt; status=&lt;http-status&gt; detail=&lt;value&gt;</code>.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> The labeled run log prints six <code>probe=</code> lines, one per probe, each with an HTTP status and a value such as a database id, a Worker count, or a seconds figure.</li>
+<li><input disabled="" type="checkbox"> The run log prints <code>probe=cold-apply status=done detail=&lt;seconds&gt;s</code> after applying the three chains.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> The scratch branch breaks nothing that CI runs. Run <code>bash scripts/deploy-config.test.sh</code> and <code>node --test scripts/*.test.mjs</code> at the probe head; both pass unchanged.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe. For P0 the lanes are the probes, read from the labeled run&#39;s log and from follow-up listings.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. D1 create. The labeled run creates <code>clarity-pr-probe-auth</code> with the EEUR hint. Save <code>p0-d1-create.png</code>. Pass when <code>probe=d1-create</code> shows a success status and the detail names a database id.</li>
+<li><input disabled="" type="checkbox"> Lane 2. D1 list. The probe lists databases and finds <code>clarity-pr-probe-auth</code> with location EEUR. Save <code>p0-d1-list.png</code>. Pass when the listing line shows the probe name and <code>eeur</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Delete then recreate. The probe deletes <code>clarity-pr-probe-auth</code> and recreates the same name at once, retrying up to 3 times. Save <code>p0-d1-recreate.png</code>. Pass when the recreate succeeds and the log records how many attempts the name reuse needed.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Bound delete. The probe binds a database to a scratch Worker, then deletes the database while bound. Save <code>p0-bound-delete.png</code>. Pass when <code>probe=bound-delete</code> records the HTTP status and a follow-up list shows the final state, whichever way the API answered.</li>
+<li><input disabled="" type="checkbox"> Lane 5. R2 create. The probe creates and deletes bucket <code>clarity-probe-&lt;run-id&gt;</code>. Save <code>p0-r2-create.png</code>. Pass when the log records both statuses; a 403 is a pass for the lane and an operator input for P6.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Worker count. The probe prints the account&#39;s Worker script count. Save <code>p0-worker-count.png</code>. Pass when the count prints; a count above 400 raises the headroom risk in Appendix C to the operator.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Cold apply time. The probe applies all three migration chains to a fresh database and prints the wall time. Save <code>p0-cold-apply.png</code>. Pass when the time prints and is under 300 seconds; over that, P3&#39;s cold budget in this plan is revised before P3 starts.</li>
+<li><input disabled="" type="checkbox"> Lane 8. No secret leakage. Read the full run log. Save <code>p0-no-secrets.png</code>. Pass when the log contains only names and statuses from the probe, and no token, key, or secret value.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Own-workflow proof. Confirm the labeled run executed this branch&#39;s workflow file. Save <code>p0-own-workflow.png</code>. Pass when <code>gh run view &lt;run-id&gt; --json headSha</code> equals the PR head SHA that contains the probe step.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Close-out. Close the PR unmerged, then list D1 databases and Workers. Save <code>p0-closeout.png</code>. Pass when no <code>clarity-pr-probe-*</code> database and no probe Worker remains.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. P0 also captures the trunk baseline every later PR compares against.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Preview job wall time and label-to-<code>/__deploy-info</code>-at-head latency for trunk-era labeled runs, plus the probe run&#39;s own wall time.</li>
+<li><input disabled="" type="checkbox"> Probe. <code>gh run list --workflow cloudflare-deploy.yml --event pull_request --limit 10 --json databaseId,startedAt,updatedAt,headSha</code>, then <code>gh run view --log</code> per run for the deploy-info step timing; run it for the trunk-era runs and for the probe head in the same session.</li>
+<li><input disabled="" type="checkbox"> Baseline. Record the trunk median wall time and median label-to-ready latency first, from the last 10 trunk-era labeled preview runs, into the program trail as the standing baseline table.</li>
+<li><input disabled="" type="checkbox"> Rule. The probe run exceeding the trunk median wall time by more than 10 minutes fails the lane; the probe then splits before P3 starts.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P0 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Do not merge. Close the PR unmerged once lanes 1 to 10 hold receipts and the baseline table exists.</li>
+<li><input disabled="" type="checkbox"> Archive the run log and lane receipts under <code>.context/swarm-P0/</code>.</li>
+<li><input disabled="" type="checkbox"> Confirm every probe resource is deleted (lane 10) and delete the branch.</li>
+<li><input disabled="" type="checkbox"> Post the probe answers to the operator; flag any answer that needs an operator input before P3 or P6.</li>
+</ul>
+<h2>Fail the deploy on any unknown binding (P1)</h2>
+<p><strong>Depends on.</strong> None. P1 is independent and branches from <code>main</code>.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/check-preview-databases.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Create <code>scripts/check-preview-databases.test.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/preview-wrangler-config.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-config.test.sh</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Turn <code>scripts/check-preview-databases.mjs</code> into an allowlist over the top-level binding kinds of the generated config. The known kinds are <code>d1_databases</code>, <code>services</code>, <code>analytics_engine_datasets</code>, <code>ratelimits</code>, <code>r2_buckets</code>, <code>images</code>, <code>assets</code>, and <code>vars</code>. Any other kind (<code>kv_namespaces</code>, <code>durable_objects</code>, <code>queues</code>, <code>hyperdrive</code>, <code>workflows</code>, anything new) fails closed with exit 1. Keep the existing forbidden-id rule for <code>d1_databases</code> (<code>forbiddenDatabases</code>, line 32) unchanged.</li>
+<li><input disabled="" type="checkbox"> Add the per-kind rules. <code>analytics_engine_datasets</code> must be exactly <code>RUM</code> on <code>clarity_rum_preview</code>. <code>ratelimits</code> must carry the preview namespace ids 1004 and 1014, never the production 1003 and 1013 from <code>wrangler.jsonc</code> lines 174-183. <code>services</code> may name only <code>pr-&lt;n&gt;-r2-media</code>, with <code>clarity-r2-media-production</code> as one explicitly named temporary exception that P6 deletes. <code>vars</code> must contain <code>EMAIL_DELIVERY=disabled</code> and must not contain <code>POSTHOG_PROJECT_TOKEN</code> or <code>BOARDROOM_ORGANIZATION_ID</code>. No <code>routes</code>, no <code>route</code>, no custom domains, and <code>workers_dev</code> must be true.</li>
+<li><input disabled="" type="checkbox"> In <code>previewConfig</code> (<code>scripts/preview-wrangler-config.mjs</code> line 28), override what the check requires. Set <code>analytics_engine_datasets</code> to <code>RUM</code> on <code>clarity_rum_preview</code> and set the preview rate-limit namespace ids. Today the generator copies <code>env.production</code> and never touches either, so previews write RUM rows into <code>clarity_rum_production</code> (<code>wrangler.jsonc</code> line 172) and share production rate-limit namespaces. This PR ends both.</li>
+<li><input disabled="" type="checkbox"> Print one <code>ok</code> line per accepted kind, including <code>ok   RUM dataset clarity_rum_preview</code>, so a run log shows what the gate accepted. The check still runs at both call sites, <code>scripts/prepare-preview-databases.sh</code> line 55 and <code>scripts/deploy-cloudflare.sh</code> line 125.</li>
+<li><input disabled="" type="checkbox"> Add <code>scripts/deploy-config.test.sh</code> cases. The generated preview config contains <code>clarity_rum_preview</code> and excludes <code>clarity_rum_production</code>; the check script names every known kind; an unknown-kind fixture is refused.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A good labeled run prints <code>ok   RUM dataset clarity_rum_preview</code> and one <code>ok</code> line per binding kind before the first migration apply.</li>
+<li><input disabled="" type="checkbox"> A hostile config makes the check print <code>REFUSED: unknown binding kind &quot;kv_namespaces&quot; in the generated preview config</code> and exit 1 before any remote call.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>scripts/check-preview-databases.test.mjs</code> feeds hostile configs, one per rule. An unknown kind, a production RUM dataset, production rate-limit ids, a production service name beyond the exception, a missing <code>EMAIL_DELIVERY</code>, a surviving PostHog token, a route, and <code>workers_dev</code> false all refuse; the real generated config passes. Run <code>node --test scripts/check-preview-databases.test.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the new cases.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Good config deploys. Label this PR; the labeled run passes the allowlist and the preview serves the head. Save <code>p1-allowlist-pass.png</code>. Pass when the run log shows every <code>ok</code> kind line and <code>doctor --base ... --expect-sha &lt;head&gt;</code> exits 0.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Unknown kind refused. Scratch commit makes the generator emit a <code>kv_namespaces</code> entry; relabel. Save <code>p1-unknown-kind.png</code>. Pass when the run fails at the check with the <code>REFUSED: unknown binding kind</code> line and the log shows no migration apply and no upload after it.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Production RUM refused. Scratch commit keeps <code>clarity_rum_production</code> in the generated config; relabel. Save <code>p1-rum-refused.png</code>. Pass when the check names the dataset and the run fails before any remote write.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Preview RUM live. On lane 1&#39;s preview, load the home page in a <code>verify</code> session and watch the RUM beacon. Save <code>p1-rum-live.png</code>. Pass when the beacon request returns 2xx and the lane 1 log shows the <code>ok   RUM dataset clarity_rum_preview</code> line for that deploy.</li>
+<li><input disabled="" type="checkbox"> Lane 5. PostHog var refused. Scratch commit makes the generator keep <code>POSTHOG_PROJECT_TOKEN</code>; relabel. Save <code>p1-posthog-refused.png</code>. Pass when the check refuses naming the var.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Route refused. Scratch commit adds a <code>routes</code> entry to the generated config; relabel. Save <code>p1-route-refused.png</code>. Pass when the check refuses and the log shows no upload.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Rate limit live. On lane 1&#39;s preview, hammer a rate-limited endpoint with 30 rapid requests via curl. Save <code>p1-ratelimit.png</code>. Pass when at least one 429 returns and the generated-config log line shows namespace ids 1004 and 1014.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Exception is explicit. Read lane 1&#39;s check output. Save <code>p1-media-exception.png</code>. Pass when the log prints the temporary <code>clarity-r2-media-production</code> service exception by name, so P6 has one line to delete.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Hostile fixture on the real script. Run <code>node scripts/check-preview-databases.mjs &lt;fixture-with-hyperdrive&gt;</code> locally at the head. Save <code>p1-hyperdrive-refused.png</code>. Pass when the exit code is 1 and the refusal names <code>hyperdrive</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Email stays dead. On lane 1&#39;s preview, request a password reset in a <code>verify</code> session, then read the send log with <code>wrangler d1 execute AUTH_EMAIL_DB --remote --command &quot;SELECT COUNT(*) FROM ...&quot;</code> against the preview database. Save <code>p1-email-disabled.png</code>. Pass when the UI reports delivery not configured and the send-log count is 0, matching the pre-key rejection in <code>workers/frontend-router/src/auth-email/mailer.ts</code> lines 127-134.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Preview job wall time and label-to-<code>/__deploy-info</code>-at-head latency.</li>
+<li><input disabled="" type="checkbox"> Probe. <code>gh run list --workflow cloudflare-deploy.yml --event pull_request</code> timings for this PR&#39;s labeled runs, read beside the trunk-era runs measured the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Use the trunk median recorded first by P0&#39;s baseline table; re-measure the trunk-era runs if more than a week old.</li>
+<li><input disabled="" type="checkbox"> Rule. A code-only redeploy at the head more than 20 percent slower than the trunk median fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P1 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done.</li>
+<li><input disabled="" type="checkbox"> Scratch commits from lanes 2, 3, 5, and 6 dropped; rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green.</li>
+</ul>
+<h2>Lint migrations as append-only (P2)</h2>
+<p><strong>Depends on.</strong> None. P2 is independent and branches from <code>main</code>.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Create <code>scripts/check-migrations-append-only.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Create <code>scripts/check-migrations-append-only.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/ci.yml</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> In <code>scripts/check-migrations-append-only.sh</code>, diff the PR against its merge base with <code>origin/main</code> using <code>git diff --name-status</code>, filtered to the three migration dirs named in <code>scripts/cloudflare-ops.sh</code> lines 137-141. Added files pass. Any modify, rename, or delete of a file that exists at the merge base fails with exit 1 and the file name. Files a branch itself added may change freely; P3&#39;s drift detection owns that case.</li>
+<li><input disabled="" type="checkbox"> In <code>scripts/check-migrations-append-only.test.sh</code>, build a throwaway git repo fixture and assert each verdict, following the self-test pattern of <code>scripts/check-loc-ratchet.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> In <code>.github/workflows/ci.yml</code>, fetch <code>origin/main</code> and run the lint beside the <code>check-ci-invariants.sh</code> step at lines 60-61, and run the lint&#39;s self-test beside the other script self-tests.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A violating PR&#39;s CI fails with <code>REFUSED: migration &lt;path&gt; exists on main and may not be modified, renamed, or deleted</code>.</li>
+<li><input disabled="" type="checkbox"> A clean PR&#39;s CI prints <code>ok   migrations are append-only against the merge base</code>.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>bash scripts/check-migrations-append-only.test.sh</code> covers add, edit, rename, delete, branch-added rewrite, mixed, and non-migration-file cases in the fixture repo.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe. The lanes are real fixture branches cut from this PR&#39;s head, each opened as a scratch PR so CI runs this PR&#39;s lint, then closed.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Pass on add. Fixture branch adds one new file under <code>workers/frontend-router/migrations-auth/</code>; open a scratch PR onto the P2 branch. Save <code>p2-add-pass.png</code>. Pass when the lint step succeeds in that PR&#39;s CI run.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Fail on edit. Fixture branch edits an existing main migration in place. Save <code>p2-edit-fail.png</code>. Pass when CI fails at the lint naming exactly that file.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Fail on rename. Fixture branch renames an existing migration. Save <code>p2-rename-fail.png</code>. Pass when the lint reports the rename and fails.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Fail on delete. Fixture branch deletes an existing migration. Save <code>p2-delete-fail.png</code>. Pass when the lint reports the delete and fails.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Pass on branch rewrite. Fixture branch adds a migration in commit one and edits that same file in commit two. Save <code>p2-branch-rewrite-pass.png</code>. Pass when the lint succeeds, because the file is absent at the merge base.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Mixed names only the offender. Fixture branch adds one file and edits one existing file. Save <code>p2-mixed.png</code>. Pass when the failure output names only the edited file.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Ignores other SQL. Fixture branch edits a <code>.sql</code> file outside the three dirs. Save <code>p2-outside-pass.png</code>. Pass when the lint succeeds.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Merge-base honesty. Fixture branch is cut from an older main commit, after which main gained a migration. Save <code>p2-merge-base.png</code>. Pass when the lint does not flag main&#39;s own newer file.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Own CI green. This PR&#39;s CI run at head. Save <code>p2-own-ci.png</code>. Pass when the lint and its self-test both succeed in <code>gh run view --log</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 10. All three dirs covered. One fixture per dir (<code>workers/auth-email/migrations</code>, <code>workers/frontend-router/migrations</code>, <code>workers/frontend-router/migrations-auth</code>) with an in-place edit. Save <code>p2-three-dirs.png</code>. Pass when each of the three fails the lint.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. CI workflow job wall time for the job that gains the lint.</li>
+<li><input disabled="" type="checkbox"> Probe. <code>gh run list --workflow ci.yml</code> durations at the head versus trunk runs from the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Record the trunk CI job median first, from the last 10 main-branch CI runs.</li>
+<li><input disabled="" type="checkbox"> Rule. The lint adding more than 30 seconds to the job median fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P2 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done.</li>
+<li><input disabled="" type="checkbox"> Fixture scratch PRs closed and their branches deleted; rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green.</li>
+</ul>
+<h2>Give every PR its own databases (P3)</h2>
+<p><strong>Depends on.</strong> P1 merged, and P0&#39;s probe answers, including the D1 Edit token input if P0 demanded it.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Create <code>scripts/preview-databases.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Create <code>scripts/preview-databases.test.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>wrangler.preview.jsonc</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/preview-wrangler-config.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/check-preview-databases.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/prepare-preview-databases.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-pr-preview.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-deploy.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-config.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>DEPLOY.md</code> and <code>.agents/skills/verify-loop/ENVIRONMENT.md</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> In <code>scripts/preview-databases.mjs</code>, implement <code>resolve --pr &lt;n&gt; --create</code>, <code>plan --pr &lt;n&gt;</code>, <code>delete --pr &lt;n&gt;</code>, and <code>list</code> over the Cloudflare HTTP API, with the <code>fetch</code> style of <code>scripts/prune-cloudflare-pr-previews.mjs</code> line 152. The names are <code>clarity-pr-&lt;n&gt;-auth</code> (AUTH_DB and PAGE_LIBRARY_DB), <code>clarity-pr-&lt;n&gt;-email</code> (AUTH_EMAIL_DB), and <code>clarity-pr-&lt;n&gt;-stats</code> (VIDEO_STATS_DB), all created with the EEUR location hint. Three databases match the production topology; production keeps email separate (<code>wrangler.jsonc</code> lines 207-212). Resolve by exact name first, create only when absent, and verify each returned id carries the expected name, so a retry is a no-op.</li>
+<li><input disabled="" type="checkbox"> Make <code>wrangler.preview.jsonc</code> a template with no database ids. Keep the four bindings and their <code>migrations_dir</code> values; swap <code>database_name</code> to the per-PR placeholder names; delete every <code>database_id</code>. The resolver becomes the only source of ids. <code>scripts/check-migration-targets.mjs</code> (its <code>BINDING_MIGRATIONS</code> map at lines 23-28) and <code>scripts/check-wrangler-observability.test.mjs</code> (skip for entry-point-less configs at lines 30-31) must keep passing on the template.</li>
+<li><input disabled="" type="checkbox"> Thread the resolved map through <code>previewConfig</code> (<code>scripts/preview-wrangler-config.mjs</code> line 28) and the PR number through the workflow into <code>scripts/deploy-pr-preview.sh</code> and <code>scripts/prepare-preview-databases.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Order the isolation checks per the synthesis. Before any remote write, secret put included, validate the planned per-PR names and the config shape; this moves ahead of the secret puts at <code>scripts/deploy-pr-preview.sh</code> lines 87-108. After resolve or create, validate that every bound id equals the resolver&#39;s id for the expected <code>clarity-pr-&lt;n&gt;-*</code> name and is not a staging, production, or retired id. Both land in <code>scripts/check-preview-databases.mjs</code> as <code>--pr &lt;n&gt;</code> and <code>--resolved &lt;path&gt;</code> arguments.</li>
+<li><input disabled="" type="checkbox"> Add drift detection. Each preview database carries <code>clarity_preview_meta(history, file, sha256, baseline_commit, applied_at)</code>, written by <code>scripts/prepare-preview-databases.sh</code> via direct <code>d1 execute</code> only after a history applies cleanly, outside both migration ledgers. On every deploy, recreate the databases when a recorded file is missing or changed, or when the record and the <code>d1_migrations</code> ledger disagree. A half-applied run self-heals because the record is written only after success. Code-only pushes reuse the databases and preserve QA state.</li>
+<li><input disabled="" type="checkbox"> Keep the frontend-router migration gate (<code>cloudflare-deploy.yml</code> lines 54-78) untouched; P4 deletes it.</li>
+<li><input disabled="" type="checkbox"> Extend <code>scripts/deploy-config.test.sh</code>. The template has no <code>database_id</code>; the planned-name check runs before any secret put in <code>scripts/deploy-pr-preview.sh</code>; the fake-<code>pnpm</code> order fixture at lines 178-264 gains a resolver that returns a production id and asserts zero <code>d1 migrations apply</code> calls.</li>
+<li><input disabled="" type="checkbox"> Rewrite the now-false shared-pair bullet in <code>DEPLOY.md</code> lines 57-70 and the <code>PR previews bind an empty D1</code> gotcha at <code>.agents/skills/verify-loop/ENVIRONMENT.md</code> line 51, and pin each with a <code>deploy-config.test.sh</code> excludes assertion so the stale sentence cannot return.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A labeled run prints <code>resolved AUTH_DB clarity-pr-&lt;n&gt;-auth &lt;id&gt;</code> lines for all four bindings, then the P1 <code>ok</code> lines, then migrations, seed, and upload.</li>
+<li><input disabled="" type="checkbox"> A drift deploy prints <code>drift: &lt;file&gt; changed; recreating clarity-pr-&lt;n&gt;-* databases</code> and finishes green.</li>
+<li><input disabled="" type="checkbox"> <code>doctor --base https://pr-&lt;n&gt;.clarity-video.workers.dev --expect-sha &lt;head&gt;</code> exits 0.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>node --test scripts/preview-databases.test.mjs</code> covers naming, PR-number extraction, the three drift conditions, and create-retry idempotence with injected fetch fixtures.</li>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the new order and template cases; <code>scripts/prepare-preview-databases.sh --validate-only</code> still works offline with a resolver fixture.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Full deploy. Label this PR; the run creates the three databases, migrates, seeds, uploads. Save <code>p3-full-deploy.png</code>. Pass when the resolved lines appear and doctor exits 0 at the head.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Listing matches resolver. Run <code>node scripts/preview-databases.mjs list</code> and compare with lane 1&#39;s resolved log lines. Save <code>p3-listing.png</code>. Pass when the three names exist in EEUR with ids equal to the resolver&#39;s output.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Cross-PR isolation. Open a labeled scratch PR B; create a page on PR A&#39;s preview in a <code>verify</code> session; read B&#39;s auth database. Save <code>p3-isolation.png</code>. Pass when the row exists in A&#39;s database and is absent from B&#39;s via <code>wrangler d1 execute</code> SELECTs.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Reuse preserves QA state. Push a code-only commit, cycle the label, and re-check. Save <code>p3-reuse.png</code>. Pass when the log shows resolve-found-existing with no create, lane 3&#39;s row survives, and doctor is green at the new head.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Rewrite triggers recreate. Scratch commit adds an <code>workers/auth-email/migrations</code> file, deploy, then edit that file in place and redeploy. Save <code>p3-drift.png</code>. Pass when the second run prints the drift line, new database ids appear, and the edited SQL is what applied.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Failure self-heals. Scratch commit with a failing migration; the run fails mid-apply; fix the file and redeploy. Save <code>p3-self-heal.png</code>. Pass when the second run recreates (record and ledger disagree) and ends green.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Planned-name refusal is first. Scratch commit forces a wrong planned name; relabel. Save <code>p3-planned-name.png</code>. Pass when the refusal appears before any secret put or D1 create in the log, and nothing remote follows it.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Foreign id refused. Scratch commit injects a resolver fixture returning a staging id; relabel. Save <code>p3-foreign-id.png</code>. Pass when the check refuses naming the id and the log shows no migration apply and no upload.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Migration gate still holds. Scratch commit adds a <code>workers/frontend-router/migrations-auth</code> file; relabel. Save <code>p3-gate-holds.png</code>. Pass when the run skips the preview with the pending-migration comment, exactly as before this PR.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Seeded login. <code>control-clarity login</code> with a seeded e2e account against lane 1&#39;s preview, then doctor with the session. Save <code>p3-login.png</code>. Pass when <code>/auth/me</code> returns the identity and doctor reports the auth check ok, not skipped.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Preview job wall time and label-to-<code>/__deploy-info</code>-at-head latency, cold (first deploy, databases created) and warm (relabel, databases reused) measured separately.</li>
+<li><input disabled="" type="checkbox"> Probe. Time lane 1 (cold) and lane 4 (warm) from <code>gh run view --json</code> and the deploy-info step log, beside trunk-era runs measured the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Use the trunk medians P0 recorded first; P0 lane 7&#39;s cold-apply seconds bound the added migration cost.</li>
+<li><input disabled="" type="checkbox"> Rule. Cold first deploy more than 4 minutes over the trunk median fails. Warm redeploy more than 20 percent over the trunk median fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P3 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; scratch commits from lanes 5 to 9 dropped.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, delete <code>clarity-auth-preview</code> (<code>6f05a1c6-e5f4-4b47-bdc9-9043caf93722</code>) and <code>clarity-video-stats-preview</code> (<code>a1897130-a064-46e5-8d83-012ee3bad95e</code>), add both ids to <code>RETIRED_DATABASES</code> in <code>scripts/check-preview-databases.mjs</code> line 24 in an immediate follow-up commit on a fresh PR, and watch the production deploy go green.</li>
+</ul>
+<h2>Rehearse pending migrations on previews (P4)</h2>
+<p><strong>Depends on.</strong> P3. Merge P2 first; deleting the gate leans on the append-only lint.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/prepare-preview-databases.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/staging-shape-fixtures.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Create <code>scripts/preview-fixture-assets.json</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-deploy.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-config.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>DEPLOY.md</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Give recreate the production-upgrade order in <code>scripts/prepare-preview-databases.sh</code>. Materialize main&#39;s three migration chains with <code>git archive origin/main</code> into a temp tree and apply them, seed fixtures into that baseline schema, apply the branch delta through the generated config (the ledger already holds main&#39;s files, so only the delta runs), then seed e2e accounts. Record the main baseline commit in <code>clarity_preview_meta</code>.</li>
+<li><input disabled="" type="checkbox"> Give <code>scripts/staging-shape-fixtures.mjs</code> a preview target. Replace the staging-only guard at lines 51-58 with a target argument keeping the forbidden-id proof; take the owner from a seeded e2e account instead of the staging account lookup at lines 78-80; replace the borrowed staging Mux video at lines 81-89 with the pinned Spike asset from <code>scripts/preview-fixture-assets.json</code>; seed no media object until P6. A missing pinned asset degrades loudly with a <code>skipping Mux-dependent fixtures</code> warning, like the account seed does at <code>scripts/prepare-preview-databases.sh</code> lines 99-108.</li>
+<li><input disabled="" type="checkbox"> Pin one long-lived Spike asset (asset id, playback id, poster) into <code>scripts/preview-fixture-assets.json</code>, read from the staging database with the agent&#39;s D1 read access.</li>
+<li><input disabled="" type="checkbox"> Delete the migration skip block (<code>cloudflare-deploy.yml</code> lines 54-78) and the skipped-preview comment step (lines 97-129). Narrow the warning regex at line 55 to <code>^workers/r2-media/</code>.</li>
+<li><input disabled="" type="checkbox"> Flip the gate assertions in <code>scripts/deploy-config.test.sh</code> lines 32-37 from contains to excludes, and assert the apply order, main chains before fixtures before branch delta before accounts.</li>
+<li><input disabled="" type="checkbox"> Rewrite the pending-migration bullet in <code>DEPLOY.md</code> lines 115-122 and pin it with an excludes assertion.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A labeled run with a branch migration prints, in order, <code>apply main baseline &lt;commit&gt;</code>, <code>seed shape fixtures</code>, <code>apply branch delta</code>, <code>seed accounts</code>, then uploads.</li>
+<li><input disabled="" type="checkbox"> No <code>PR preview skipped: pending D1 migration</code> comment appears anywhere after this PR.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the flipped excludes and the order assertions.</li>
+<li><input disabled="" type="checkbox"> <code>node --test scripts/preview-databases.test.mjs</code> gains baseline-commit drift cases (main advanced, baseline recorded, recreate when inputs changed).</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Migration PR deploys. Scratch commit adds an additive <code>workers/frontend-router/migrations-auth</code> file; label. Save <code>p4-migration-deploys.png</code>. Pass when the run deploys with the four ordered log lines and doctor is green at the head.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Populated upgrade proven. Scratch migration backfills a column over fixture rows; read the fixture rows after deploy. Save <code>p4-backfill.png</code>. Pass when <code>wrangler d1 execute</code> shows the transformed values on rows the fixtures created before the delta ran.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Ordering case. Scratch branch file numbered below main&#39;s newest applied file. Save <code>p4-ordering.png</code>. Pass when the ledger skips it exactly as production would and the log shows no re-apply of main files.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Fixtures render. Open the fixture library on the preview in a <code>verify</code> session; play the legacy-trim fixture video. Save <code>p4-fixture-plays.png</code>. Pass when the pinned Spike asset plays from the <code>pr-&lt;n&gt;</code> origin.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Pinned asset degrade. Scratch commit empties <code>scripts/preview-fixture-assets.json</code>; redeploy. Save <code>p4-degrade.png</code>. Pass when the loud <code>skipping Mux-dependent fixtures</code> warning prints and the run still ends green.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Skip comment gone. Second labeled scratch PR carrying a frontend-router migration. Save <code>p4-no-skip-comment.png</code>. Pass when no skipped-preview comment appears and the preview deploys.</li>
+<li><input disabled="" type="checkbox"> Lane 7. CI excludes hold. This PR&#39;s CI run at head. Save <code>p4-ci-excludes.png</code>. Pass when the deploy-config step passes with the flipped assertions in <code>gh run view --log</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Fixture idempotence. Two deploys in a row at the same head; count fixture rows after each. Save <code>p4-idempotent.png</code>. Pass when the counts are identical.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Baseline honesty. Read <code>clarity_preview_meta</code> after lane 1. Save <code>p4-baseline.png</code>. Pass when the recorded baseline commit equals current <code>origin/main</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Existing e2e still green. The labeled run&#39;s preview e2e steps (<code>cloudflare-deploy.yml</code> lines 440-456) on the fixture-populated databases. Save <code>p4-e2e.png</code>. Pass when both suites pass in the run log.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Cold preview job wall time with a branch migration, and warm label-to-<code>/__deploy-info</code> latency.</li>
+<li><input disabled="" type="checkbox"> Probe. Time lane 1 and lane 8&#39;s second run from <code>gh run view --json</code>, beside trunk-era runs measured the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Use the trunk medians P0 recorded first.</li>
+<li><input disabled="" type="checkbox"> Rule. Cold deploy with a branch migration more than 6 minutes over the trunk median fails. Warm redeploy more than 20 percent over fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P4 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; every scratch migration and scratch PR dropped or closed.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green.</li>
+</ul>
+<h2>Extend cleanup to databases and media Workers (P5)</h2>
+<p><strong>Depends on.</strong> P3.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/prune-cloudflare-pr-previews.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Create <code>scripts/prune-cloudflare-pr-previews.test.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-preview-cleanup.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>docs/agents/loops.md</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Widen <code>PREVIEW_WORKER_RE</code> (<code>scripts/prune-cloudflare-pr-previews.mjs</code> line 6) to <code>/^pr-(\d+)(-workspace-tree|-r2-media)?$/</code> and add a D1 pass over <code>^clarity-pr-(\d+)-(auth|email|stats)$</code>, reusing <code>staleReasonForPr</code> (line 253) and <code>staleSinceForPr</code> (line 270) so Workers and databases share one open-PR, label, and grace logic.</li>
+<li><input disabled="" type="checkbox"> Inventory databases independently of Workers, so a failed deploy that created D1 but no Worker is still collected. Delete Workers before databases. Tolerate already-absent on every delete.</li>
+<li><input disabled="" type="checkbox"> Add a <code>--d1-json</code> fixture mode mirroring <code>--workers-json</code> (line 22) for offline tests.</li>
+<li><input disabled="" type="checkbox"> Add a fast path to <code>.github/workflows/cloudflare-preview-cleanup.yml</code>, a <code>pull_request: [closed]</code> trigger running the pruner for that PR with zero grace and apply.</li>
+<li><input disabled="" type="checkbox"> Update the preview-cleanup row in <code>docs/agents/loops.md</code> line 65 to name databases and media Workers.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A dry run prints a per-PR plan naming the Worker, any <code>-r2-media</code> sibling, and the three databases, each with a stale reason and age.</li>
+<li><input disabled="" type="checkbox"> A closed PR&#39;s fast-path run deletes its Worker lines before its database lines and ends <code>deleted=&lt;n&gt; already-absent=&lt;m&gt;</code>.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>node --test scripts/prune-cloudflare-pr-previews.test.mjs</code> covers both resource kinds, the orphan-database case, grace windows, the delete order, and already-absent tolerance via <code>--workers-json</code> and <code>--d1-json</code> fixtures.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Dispatch dry run. <code>workflow_dispatch</code> the cleanup workflow from this PR&#39;s ref with apply false. Save <code>p5-dry-run.png</code>. Pass when the plan lists Workers and databases grouped per PR with reasons.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Closed fast path. Close a sacrificial labeled scratch PR that holds a deployed preview. Save <code>p5-fast-path.png</code>. Pass when the closed-trigger run deletes its Worker and its three databases, and follow-up listings show them gone.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Idempotent delete. Re-dispatch the targeted apply for the same PR number. Save <code>p5-already-absent.png</code>. Pass when the run exits 0 with already-absent notes and deletes nothing.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Real orphan collected. On a second scratch PR, a scratch commit breaks the build after database creation; the deploy fails leaving databases and no Worker; close the PR. Save <code>p5-orphan.png</code>. Pass when the fast path still finds and deletes the orphan databases.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Grace respected. Dry run with default grace against a PR closed minutes ago (use a third scratch PR, no fast-path apply). Save <code>p5-grace.png</code>. Pass when the plan marks it stale but within the 7-day grace and not deletable.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Open PR protected. Read lane 1&#39;s plan for this PR&#39;s own live preview. Save <code>p5-protected.png</code>. Pass when none of this PR&#39;s resources appears in the deletion plan.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Order proven. Re-read lane 2&#39;s apply log. Save <code>p5-order.png</code>. Pass when every Worker delete line precedes the first database delete line for that PR.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Unlabeled stale. Remove the label from a scratch PR with resources; dry run. Save <code>p5-unlabeled.png</code>. Pass when the plan marks it stale for the removed label with a stale-since time.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Cap respected. Dispatch with <code>max_deletes</code> 1 against two stale scratch resources with zero grace. Save <code>p5-cap.png</code>. Pass when exactly one Worker is deleted in that run.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Nightly intact. Read the workflow at head and the loops row. Save <code>p5-nightly.png</code>. Pass when the <code>cron</code> schedule at 04:00 UTC survives and the <code>docs/agents/loops.md</code> row matches the workflow&#39;s triggers.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Cleanup workflow wall time for a dry run.</li>
+<li><input disabled="" type="checkbox"> Probe. <code>gh run list --workflow cloudflare-preview-cleanup.yml</code> durations, the head&#39;s dry run beside recent trunk runs.</li>
+<li><input disabled="" type="checkbox"> Baseline. Record the trunk cleanup median first, from the last 10 scheduled runs.</li>
+<li><input disabled="" type="checkbox"> Rule. The head dry run more than 3 minutes over the trunk median fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P5 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; sacrificial scratch PRs closed and their branches deleted.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green.</li>
+</ul>
+<h2>Serve preview media from a preview bucket (P6)</h2>
+<p><strong>Depends on.</strong> P3 (seeded accounts), plus the operator inputs, the <code>clarity-media-preview</code> bucket with its 14-day lifecycle rule and R2 credentials scoped to it, if the agent token could not create them in P0.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Create <code>workers/r2-media/wrangler.preview.jsonc</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-pr-preview.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-cloudflare.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/preview-wrangler-config.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/check-preview-databases.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>packages/deployment-surfaces/src/index.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>workers/frontend-router/src/public-video-policy.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-deploy.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>tests/e2e/staging-critical-flow.spec.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-config.test.sh</code> and <code>DEPLOY.md</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Add a flat <code>workers/r2-media/wrangler.preview.jsonc</code>, entry point <code>src/index.ts</code>, bucket <code>clarity-media-preview</code>, <code>SENTRY_ENVIRONMENT</code> preview, empty crons, no routes, <code>workers_dev</code> true, observability enabled, deployed as <code>pr-&lt;n&gt;-r2-media</code> from the branch&#39;s code on every preview, before the router so the service binding resolves. One mechanism, no shared preview media Worker; a PR touching <code>workers/r2-media/</code> previews its own media code.</li>
+<li><input disabled="" type="checkbox"> Swap the router preview <code>services</code> binding to <code>pr-&lt;n&gt;-r2-media</code> in <code>previewConfig</code>, and delete the temporary <code>clarity-r2-media-production</code> exception from the P1 allowlist. Add an <code>r2_buckets</code> rule, only <code>clarity-media-preview</code>, for the generated media config.</li>
+<li><input disabled="" type="checkbox"> Put the new <code>PREVIEW_MEDIA_SIGNING_SECRET</code> on both the preview router and the <code>pr-&lt;n&gt;-r2-media</code> Worker, and give the media Worker the preview-scoped <code>R2_ACCESS_KEY_ID</code>, <code>R2_SECRET_ACCESS_KEY</code>, <code>R2_BUCKET_NAME</code>, and <code>R2_ACCOUNT_ID</code> that presigning requires (<code>workers/r2-media/src/presign.ts</code> line 19). The production <code>MEDIA_SIGNING_SECRET</code> leaves the preview path, <code>scripts/deploy-pr-preview.sh</code> lines 87-108 and the job env at <code>cloudflare-deploy.yml</code> lines 198-199.</li>
+<li><input disabled="" type="checkbox"> Move the preview <code>MEDIA_UPLOAD_SESSION_BASE_URL</code> off <code>https://files.clarity.video</code> (<code>scripts/deploy-cloudflare.sh</code> lines 27-37) to the preview media origin, and set <code>MEDIA_PUBLIC_BASE_URL</code> to <code>https://pr-&lt;n&gt;-r2-media.clarity-video.workers.dev</code>.</li>
+<li><input disabled="" type="checkbox"> Add a preview-media-host helper beside <code>isPrPreviewOrigin</code> in <code>packages/deployment-surfaces/src/index.ts</code> and use it in the hostname list at <code>workers/frontend-router/src/public-video-policy.ts</code> line 113.</li>
+<li><input disabled="" type="checkbox"> Remove the preview skip at <code>tests/e2e/staging-critical-flow.spec.ts</code> lines 751-754, replace the ban comment at <code>cloudflare-deploy.yml</code> lines 436-439 with a step running <code>e2e:staging-critical</code> against the preview URL, and delete the r2-media warning arm of <code>preview-gate</code> (line 55 and lines 80-96) with its sticky-comment warning text.</li>
+<li><input disabled="" type="checkbox"> Seed the tiny fixture media object into the preview bucket from the fixtures script, completing P4&#39;s deferred media fixture.</li>
+<li><input disabled="" type="checkbox"> Rewrite the <code>Media is still production</code> section of <code>DEPLOY.md</code> lines 103-117 and pin it with an excludes assertion on that exact phrase; assert the preview job env no longer references <code>secrets.MEDIA_SIGNING_SECRET</code>.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A labeled run deploys <code>pr-&lt;n&gt;-r2-media</code> before the router and the critical e2e step prints a pass for the record and upload flow against the preview URL.</li>
+<li><input disabled="" type="checkbox"> The allowlist output no longer prints the production media exception line; <code>services</code> shows <code>pr-&lt;n&gt;-r2-media</code>.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>node --test scripts/check-wrangler-observability.test.mjs scripts/check-r2-media-crons.test.mjs</code> passes with the new config covered; <code>node --test scripts/check-preview-databases.test.mjs</code> gains the bucket rule and the deleted-exception case; root <code>pnpm test</code> covers the deployment-surfaces helper.</li>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the media assertions.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Both Workers deploy. Label this PR; read the run and the Worker listing. Save <code>p6-two-workers.png</code>. Pass when <code>pr-&lt;n&gt;-r2-media</code> deploys before the router and doctor is green at the head.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Critical flow on the preview. The run&#39;s <code>e2e:staging-critical</code> step with <code>BASE_URL</code> at the preview. Save <code>p6-critical-e2e.png</code>. Pass when login, recording, upload, journey creation, and playback all pass in the run log.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Upload served by preview media. Fetch the object lane 2 uploaded via <code>https://pr-&lt;n&gt;-r2-media.clarity-video.workers.dev</code>. Save <code>p6-preview-object.png</code>. Pass when it returns 200 with the right content type; that host binds only <code>clarity-media-preview</code>, so a 200 proves preview storage.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Preview credentials fenced. Using the preview-scoped R2 credentials, attempt an S3 list against <code>clarity-media-prod</code>, then against <code>clarity-media-preview</code>. Save <code>p6-creds-scope.png</code>. Pass when production denies access and preview allows it.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Production signature dead. Take a signed media URL from the preview page, swap the host to <code>files.clarity.video</code>, fetch both. Save <code>p6-signature.png</code>. Pass when the preview host returns 200 and the production host refuses the preview-signed URL.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Host rewrite. In a <code>verify</code> session, open a fixture video page and record the network log. Save <code>p6-host-rewrite.png</code>. Pass when every media request targets the preview media host and none targets <code>files.clarity.video</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Branch media code runs. Scratch commit adds an <code>X-Preview-Probe</code> response header in <code>workers/r2-media/src/index.ts</code>; redeploy; curl a media URL. Save <code>p6-branch-code.png</code>. Pass when the header appears, then the scratch commit is dropped.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Upload session URL moved. Call the upload-session endpoint from an authenticated session and inspect the returned URL. Save <code>p6-upload-session.png</code>. Pass when the host is the preview media origin, not <code>files.clarity.video</code>.</li>
+<li><input disabled="" type="checkbox"> Lane 9. CORS held. From the <code>pr-&lt;n&gt;</code> origin, a cross-origin media fetch echoes the origin; from an unrelated origin it does not. Save <code>p6-cors.png</code>. Pass when the allow-origin header behavior matches <code>workers/r2-media/src/index.ts</code> line 723.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Mux settles by polling. Record a short take in a <code>verify</code> session and wait on the page. Save <code>p6-mux-poll.png</code>. Pass when the pending video becomes playable without any webhook, per the poll-on-read contract in <code>workers/workspace-tree/src/mux-video-ingest.ts</code> lines 3-15.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Cold preview job wall time (now two Worker deploys) and warm label-to-<code>/__deploy-info</code> latency.</li>
+<li><input disabled="" type="checkbox"> Probe. Time lane 1 cold and one relabel warm run from <code>gh run view --json</code>, beside trunk-era runs measured the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Use the trunk medians P0 recorded first.</li>
+<li><input disabled="" type="checkbox"> Rule. Cold first deploy more than 8 minutes over the trunk median fails. Warm redeploy more than 20 percent over fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P6 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; the lane 7 scratch commit dropped.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green and confirm the production media path is untouched by diffing the production job&#39;s steps.</li>
+</ul>
+<h2>Redeploy on push and pin the head SHA (P7)</h2>
+<p><strong>Depends on.</strong> P6.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-deploy.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.agents/skills/verify-loop/cli/control-clarity.mjs</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-config.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>DEPLOY.md</code>, <code>.agents/skills/verify-loop/ENVIRONMENT.md</code>, and <code>docs/agents/loops.md</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Change the trigger at <code>cloudflare-deploy.yml</code> line 6 to <code>types: [labeled, synchronize, reopened]</code>. The <code>preview-gate</code> condition (line 40) and the <code>pr-preview</code> condition (lines 135-138) accept a <code>labeled</code> event for <code>deploy-preview</code> or a <code>synchronize</code> or <code>reopened</code> event while the PR currently carries the label. The per-PR concurrency group at lines 141-143 stays.</li>
+<li><input disabled="" type="checkbox"> Deploy the PR head, and verify <code>/__deploy-info</code> against the head SHA alone, replacing the merge-or-head acceptance at lines 211-238. Before upload and again before reporting success, confirm the PR is open, still labeled, and still at the head the run started for; a superseded run exits without posting success.</li>
+<li><input disabled="" type="checkbox"> Post a <code>clarity/preview</code> commit status with the preview URL on the deployed head SHA; add <code>statuses: write</code> to the workflow permissions.</li>
+<li><input disabled="" type="checkbox"> Rewrite the sticky comment (lines 394-435) to carry the head SHA and the run URL, and delete the remove-and-re-add instruction at line 408.</li>
+<li><input disabled="" type="checkbox"> Give doctor <code>--pr &lt;n&gt; [--wait]</code>. It builds <code>https://pr-&lt;n&gt;.clarity-video.workers.dev</code>, defaults <code>--expect-sha</code> to the full local <code>git rev-parse HEAD</code>, polls <code>/__deploy-info</code> until match or timeout, and reports full OK only with an authenticated session; today an auth-skipped doctor still answers OK (<code>control-clarity.mjs</code> lines 196-200), and the preview refusal at lines 88-89 goes away.</li>
+<li><input disabled="" type="checkbox"> Update <code>scripts/deploy-config.test.sh</code>, both event types present, the label-held condition, the status step, head-only verification, and excludes for the relabel instruction. Rewrite <code>DEPLOY.md</code> lines 51-53, the label-cycling gotcha at <code>.agents/skills/verify-loop/ENVIRONMENT.md</code> line 52, and the PR-preview trigger row at <code>docs/agents/loops.md</code> line 55.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A push to a labeled PR starts a run with no label cycling, and <code>doctor --pr &lt;n&gt; --wait</code> prints the polling lines and exits 0 when <code>/__deploy-info</code> serves the new head.</li>
+<li><input disabled="" type="checkbox"> <code>gh pr checks</code> shows a <code>clarity/preview</code> status with the preview URL on the head commit.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the event, condition, status, head-only, and excludes cases.</li>
+<li><input disabled="" type="checkbox"> A pure URL-builder helper exported from <code>control-clarity.mjs</code> gets a <code>node --test</code> case for <code>--pr</code> to URL mapping; root <code>pnpm test</code> stays green.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Push redeploys. Label once, push a commit, run <code>doctor --pr &lt;n&gt; --wait</code>. Save <code>p7-push-redeploy.png</code>. Pass when the synchronize run deploys and doctor exits 0 at the new head with no label cycling.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Unlabeled stays silent. Push to an open unlabeled scratch PR. Save <code>p7-unlabeled.png</code>. Pass when <code>gh run list</code> shows no preview run for that push.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Burst coalesces. Two pushes ten seconds apart. Save <code>p7-burst.png</code>. Pass when the superseded run posts no success and exactly one success status exists, on the newest head only.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Status on the exact head. Read the commit statuses after lane 1. Save <code>p7-status.png</code>. Pass when <code>clarity/preview</code> success sits on the exact head SHA with the preview URL, and the previous head carries no fresh success.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Sticky comment truthful. Read the PR comment after lane 3. Save <code>p7-comment.png</code>. Pass when one comment shows the surviving head SHA and run URL and the relabel instruction is gone.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Unlabel kills success. Remove the label while a run is in flight. Save <code>p7-unlabel.png</code>. Pass when the run ends without posting success and the log shows the label check refusing.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Reopen redeploys. Close a labeled scratch PR, reopen it. Save <code>p7-reopen.png</code>. Pass when the reopened event deploys and doctor goes green.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Stale SHA refused. Run <code>doctor --pr &lt;n&gt; --expect-sha &lt;previous head&gt;</code>. Save <code>p7-stale-sha.png</code>. Pass when doctor exits nonzero with the stale-deploy detail, and passes with the current head.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Auth required for OK. Run doctor without a session, then after <code>control-clarity login</code>. Save <code>p7-auth-ok.png</code>. Pass when the sessionless run does not answer OK and the authenticated run does.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Close kills success. Close a labeled scratch PR while its run is in flight. Save <code>p7-close-inflight.png</code>. Pass when the run ends without posting success and the open-check refusal is in the log.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Push-to-<code>/__deploy-info</code>-at-head latency, the loop this program exists to tighten, plus preview job wall time.</li>
+<li><input disabled="" type="checkbox"> Probe. Timestamp the push, poll <code>/__deploy-info</code> with <code>doctor --pr --wait</code>, and record the delta for three pushes; compare with the trunk-era label-cycle latency.</li>
+<li><input disabled="" type="checkbox"> Baseline. Use the trunk label-to-ready median P0 recorded first.</li>
+<li><input disabled="" type="checkbox"> Rule. Warm push-to-ready latency more than 20 percent over the trunk label-cycle median fails, and any warm push not serving its head within 15 minutes fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P7 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; scratch PRs closed.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green.</li>
+</ul>
+<h2>Restrict staging to main (P8)</h2>
+<p><strong>Depends on.</strong> P4 and P6. Branch work must have previews that take migrations and media before staging closes.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/cloudflare-deploy.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.github/workflows/staging-follow-main.yml</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>scripts/deploy-config.test.sh</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>docs/agents/loops.md</code> and <code>DEPLOY.md</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Guard the staging job (<code>cloudflare-deploy.yml</code> condition at line 468) so it runs only on <code>refs/heads/main</code>. Add a <code>borrow_staging</code> boolean input with a required <code>borrow_reason</code> string as the human break-glass that lifts only the ref guard; the skills forbid agents from using it (P9 encodes that). The reason echoes into the run log.</li>
+<li><input disabled="" type="checkbox"> Delete the <code>allow_branch_migrations</code> input (lines 21-24) and its <code>ALLOW_BRANCH_MIGRATIONS</code> wiring (line 532). Keep <code>staging_branch_migration_guard</code> in <code>scripts/cloudflare-ops.sh</code> lines 143-168 untouched; with CI unable to set the variable, the guard becomes a proof, and only a human&#39;s own shell can override it deliberately.</li>
+<li><input disabled="" type="checkbox"> Remove the branch-build carve-out from <code>staging-follow-main.yml</code> lines 84-86. The busy check at lines 63-72 stays. No lease; with one claimant there is nothing to arbitrate.</li>
+<li><input disabled="" type="checkbox"> Update <code>scripts/deploy-config.test.sh</code>, the staging condition names <code>refs/heads/main</code>, the borrow inputs exist, excludes <code>allow_branch_migrations</code> everywhere, excludes the carve-out line in follow-main. Update the staging row at <code>docs/agents/loops.md</code> line 60 and the staging section of <code>DEPLOY.md</code>.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> A branch dispatch with <code>environment=staging</code> fails its first step with <code>REFUSED: staging deploys only from refs/heads/main; set borrow_staging with a reason for a human break-glass</code>.</li>
+<li><input disabled="" type="checkbox"> The workflow-dispatch form no longer offers <code>allow_branch_migrations</code>.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the ref-guard, borrow-input, and excludes cases.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe. Dispatch lanes use <code>workflow_dispatch --ref &lt;this branch&gt;</code> so the run executes this PR&#39;s workflow file.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Branch refused. Dispatch <code>environment=staging</code> from this branch without borrow. Save <code>p8-refused.png</code>. Pass when the run fails at the guard with the refusal line and no Cloudflare call appears after it.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Borrow passes the guard. Dispatch from this branch with <code>borrow_staging</code> true and a reason, then cancel the run after the guard step passes and before any deploy step. Save <code>p8-borrow.png</code>. Pass when the guard step succeeds and the reason is echoed in the log.</li>
+<li><input disabled="" type="checkbox"> Lane 3. Borrow needs a reason. Dispatch with <code>borrow_staging</code> true and an empty reason. Save <code>p8-no-reason.png</code>. Pass when the run refuses before the guard completes.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Input really gone. Read the dispatch inputs via <code>gh workflow view</code> and the head&#39;s workflow file. Save <code>p8-input-gone.png</code>. Pass when <code>allow_branch_migrations</code> appears nowhere.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Carve-out gone. Dispatch <code>staging-follow-main.yml</code> from this branch while staging serves current main. Save <code>p8-carveout.png</code>. Pass when the decision log shows the new logic with no leave-branch-alone path and the run takes no action.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Busy check intact. While lane 2&#39;s run is queued or running, dispatch follow-main. Save <code>p8-busy.png</code>. Pass when it logs the not-touching-staging line and exits without dispatching.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Migration guard proves. Scratch commit adds a branch-only migration; dispatch with borrow true; let it reach the migration step. Save <code>p8-migration-guard.png</code>. Pass when <code>staging_branch_migration_guard</code> refuses with the file name, because CI no longer sets the override; then drop the commit.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Staging untouched. Record <code>https://staging.clarity.video/__deploy-info</code> before lane 1 and after lane 7. Save <code>p8-staging-sha.png</code>. Pass when the serving SHA never changed during the negative lanes.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Previews unaffected. Label this PR; its preview deploys normally. Save <code>p8-preview-ok.png</code>. Pass when doctor is green at the head.</li>
+<li><input disabled="" type="checkbox"> Lane 10. Production guard unchanged. Dispatch <code>environment=production</code> from this branch. Save <code>p8-prod-guard.png</code>. Pass when the production job refuses the non-main ref exactly as at trunk (condition at line 609).</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. Preview job wall time and push-to-<code>/__deploy-info</code> latency, confirming the staging edits cost the preview path nothing.</li>
+<li><input disabled="" type="checkbox"> Probe. Time lane 9&#39;s run from <code>gh run view --json</code>, beside trunk-era runs measured the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Use the trunk medians P0 recorded first.</li>
+<li><input disabled="" type="checkbox"> Rule. A warm redeploy more than 20 percent over the trunk median fails; the guard step itself exceeding 30 seconds fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P8 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; lane 7&#39;s scratch commit dropped.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, dispatch staging from main once and watch it deploy, the positive path pre-merge lanes could not fake.</li>
+</ul>
+<h2>Route skills and docs to previews (P9)</h2>
+<p><strong>Depends on.</strong> P7 and P8. It documents the finished machine.</p>
+<p><strong>Files.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Edit <code>.agents/skills/ship/SKILL.md</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.agents/skills/verify-loop/SKILL.md</code> and <code>.agents/skills/verify-loop/ENVIRONMENT.md</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.agents/skills/commit-staging/SKILL.md</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.agents/skills/production-deploy/SKILL.md</code>.</li>
+<li><input disabled="" type="checkbox"> Edit <code>.agents/skills/review-loop/SKILL.md</code> only if it routes verification to staging; record no-change otherwise.</li>
+<li><input disabled="" type="checkbox"> Edit <code>docs/agents/loops.md</code>, <code>DEPLOY.md</code>, and <code>scripts/deploy-config.test.sh</code>.</li>
+</ul>
+<p><strong>Build.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Fix <code>ship/SKILL.md</code> line 74, which still claims previews bind production D1s and the production media Worker; false since WIL-3162 and doubly false after P3 and P6. Route Step 5 evidence to the preview with <code>doctor --pr &lt;n&gt; --wait</code>.</li>
+<li><input disabled="" type="checkbox"> Fix <code>verify-loop/SKILL.md</code> line 34 (previews can point at production data; support-worker changes need staging) and the remaining <code>ENVIRONMENT.md</code> gotchas; the preview is a complete environment with per-PR databases, fixtures, and media.</li>
+<li><input disabled="" type="checkbox"> Rewrite <code>commit-staging/SKILL.md</code>, the staging loan paragraph at lines 102-104 and the allowed staging commands at lines 33-36; branch staging deploys become the human break-glass only, and the preview is the default validation surface.</li>
+<li><input disabled="" type="checkbox"> Update <code>production-deploy/SKILL.md</code> lines 43-46 so preview evidence at the head satisfies the pre-production browser-check requirement.</li>
+<li><input disabled="" type="checkbox"> Update the delivery-flow prose and remaining rows in <code>docs/agents/loops.md</code>, and sweep <code>DEPLOY.md</code> for any sentence earlier PRs left false.</li>
+<li><input disabled="" type="checkbox"> Encode the routing in <code>scripts/deploy-config.test.sh</code> excludes, no skill file may advise validating a branch on staging, no skill may instruct label cycling, and the borrow inputs are the only staging path a skill may name.</li>
+</ul>
+<p><strong>You see.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>rg -n &quot;remove and re-add|validate on staging|binds production D1&quot; .agents docs DEPLOY.md</code> returns no advisory hits.</li>
+<li><input disabled="" type="checkbox"> The CI deploy-config step passes with the new excludes.</li>
+</ul>
+<p><strong>Verify, unit.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>bash scripts/deploy-config.test.sh</code> passes with the skill-routing excludes; root <code>pnpm test</code> stays green.</li>
+</ul>
+<p><strong>Verify, live.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on the configured <code>swarm workers</code> role at the PR head, per the boot recipe. The surface is a fresh agent session reading only the updated skills, plus a live preview.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Lane 1. Verify-loop routes itself. A fresh session reads the updated <code>verify-loop</code> docs and captures evidence on a live preview without touching staging. Save <code>p9-verify-loop.png</code>. Pass when the session&#39;s transcript shows preview-only commands and a doctor pass.</li>
+<li><input disabled="" type="checkbox"> Lane 2. Ship routes itself. A fresh session walks ship&#39;s Step 5 against a labeled scratch PR. Save <code>p9-ship.png</code>. Pass when it waits on <code>doctor --pr --wait</code> and <code>gh run list</code> shows no staging dispatch in the window.</li>
+<li><input disabled="" type="checkbox"> Lane 3. CI gauntlet. This PR&#39;s CI run at head. Save <code>p9-ci.png</code>. Pass when the deploy-config step passes with every new excludes assertion.</li>
+<li><input disabled="" type="checkbox"> Lane 4. Commit-staging refuses. Ask a session following the updated skill to validate a branch on staging. Save <code>p9-commit-staging.png</code>. Pass when it refuses and names the borrow break-glass as the only path.</li>
+<li><input disabled="" type="checkbox"> Lane 5. Merge gate accepts preview. Walk <code>production-deploy</code>&#39;s checklist against a merged PR whose evidence is preview-only. Save <code>p9-prod-deploy.png</code>. Pass when the browser-check requirement is satisfied by the preview evidence line.</li>
+<li><input disabled="" type="checkbox"> Lane 6. Loops rows true. For each changed <code>docs/agents/loops.md</code> row, grep the named workflow at head for the claimed trigger. Save <code>p9-loops.png</code>. Pass when every claim matches the workflow text.</li>
+<li><input disabled="" type="checkbox"> Lane 7. Review-loop clean. Grep <code>review-loop/SKILL.md</code> for staging routing. Save <code>p9-review-loop.png</code>. Pass when it contains none, either already clean (record no-change) or after the edit.</li>
+<li><input disabled="" type="checkbox"> Lane 8. Ship line 74 replaced. Read the new preview paragraph beside <code>wrangler.preview.jsonc</code> and the P6 media path. Save <code>p9-ship-74.png</code>. Pass when the claim matches the deployed reality, per-PR databases and preview media.</li>
+<li><input disabled="" type="checkbox"> Lane 9. Stale-pointer sweep. <code>rg</code> across <code>.agents/</code> and <code>docs/</code> for the retired phrases. Save <code>p9-sweep.png</code>. Pass when zero advisory hits remain outside break-glass documentation.</li>
+<li><input disabled="" type="checkbox"> Lane 10. End to end. A scratch PR with a small code change, one additive migration, and an r2-media touch; one label; one push. Save <code>p9-end-to-end.png</code>. Pass when the preview deploys everything, doctor and the critical e2e pass at the head, and no staging run occurs.</li>
+</ul>
+<p><strong>Verify, perf.</strong> Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Metric. CI deploy-config step wall time; this PR is docs and assertions, so CI time is the honest cost.</li>
+<li><input disabled="" type="checkbox"> Probe. <code>gh run view --log</code> step timing for the head run beside trunk CI runs from the same day.</li>
+<li><input disabled="" type="checkbox"> Baseline. Record the trunk deploy-config step median first, from the last 10 main CI runs.</li>
+<li><input disabled="" type="checkbox"> Rule. The step more than 15 seconds over the trunk median fails.</li>
+</ul>
+<p><strong>Review gate.</strong> None. P9 is not review-gated.</p>
+<p><strong>Merge.</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> Root&#39;s clean verdict at the exact head SHA.</li>
+<li><input disabled="" type="checkbox"> Bugbot triage done; the lane 10 scratch PR closed.</li>
+<li><input disabled="" type="checkbox"> Rebased onto current trunk after the verdict, patch-id unchanged.</li>
+<li><input disabled="" type="checkbox"> Stop at merge-ready. William clicks merge unless he granted landing authority. After merge, watch the production deploy go green; the program is live.</li>
+</ul>
+<h2>Close the program</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Every box above is checked with its evidence.</li>
+<li><input disabled="" type="checkbox"> The retired shared pair is gone and fenced, <code>clarity-auth-preview</code> and <code>clarity-video-stats-preview</code> deleted with both ids in <code>RETIRED_DATABASES</code> (P3&#39;s follow-up PR merged).</li>
+<li><input disabled="" type="checkbox"> File the follow-ons in Linear (team WIL, project Clarity, Inbox), one ticket each, none of them part of this program. An <code>EMAIL_DELIVERY=capture</code> mode with a preview outbox read endpoint. Stripe test-mode keys for previews. A preview-only cron invocation endpoint. Staging as a gate before production on main pushes, William&#39;s call, costed at roughly 10 added minutes per release.</li>
+<li><input disabled="" type="checkbox"> Reply to the operator with the report the execution playbook names.</li>
+</ul>
+<h2>Appendix A. Prototype evidence</h2>
+<p>No prototype ran before this plan was written; the arena run (<code>(local evidence file)</code>, <code>opus.md</code>, <code>sol.md</code>, <code>astra.md</code>, judged in <code>judge.md</code>, decided in <code>synthesis.md</code>) was the exploration, performed read-only against this worktree at <code>eea27d9c</code>. The program folds its open questions into P0, whose lanes are the probes.</p>
+<p>Questions P0 answers, all unproven until it runs. Can the CI token create, list, and delete D1 databases in EEUR (lane 1, 2). Does a deleted D1 name free immediately for recreate (lane 3). Can a database still bound by a Worker be deleted (lane 4). Can the token create an R2 bucket (lane 5). How many Worker scripts does the account hold against the limit (lane 6). How long does a cold apply of all three migration chains take (lane 7).</p>
+<p>P0 ran on 1 October 2026 as <a href="https://github.com/Clarity-Video-HQ/clarity/pull/905">https://github.com/Clarity-Video-HQ/clarity/pull/905</a>, run <a href="https://github.com/Clarity-Video-HQ/clarity/actions/runs/36924657487">https://github.com/Clarity-Video-HQ/clarity/actions/runs/36924657487</a>, closed unmerged. The CI token creates, lists, and deletes EEUR D1 databases with HTTP 200. A deleted name recreates at once. Deleting a database a Worker still binds is allowed, so cleanup must delete the Worker first by its own rule. The token creates and deletes R2 buckets, so CI owns <code>clarity-media-preview</code> and William has no bucket step. All 27 <code>migrations-auth</code> files apply cold in 8.7 seconds over the D1 query API. The account holds 10 Workers and 18 D1 databases. The probe left nothing behind. The raw log is <code>(local evidence file)</code>.</p>
+<p>The trunk baseline for every perf block is the <code>PR Preview</code> job of ten successful labeled runs measured the same day. The values are 164, 166, 175, 177, 206, 220, 295, 316, 352, and 616 seconds. The median is 213 seconds.</p>
+<p>Two questions stay open past P0 and land in later lanes. Whether the pinned Spike asset plays from a <code>pr-&lt;n&gt;</code> origin is P4 lane 4. Whether a <code>workers.dev</code> media host serves the full upload and playback path is P6 lanes 2 through 10.</p>
+<h2>Appendix B. Alternatives rejected</h2>
+<p>These are the synthesis&#39;s decisions; this plan does not reopen them.</p>
+<ul>
+<li>Two preview databases per PR (B&#39;s shape). Production keeps email separate (<code>wrangler.jsonc</code> lines 207-212); three per PR match it for little added cost.</li>
+<li>Checked-in preview database ids. The id-less template makes the resolver the only id source; nothing a reader pastes into the repo can bind.</li>
+<li>Recreate databases on every deploy (A). Loses reviewer QA state and pays the cold apply per push; drift-driven recreate preserves both.</li>
+<li>Immutable database generations (D). More machinery than the fingerprint table needs.</li>
+<li>PR-prefix enforcement inside r2-media (C, D). Preview data is synthetic, keys are unguessable owner and uuid paths, and prefix logic touches production media code paths for no observable isolation gain.</li>
+<li>A docs-only redeploy skip. The judge&#39;s correction stands, a base-to-head diff cannot tell whether the latest push was docs-only on a code-changing PR.</li>
+<li>A staging lease, as an application D1 table (A) or otherwise. After P8 staging has one claimant; follow-main&#39;s busy check stays; a lease arbitrates nothing.</li>
+<li>Staging before production on main pushes (D). Adds roughly 10 minutes to every release; a separate decision for William; filed as a follow-on at close.</li>
+<li>Seeding previews from staging exports. Real addresses, out-of-repo child tables, and yesterday&#39;s schema; the fixtures script is versioned with the code.</li>
+<li>Per-PR R2 buckets. One shared <code>clarity-media-preview</code> with a 14-day lifecycle rule; per-PR databases already make foreign object keys unreachable.</li>
+<li>A shared preview media Worker kept current from main (B). Per-PR Workers built from the branch are one mechanism and preview branch media code.</li>
+<li>Per-PR Mux webhooks. Ingest settles on read (<code>workers/workspace-tree/src/mux-video-ingest.ts</code>); previews need no webhook delivery.</li>
+<li>PostHog on previews. Never; the generator deletes the token and the P1 allowlist enforces its absence.</li>
+<li>Stripe test keys, email capture, and a preview cron endpoint inside this program. Follow-ons, filed at close.</li>
+</ul>
+<h2>Appendix C. Risks</h2>
+<ul>
+<li>CI token permissions (P0, P3). D1 create or delete may be missing; P0 lane 1 answers and William widens the token once. P3 does not start without the answer.</li>
+<li>D1 name-reuse latency (P3). If a deleted name lingers, the drift recreate fails; P0 lane 3 measures, and the resolver falls back to a generation suffix recorded in the resolved map, swept by P5.</li>
+<li>Deleting a bound database (P5). If the API refuses, the pruner&#39;s Workers-before-databases order is the fix; P0 lane 4 answers which world we are in.</li>
+<li>Worker count headroom (P6). Two Workers per labeled PR; P0 lane 6 counts, the nightly prune bounds growth, and a count above 400 goes to the operator.</li>
+<li>Cold deploy time (P3, P4, P6). Budgets sit in each perf block from P0&#39;s measurements; a blown budget fails the lane, not the merge rule.</li>
+<li>Databases outlive closed PRs between P3 and P5. The sweep lands in P5; until then closed PRs leave three databases each. Owners keep the window short and P5 starts the moment P3 merges.</li>
+<li>Pinned Spike asset dies (P4). The fixture degrades loudly; the owner watches the warning and re-pins from staging reads.</li>
+<li>Spike asset accumulation (P6, P7). Per-push critical e2e runs create Mux assets in the Spike environment; the P6 owner counts assets before and after one run and files a sweep follow-up if material.</li>
+<li>Stale secrets on existing previews (P6). Removing a secret from the deploy does not remove it from a deployed Worker; redeploys overwrite <code>MEDIA_SIGNING_SECRET</code> with the preview value and P5&#39;s prune collects stragglers. The P6 owner confirms overwrite-on-redeploy on one pre-P6 preview.</li>
+<li>RUM rows already leaked (P1). Previews wrote into <code>clarity_rum_production</code> until P1; the leak stops, the old rows age out by retention, and nobody attempts a cleanup.</li>
+<li>Fresh-session lanes (P9). Lanes 1, 2, and 4 drive agent sessions, a surface with no scripted driver; each lane records its full transcript beside the screenshot as its receipt.</li>
+</ul>
+<h2>Appendix D. Links and reading list</h2>
+<p>Read before editing. <code>DEPLOY.md</code>, <code>docs/agents/pipeline.md</code> (the merge rule), <code>docs/agents/loops.md</code>, the header comments of <code>wrangler.preview.jsonc</code>, <code>scripts/preview-wrangler-config.mjs</code>, <code>scripts/check-preview-databases.mjs</code>, <code>scripts/prepare-preview-databases.sh</code>, <code>scripts/deploy-pr-preview.sh</code>, <code>scripts/deploy-cloudflare.sh</code>, <code>scripts/cloudflare-ops.sh</code>, <code>scripts/staging-shape-fixtures.mjs</code>, <code>scripts/prune-cloudflare-pr-previews.mjs</code>, <code>.github/workflows/cloudflare-deploy.yml</code>, <code>.github/workflows/staging-follow-main.yml</code>, <code>.github/workflows/cloudflare-preview-cleanup.yml</code>, <code>.agents/skills/verify-loop/SKILL.md</code> with <code>ENVIRONMENT.md</code>, and <code>docs/runbooks/preview-impersonation.md</code>.</p>
+<p>The decided design and its inputs. <code>(local evidence file)</code> (binding), <code>judge.md</code> (its factual corrections are authoritative), <code>fable.md</code>, <code>opus.md</code>, <code>sol.md</code>, <code>astra.md</code>.</p>
+<p>Skill routing. P3, P6, and P8 get a <code>skills/how/SKILL.md</code> walkthrough of their subsystem before editing. P3, P6, P7, and P8 get <code>skills/interrogate/SKILL.md</code> on the diff before the verdict swarm. Every owner keeps the decision trail per <code>skills/show-me-your-work/SKILL.md</code> in <code>.context/pstack/per-pr-previews.tsv</code>, one row per decision with evidence, local to the worktree.</p>
+</body></html>
