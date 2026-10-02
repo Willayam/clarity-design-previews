@@ -1,13 +1,13 @@
-+  1276ms typed "Q6 lost create 17:02:29"; waiting for the first autosave
-+  2365ms response POST /api/journey-pages -> 201
-+  3783ms after the first autosave: url /new, save state error
-+  3830ms screenshot 01-lost-answer.png
-+  3876ms typed "Q6 lost create 17:02:29, then more" and left for /home
-+  4036ms response POST /api/journey-pages -> 409
-+  4265ms response PUT /api/journey-pages/bfdfb4ba-435c-439d-9a4c-0bb11403a95b -> 200
-+  7880ms url 4 s later: /home
-+  7880ms create attempt: journey_page.id=bfdfb4ba-435c-439d-9a4c-0bb11403a95b, router answered 201 creating bfdfb4ba-435c-439d-9a4c-0bb11403a95b (answer dropped)
-+  7880ms create attempt: journey_page.id=bfdfb4ba-435c-439d-9a4c-0bb11403a95b, router answered 409
-+  7880ms pages created: 1
-+ 10374ms screenshot 02-library.png
-+ 10547ms GET /api/journey-pages/bfdfb4ba-435c-439d-9a4c-0bb11403a95b -> 200, holds the latest title: true, revision 2
++  2027ms typed "Q6 lost create 17:21:19"; waiting for the first autosave
++  3122ms response POST /api/journey-pages -> 201
++  4533ms after the first autosave: url /new, save state error
++  4587ms screenshot 01-lost-answer.png
++  4630ms typed "Q6 lost create 17:21:19, then more" and left for /home
++  4811ms response POST /api/journey-pages -> 409
++  5256ms response PUT /api/journey-pages/21d460a2-965a-4003-ac00-400cb92650bc -> 200
++  8633ms url 4 s later: /home
++  8633ms create attempt: journey_page.id=21d460a2-965a-4003-ac00-400cb92650bc, router answered 201 creating 21d460a2-965a-4003-ac00-400cb92650bc (answer dropped)
++  8633ms create attempt: journey_page.id=21d460a2-965a-4003-ac00-400cb92650bc, router answered 409
++  8633ms pages created: 1
++ 11096ms screenshot 02-library.png
++ 11226ms GET /api/journey-pages/21d460a2-965a-4003-ac00-400cb92650bc -> 200, holds the latest title: true, revision 2
