@@ -1,0 +1,30 @@
+2026-10-02T16:34:51.597Z stopped; waiting for the share link
+2026-10-02T16:34:52.708Z POST /api/tree/media/videos/mux-original -> 201
+2026-10-02T16:34:53.840Z POST /api/tree/media/videos/mux-original -> 200
+2026-10-02T16:34:54.132Z screenshot 01-trimming.png
+2026-10-02T16:34:54.434Z trim committed with Done
+2026-10-02T16:34:55.260Z forced refusal: POST /api/tree/media/videos/eQOSNxvU2X8veKkecXS02SFK1x4qUDNnnZ3cNsKj8gw4/edit -> 404
+2026-10-02T16:34:55.265Z POST /api/tree/media/videos/eQOSNxvU2X8veKkecXS02SFK1x4qUDNnnZ3cNsKj8gw4/edit -> 404
+2026-10-02T16:34:55.265Z console.error: Failed to load resource: the server responded with a status of 404 (Not Found)
+2026-10-02T16:34:55.266Z console.error: [recorder] Giving up on saving edits c: Video not found
+    at O (https://pr-969.clarity-video.workers.dev/assets/editor-api-DbtuUAJ4.js:1:3579)
+    at async Object.eh [as applyVideoEdit] (https://pr-969.clarity-video.workers.dev/assets/index-C2Gz4dHl.js:26:44510)
+    at async te (https://pr-969.cla
+2026-10-02T16:34:55.599Z screenshot 02-refused-in-background.png
+2026-10-02T16:34:56.389Z forced refusal: POST /api/tree/media/videos/eQOSNxvU2X8veKkecXS02SFK1x4qUDNnnZ3cNsKj8gw4/edit -> 404
+2026-10-02T16:34:56.409Z POST /api/tree/media/videos/eQOSNxvU2X8veKkecXS02SFK1x4qUDNnnZ3cNsKj8gw4/edit -> 404
+2026-10-02T16:34:56.412Z console.error: Failed to load resource: the server responded with a status of 404 (Not Found)
+2026-10-02T16:34:56.418Z console.error: [recorder] Giving up on saving edits c: Video not found
+    at O (https://pr-969.clarity-video.workers.dev/assets/editor-api-DbtuUAJ4.js:1:3579)
+    at async Object.eh [as applyVideoEdit] (https://pr-969.clarity-video.workers.dev/assets/index-C2Gz4dHl.js:26:44510)
+    at async te (https://pr-969.cla
+2026-10-02T16:34:58.701Z after Open page with the refusal held: url=/record
+2026-10-02T16:34:58.888Z screenshot 03-open-page-stays.png
+2026-10-02T16:35:00.266Z POST /api/tree/media/videos/eQOSNxvU2X8veKkecXS02SFK1x4qUDNnnZ3cNsKj8gw4/edit -> 202
+2026-10-02T16:35:00.266Z Try again: edit save answered 202
+2026-10-02T16:35:00.807Z refusal row present after the save: 0
+2026-10-02T16:35:00.873Z screenshot 04-retry-saved.png
+2026-10-02T16:35:00.947Z after Open page with the edits saved: url=/edit/1ec43a57-00c9-44ba-a273-1d70e41112a9
+2026-10-02T16:35:01.353Z GET /api/journey-pages/1ec43a57-00c9-44ba-a273-1d70e41112a9 -> 200
+2026-10-02T16:35:01.810Z GET /api/journey-pages/1ec43a57-00c9-44ba-a273-1d70e41112a9/access -> 200
+2026-10-02T16:35:02.129Z screenshot 05-opened-page.png

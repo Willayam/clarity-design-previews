@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WIL-3515 proof: editor data loss</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; color: #0f172a; }
+  h1 { font-size: 1.6rem; } h2 { font-size: 1.25rem; margin-top: 2.5rem; }
+  figure { margin: 1.25rem 0; } img { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; }
+  figcaption { color: #475569; margin-top: .35rem; } code { font-size: .9em; }
+</style>
+</head>
+<body>
+<h1>WIL-3515 proof: two editor data-loss paths</h1>
+<p>Captured on PR previews with a fresh Chromium, the e2e pro account, and a fake camera. Logs: <a href="recorder/log.txt">recorder</a>, <a href="new-page-before/log.txt">new page before</a>, <a href="new-page-after/log.txt">new page after</a>.</p>
+
+<h2>1. Recorder: a refused trim save keeps the rep on the recorder (PR #969, head 381b393b5)</h2>
+<p>The trim save <code>POST /api/tree/media/videos/:id/edit</code> was forced to answer 404 in the browser. Before this change, Open page awaited a flush that resolved as saved and navigated; the route test shows it landing on <code>/edit/page-1</code>.</p>
+<figure><img src="recorder/02-refused-in-background.png" alt=""><figcaption>Trim committed with Done; the save is refused and the status zone says so, with Try again.</figcaption></figure>
+<figure><img src="recorder/03-open-page-stays.png" alt=""><figcaption>Open page tries the save once more, is refused again, and the URL stays <code>/record</code>.</figcaption></figure>
+<figure><img src="recorder/04-retry-saved.png" alt=""><figcaption>With the refusal lifted, Try again saves (202) and the row clears.</figcaption></figure>
+<figure><img src="recorder/05-opened-page.png" alt=""><figcaption>Open page now opens the take's page; its video shows the trimmed 0:02.</figcaption></figure>
+
+<h2>2. A new page's first edit survives leaving (PR #973, head 2571f0b85)</h2>
+<p>Typed a title on <code>/new</code>, then clicked Home in the sidebar about 130 ms later, inside the 900 ms autosave debounce.</p>
+<figure><img src="new-page-before/01-after-leaving.png" alt=""><figcaption>Before (PR #969's preview, main's document store): no create request, no page. The edit is gone.</figcaption></figure>
+<figure><img src="new-page-after/01-after-leaving.png" alt=""><figcaption>After: the leave creates the page (<code>POST /api/journey-pages</code> 201) and the rep stays on Home.</figcaption></figure>
+<figure><img src="new-page-after/02-returned.png" alt=""><figcaption>Returning to the page shows the title typed before leaving.</figcaption></figure>
+<p>Hiding the tab 17 ms after an edit on <code>/edit/:id</code> sent the <code>PUT</code> at once (200), well inside the 900 ms debounce; the stored draft carried the edit. The hide was simulated by overriding <code>document.visibilityState</code> and dispatching <code>visibilitychange</code>.</p>
+</body>
+</html>
