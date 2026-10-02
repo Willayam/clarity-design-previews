@@ -1,0 +1,13 @@
++  1726ms typed "Q6 lost create 17:02:40"; waiting for the first autosave
++  2950ms response POST /api/journey-pages -> 201
++  4236ms after the first autosave: url /new, save state error
++  4290ms screenshot 01-lost-answer.png
++  4297ms typed "Q6 lost create 17:02:40, then more" and stayed for the next autosave
++  5340ms response POST /api/journey-pages -> 409
++  5587ms response PUT /api/journey-pages/3a3c17e2-a9d1-4041-9be6-f64444f974b2 -> 200
++  8302ms url 4 s later: /edit/3a3c17e2-a9d1-4041-9be6-f64444f974b2
++  8302ms create attempt: journey_page.id=3a3c17e2-a9d1-4041-9be6-f64444f974b2, router answered 201 creating 3a3c17e2-a9d1-4041-9be6-f64444f974b2 (answer dropped)
++  8302ms create attempt: journey_page.id=3a3c17e2-a9d1-4041-9be6-f64444f974b2, router answered 409
++  8302ms pages created: 1
++ 10802ms screenshot 02-library.png
++ 10950ms GET /api/journey-pages/3a3c17e2-a9d1-4041-9be6-f64444f974b2 -> 200, holds the latest title: true, revision 2
