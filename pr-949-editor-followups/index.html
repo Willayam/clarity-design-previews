@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR 949 preview evidence</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0 auto; max-width: 68rem; padding: 2.5rem 1.25rem 4rem;
+         font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  h1 { font-size: 1.75rem; margin: 0 0 .25rem; }
+  .meta { color: #6b7280; margin: 0 0 2.5rem; }
+  h2 { font-size: 1.15rem; margin: 2.5rem 0 .25rem; }
+  p { margin: .25rem 0 1rem; max-width: 46rem; }
+  figure { margin: 0 0 2rem; }
+  img { width: 100%; border: 1px solid #d1d5db; border-radius: .5rem; display: block; }
+  figcaption { color: #6b7280; font-size: .875rem; margin-top: .5rem; }
+  code { font-size: .9em; background: rgba(127,127,127,.15); padding: .1em .35em; border-radius: .25em; }
+</style>
+</head>
+<body>
+<h1>PR 949 preview evidence</h1>
+<p class="meta">
+  Head <code>115fa526</code> on <code>chore/verifier-followups-editor</code>, served from
+  <code>https://pr-949.clarity-video.workers.dev</code> as merge <code>dccc5322</code>.
+  Signed in as the e2e pro test account. 2 October 2026.
+</p>
+
+<h2>Autosave still writes on its own</h2>
+<p>
+  A new page at <code>/new</code>, a typed headline, no manual save and no publish. The topbar
+  reached its saved state on the autosave timer alone and the route moved to the created page.
+</p>
+<figure>
+  <img src="autosave-saved.png" alt="The editor showing the typed headline on a page that autosaved">
+  <figcaption>After typing, before any reload.</figcaption>
+</figure>
+<figure>
+  <img src="autosave-after-reload.png" alt="The same page after a reload, headline intact">
+  <figcaption>Reloaded from the server: the headline came back, so the write landed.</figcaption>
+</figure>
+<figure>
+  <img src="home-after-cleanup.png" alt="Home with the test page deleted again">
+  <figcaption>The test page deleted again, confirmed on a fresh load.</figcaption>
+</figure>
+
+<h2>The folder card's first press, dropped from this PR</h2>
+<p>
+  Proven on an earlier build of this preview, before the coordinator moved the fix out because
+  PR 953 rewrites <code>MediaCard.tsx</code>. Both shots are the same scripted click on a folder
+  card's Actions button with no hover in front of it.
+</p>
+<figure>
+  <img src="before-first-press-blocked.png" alt="Home with the folder card, no menu open">
+  <figcaption>
+    With the rules on main, the press never reaches the button: the folder row intercepts it and
+    nothing happens.
+  </figcaption>
+</figure>
+<figure>
+  <img src="after-first-press-opens-menu.png" alt="The folder card's menu open with Rename, Move and Delete">
+  <figcaption>With the cluster hit-testable while quiet, the same press opens the menu.</figcaption>
+</figure>
+</body>
+</html>
