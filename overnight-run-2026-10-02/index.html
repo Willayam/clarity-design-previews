@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Overnight run, 1 to 2 Oct 2026: architecture audit fixes</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .75rem; border-bottom: 1px solid #e2e8f0; font-size: .875rem; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; }
+  code { font-size: .8em; background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+  .p p { margin-bottom: .75rem; } .p li { margin-bottom: .4rem; }
+  h2 { font-family: ui-serif, Georgia, serif; font-size: 1.6rem; margin-bottom: .75rem; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main class="max-w-5xl mx-auto px-5 py-10 space-y-12">
+
+<header class="space-y-3">
+  <p class="schem text-slate-500">Clarity · overnight 1 to 2 Oct 2026 · production now b114b77f</p>
+  <h1 class="font-serif text-4xl">Nine fixes live, six built and waiting for you</h1>
+  <div class="text-slate-600 max-w-3xl p">
+    <p>Work list: the <a class="underline" href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-01/">1 Oct architecture audit</a>. Every PR that merged had an independent verifier proving it on its preview (gates re-run at the head, live checks, diff audit) and a CLEAN verdict at the exact head that merged. Merges went one at a time between 00:18Z and 03:35Z. Each deploy was confirmed live and smoke-tested, and the previous router version was recorded on the PR. Production logged 0 Worker exceptions and 0 client or playback errors from 00:00Z to 04:00Z.</p>
+  </div>
+</header>
+
+<section class="p">
+  <h2>Live in production</h2>
+  <table>
+    <tr><th>PR</th><th>What a customer notices</th><th>Proof highlight</th></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/921">#921</a></td><td>Nothing. D1 row types are now generated from the migrations, and a lint rule stops new hand-typed reads. 44 old sites sit on the ratchet baseline</td><td>The JavaScript emitted for all 16 changed files is byte-identical, and the drift check and lint rule were proven to fire</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/911">#911</a></td><td>A deleted page can no longer keep a live link on its first share route (WIL-3496)</td><td>The new test fails with the guard reverted. Publish, open, delete and 404 were checked live</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/910">#910</a></td><td>Signed-in requests about 50 ms faster: identity is read once per request, not twice</td><td>Preview A/B: median 59 vs 110 ms on <code>/api/admin/session</code>. Stale-memo and failed-read paths audited</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/913">#913</a></td><td>The 325 kB player file is cached for a year. Portrait videos fit their frame on phones</td><td>Immutable header confirmed in production. A build-time hash pin makes the build fail on any other bytes</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/909">#909</a></td><td>The Library appears about 490 ms sooner, with no blank shell while it loads. Card Edit and Actions work on the first click</td><td>Median 1,001 vs 1,476 ms on previews built from the same base</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/914">#914</a></td><td>An empty page can't be published. The rep sees one sentence saying what to add, and saves are never blocked</td><td>A 44-document harness covering every block kind found no false refusal of real content</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/912">#912</a></td><td>A rejected lead form keeps what the prospect typed and shows the error inline. Each form validates its own fields</td><td>Proven live: escaping, cross-page block ids, password gate, no-JS path</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/920">#920</a></td><td>A prospect waiting on a processing video gets the player swapped in place, keeping their scroll position, instead of a full-page reload. A failed video shows "Video unavailable" and a deleted page stops polling</td><td>The first verdict was FIX (it spun for 30 minutes on a failed video). After the fix, re-verified live with no interception</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/930">#930</a></td><td>Nothing visible. The public renderer reads typed block media instead of the old <code>step_1_*</code> keys (net 77 lines fewer)</td><td>All 6,887 production publications render byte-identical HTML, checked twice by independent pulls against the merge commit. The harness was mutation-tested</td></tr>
+  </table>
+</section>
+
+<section class="p">
+  <h2>Built, proven, waiting for you</h2>
+  <table>
+    <tr><th>PR</th><th>Why it waits</th><th>What you decide</th></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/916">#916</a> editor save store</td><td>It's the most fix-dense code in the repo. It moves the save protocol out of nine React refs into one store with named states</td><td>Review and merge. Five scenarios were proven on the preview, including a forced 409 and a mid-save navigation. A real AI generation landing is untested, because previews have no OpenAI key</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/928">#928</a> Stripe event inbox</td><td>A billing policy change plus an additive migration. It's a draft on purpose</td><td>Approve the policy: every verified event is stored before Stripe gets a 200, and unresolved ones are retried from the cron. It also stores Stripe payloads, which include customer email and the card's last four digits, pruned after 30 days. Proven locally on workerd and D1</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/929">#929</a> edge cache for public pages</td><td>Prospect-facing caching, where the risk is invalidation</td><td>Approve. The cache key includes the publication revision and the build, and the page is still read from D1 on every view, so unpublish, delete and passwords take effect at once. Proven on the preview with a full invalidation matrix</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/919">#919</a> image resizing</td><td>The r2-media half has never run against the real Images binding. Previews don't deploy r2-media, and staging was in use all night</td><td>Run it on staging (the PR lists the checks), then merge. Two cost findings from its verifier are already fixed</td></tr>
+    <tr><td><a class="underline" href="https://github.com/Clarity-Video-HQ/clarity/pull/923">#923</a> remove the build fingerprint cache</td><td>Its workflow file belonged to another session tonight</td><td>Merge, then apply the cache-key edits the PR body lists</td></tr>
+    <tr><td><a class="underline" href="https://willayam.github.io/clarity-design-previews/wil-3401-route-table-design/">WIL-3401 design</a></td><td>You asked for sign-off before code</td><td>Five sign-off questions at the end of the design</td></tr>
+  </table>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>Findings worth your attention</h2>
+  <ul class="list-disc pl-5">
+    <li><b>Playback "failures" were mostly crawlers.</b> <a class="underline" href="https://willayam.github.io/clarity-design-previews/playback-diagnosis-2026-10-02/">Diagnosis</a>: 13 of 22 failures came from datacenter networks, mostly Microsoft's. Real viewers fail 4.25%, under Mux's 4.9% average. The "70% never play" number counted hidden players loading without a tap. Tickets WIL-3501 to WIL-3504.</li>
+    <li><b>Video start is still slow.</b> Mux median startup went from 693 ms to 1,580 ms after <code>preload="none"</code>. Warming the first player brought back 1.8 to 4.6 MB of video before a tap, so it was dropped. This needs a product call on how many bytes to spend for a faster start.</li>
+    <li><b>The portrait fix reaches few videos.</b> Only 36 of 7,516 production videos carry <code>mux_aspect_ratio</code>. Older pages need a backfill, which fits WIL-3494's lifecycle work.</li>
+    <li><b>The email flip is undone.</b> clarity-a0 merged #908 (Cloudflare email, behavior unchanged) and ended before its one-word production <code>EMAIL_DELIVERY</code> flip. That flip is yours.</li>
+    <li><b>Another actor merged during the night</b> using the shared GitHub login: #924, #922, #918, #925, #926, including WIL-3494's videos table. No local session was reachable to coordinate. My merge chain only paused once, on a false "not live" when production jumped past my SHA. Every deploy succeeded.</li>
+  </ul>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>Small follow-ups the verifiers found</h2>
+  <ul class="list-disc pl-5">
+    <li>The row-type lint skips untyped <code>.first()</code> calls. The outbox <code>source</code> widened to <code>string</code> and needs a CHECK constraint.</li>
+    <li><code>request-identity.ts</code> lost its one-line rule: a caller reading its own write must read the row, not re-resolve the session.</li>
+    <li>Folder card Actions still need a hover first (<code>MediaCard.tsx</code>). The admin session can be stale for up to 5 minutes. A misplaced comment in <code>sidebar-user.ts</code>.</li>
+    <li>The publish guard ignores the brand logo, and its ghost-copy strings and pricing check duplicate editor and renderer code.</li>
+    <li><code>block-media.ts</code> still bridges to <code>step_1_*</code> for <code>public-video-policy.ts</code>. <code>NO_BLOCK_MEDIA</code> should be frozen.</li>
+    <li>Preview fixtures from the verifiers remain in <code>clarity-auth-preview</code> (two lead-form fixture pages and three "App shell probe" folders).</li>
+  </ul>
+</section>
+
+<footer class="text-xs text-slate-500 border-t border-slate-200 pt-6">
+  Method: autopilot with one owner per PR and an independent verifier per merge. Claude lanes hit the account limit at 22:10Z; Codex (GPT-6 Sol) finished nine lanes, and cswap moved later Claude lanes to account 2. The decision trail, verifier evidence and merge log are in the overnight run folder on the Mac mini.
+</footer>
+</main>
+</body>
+</html>
