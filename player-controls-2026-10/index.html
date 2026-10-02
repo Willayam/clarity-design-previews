@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity player controls</title>
+<style>
+  body { margin: 0; font: 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; color: #18181b; background: #fafaf9; }
+  main { max-width: 1120px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 32px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 56px 0 12px; }
+  p, li { max-width: 72ch; color: #3f3f46; }
+  a { color: #4f46e5; }
+  .cta { display: inline-block; margin: 16px 0 0; padding: 12px 20px; background: #18181b; color: #fff; border-radius: 999px; text-decoration: none; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  figure { margin: 0; }
+  figure img { width: 100%; border-radius: 12px; display: block; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  figcaption { font-size: 14px; color: #52525b; margin-top: 8px; }
+  figcaption b { color: #18181b; }
+  .phones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  table { border-collapse: collapse; font-size: 14px; width: 100%; }
+  td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e4e4e7; vertical-align: top; }
+  @media (max-width: 760px) { .grid, .phones { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Player controls: current vs three directions</h1>
+  <p>All four run on the real Mux Player 3.13.4 that public pages ship today, each as a custom theme template. The demo video is Mux's public sample. The prototype is throwaway.</p>
+  <a class="cta" href="prototype.html">Open the live prototype</a>
+  <p style="font-size:14px">Keys 1 to 4 switch variants. The color picker sets the brand color, so you can see each variant under a seller's palette.</p>
+
+  <h2>Paused, mid-video</h2>
+  <div class="grid">
+    <figure><img src="shots/current-desk-2-paused.jpg" alt=""><figcaption><b>A · Current.</b> Eight controls in one row. The whole frame dims on pause. There is no center play button.</figcaption></figure>
+    <figure><img src="shots/clarity-glass-desk-2-paused.jpg" alt=""><figcaption><b>B · Glass.</b> Apple style. A frosted circle and one floating frosted pill.</figcaption></figure>
+    <figure><img src="shots/clarity-line-desk-2-paused.jpg" alt=""><figcaption><b>C · Hairline.</b> Loom and Wistia style. A soft scrim, a full-width brand-color scrubber, and a sparse row. Recommended.</figcaption></figure>
+    <figure><img src="shots/clarity-islands-desk-2-paused.jpg" alt=""><figcaption><b>D · Islands.</b> Vimeo and visionOS style. Three separate dark chips and a rounded-square brand play button.</figcaption></figure>
+  </div>
+
+  <h2>Before the first play</h2>
+  <div class="grid">
+    <figure><img src="shots/current-desk-1-poster.jpg" alt=""><figcaption><b>A · Current</b></figcaption></figure>
+    <figure><img src="shots/clarity-glass-desk-1-poster.jpg" alt=""><figcaption><b>B · Glass</b></figcaption></figure>
+    <figure><img src="shots/clarity-line-desk-1-poster.jpg" alt=""><figcaption><b>C · Hairline.</b> "Play · 0:23" tells the prospect what it costs before they commit.</figcaption></figure>
+    <figure><img src="shots/clarity-islands-desk-1-poster.jpg" alt=""><figcaption><b>D · Islands</b></figcaption></figure>
+  </div>
+
+  <h2>Hovering the scrubber</h2>
+  <div class="grid">
+    <figure><img src="shots/current-desk-3-scrub.jpg" alt=""><figcaption><b>A · Current</b></figcaption></figure>
+    <figure><img src="shots/clarity-glass-desk-3-scrub.jpg" alt=""><figcaption><b>B · Glass</b></figcaption></figure>
+    <figure><img src="shots/clarity-line-desk-3-scrub.jpg" alt=""><figcaption><b>C · Hairline</b></figcaption></figure>
+    <figure><img src="shots/clarity-islands-desk-3-scrub.jpg" alt=""><figcaption><b>D · Islands</b></figcaption></figure>
+  </div>
+
+  <h2>Phone, 390 px wide</h2>
+  <div class="phones">
+    <figure><img src="shots/current-phone-2-paused.jpg" alt=""><figcaption><b>A</b></figcaption></figure>
+    <figure><img src="shots/clarity-glass-phone-2-paused.jpg" alt=""><figcaption><b>B.</b> Breaks here. The pill squeezes out play and fullscreen.</figcaption></figure>
+    <figure><img src="shots/clarity-line-phone-2-paused.jpg" alt=""><figcaption><b>C.</b> Holds up.</figcaption></figure>
+    <figure><img src="shots/clarity-islands-phone-2-paused.jpg" alt=""><figcaption><b>D</b></figcaption></figure>
+  </div>
+
+  <h2>What the best players agree on</h2>
+  <table>
+    <tr><th>Lesson</th><th>Who does it</th><th>What it means for Clarity</th></tr>
+    <tr><td>Never tint the whole frame on pause</td><td>YouTube 2025 stopped dimming paused video</td><td>Our <code>--controls-backdrop-color</code> fills the whole frame on every pause. Set it to transparent.</td></tr>
+    <tr><td>One bar, always in the same place</td><td>Netflix web, Frame.io V4, Apple HIG</td><td>Scrubber full width, then play, mute and time on the left, speed and fullscreen on the right.</td></tr>
+    <tr><td>Leave things out</td><td>Vimeo and Wistia let owners hide controls</td><td>A prospect watches once. Drop ±10s seek, the overflow menu, and the always-open volume slider. Show CC only when a track exists.</td></tr>
+    <tr><td>Thin scrubber at rest that grows on hover, with a tall hit area</td><td>YouTube Music, Mux's own default theme</td><td>3 px at rest, 6 px on hover, 12 px thumb, 24 px hit area (WCAG 2.5.8).</td></tr>
+    <tr><td>A big first play button that states the length</td><td>Wistia, Loom</td><td>"Play · 2:14" in the seller's brand color. The bar stays hidden until the first play.</td></tr>
+    <tr><td>Bold, rounded icons in one weight, no tooltips</td><td>YouTube's 2025 icon refresh</td><td>One custom icon set. The current mix of thin and filled glyphs is a big part of why it looks cheap.</td></tr>
+    <tr><td>Hide quickly, come back instantly</td><td>media-chrome defaults</td><td>Hide after 2 s, never while paused. Fade in over 0.25 s and out over 1 s.</td></tr>
+    <tr><td>Keyboard and accessibility</td><td>YouTube, Loom, Apple HIG, WCAG 2.4.7 and 1.4.11</td><td>Keep Space, K, J, L, M and F. Brand-color focus ring. Respect reduced motion.</td></tr>
+  </table>
+</main>
+</body>
+</html>

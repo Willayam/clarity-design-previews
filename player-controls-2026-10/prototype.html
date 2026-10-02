@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity player controls · prototype</title>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.4/+esm"></script>
+<style>
+  :root { --brand: #5b5bd6; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  body { margin: 0; background: #f6f6f4; color: #111; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 20px 32px; }
+  header h1 { font-size: 15px; font-weight: 600; margin: 0 16px 0 0; }
+  header button { font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 999px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+  header button[aria-pressed="true"] { background: #111; color: #fff; border-color: #111; }
+  header label { font-size: 13px; display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  main { max-width: 880px; margin: 8px auto 64px; padding: 0 24px; }
+  #note { font-size: 14px; line-height: 1.5; color: #555; margin: 0 0 16px; min-height: 42px; }
+  .frame { border-radius: 16px; overflow: hidden; box-shadow: 0 24px 64px rgba(15,23,42,.18); background: #000; }
+  mux-player { display: block; width: 100%; aspect-ratio: 16/9; --media-accent-color: var(--brand); --media-object-fit: contain; }
+  mux-player[data-v="current"] { --airplay-button: none; --cast-button: none; --pip-button: none; --controls-backdrop-color: rgba(15,23,42,.45); --media-primary-color: #fff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Player controls</h1>
+  <button data-variant="current">A · Current (Mux default)</button>
+  <button data-variant="clarity-glass">B · Glass</button>
+  <button data-variant="clarity-line">C · Hairline</button>
+  <button data-variant="clarity-islands">D · Islands</button>
+  <label>Brand <input type="color" id="brand" value="#5b5bd6"></label>
+</header>
+<main>
+  <p id="note"></p>
+  <div class="frame"><mux-player id="p" stream-type="on-demand" playbackrates="1 1.25 1.5 2" disable-tracking></mux-player></div>
+</main>
+
+<!-- Shared icon set: 1.75px round strokes, filled play/pause, one optical size. -->
+<template id="icons">
+  <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+  <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+</template>
+
+<!-- B · Glass: Apple-style. Big frosted play, one floating frosted pill. -->
+<template id="clarity-glass">
+<style>
+  :host { --ink: #fff; --glass: rgba(28,28,32,.42); --glass-line: rgba(255,255,255,.14); }
+  media-controller { --media-control-background: transparent; --media-control-hover-background: rgba(255,255,255,.12);
+    --media-primary-color: var(--ink); --media-font-family: Inter, ui-sans-serif, system-ui, sans-serif; --media-font-size: 13px;
+    --media-font-weight: 500; width: 100%; height: 100%; }
+  svg { width: 22px; height: 22px; }
+  .center { width: 84px; height: 84px; border-radius: 999px; padding: 0; background: var(--glass);
+    backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow: inset 0 0 0 1px var(--glass-line), 0 8px 32px rgba(0,0,0,.25);
+    transition: transform .2s cubic-bezier(.2,.8,.2,1), opacity .2s ease; }
+  .center svg { width: 34px; height: 34px; margin-left: 4px; }
+  .center:hover { transform: scale(1.06); }
+  media-controller:not([mediapaused]) .center { opacity: 0; pointer-events: none; transform: scale(.9); }
+  .bar { position: absolute; left: 16px; right: 16px; bottom: 16px; width: auto; height: 48px; align-items: center; gap: 2px;
+    padding: 0 8px; border-radius: 999px; background: var(--glass);
+    backdrop-filter: blur(24px) saturate(1.6); -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    box-shadow: inset 0 0 0 1px var(--glass-line), 0 10px 30px rgba(0,0,0,.25); }
+  media-controller:not([mediahasplayed]) .bar { opacity: 0; pointer-events: none; }
+  .bar > * { border-radius: 999px; height: 36px; padding: 0 9px; }
+  media-time-range { flex: 1; height: 36px; padding: 0 10px; --media-range-track-height: 4px; --media-range-track-border-radius: 999px;
+    --media-range-track-background: rgba(255,255,255,.22); --media-time-range-buffered-color: rgba(255,255,255,.3);
+    --media-range-bar-color: var(--ink); --media-range-thumb-width: 12px; --media-range-thumb-height: 12px;
+    --media-range-thumb-opacity: 0; --media-range-thumb-background: #fff; --media-control-hover-background: transparent;
+    --media-preview-thumbnail-border-radius: 10px; --media-preview-thumbnail-border: 1px solid rgba(255,255,255,.2);
+    --media-preview-time-background: transparent; --media-preview-time-margin: 6px 0 0; }
+  media-time-range:hover { --media-range-track-height: 7px; --media-range-thumb-opacity: 1; }
+  media-time-display { font-variant-numeric: tabular-nums; color: rgba(255,255,255,.85); padding: 0 6px; }
+  media-playback-rate-button { font-size: 12px; font-weight: 600; min-width: 40px; }
+  media-mute-button + media-volume-range { width: 0; padding: 0; overflow: hidden; transition: width .2s ease; }
+  .vol:hover media-volume-range, .vol:focus-within media-volume-range { width: 72px; padding: 0 8px; }
+  media-volume-range { --media-range-track-height: 3px; --media-range-bar-color: #fff; --media-range-track-background: rgba(255,255,255,.25); --media-range-thumb-width: 10px; --media-range-thumb-height: 10px; --media-control-hover-background: transparent; }
+  .vol { display: flex; align-items: center; }
+  media-controller[breakpointsm]:not([breakpointmd]) .hide-sm { display: none; }
+  :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  media-controller[userinactive]:not([mediapaused]) .bar { transform: translateY(8px); }
+  .bar { transition: opacity .25s ease, transform .25s cubic-bezier(.2,.8,.2,1); }
+  media-loading-indicator { --media-loading-indicator-icon-height: 56px; }
+</style>
+<media-controller breakpoints="sm:384 md:576" defaultstreamtype="on-demand" autohide="2" hotkeys="{{hotkeys}}" nohotkeys="{{nohotkeys}}" gesturesdisabled="{{disabled}}">
+  <slot name="media" slot="media"></slot>
+  <slot name="poster" slot="poster"></slot>
+  <media-play-button slot="centered-chrome" class="center" notooltip>
+    <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+    <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+  </media-play-button>
+  <media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+  <media-control-bar class="bar">
+    <media-play-button>
+      <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+      <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+    </media-play-button>
+    <media-time-display></media-time-display>
+    <media-time-range></media-time-range>
+    <media-time-display remaining class="hide-sm"></media-time-display>
+    <div class="vol hide-sm"><media-mute-button></media-mute-button><media-volume-range></media-volume-range></div>
+    <media-playback-rate-button rates="1 1.25 1.5 2"></media-playback-rate-button>
+    <media-captions-button class="hide-sm"></media-captions-button>
+    <media-fullscreen-button></media-fullscreen-button>
+  </media-control-bar>
+</media-controller>
+</template>
+
+<!-- C · Hairline: Loom/Wistia sales register. Brand play pill with duration, scrim not box, hairline scrubber that grows. -->
+<template id="clarity-line">
+<style>
+  :host { --ink: #fff; }
+  media-controller { --media-control-background: transparent; --media-control-hover-background: transparent;
+    --media-primary-color: var(--ink); --media-font-family: Inter, ui-sans-serif, system-ui, sans-serif; --media-font-size: 13px;
+    --media-font-weight: 500; --media-text-color: var(--ink); width: 100%; height: 100%; }
+  svg { width: 20px; height: 20px; }
+  .stack { display: grid; place-items: center; }
+  .stack > * { grid-area: 1 / 1; }
+  .start-label { position: relative; z-index: 2; display: flex; align-items: center; gap: 8px; padding-left: 34px; pointer-events: none; color: #fff;
+    font: 600 16px/1 Inter, ui-sans-serif, system-ui, sans-serif; }
+  .start-label media-duration-display { --media-control-background: transparent; padding: 0; color: rgba(255,255,255,.85); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; }
+  media-controller[mediahasplayed] .start-label { display: none; }
+  .start { width: 152px; justify-content: flex-start; display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 26px 0 20px; border-radius: 999px;
+    background: var(--media-accent-color); color: #fff; font: 600 16px/1 Inter, ui-sans-serif, system-ui, sans-serif;
+    box-shadow: 0 12px 36px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.18); cursor: pointer;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1), filter .2s; }
+  .start:hover { transform: scale(1.04); filter: brightness(1.08); }
+  .start svg { width: 26px; height: 26px; }
+  .start-label .sep { opacity: .5; }
+  media-controller[mediahasplayed] .start { display: none; }
+  .resume { width: 72px; height: 72px; border-radius: 999px; padding: 0; background: rgba(0,0,0,.45);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: opacity .2s ease, transform .2s ease; }
+  .resume svg { width: 30px; height: 30px; margin-left: 3px; }
+  media-controller:not([mediahasplayed]) .resume, media-controller:not([mediapaused]) .resume { opacity: 0; pointer-events: none; transform: scale(.9); }
+  .scrim { position: absolute; inset: auto 0 0 0; height: 120px; pointer-events: none;
+    background: linear-gradient(to top, rgba(0,0,0,.62), rgba(0,0,0,.28) 45%, transparent); transition: opacity .3s ease; }
+  media-controller:not([mediahasplayed]) .scrim, media-controller:not([mediahasplayed]) .bottom { opacity: 0; pointer-events: none; }
+  media-controller[userinactive]:not([mediapaused]) .scrim { opacity: 0; }
+  .bottom { width: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding: 0 12px 6px; transition: opacity .25s ease; }
+  media-time-range { width: 100%; height: 22px; padding: 0 8px; --media-range-track-height: 3px; --media-range-track-border-radius: 999px;
+    --media-range-track-background: rgba(255,255,255,.25); --media-time-range-buffered-color: rgba(255,255,255,.35);
+    --media-range-bar-color: var(--media-accent-color); --media-range-thumb-width: 14px; --media-range-thumb-height: 14px;
+    --media-range-thumb-background: #fff; --media-range-thumb-opacity: 0; --media-range-thumb-box-shadow: 0 0 0 4px rgba(255,255,255,.2);
+    --media-preview-thumbnail-border-radius: 8px; --media-preview-time-background: rgba(0,0,0,.7); --media-preview-time-border-radius: 6px; }
+  media-time-range:hover { --media-range-track-height: 6px; --media-range-thumb-opacity: 1; }
+  media-control-bar { width: 100%; align-items: center; height: 40px; }
+  media-control-bar > * { height: 40px; padding: 0 9px; opacity: .88; transition: opacity .15s; }
+  media-control-bar > *:hover { opacity: 1; }
+  media-time-display { font-variant-numeric: tabular-nums; }
+  .spacer { flex: 1; opacity: 1; }
+  media-playback-rate-button { font-size: 13px; font-weight: 600; }
+  media-controller[breakpointsm]:not([breakpointmd]) .hide-sm { display: none; }
+  :focus-visible { outline: 2px solid var(--media-accent-color); outline-offset: 2px; border-radius: 8px; }
+  media-captions-button:not([mediasubtitleslist]) { display: none; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .start:hover { transform: none; } }
+</style>
+<media-controller breakpoints="sm:384 md:576" defaultstreamtype="on-demand" autohide="2" hotkeys="{{hotkeys}}" nohotkeys="{{nohotkeys}}" gesturesdisabled="{{disabled}}">
+  <slot name="media" slot="media"></slot>
+  <slot name="poster" slot="poster"></slot>
+  <div slot="centered-chrome" class="stack">
+    <media-play-button class="start" notooltip>
+      <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+    </media-play-button>
+    <span class="start-label"><span>Play</span><span class="sep">·</span><media-duration-display></media-duration-display></span>
+    <media-play-button class="resume" notooltip style="grid-area:1/1">
+      <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+      <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+    </media-play-button>
+  </div>
+  <media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+  <div class="scrim"></div>
+  <div class="bottom">
+    <media-time-range></media-time-range>
+    <media-control-bar>
+      <media-play-button>
+        <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+        <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+      </media-play-button>
+      <media-mute-button class="hide-sm"></media-mute-button>
+      <media-time-display showduration></media-time-display>
+      <span class="spacer"></span>
+      <media-playback-rate-button rates="1 1.25 1.5 2"></media-playback-rate-button>
+      <media-captions-button class="hide-sm"></media-captions-button>
+      <media-fullscreen-button></media-fullscreen-button>
+    </media-control-bar>
+  </div>
+</media-controller>
+</template>
+
+<!-- D · Islands: Vimeo/visionOS register. Separate solid chips, scrubber on its own row. -->
+<template id="clarity-islands">
+<style>
+  :host { --chip: rgba(18,18,22,.72); }
+  media-controller { --media-control-background: transparent; --media-control-hover-background: transparent;
+    --media-primary-color: #fff; --media-font-family: Inter, ui-sans-serif, system-ui, sans-serif; --media-font-size: 13px;
+    --media-font-weight: 600; width: 100%; height: 100%; }
+  svg { width: 20px; height: 20px; }
+  .center { width: 76px; height: 76px; padding: 0; border-radius: 22px; background: var(--media-accent-color);
+    box-shadow: 0 14px 40px rgba(0,0,0,.35); transition: transform .2s cubic-bezier(.2,.8,.2,1), opacity .2s; }
+  .center svg { width: 32px; height: 32px; margin-left: 3px; }
+  .center:hover { transform: translateY(-2px) scale(1.04); }
+  media-controller:not([mediapaused]) .center { opacity: 0; pointer-events: none; transform: scale(.92); }
+  .dock { width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 14px 14px; transition: opacity .25s, transform .25s cubic-bezier(.2,.8,.2,1); }
+  media-controller:not([mediahasplayed]) .dock { opacity: 0; pointer-events: none; }
+  media-controller[userinactive]:not([mediapaused]) .dock { transform: translateY(10px); }
+  .chip { display: flex; align-items: center; height: 40px; border-radius: 12px; background: var(--chip); padding: 0 4px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+  .chip > * { height: 40px; padding: 0 8px; border-radius: 10px; }
+  .chip > *:hover { background: rgba(255,255,255,.1); }
+  .grow { flex: 1; padding: 0 12px; }
+  media-time-range { flex: 1; height: 40px; --media-range-track-height: 5px; --media-range-track-border-radius: 999px;
+    --media-range-track-background: rgba(255,255,255,.2); --media-time-range-buffered-color: rgba(255,255,255,.3);
+    --media-range-bar-color: var(--media-accent-color); --media-range-thumb-width: 4px; --media-range-thumb-height: 16px;
+    --media-range-thumb-border-radius: 2px; --media-range-thumb-background: #fff; --media-range-thumb-opacity: 0;
+    --media-preview-thumbnail-border-radius: 10px; --media-preview-time-background: transparent; }
+  .grow:hover { background: var(--chip); }
+  media-time-range:hover { --media-range-thumb-opacity: 1; }
+  media-time-display { font-variant-numeric: tabular-nums; padding: 0 4px 0 8px; }
+  media-controller[breakpointsm]:not([breakpointmd]) .hide-sm { display: none; }
+  :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+</style>
+<media-controller breakpoints="sm:384 md:576" defaultstreamtype="on-demand" autohide="2" hotkeys="{{hotkeys}}" nohotkeys="{{nohotkeys}}" gesturesdisabled="{{disabled}}">
+  <slot name="media" slot="media"></slot>
+  <slot name="poster" slot="poster"></slot>
+  <media-play-button slot="centered-chrome" class="center" notooltip>
+    <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+    <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+  </media-play-button>
+  <media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+  <div class="dock">
+    <div class="chip">
+      <media-play-button>
+        <svg slot="play" viewBox="0 0 24 24"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/></svg>
+        <svg slot="pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+      </media-play-button>
+      <media-mute-button class="hide-sm"></media-mute-button>
+    </div>
+    <div class="chip grow"><media-time-range></media-time-range><media-time-display remaining></media-time-display></div>
+    <div class="chip">
+      <media-playback-rate-button rates="1 1.25 1.5 2"></media-playback-rate-button>
+      <media-captions-button class="hide-sm"></media-captions-button>
+      <media-fullscreen-button></media-fullscreen-button>
+    </div>
+  </div>
+</media-controller>
+</template>
+
+<script>
+  const notes = {
+    'current': 'Mux default theme as shipped. Eight controls in one row, ±10s seek, permanent volume slider, overflow menu.',
+    'clarity-glass': 'Apple register. Frosted 84px play, one floating glass pill, white scrubber that thickens on hover, volume slides out of the mute icon.',
+    'clarity-line': 'Sales register. Brand-colored "Play · 2:14" pill tells the prospect the cost up front. After that, a scrim instead of a box and a hairline scrubber in the brand color.',
+    'clarity-islands': 'Vimeo/visionOS register. Brand-colored rounded-square play, then three separate dark chips.',
+  };
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || 'a4nOgmxGWg6gULfcBbAa00gXyfcwPnAFldF8RdsNyk8M';
+  const p = document.getElementById('p');
+  p.setAttribute('playback-id', id);
+  p.setAttribute('poster', `https://image.mux.com/${id}/thumbnail.webp?time=4&width=1600`);
+  function setVariant(v) {
+    p.dataset.v = v;
+    if (v === 'current') p.removeAttribute('theme'); else p.setAttribute('theme', v);
+    document.querySelectorAll('[data-variant]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.variant === v)));
+    document.getElementById('note').textContent = notes[v];
+    history.replaceState(null, '', `?v=${v}${params.get('id') ? `&id=${id}` : ''}`);
+  }
+  document.querySelectorAll('[data-variant]').forEach(b => b.onclick = () => setVariant(b.dataset.variant));
+  addEventListener('keydown', e => { const i = '1234'.indexOf(e.key); if (i >= 0 && e.target === document.body) setVariant(Object.keys(notes)[i]); });
+  document.getElementById('brand').oninput = e => document.documentElement.style.setProperty('--brand', e.target.value);
+  setVariant(params.get('v') || 'clarity-line');
+</script>
+</body>
+</html>
