@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent access to Clarity: design for sign-off</title>
+<style>
+:root{--ink:#14202e;--muted:#5a6a7d;--line:#dfe6ee;--brand:#1f5fd6;--bg:#fff;--code:#f5f8fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .4em;letter-spacing:-.01em}
+h2{font-size:1.35rem;margin:2.2em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.6em 0 .4em}
+p,li{max-width:72ch}
+a{color:var(--brand)}
+code{font:.86em/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);padding:.1em .3em;border-radius:4px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.8rem;white-space:pre}
+.table-wrap{overflow-x:auto;margin:1em 0}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:640px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#f3f6fa;font-weight:600}
+main>p:first-of-type{color:var(--muted)}
+</style></head><body><main>
+<h1>Agent access to Clarity: design for sign-off</h1>
+<p>Date 2026-10-02, revised after the critic round. Code read at origin/main <code>1a5e996e1</code> (snapshot <code>.context/main-snapshot</code>). Status: design for sign-off, nothing built, nothing filed in Linear, no WorkOS or Cloudflare change.</p>
+<p>Paths are relative to the repo. <code>R/</code> is <code>workers/frontend-router/src/</code>, <code>W/</code> is <code>workers/workspace-tree/src/</code>, <code>D/</code> is <code>packages/journey-page-domain/src/</code>, <code>M/</code> is <code>workers/frontend-router/migrations-auth/</code>. Every file:line below was opened in the snapshot today.</p>
+<h2>1. Summary</h2>
+<p>One bearer door at <code>POST /mcp</code>, verified against AuthKit&#39;s JWKS with jose. One policy dispatcher that reads an operation registry, where each operation carries one effect class (<code>read</code>, <code>write</code>, <code>spend</code>, <code>publish</code>, <code>retract</code>, <code>destroy</code>) that decides entitlement, rate tier and whether a human must approve. A video edit on a video that a live page uses is promoted to <code>publish</code>, because public pages resolve the current media, not a frozen copy. Twenty-two operations wrap server functions that already exist; video operations reach the Library only through <code>env.LIBRARY.handleBrowserRequest</code>. Bytes never pass through Clarity; a local agent PUTs the file to the Mux direct-upload URL itself.</p>
+<p>Publish, share-page creation, deletion and live-media edits stop at a human. The agent gets an approval link; the owner opens <code>/approve/:id</code> signed in (reachable while walled), sees server-held facts, clicks Approve, and the server claims the row (<code>pending</code> to <code>executing</code>), runs the stored input, then stores the result. Two concurrent clicks execute once; a crash leaves a re-claimable row. The agent never holds a capability.</p>
+<p>Replay keys are scoped <code>${operation}:${targetId}:${value}</code> and match only successful rows. Generation awaits inline for 45 s (measured runs finish in 27 s at most) and hands its lease to the cron if it loses the race, because <code>waitUntil</code> ends 30 s after the response. Three new tables in migration 0034, one index on <code>jobs</code>, one var (<code>AGENT_AUTH_ISSUER</code>, in <code>wrangler.jsonc</code>), two dependencies at +7% gzip. A revoked <code>(workos_user_id, client_id)</code> pair stays refused; after any revoke an unseen client lands <code>pending</code> until the owner approves it, because ChatGPT and Cursor mint new client ids. Uploads and trims get daily workspace budgets beside the generation cap.</p>
+<p>Build order: door (staging opens on merge, production stays closed), rows and reads, videos, pages, approvals and Settings, docs, handoff page, production. Eight PRs, 24 to 26 pipeline days. The WorkOS auth discovery runs on staging after PR 1 merges and needs William&#39;s dashboard steps and approval first.</p>
+<h2>2. What changed since the 2026-09-30 report</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Then</th>
+<th>Now, and what it changes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Four &quot;editor-only&quot; workflows</td>
+<td>Drafts, revisions, publications, generation jobs and the Mux claim are router functions. Brand defaults and theme presets are pure functions in <code>D/</code> the operations call (<code>editor/src/hooks/use-editor-page.ts:115-117, 246-251</code>).</td>
+</tr>
+<tr>
+<td>Convex AI lane, several databases</td>
+<td>Gone. Generation is <code>R/journey-page-generation.ts</code> with a <code>jobs</code> row and a cron. One <code>clarity-auth-&lt;env&gt;</code> database; next migration 0034.</td>
+</tr>
+<tr>
+<td>Upload via Clarity</td>
+<td>Mux direct upload, 13 h URL (<code>packages/mux/src/client.ts:79</code>). Every asset gets a public playback policy and two static renditions billed as stored minutes (<code>:59-67</code>).</td>
+</tr>
+<tr>
+<td>Recording lifecycle unknown</td>
+<td>WIL-3494 PRs 1 to 4 merged. PR 5 (#936, keyed takes) is open; video ops ship with a two-branch adapter.</td>
+</tr>
+<tr>
+<td>Uploader package and CLI; three access levels</td>
+<td>Dropped. Local hosts have a shell. CIMD and DCR clients get fixed OIDC scopes (research §2).</td>
+</tr>
+<tr>
+<td>MCP SDK</td>
+<td>Hand-rolled, measured (+7% vs +45% and +57%). 2025-xx protocol lane only; <code>server/discover</code> when a host sends it.</td>
+</tr>
+<tr>
+<td>Approval as a token the agent re-sends</td>
+<td>Server-executed on Approve with a claim state (<code>executing</code>) so the human&#39;s click runs the effect exactly once.</td>
+</tr>
+<tr>
+<td>Migration PRs get no preview; branch deploys to staging</td>
+<td>#942 rehearses migrations on previews. Staging deploys only from main (<code>cloudflare-deploy.yml:455</code>). Generation is proven on staging after merge (previews have no <code>OPENAI_API_KEY</code>, <code>:572-578, 751-757</code>).</td>
+</tr>
+<tr>
+<td>Daily cap 50</td>
+<td>Prod RUM <code>ai_generate</code> over 90 days: 83 successful attempts, busiest day 22 across all accounts. Default 66. Durations p50 7.7 s, p90 11.8 s, max 27.3 s.</td>
+</tr>
+<tr>
+<td>Critic round (this revision)</td>
+<td>Approval executor gets a claim state. Replay keys scoped and success-only. Generation hands its lease to the cron on a lost race. <code>videos_edit</code> and <code>videos_update</code> need approval when a live page uses the video. <code>videos_share_page</code> activates the route and skips approval for an already-live page. Expired approvals lapse lazily. After any revoke, new clients land <code>pending</code>. Approve and Settings screens open while walled. Impersonated sessions and <code>act</code> tokens refused. Two-stage rate limiter, upload and trim budgets. <code>AGENT_AUTH_ISSUER</code> lives in <code>wrangler.jsonc</code>; preview signer is a GitHub secret. Library reached only through <code>handleBrowserRequest</code>. WorkOS DELETE courtesy dropped. Sizes restated as pipeline days.</td>
+</tr>
+</tbody></table></div>
+<h2>3. The agent&#39;s view</h2>
+<p>Claude Code, after <code>claude mcp add --transport http clarity https://clarity.video/mcp</code> and one AuthKit consent screen. Every result below also arrives as a text content block holding the same JSON.</p>
+<pre><code>&gt; whoami {}
+&lt; { ownerId, access: { state: &quot;allowed&quot; }, limits: { generationsToday: 2, generationsPerDay: 66, uploadsToday: 0, uploadsPerDay: 20, trimsToday: 0, trimsPerDay: 30 },
+    connection: { id: &quot;conn_1a…&quot;, clientName: &quot;Claude Code&quot;, status: &quot;active&quot;, permissions: { leadsContacts: false } } }
+
+&gt; videos_start_upload { clientKey: &quot;acme-q4-demo&quot; }
+&lt; { videoId: &quot;8QhY2k…&quot;, upload: { url: &quot;https://storage.googleapis.com/…&quot;, method: &quot;PUT&quot;, expiresAt: &quot;2026-10-03T09:12:00Z&quot;,
+    instructions: &quot;Quote the URL. Run curl detached with no timeout: nohup curl -sS --fail --upload-file FILE \&quot;$URL\&quot; &gt; upload.log 2&gt;&amp;1 &amp;
+      Poll its exit code; 200 or 201 means done. On failure call videos_start_upload again with a fresh clientKey.
+      Then call videos_finish_upload with the title.&quot; } }
+
+$ nohup curl -sS --fail --upload-file ~/Movies/acme-q4.mp4 &quot;$URL&quot; &gt; upload.log 2&gt;&amp;1 &amp;      # bytes go to Mux
+
+&gt; videos_finish_upload { videoId: &quot;8QhY2k…&quot;, title: &quot;Acme Q4 demo&quot;, filename: &quot;acme-q4.mp4&quot; }
+&lt; { videoId, state: &quot;processing&quot;, shareLinkLive: false, title: &quot;Acme Q4 demo&quot; }
+
+&gt; videos_get { videoId: &quot;8QhY2k…&quot;, waitSeconds: 45 }
+&lt; { videoId, state: &quot;ready&quot;, shareLinkLive: true, durationSeconds: 212.4, playbackUrl: &quot;https://stream.mux.com/….m3u8&quot; }
+
+&gt; videos_edit { videoId, expectedManifestDigest: null, edit: { kind: &quot;set-trim&quot;, span: { startSeconds: 3, endSeconds: 190 } } }
+&lt; { accepted: true, manifestDigest: &quot;sha256:…&quot;, clipPending: true }        # no live page uses it yet: a write
+
+&gt; pages_create { pageId: &quot;5f1c…&quot;, title: &quot;Acme Q4 proposal&quot;, videoId: &quot;8QhY2k…&quot; }
+&lt; { pageId, revision: 1, editorUrl: &quot;https://clarity.video/edit/5f1c…&quot; }
+
+&gt; pages_generate { pageId, baseRevision: 1, mode: &quot;update&quot;, jobId: &quot;c0de…&quot;, message: &quot;Three-step story for Acme&#39;s CFO. Under 120 words.&quot; }
+&lt; { status: &quot;done&quot;, revision: 2 }
+
+&gt; pages_set_theme { pageId, baseRevision: 2, preset: &quot;editorial&quot; }
+&lt; { revision: 3 }
+
+&gt; pages_publish { pageId, revision: 3 }
+&lt; { status: &quot;approval_required&quot;, approvalId: &quot;apr_9d…&quot;, url: &quot;https://clarity.video/approve/apr_9d…&quot;, expiresAt: &quot;2026-10-03T12:31:00Z&quot; }
+
+(the rep opens the link, sees &quot;Publish page 5f1c… at revision 3. Share link: off. Set by the agent: title Acme Q4 proposal&quot;, clicks Approve)
+
+&gt; approvals_get { approvalId: &quot;apr_9d…&quot; }
+&lt; { status: &quot;approved&quot;, result: { shareUrl: &quot;https://clarity.video/page/k7m2xq&quot;, publishedRevision: 3 } }
+
+&gt; videos_edit { videoId, expectedManifestDigest: &quot;sha256:…&quot;, edit: { kind: &quot;reset&quot; } }
+&lt; { status: &quot;approval_required&quot;, … }          # the page is live now, so the trim reset needs the human
+</code></pre>
+<p>From claude.ai the session differs in one place. <code>videos_start_upload</code>&#39;s description opens with &quot;Only call this when you can run shell commands on the machine that holds the file; otherwise ask the person to upload at /home and use library_list.&quot; The agent tells the rep to upload in the Library or record at <code>/record</code>, then finds the video with <code>library_list { type: &quot;video&quot;, sort: &quot;recent&quot; }</code>. A handoff page is step 7, gated on #936.</p>
+<p>Refusals are tool results the model can read:</p>
+<pre><code>&gt; pages_leads { pageId }
+&lt; isError, { code: &quot;permission_required&quot;, permission: &quot;leads_contacts&quot;, settingsUrl: &quot;https://clarity.video/settings/agents&quot; }
+
+&gt; pages_generate …   (67th generation today in this workspace)
+&lt; isError, { code: &quot;daily_limit&quot;, limit: 66, resetsAt: &quot;2026-10-03T00:00:00Z&quot; }
+
+&gt; pages_update { pageId, baseRevision: 2, document }   (draft moved to 3)
+&lt; isError, { code: &quot;stale_revision&quot;, revision: 3 }      # description: re-read with pages_get, re-apply, send again
+
+&gt; whoami   (from a client the owner has not approved, after an earlier revoke)
+&lt; HTTP 403 { code: &quot;connection_pending&quot;, message: &quot;Approve this client in Settings.&quot;, url: &quot;https://clarity.video/settings/agents&quot; }
+</code></pre>
+<p>Revoke: the owner opens <code>/settings/agents</code>, clicks Revoke on &quot;Claude Code&quot;. The next call from that client answers 403 <code>connection_revoked</code>, whatever token it carries, including one refreshed an hour later. From then on any client the owner has not seen before lands <code>pending</code> until approved on the same screen.</p>
+<h2>4. Architecture</h2>
+<h3>Data shapes</h3>
+<pre><code class="language-ts">// R/agent/registry.ts
+import * as z from &#39;zod/mini&#39;;
+
+export type Effect = &#39;read&#39; | &#39;write&#39; | &#39;spend&#39; | &#39;publish&#39; | &#39;retract&#39; | &#39;destroy&#39;;
+//  read     open while walled (as browser GETs are); not audited
+//  write    entitlement; audited
+//  spend    write + the daily generation cap (inside createJob)
+//  publish  write + human approval; mints, re-exposes or changes what a public URL serves
+//  retract  reduces exposure (unpublish); no approval; open while walled (R/trial-wall.ts:223); audited
+//  destroy  human approval; irreversible; open while walled, as the browser&#39;s DELETE exit is (R/trial-wall.ts:220)
+
+export type Permission = &#39;leads_contacts&#39;;
+export type Budget = &#39;upload&#39; | &#39;clip&#39;;      // daily workspace spend on Mux, separate from exposure
+
+export type Operation&lt;I, O&gt; = {
+  name: string;               // ^[a-z][a-z0-9_]{1,63}$. Underscores: Claude&#39;s pattern ^[a-zA-Z0-9_-]{1,64}$ forbids dots.
+  title: string;
+  description: string;        // first 512 characters self-contained (Codex reads them)
+  effect: Effect;
+  /** write ops whose target can be on a live page: dispatch promotes them to publish when it is. */
+  liveExposure?: (ctx: OperationContext, input: I) =&gt; Promise&lt;LivePage[]&gt;;
+  budget?: Budget;
+  requires?: Permission;
+  destructiveHint: boolean;   // chosen per op (§4 Transport), pinned by the table test
+  target: (input: I) =&gt; string | null;        // pageId, videoId or clientKey, for audit and replay keys
+  idempotency: { kind: &#39;natural&#39;; field: keyof I &amp; string } | { kind: &#39;input&#39; } | { kind: &#39;none&#39; };
+  input: z.ZodMiniType&lt;I&gt;;
+  /** publish and destroy: the server-held facts the approve page shows, plus a digest of them. */
+  facts?: (ctx: OperationContext, input: I) =&gt; Promise&lt;ApprovalFacts&gt;;
+  run: (ctx: OperationContext, input: I) =&gt; Promise&lt;O&gt;;
+};
+
+export type ApprovalFacts = {
+  operation: string;
+  targetId: string;
+  targetKind: &#39;page&#39; | &#39;video&#39;;
+  revision?: number;                  // publish binds it
+  currentShareState: &#39;off&#39; | &#39;live&#39;;  // read from D1 at render time
+  livePages?: LivePage[];             // for promoted video edits: which public pages change
+  editorUrl?: string;
+  agentAuthored: { label: string; text: string }[];
+  digest: string;                     // sha256 of the shown fields plus the target&#39;s updated_at
+};
+
+export type OperationContext = {
+  caller: AgentCaller;
+  env: AgentEnv;
+  origin: string;
+  now: Date;
+  waitUntil: (p: Promise&lt;unknown&gt;) =&gt; void;
+};
+</code></pre>
+<p>No <code>output</code> schema in v1, because the SDK client validates <code>structuredContent</code> against a declared <code>outputSchema</code> even on errors, which would turn a refusal into a validation error. Every result and refusal carries <code>content: [{ type: &#39;text&#39;, text: JSON.stringify(payload) }]</code> beside <code>structuredContent</code>; the text is what claude.ai and ChatGPT read.</p>
+<pre><code class="language-ts">// R/agent/caller.ts
+export type AgentCaller = {
+  connectionId: ConnectionId;
+  userId: string;                  // users.id
+  ownerId: string;                 // users.legacy_user_id; every page and Library call keys on it
+  workspaceId: `user:${string}`;
+  workosUserId: string;            // the token&#39;s sub
+  permissions: { leadsContacts: boolean };
+  suspendedAt: string | null;
+};
+export function libraryUser(c: AgentCaller): InternalIdentity;   // { isSystemAdmin: false, ownerId, workspaceId }
+export function pageIdentity(c: AgentCaller): AuthIdentity;      // every boolean false, no corpId or affiliateId
+</code></pre>
+<p><code>Actor</code> is taken (<code>R/admin-commands.ts:63</code>) and &quot;grant&quot; means three things already, so the principal is a caller and its row a connection. It carries no role, admin, impersonator, Stripe or organization field; <code>canAccessJourneyPage</code> admits <code>corpId</code> and <code>affiliateId</code> matches (<code>R/journey-pages-native.ts:697</code>) and the agent gets none.</p>
+<pre><code class="language-ts">// R/agent/dispatch.ts
+export type Refusal =
+  | { code: &#39;unauthorized&#39; | &#39;invalid_token&#39; }                                           // HTTP 401 + WWW-Authenticate
+  | { code: &#39;no_account&#39; | &#39;connection_revoked&#39; | &#39;connection_pending&#39; | &#39;connection_limit&#39;
+          | &#39;account_suspended&#39;; message: string; url: string }                           // HTTP 403, one sentence and a URL
+  | { code: &#39;auth_unavailable&#39;; retryAfterSeconds: number }                               // HTTP 503 (JWKS fetch failed)
+  | { code: &#39;invalid_input&#39;; issues: unknown }                                            // from here on: tool isError
+  | { code: &#39;permission_required&#39;; permission: Permission; settingsUrl: string }
+  | { code: &#39;rate_limited&#39;; retryAfterSeconds: number }
+  | { code: &#39;access_walled&#39;; wallCause: WallCause }
+  | { code: &#39;daily_limit&#39; | &#39;budget_exhausted&#39;; limit: number; resetsAt: string; budget?: Budget }
+  | { code: &#39;idempotency_conflict&#39; }
+  | { code: &#39;approval_required&#39;; approvalId: string; url: string; expiresAt: string }
+  | { code: &#39;recently_denied&#39;; approvalId: string; retryAfterSeconds: number }
+  | { code: &#39;stale_revision&#39;; revision: number };
+</code></pre>
+<h3>Dispatcher, checks in order</h3>
+<ol>
+<li>Refuse any request carrying a <code>clarity_session</code> cookie (401). <code>/mcp</code> is bearer-only; this is what makes the origin-guard exemption safe.</li>
+<li>Verify the signature. Read <code>iss</code> from the unverified payload, map it to exactly one key set (the WorkOS JWKS, or on a <code>pr-N</code> host the preview JWK), and <code>jwtVerify</code> with that single issuer, <code>aud = ${origin}/mcp</code>, RS256, 30 s tolerance. A JWKS fetch error answers 503 <code>auth_unavailable</code> with <code>Retry-After</code>, never 401, because 401 makes every host re-run consent. Refuse an <code>act</code> claim (WorkOS stamps it on impersonation tokens) or a <code>scope</code> without <code>openid</code>. <code>sub</code> must start with <code>user_</code>. <code>client_id</code>, else <code>azp</code>, is required; a token with neither is <code>invalid_token</code>, and seeing one in S3 fails the spike. An <code>unknown</code> bucket would merge every unidentified client&#39;s permissions and revocation, so there is none.</li>
+<li>First rate limiter, <code>standard</code> keyed <code>agent-sub:&lt;sub&gt;</code>, before any D1 read.</li>
+<li>Identity by <code>sub</code> through <code>createAuthAccountMappingStore(env.AUTH_DB).findIdentityByWorkosUserId</code> (<code>packages/auth-identity/src/account-mapping-store.ts:184</code>, the cookie path&#39;s read at <code>R/request-identity.ts:24-25</code>). No row is 403 <code>no_account</code> with a sign-up URL. <code>AUTH_DB</code> unbound is 503, so neither fail-open (<code>R/trial-wall.ts:62-64</code>, <code>R/trial-offer-with-stripe-sync.ts:26-29</code>) is inherited.</li>
+<li>Connection row by <code>(workos_user_id, client_id)</code>. <code>revoked</code> answers 403 <code>connection_revoked</code>, whatever the token. <code>pending</code> answers 403 <code>connection_pending</code> with the Settings URL. An absent row is refused <code>connection_limit</code> when the user already holds ten, inserted <code>pending</code> when the user has any <code>revoked</code> row, and inserted <code>active</code> otherwise. A set <code>caller.suspendedAt</code> answers 403 for every effect, as the wall does (<code>R/trial-wall.ts:84</code>). Stamp <code>last_used_at</code> at most once a minute.</li>
+<li>Resolve the operation, parse input with <code>op.input</code>. An ungranted <code>requires</code> answers <code>permission_required</code>.</li>
+<li>Second rate limiter keyed <code>agent:&lt;connectionId&gt;</code>, <code>standard</code> (60/min) for read, write and retract; <code>strict</code> (10/min) for spend, publish and destroy. Both use the existing bindings (<code>R/rate-limit.ts:38</code>, <code>wrangler.jsonc:36-47</code>); neither reads the IP header.</li>
+<li>Compute the effect. <code>op.effect</code>, except that a <code>write</code> whose <code>liveExposure</code> returns pages becomes <code>publish</code> for this call.</li>
+<li>Entitlement, when <code>entitlementRequired(effect)</code> holds (write, spend, publish). Call <code>readWindowTrialOfferWithStripeSync(env, ownerId, now)</code> (<code>R/trial-offer-with-stripe-sync.ts:21-57</code>). A <code>walled</code> verdict is cached per connection for five minutes in the isolate, so a retrying walled agent costs one Stripe call, not sixty a minute. A thrown Stripe error answers 503; the browser wall lets that request through (<code>R/trial-wall.ts:93-100</code>) and a bearer path must not.</li>
+<li>Budget, when <code>op.budget</code> is set. Count today&#39;s <code>ok</code> rows for this workspace and operation in <code>agent_actions</code>; at the limit answer <code>budget_exhausted</code>.</li>
+<li>Replay, when <code>effect !== &#39;read&#39;</code> and the operation has a key. The key is <code>${operation}:${target}:${value}</code> and the lookup matches <code>outcome = &#39;ok&#39;</code> rows only. The same <code>input_hash</code> returns <code>result_json</code>; a different one refuses <code>idempotency_conflict</code>. Refused and failed rows are audit only and never block a retry.</li>
+<li>For <code>publish</code> or <code>destroy</code>, re-check the exposure the op guards; <code>videos_share_page</code> on an already-live page answers the existing URL here with no approval, because nothing new is exposed. Otherwise find or insert the pending <code>agent_approvals</code> row for <code>(connection_id, operation, input_hash)</code>. In the same batch a pending row past <code>expires_at</code> is retired to <code>lapsed</code> first, so an expired ask never blocks a new one. A row <code>denied</code> within the last ten minutes answers <code>recently_denied</code>. Answer <code>approval_required</code>; <code>op.run</code> does not run.</li>
+<li><code>op.run(ctx, input)</code>. The generation cap lives inside <code>createJob</code> (§7).</li>
+<li>For <code>effect !== &#39;read&#39;</code>, insert <code>agent_actions</code> with a server-minted uuid <code>id</code> (never the JSON-RPC id, which every connection&#39;s first call sets to 1). Return.</li>
+</ol>
+<p>The audit row lands after the effect, not in its batch, because <code>saveDraft</code> (<code>R/public-page-delivery/journey-page-content-store.ts:216</code>) and <code>publishJourneyPage</code> (<code>R/journey-page-access.ts:73-85</code>) own their batches. A crash between them leaves the effect without its row; every keyed write converges on re-run.</p>
+<h3>Transport</h3>
+<p>Hand-rolled JSON-RPC over <code>POST /mcp</code>, stateless, tools only. Every host speaks the 2025-xx lane today (Claude follows 2025-03-26 to 2025-11-25, research §6), so v1 answers <code>initialize</code> (negotiating 2025-11-25 down to 2025-03-26), <code>notifications/initialized</code> (202), <code>ping</code>, <code>tools/list</code> and <code>tools/call</code>, refuses JSON-RPC batch arrays with -32600, and answers 405 on <code>GET</code> and <code>DELETE</code>. The 2026-07-28 <code>server/discover</code> lane is built when a host sends it; the prototype proved it only against the Inspector CLI. <code>tools/list</code> is derived from <code>OPERATIONS</code>. <code>inputSchema</code> comes from <code>z.toJSONSchema</code>; <code>readOnlyHint</code> is <code>effect === &#39;read&#39;</code>; <code>destructiveHint</code> is true for destroy, retract, publish and overwriting writes (<code>pages_update</code>, <code>videos_edit</code>, <code>videos_update</code>) and false for creates, so hosts that honour the hint do not confirm every draft edit; <code>idempotentHint</code> is <code>idempotency.kind !== &#39;none&#39;</code>; <code>openWorldHint</code> false. The table test pins each.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Variant</th>
+<th>gzip delta</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>zod/mini + jose + hand-rolled handler</td>
+<td>+27.8 KB (+7%)</td>
+<td>chosen</td>
+</tr>
+<tr>
+<td>zod classic + jose + hand-rolled</td>
+<td>+96.7 KB (+23%)</td>
+<td>zod classic alone is 561 KB raw</td>
+</tr>
+<tr>
+<td><code>@modelcontextprotocol/sdk</code> 1.31</td>
+<td>+235 KB (+57%)</td>
+<td>brings ajv and zod-to-json-schema</td>
+</tr>
+<tr>
+<td><code>agents</code> 0.24 <code>createMcpHandler</code></td>
+<td>+186 KB (+45%)</td>
+<td>peer-pins <code>@modelcontextprotocol/server@2.0.0</code></td>
+</tr>
+</tbody></table></div>
+<p>Source <code>findings/prototype-mcp.md</code>. Refusals from step 6 onward are tool results with <code>isError: true</code>; steps 1 to 5 answer with HTTP status because hosts re-authenticate on 401 alone and 403 bodies carry one sentence and a URL for the host to show.</p>
+<p><code>pages_generate</code> awaits the run for at most 45 s. Measured production runs (83 over 90 days) finish at p50 7.7 s, p90 11.8 s, max 27.3 s, so the await covers every observed run inside Codex&#39;s 60 s default and Claude Code&#39;s 60 s first-byte timer. <code>waitUntil</code> cannot carry the rest. Cloudflare cancels unsettled work 30 s after the response and <code>GENERATION_TIMEOUT_MS</code> is 120 s (<code>R/journey-page-generation.ts:60</code>), so a run that lost the race would die at about 75 s and be re-run from scratch by the cron after the 130 s lease. On losing the race the op calls <code>leaseJob(db, job, now, now)</code> (<code>R/jobs-store.ts:115</code>, &quot;a lease that ends now hands the job to the cron&#39;s next tick&quot;); the fencing token on <code>attempts</code> makes the orphaned inline attempt harmless, and the answer is <code>{ status: &#39;running&#39;, jobId, checkAfterSeconds: 30 }</code>.</p>
+<p>HTTP RPC is not a second transport; JSON-RPC over <code>POST /mcp</code> with a bearer is already callable from curl.</p>
+<h3>File layout</h3>
+<pre><code>R/agent/
+  registry.ts        Operation, Effect, Budget, Permission, OPERATIONS, toolsList(), annotations
+  caller.ts          AgentCaller, authenticateBearer(), key-set selection, connection read/insert, libraryUser(), pageIdentity()
+  policy.ts          entitlementRequired(), walled-verdict cache, budgets, both limiter stages
+  dispatch.ts        the fourteen steps, Refusal, replay and audit rows
+  mcp.ts             JSON-RPC (2025-xx lane), protected-resource metadata, 401 and 503 shapes, CORS, instructions text
+  approvals.ts       agent_approvals rows, facts and digest, claim/execute/record, lazy lapse, GET/POST /api/agent/approvals/:id
+  connections-api.ts GET /api/agent/connections (with pending approvals), POST …/:id/revoke, …/:id/enable, …/:id/approve, PATCH …/:id
+  sweep.ts           90-day agent_actions sweep for router.scheduled
+  ops-account.ts     whoami, approvals_get
+  ops-videos.ts      videos_start_upload, videos_finish_upload, videos_get, videos_update, videos_edit, videos_share_page, videos_delete
+  ops-pages.ts       pages_create, pages_get, pages_update, pages_set_theme, pages_generate, pages_generation_status,
+                     pages_publish, pages_unpublish, pages_delete, pages_stats, pages_leads
+  ops-library.ts     library_list, contacts_list, livePagesUsingVideo()
+M/0034_agent_access.sql
+editor/src/routes/ApproveRoute.tsx, editor/src/routes/settings/AgentsRoute.tsx
+scripts/agent-mcp.mjs       one script, modes: conformance (both lanes against wrangler dev or a URL), mint (preview token), walkthrough
+</code></pre>
+<p>Eleven router files, each under 300 lines. <code>R/index.ts</code> (860 lines) gains four <code>if</code> lines and one <code>scheduled</code> entry. <code>W/index.ts</code> is 1,146 lines, over the 1,000-line ratchet (<code>scripts/check-loc-ratchet.sh</code>), and is not edited; the router imports nothing from <code>W/</code> beyond <code>W/library.ts</code> (ARCHITECTURE rule 2, SECURITY invariant 7).</p>
+<h3>Placement in today&#39;s if-chain</h3>
+<p>Two lines right after <code>/__deploy-info</code> (<code>R/index.ts:138-140</code>), before <code>handleAuthSessionRequest</code> (150):</p>
+<pre><code class="language-ts">if (isProtectedResourceMetadataPath(url.pathname)) return protectedResourceMetadata(request, env);
+if (url.pathname === &#39;/mcp&#39;) return handleMcpRequest(request, env, ctx);
+</code></pre>
+<p><code>/mcp</code> sits above the trial wall on purpose; the dispatcher owns entitlement per effect. One line in the walled app block, before <code>isNativeAdminAccountsApiRequest</code> (<code>R/index.ts:226</code>):</p>
+<pre><code class="language-ts">// Before /api/admin: that handler claims its whole prefix and 404s unknown
+// suffixes (admin-accounts-native.ts:93-98), so an /api/agent route placed
+// after it is one line away from being shadowed.
+if (url.pathname.startsWith(&#39;/api/agent/&#39;)) return handleAgentBrowserApi(request, env);
+</code></pre>
+<p><code>/approve/:id</code> and <code>/settings/agents</code> join the app shell (<code>EXACT_APP_SHELL_ROUTES</code>, <code>R/app-shell-routes.ts:3-24</code>; <code>isSingleSegmentRoute</code>, <code>:36</code>) and a new open-while-walled predicate beside <code>OPEN_APP_SHELL_ROUTES</code> (<code>:28-33</code>), so <code>isAuthenticatedAppShellRoute</code> (<code>:61-68</code>) excludes them and the wall does not redirect their GET to <code>/trial-expired</code> (<code>R/trial-wall.ts:122-124</code>). The session is still required; only the redirect is skipped. The wall page gains a &quot;Connected agents&quot; link.</p>
+<p><code>R/security-headers.ts</code> gains <code>BEARER_PATHS = new Set([&#39;/mcp&#39;])</code> beside <code>PROVIDER_CALLBACK_PATHS</code> (<code>:54-58</code>), with the comment that the path refuses cookies. <code>/api/agent/*</code> keeps the guard and refuses <code>session.impersonator</code> on every non-GET, the billing precedent (<code>R/stripe-billing.ts:785-787</code>, <code>R/router-auth.ts:29-35</code>). Support revoking an agent for a customer is a future admin command with an <code>admin_actions</code> row, not a side door.</p>
+<h3>Rows in WIL-3401&#39;s table</h3>
+<p>When the route table lands these become rows and the registry stays separate. The table keys on path and HTTP policy; the per-operation policy (effect, budget, approval, replay) has no column in a row.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>route</th>
+<th>match</th>
+<th>methods</th>
+<th>audience</th>
+<th>wall</th>
+<th>origin</th>
+<th>rate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>oauth-protected-resource</td>
+<td><code>/.well-known/oauth-protected-resource</code>, <code>…/mcp</code></td>
+<td>GET</td>
+<td>anyone</td>
+<td>open</td>
+<td>any-origin (new)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>mcp</td>
+<td><code>/mcp</code></td>
+<td>POST</td>
+<td>agent (new)</td>
+<td>open (dispatcher decides)</td>
+<td>bearer (new)</td>
+<td>two stages in dispatch</td>
+</tr>
+<tr>
+<td>agent-approvals</td>
+<td><code>/api/agent/approvals/:id</code></td>
+<td>GET, POST</td>
+<td>account</td>
+<td>exit (handler decides by effect)</td>
+<td>same-origin</td>
+<td>none</td>
+</tr>
+<tr>
+<td>agent-connections</td>
+<td><code>/api/agent/connections[/:id[/revoke|/enable|/approve]]</code></td>
+<td>GET, POST, PATCH</td>
+<td>account</td>
+<td>reads-open, writes as exit</td>
+<td>same-origin</td>
+<td>none</td>
+</tr>
+<tr>
+<td>shell additions</td>
+<td><code>/approve/:id</code>, <code>/settings/agents</code></td>
+<td>GET, HEAD</td>
+<td>anyone</td>
+<td>open (session required)</td>
+<td>same-origin</td>
+<td>none</td>
+</tr>
+</tbody></table></div>
+<h2>5. Operation catalog for v1</h2>
+<p>Common shapes. <code>VideoView = { videoId, title, state: &#39;uploading&#39;|&#39;processing&#39;|&#39;ready&#39;|&#39;failed&#39;, shareLinkLive, clipPending, durationSeconds?, playbackUrl?, posterUrl?, folderId }</code>, projected via <code>resolvePlayback</code> (<code>packages/served-file-policy/src/index.ts:277</code>). <code>videoId</code> is the Mux upload id everywhere; it is <code>node.assetId</code>, which <code>GET /assets/:assetId</code> (<code>W/index.ts:243</code>) accepts. Library calls synthesize a <code>Request</code> on the app origin and call <code>env.LIBRARY.handleBrowserRequest(request, libraryUser(caller))</code> (<code>W/library.ts:30</code>), the pattern <code>R/media-videos-native.ts:94</code> uses. <code>Untrusted&lt;T&gt;</code> is <code>{ untrusted: true, source: &#39;prospect&#39; | &#39;document&#39;, value: T }</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Op</th>
+<th>Effect</th>
+<th>Input</th>
+<th>Output</th>
+<th>Idempotency</th>
+<th>Wraps</th>
+<th>New code</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>whoami</code></td>
+<td>read</td>
+<td><code>{}</code></td>
+<td><code>{ ownerId, access, limits, connection }</code></td>
+<td>none</td>
+<td><code>R/trial-offer-store.ts:50 readSpineEntitlementInput</code> + <code>decideEntitlement</code>; counts on <code>jobs</code> and <code>agent_actions</code></td>
+<td>projection</td>
+</tr>
+<tr>
+<td><code>library_list</code></td>
+<td>read</td>
+<td><code>{ folderId?, type?, query?, sort?, limit?: 1..50 }</code> (default 20)</td>
+<td><code>{ items: { id, type, title, state?, updatedAt, folderId }[] }</code></td>
+<td>none</td>
+<td><code>GET /api/tree[/root]</code>, <code>/nodes/:id/children</code>, <code>/search</code> (<code>W/index.ts:223, 253, 228</code>)</td>
+<td>synthesis; projection (no raw <code>metadata</code>, no playback ids)</td>
+</tr>
+<tr>
+<td><code>videos_get</code></td>
+<td>read</td>
+<td><code>{ videoId, waitSeconds?: 0..45 }</code></td>
+<td><code>VideoView</code></td>
+<td>none</td>
+<td>first and last poll <code>env.LIBRARY.assetNode</code> (<code>W/library.ts:31</code>, settles against Mux, <code>W/mux-video-ingest.ts:546</code>); polls between every 10 s read the <code>videos</code> row (<code>delivery</code>, <code>mux_playback_id</code>) from D1</td>
+<td>the wait loop</td>
+</tr>
+<tr>
+<td><code>videos_start_upload</code></td>
+<td>write, budget <code>upload</code></td>
+<td><code>{ clientKey: /^[A-Za-z0-9_.:-]{1,64}$/, folderId? }</code></td>
+<td><code>{ videoId, upload: { url, method, expiresAt, instructions } }</code></td>
+<td>natural <code>clientKey</code></td>
+<td><code>POST /api/tree/media/mux/uploads</code> (<code>W/index.ts:180</code> → <code>W/mux-video-routes.ts:64</code> → <code>packages/mux/src/client.ts:314 createDirectUpload</code>); after #936 the same route with <code>{ clientKey, kind: &#39;upload&#39;, parentId }</code> and a <code>GrantOutcome</code> answer</td>
+<td>synthesis; two-branch answer parser; instructions text</td>
+</tr>
+<tr>
+<td><code>videos_finish_upload</code></td>
+<td>write</td>
+<td><code>{ videoId, title, filename?, folderId? }</code></td>
+<td><code>VideoView</code></td>
+<td>natural <code>videoId</code></td>
+<td><code>POST /api/tree/media/videos/mux-original</code> (<code>W/index.ts:185</code> → <code>W/mux-video-ingest.ts:237 createMuxVideoNode</code>); 409 <code>upload_dead|upload_not_ours</code> (<code>:246-263</code>) become refusals</td>
+<td>synthesis. <code>title</code> is required because nothing persists at start on main</td>
+</tr>
+<tr>
+<td><code>videos_update</code></td>
+<td>write; publish when a live page uses the video</td>
+<td><code>{ videoId, title?, description?, cta? }</code></td>
+<td><code>VideoView</code></td>
+<td>input key</td>
+<td><code>PATCH /api/tree/nodes/:id</code> (<code>W/index.ts:218</code>) with <code>metadataPatch</code> on <code>BROWSER_VIDEO_METADATA_FIELDS</code> (<code>W/workspace-tree-core.ts:257</code>)</td>
+<td>synthesis; <code>liveExposure</code></td>
+</tr>
+<tr>
+<td><code>videos_edit</code></td>
+<td>write; publish when a live page uses the video; budget <code>clip</code> on <code>set-trim</code></td>
+<td><code>{ videoId, expectedManifestDigest: string|null, edit: EditIntent }</code></td>
+<td><code>{ accepted, manifestDigest, clipPending } | { conflict, manifest }</code></td>
+<td>natural digest</td>
+<td><code>POST /api/tree/media/videos/:id/edit</code> (<code>W/index.ts:202</code> → <code>W/video-edit-routes.ts:63</code>); <code>EditIntent</code> is <code>packages/video-derivations/src/manifest.ts:16</code></td>
+<td>synthesis; <code>liveExposure</code>; <code>clipPending</code> from the manifest. A trim cuts a clip after the answer (<code>:194-203</code>)</td>
+</tr>
+<tr>
+<td><code>videos_share_page</code></td>
+<td>publish</td>
+<td><code>{ videoId }</code></td>
+<td><code>{ pageId, shareUrl, created }</code>; approval only when the page is not already live</td>
+<td>natural <code>videoId</code> (one page per owner and video, migration 0030)</td>
+<td><code>R/video-share-page.ts:213 findOrCreateVideoSharePage</code>, then <code>activateJourneyPageShareRoute</code> (<code>route-registry.ts:104</code>) so approve means live</td>
+<td>facts; explicit activation; live check via <code>findActiveShareRoute</code> (<code>:228</code>)</td>
+</tr>
+<tr>
+<td><code>videos_delete</code></td>
+<td>destroy</td>
+<td><code>{ videoId }</code></td>
+<td>approval, then <code>{ deleted: true, sharePageRetired }</code></td>
+<td>natural <code>videoId</code></td>
+<td><code>DELETE /api/tree/nodes/:id</code> (<code>W/index.ts:213</code>); on main followed by <code>findJourneyPageBySourceVideoId</code> (<code>content-store:356</code>) + <code>tombstoneJourneyPage</code> (<code>:401</code>), owner-checked, so an approved delete never leaves the link live; after #936 the Library retires it</td>
+<td>synthesis; facts; the main-branch tombstone</td>
+</tr>
+<tr>
+<td><code>pages_create</code></td>
+<td>write</td>
+<td><code>{ pageId: uuid, title?, folderId?, videoId? }</code></td>
+<td><code>{ pageId, revision: 1, editorUrl }</code></td>
+<td>natural <code>pageId</code> (required, caller-minted)</td>
+<td><code>D/blocks.ts:746 defaultJourneyPageDocument</code>, <code>D/customer-brand.ts:79,107</code> with <code>GET /api/tree/brand</code> (<code>W/index.ts:208</code>), <code>D/blocks.ts:665 assignBlockMedia</code>; then <code>R/journey-pages-native.ts:574 insertNewJourneyPage</code></td>
+<td>lift <code>insertNewJourneyPage</code> to an export; hero-from-video builder</td>
+</tr>
+<tr>
+<td><code>pages_get</code></td>
+<td>read</td>
+<td><code>{ pageId, includeDocument? }</code></td>
+<td><code>{ pageId, revision, title, publication, generation, document?: Untrusted&lt;Document&gt; }</code></td>
+<td>none</td>
+<td><code>findStoredJourneyPage</code> + <code>canAccessJourneyPage</code> (<code>:679</code>), <code>R/journey-page-access.ts:29 readJourneyPageSharing</code>, <code>R/journey-page-generation.ts:154 recentGeneration</code></td>
+<td>projection</td>
+</tr>
+<tr>
+<td><code>pages_update</code></td>
+<td>write</td>
+<td><code>{ pageId, baseRevision, document }</code></td>
+<td><code>{ revision } | stale_revision</code></td>
+<td>none (the revision CAS serializes it)</td>
+<td><code>journeyPageDocumentWriteError</code> (<code>content-store:427</code>), <code>saveDraft</code> (<code>:202</code>)</td>
+<td>none. Description tells the agent to re-read with <code>pages_get</code> on <code>stale_revision</code></td>
+</tr>
+<tr>
+<td><code>pages_set_theme</code></td>
+<td>write</td>
+<td><code>{ pageId, baseRevision, preset }</code></td>
+<td><code>{ revision }</code></td>
+<td>none</td>
+<td><code>D/theme.ts:360 withThemePreset</code>, clear hero <code>ctaColor</code> as <code>use-editor-page.ts:246-251</code> does, <code>saveDraft</code></td>
+<td>the two-line rule</td>
+</tr>
+<tr>
+<td><code>pages_generate</code></td>
+<td>spend</td>
+<td><code>{ pageId, baseRevision, mode, message ≤8000, jobId: uuid, attachments?, pastedContexts? }</code></td>
+<td><code>{ status: &#39;done&#39;, revision } | { status: &#39;running&#39;, jobId, checkAfterSeconds }</code></td>
+<td>natural <code>jobId</code></td>
+<td><code>readJob</code> (<code>R/jobs-store.ts:77</code>) first, accepted only when <code>subject_id === pageId</code> and <code>workspace_id === caller.workspaceId</code>; lift <code>R/journey-page-generation.ts:96-135</code> into <code>startGeneration</code>; <code>createJob</code> with <code>perDay</code>; <code>runGenerationJob</code> (<code>:168</code>); 45 s race; <code>leaseJob</code> on loss</td>
+<td>the lift, the race, the handoff</td>
+</tr>
+<tr>
+<td><code>pages_generation_status</code></td>
+<td>read</td>
+<td><code>{ pageId }</code></td>
+<td><code>JobView | null</code></td>
+<td>none</td>
+<td><code>recentGeneration</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>pages_publish</code></td>
+<td>publish</td>
+<td><code>{ pageId, revision }</code></td>
+<td>approval, then <code>{ shareUrl, publishedRevision }</code></td>
+<td>natural <code>revision</code></td>
+<td><code>D/publish-readiness.ts:25 journeyPageHasProspectContent</code>, <code>R/journey-page-access.ts:73 publishJourneyPage</code></td>
+<td>facts</td>
+</tr>
+<tr>
+<td><code>pages_unpublish</code></td>
+<td>retract</td>
+<td><code>{ pageId }</code></td>
+<td><code>JourneyPageSharingWire</code></td>
+<td>none (idempotent at the store)</td>
+<td><code>R/journey-page-access.ts:88 unpublishJourneyPage</code> after the access check</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>pages_delete</code></td>
+<td>destroy</td>
+<td><code>{ pageId }</code></td>
+<td>approval, then <code>{ deletedAt }</code></td>
+<td>natural <code>pageId</code></td>
+<td><code>content-store:401 tombstoneJourneyPage</code> after the access check</td>
+<td>facts</td>
+</tr>
+<tr>
+<td><code>pages_stats</code></td>
+<td>read</td>
+<td><code>{ pageId }</code></td>
+<td><code>JourneyPageStats</code></td>
+<td>none</td>
+<td>the body of <code>GET /:id/stats</code> (<code>R/journey-pages-native.ts:155-181</code>), <code>R/page-stats.ts:26 readPageStats</code></td>
+<td>lift the body</td>
+</tr>
+<tr>
+<td><code>pages_leads</code></td>
+<td>read, requires <code>leads_contacts</code></td>
+<td><code>{ pageId }</code></td>
+<td><code>{ count, submissions: Untrusted&lt;Row&gt;[] }</code></td>
+<td>none</td>
+<td><code>R/public-page-delivery/journey-page-submissions-store.ts:128 listJourneyPageSubmissions</code> after the access check (<code>R/journey-pages-native.ts:255-275</code>)</td>
+<td>wrapping</td>
+</tr>
+<tr>
+<td><code>contacts_list</code></td>
+<td>read, requires <code>leads_contacts</code></td>
+<td><code>{ query?, limit?: 1..100 }</code></td>
+<td><code>{ contacts: Untrusted&lt;Contact&gt;[] }</code></td>
+<td>none</td>
+<td><code>R/contacts-api.ts:164 fetchLegacyContactSnapshots</code> (module-private; its corp branch at <code>:198-204</code> must not fire for an identity with no <code>corpId</code>)</td>
+<td>lift to an export taking an identity value; wrapping</td>
+</tr>
+<tr>
+<td><code>approvals_get</code></td>
+<td>read</td>
+<td><code>{ approvalId }</code></td>
+<td><code>{ status: &#39;pending&#39;|&#39;approved&#39;|&#39;denied&#39;|&#39;expired&#39;|&#39;stale&#39;|&#39;failed&#39;, result? }</code></td>
+<td>none</td>
+<td><code>agent_approvals</code> row owned by the caller&#39;s connection; <code>executing</code> reads as <code>pending</code></td>
+<td>new, small</td>
+</tr>
+</tbody></table></div>
+<p><code>livePagesUsingVideo(db, ownerId, videoId)</code> joins <code>public_page_routes</code> (active, <code>key_type = &#39;share_id&#39;</code>) to <code>journey_page_publications</code> for the owner&#39;s pages and keeps those whose published document references the video id. It exists because <code>videoBlockMedia</code> plays &quot;what the video policy resolves for its id, which wins over anything the page saved&quot; (<code>R/public-page-delivery/block-media.ts:86-96</code>), and a trimmed clip replaces the source in public playback whenever <code>mux_clip_playback_id</code> exists (<code>packages/served-file-policy/src/index.ts</code>).</p>
+<p>Deliberately absent. Transcripts (nothing reads Mux text tracks). Block-level edit ops. Server-side merge of agent edits (§12). Billing, sign-in, admin, impersonation, connection management from the agent side. Stitching.</p>
+<p><strong>Bytes to Mux.</strong> Local hosts take the URL from <code>videos_start_upload</code> and PUT the whole file; Mux&#39;s resumable endpoint accepts a single whole-body PUT, and the editor&#39;s 8 MiB chunking exists for progress and in-flight recording (<code>editor/src/lib/mux-recording-uploader.ts:6-15</code>). Host shell tools kill long commands (Claude Code&#39;s Bash defaults to two minutes) and a 2 GB PUT takes five to thirteen minutes on an ordinary uplink, so the instructions say to run curl detached with no timeout and poll the exit code. A killed PUT is not resumed; the agent starts again with a fresh <code>clientKey</code>.</p>
+<p><strong>Remote hosts.</strong> The human uploads or records in Clarity, the agent finds the video with <code>library_list</code>. Step 7 adds <code>/upload/:videoId</code> over the <code>videos</code> row&#39;s <code>upload_url</code>, which needs the row #936 creates at grant.</p>
+<p><strong>Surviving #936.</strong> The catalog names none of the fields in flux. <code>videos_start_upload</code> parses two answer shapes and sends <code>kind: &#39;upload&#39;</code> so no page is minted at grant (the default <code>recording</code> births a published page); the table test asserts a <code>write</code> op never yields a share route. <code>videos_delete</code> drops its own tombstone branch when the Library retires pages. The walkthrough is the same before and after.</p>
+<h2>6. Auth</h2>
+<h3>AuthKit setup</h3>
+<p>AuthKit is the OAuth authorization server; Clarity is a protected resource that verifies tokens locally. Dashboard, Connect → Configuration: CIMD on (off by default, research §1), DCR on for Cursor, Resource Indicators for staging, later production, and a test of the preview wildcard <code>https://*.clarity-video.workers.dev/mcp</code> (§8). Clarity&#39;s own <code>/auth/*</code> login is untouched; an agent token never mints a <code>clarity_session</code>.</p>
+<h3>Protected-resource metadata and the 401</h3>
+<p>Served at <code>/.well-known/oauth-protected-resource</code> and the RFC 9728 path form <code>/.well-known/oauth-protected-resource/mcp</code> (Claude requires <code>resource</code> to equal the URL the user typed). <code>Cache-Control: public, max-age=3600</code>, <code>Access-Control-Allow-Origin: *</code>.</p>
+<pre><code class="language-json">{
+  &quot;resource&quot;: &quot;https://clarity.video/mcp&quot;,
+  &quot;authorization_servers&quot;: [&quot;https://&lt;authkit-domain&gt;&quot;],
+  &quot;bearer_methods_supported&quot;: [&quot;header&quot;],
+  &quot;scopes_supported&quot;: [&quot;openid&quot;, &quot;profile&quot;, &quot;email&quot;, &quot;offline_access&quot;]
+}
+</code></pre>
+<p><code>resource</code> is <code>${url.origin}/mcp</code>. <code>authorization_servers[0]</code> is <code>env.AGENT_AUTH_ISSUER</code>, declared in <code>wrangler.jsonc</code> under <code>env.staging.vars</code> and later <code>env.production.vars</code>, beside <code>MUX_DISCARD_RUNNER</code> (<code>wrangler.jsonc:91</code>). A dashboard var would not survive. The deploy passes every var on the command line with no <code>--keep-vars</code> (<code>scripts/deploy-cloudflare.sh:377-379</code>) and staging redeploys after every main push and nightly (<code>staging-follow-main.yml:29</code>). <code>scripts/preview-wrangler-config.mjs</code> copies production vars into the preview config and deletes a named list (<code>:92-109</code>); <code>AGENT_AUTH_ISSUER</code> joins that list, so a preview trusts WorkOS only when the wildcard test in §8 passes and the var is set on purpose. Unset means <code>/mcp</code> answers 503 and the metadata 404.</p>
+<pre><code>HTTP/1.1 401
+WWW-Authenticate: Bearer error=&quot;invalid_request&quot;, resource_metadata=&quot;https://clarity.video/.well-known/oauth-protected-resource&quot;
+</code></pre>
+<p><code>error=&quot;invalid_token&quot;</code> for a bad token; 503 with <code>Retry-After</code> when the JWKS cannot be fetched.</p>
+<h3>JWT checks</h3>
+<pre><code class="language-ts">// R/agent/caller.ts
+const keySets = new Map&lt;string, ReturnType&lt;typeof createRemoteJWKSet&gt; | ReturnType&lt;typeof createLocalJWKSet&gt;&gt;();
+
+export async function authenticateBearer(request: Request, env: AgentEnv): Promise&lt;VerifiedToken | Refusal&gt; {
+  if (request.headers.get(&#39;Cookie&#39;)?.includes(&#39;clarity_session=&#39;)) return { code: &#39;unauthorized&#39; };
+  const token = bearerFrom(request);
+  if (!token) return { code: &#39;unauthorized&#39; };
+  const origin = new URL(request.url).origin;
+  const issuer = decodeJwt(token).iss;                       // unverified; used only to pick one key set
+  const keys = keySetFor(env, origin, issuer);               // WorkOS JWKS when issuer === AGENT_AUTH_ISSUER;
+                                                             // the preview JWK when issuer === origin on a pr-N host
+                                                             // with AGENT_PREVIEW_JWKS set; otherwise invalid_token
+  let payload;
+  try {
+    ({ payload } = await jwtVerify(token, keys, { algorithms: [&#39;RS256&#39;], issuer, audience: `${origin}/mcp`, clockTolerance: 30 }));
+  } catch (error) {
+    return isJwksFetchError(error) ? { code: &#39;auth_unavailable&#39;, retryAfterSeconds: 30 } : { code: &#39;invalid_token&#39; };
+  }
+  if (&#39;act&#39; in payload) return { code: &#39;invalid_token&#39; };
+  if (!scopeIncludes(payload.scope, &#39;openid&#39;)) return { code: &#39;invalid_token&#39; };
+  if (typeof payload.sub !== &#39;string&#39; || !payload.sub.startsWith(&#39;user_&#39;)) return { code: &#39;invalid_token&#39; };
+  const clientId = stringClaim(payload.client_id) ?? stringClaim(payload.azp);
+  if (!clientId) return { code: &#39;invalid_token&#39; };
+  return { sub: payload.sub, clientId };
+}
+</code></pre>
+<p>jose caches each remote key set per isolate and refetches on an unknown <code>kid</code>; the prototype measured about 20 µs per verification.</p>
+<p><strong>Previews.</strong> The signer is one preview-only GitHub secret, <code>AGENT_PREVIEW_SIGNING_KEY</code> (RS256 PEM). The deploy job derives its public JWK and uploads it as <code>--var AGENT_PREVIEW_JWKS:&lt;json&gt;</code> beside <code>EMAIL_DELIVERY:disabled</code> (<code>scripts/deploy-cloudflare.sh:168-176</code>). <code>scripts/agent-mcp.mjs mint</code> signs from the same secret with <code>iss = &lt;preview origin&gt;</code>, <code>aud = &lt;preview origin&gt;/mcp</code>, <code>exp ≤ 10 min</code>, and <code>sub</code> set to the seeded E2E account&#39;s WorkOS id (<code>scripts/seed-preview-accounts.mjs:41, 84-90</code>), so CI, a reviewer and William can all mint and the walkthrough proof is reproducible. The verifier trusts that issuer only on a <code>pr-&lt;n&gt;.clarity-video.workers.dev</code> host with the var set; <code>deploy-config.test.sh</code> asserts staging and production never carry it.</p>
+<h3>Connection lifecycle and the revocation rule</h3>
+<p>One row per <code>(workos_user_id, client_id)</code> for the life of the account, unique on that pair. <code>status</code> is <code>active</code>, <code>pending</code> or <code>revoked</code>. Revoke in Settings flips a row to <code>revoked</code>; every later call from that pair is refused at step 5, including a call with a token refreshed an hour later. Re-enable flips it back and stamps <code>enabled_at</code>, so the history stays. Two hosts have no stable client id. ChatGPT uses a per-connection CIMD URL (<code>https://chatgpt.com/oauth/{callback_id}/client.json</code>, because AuthKit does not advertise <code>authorization_response_iss_parameter_supported</code>, research §1) and Cursor&#39;s DCR mints a new id per registration, so removing and re-adding the connector would mint a fresh <code>active</code> pair with no Settings click. Once a user has any <code>revoked</code> row, every unseen pair is therefore inserted <code>pending</code> and refused until the owner approves it in Settings, and a user holds at most ten connections. The WorkOS authorized-application DELETE is not called in v1. Its effect on refresh is undocumented, the id form it accepts is unconfirmed, and the row is the mechanism; it is listed as a flip (§12).</p>
+<p><code>client_name</code> comes from the CIMD document, fetched once at insert with a 3 s timeout and no redirects (the URL is caller-chosen), capped at 64 characters and shown as &quot;named by the client&quot;, never as a headline.</p>
+<p>Bearer identity resolves by <code>workos_user_id</code> only. The cookie callback also links by <code>external_id</code> (<code>R/workos-account-link.ts</code>), so an account whose row carries a different WorkOS id gets <code>no_account</code> from the agent while the browser works. A documented gap; the fix is to reuse the callback&#39;s read-only linking if a user hits it.</p>
+<h3>Migration</h3>
+<pre><code class="language-sql">-- M/0034_agent_access.sql
+-- Agents reach Clarity through /mcp with an AuthKit bearer token. WorkOS holds
+-- the consent; these tables hold what WorkOS cannot for an org-less user: which
+-- client a person connected, whether they revoked, re-enabled or approved it
+-- here, which extra permissions they granted it, every write an agent made, and
+-- the human decisions behind the writes that publish or destroy.
+--
+-- agent_connections is one row per (workos_user_id, client_id) for the life of
+-- the account. A revoked row refuses every token, refreshed or not, until the
+-- owner re-enables it. Once a user has revoked anything, an unseen client lands
+-- pending and waits for the owner. WorkOS&#39;s own revocation is not relied on.
+--
+-- agent_actions is the audit log and the replay store. A replayed request finds
+-- its ok row by (connection_id, idempotency_key) and answers result_json
+-- unchanged; refused and failed rows are audit only. Reads are not recorded.
+-- router.scheduled sweeps rows older than 90 days (previews run no cron).
+--
+-- agent_approvals: pending -&gt; executing (the owner&#39;s click claims the row) -&gt;
+-- approved with result_json, or failed with detail. An executing row older
+-- than 60 s may be re-claimed; every guarded operation converges on re-run.
+-- Expiry is read from expires_at and expired pending rows lapse lazily when the
+-- same request is asked again. A publish is stale when journey_pages.revision
+-- moved; other facts are stale when facts_digest no longer matches.
+--
+-- IF NOT EXISTS throughout: a stack deploy applies this about a minute before
+-- the router that reads it.
+
+CREATE TABLE IF NOT EXISTS agent_connections (
+  id TEXT PRIMARY KEY,                                   -- conn_&lt;uuid&gt;
+  user_id TEXT NOT NULL REFERENCES users(id),
+  workos_user_id TEXT NOT NULL,                          -- the token&#39;s sub
+  client_id TEXT NOT NULL,                               -- the token&#39;s client_id (or azp); a CIMD URL or client_...
+  client_name TEXT,                                      -- named by the client; display only, &lt;= 64 chars
+  status TEXT NOT NULL CHECK (status IN (&#39;active&#39;, &#39;pending&#39;, &#39;revoked&#39;)),
+  leads_contacts INTEGER NOT NULL DEFAULT 0 CHECK (leads_contacts IN (0, 1)),
+  created_at TEXT NOT NULL,
+  last_used_at TEXT,
+  revoked_at TEXT,                                       -- last revoke; kept across re-enable
+  enabled_at TEXT                                        -- last re-enable or pending approval
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS agent_connections_pair ON agent_connections (workos_user_id, client_id);
+CREATE INDEX IF NOT EXISTS agent_connections_user ON agent_connections (user_id, created_at);
+
+CREATE TABLE IF NOT EXISTS agent_actions (
+  id TEXT PRIMARY KEY,                                   -- server-minted uuid
+  connection_id TEXT NOT NULL REFERENCES agent_connections(id),
+  user_id TEXT NOT NULL REFERENCES users(id),
+  operation TEXT NOT NULL,
+  effect TEXT NOT NULL CHECK (effect IN (&#39;write&#39;, &#39;spend&#39;, &#39;publish&#39;, &#39;retract&#39;, &#39;destroy&#39;)),
+  target_id TEXT,
+  idempotency_key TEXT,                                  -- &#39;&lt;operation&gt;:&lt;target_id&gt;:&lt;value&gt;&#39;, when the op has a key
+  input_hash TEXT NOT NULL,                              -- sha256 of the canonical input; never the input
+  outcome TEXT NOT NULL CHECK (outcome IN (&#39;ok&#39;, &#39;refused&#39;, &#39;failed&#39;, &#39;approval_required&#39;)),
+  result_json TEXT,
+  detail TEXT,                                           -- refusal code or error class
+  approval_id TEXT,
+  created_at TEXT NOT NULL,
+  CHECK ((outcome = &#39;ok&#39;) = (result_json IS NOT NULL))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS agent_actions_replay
+  ON agent_actions (connection_id, idempotency_key) WHERE idempotency_key IS NOT NULL AND outcome = &#39;ok&#39;;
+CREATE INDEX IF NOT EXISTS agent_actions_user ON agent_actions (user_id, created_at);
+-- Daily upload and clip budgets count a workspace&#39;s ok rows per operation.
+CREATE INDEX IF NOT EXISTS agent_actions_budget ON agent_actions (user_id, operation, created_at) WHERE outcome = &#39;ok&#39;;
+
+CREATE TABLE IF NOT EXISTS agent_approvals (
+  id TEXT PRIMARY KEY,                                   -- apr_&lt;uuid&gt;; the URL carries it and nothing else
+  connection_id TEXT NOT NULL REFERENCES agent_connections(id),
+  user_id TEXT NOT NULL REFERENCES users(id),
+  operation TEXT NOT NULL,                               -- no CHECK: a new guarded op must not cost a rebuild
+  target_id TEXT NOT NULL,
+  input_json TEXT NOT NULL,                              -- re-parsed with op.input and replayed on approve
+  input_hash TEXT NOT NULL,
+  facts_digest TEXT NOT NULL,                            -- what the owner was shown; approve refuses when it moved
+  status TEXT NOT NULL CHECK (status IN (&#39;pending&#39;, &#39;executing&#39;, &#39;approved&#39;, &#39;denied&#39;, &#39;failed&#39;, &#39;lapsed&#39;)),
+  result_json TEXT,
+  detail TEXT,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  claimed_at TEXT,                                       -- the owner&#39;s Approve click
+  decided_at TEXT,                                       -- terminal
+  CHECK ((status = &#39;pending&#39;) = (claimed_at IS NULL AND decided_at IS NULL)),
+  CHECK (status &lt;&gt; &#39;executing&#39; OR (claimed_at IS NOT NULL AND decided_at IS NULL)),
+  CHECK ((status IN (&#39;approved&#39;, &#39;denied&#39;, &#39;failed&#39;, &#39;lapsed&#39;)) = (decided_at IS NOT NULL)),
+  CHECK (status &lt;&gt; &#39;approved&#39; OR result_json IS NOT NULL)
+);
+
+-- The same connection asking the same thing twice gets the same pending approval.
+CREATE UNIQUE INDEX IF NOT EXISTS agent_approvals_pending
+  ON agent_approvals (connection_id, operation, input_hash) WHERE status IN (&#39;pending&#39;, &#39;executing&#39;);
+CREATE INDEX IF NOT EXISTS agent_approvals_user ON agent_approvals (user_id, status, created_at);
+
+-- The daily generation cap counts a workspace&#39;s jobs since midnight UTC.
+CREATE INDEX IF NOT EXISTS jobs_by_workspace_created ON jobs (kind, workspace_id, created_at);
+</code></pre>
+<p>Then <code>node scripts/generate-d1-row-types.mjs</code> adds the three row types; the <code>clarity/d1-row-types</code> lint keeps every read on them. Timestamps are ISO text like <code>admin_actions</code> (<code>M/0018_access_grants.sql:38-51</code>), which is mirrored and not reused.</p>
+<h3>Approve page and executor</h3>
+<p><code>/approve/:id</code> is an app-shell route rendered by the editor SPA, signed in, open while walled, <code>X-Robots-Tag: noindex</code>, frame-denied. It reads <code>GET /api/agent/approvals/:id</code> (owner must match <code>user_id</code>) and shows server-held facts: operation, target id and kind, bound revision, share state read from D1 at render time, the live pages a video edit would change, a link to <code>/edit/:pageId</code>, the client name. Agent-authored text appears under &quot;Set by the agent&quot;, never as the headline. Approve and Deny are same-origin <code>POST /api/agent/approvals/:id { decision }</code> under the owner&#39;s own cookie session; <code>session.impersonator</code> is refused.</p>
+<p>The handler:</p>
+<ol>
+<li>Row by id; <code>user_id</code> matches; <code>expires_at &gt; now</code>, else 409 <code>expired</code>. Connection still <code>active</code>, else 409 <code>connection_revoked</code>. Rebuild the <code>AgentCaller</code> from a fresh identity read.</li>
+<li>Re-parse <code>input_json</code> with <code>op.input</code> (a 24 h window spans deploys). Recompute <code>op.facts</code>; if <code>digest</code> differs from <code>facts_digest</code>, or for publish <code>journey_pages.revision !== input.revision</code>, answer 409 <code>stale</code> and leave the row pending.</li>
+<li>Entitlement, when <code>entitlementRequired(effect)</code> holds (publish yes; destroy no, because the browser lets a walled account delete, <code>R/trial-wall.ts:220</code>), through the same <code>readWindowTrialOfferWithStripeSync</code> dispatch step 9 calls; 402 <code>access_walled</code> when walled.</li>
+<li>Deny: <code>UPDATE … SET status = &#39;denied&#39;, claimed_at = ?, decided_at = ? WHERE id = ? AND status = &#39;pending&#39;</code>, <code>meta.changes === 1</code> or 409 <code>decided</code>.</li>
+<li>Approve, claim: <code>UPDATE … SET status = &#39;executing&#39;, claimed_at = ? WHERE id = ? AND (status = &#39;pending&#39; OR (status = &#39;executing&#39; AND claimed_at &lt; ?60s_ago))</code>, <code>meta.changes === 1</code> or 409 <code>decided</code>. Two concurrent clicks pass once.</li>
+<li>Run <code>op.run</code> with the connection&#39;s caller and the parsed input. For <code>videos_share_page</code> the run ends with <code>activateJourneyPageShareRoute</code>, so approve means live.</li>
+<li>Record: <code>UPDATE … SET status = &#39;approved&#39;, result_json = ?, decided_at = ? WHERE id = ? AND status = &#39;executing&#39;</code>; on a thrown error <code>status = &#39;failed&#39;, detail = ?</code>. A crash before step 6 leaves <code>executing</code> with no effect, a crash after it leaves <code>executing</code> with the effect done; either way the owner&#39;s next click re-claims after 60 s and the run converges, because <code>publishDraft</code> is idempotent per revision (<code>content-store:297</code>), <code>tombstoneJourneyPage</code> per page, the share page per the 0030 index plus explicit activation, and video edits per manifest digest.</li>
+</ol>
+<p><code>POST /api/agent/approvals/:id</code> is a wall exit by pattern in <code>isWallExit</code> (<code>R/trial-wall.ts:213-227</code>), because step 3 decides by effect. Approvals expire after 24 hours (§12). <code>approvals_get</code> derives <code>expired</code> and <code>stale</code> the same way; <code>executing</code> reads as <code>pending</code>.</p>
+<h3>Settings</h3>
+<p><code>/settings/agents</code> (open while walled, session required) lists connections with client name, status, last use, the <code>leads_contacts</code> toggle and the last ten actions, plus every pending approval with its facts and Approve or Deny, so the owner never needs the agent&#39;s link. API under <code>/api/agent/connections</code>: <code>GET</code>, <code>POST /:id/revoke</code> (a wall exit), <code>POST /:id/enable</code>, <code>POST /:id/approve</code>, <code>PATCH /:id { leadsContacts }</code>. Every non-GET refuses an impersonated session.</p>
+<h3>Origin guard and CORS</h3>
+<p><code>/mcp</code> is in <code>BEARER_PATHS</code> and refuses cookies. <code>OPTIONS /mcp</code> and the metadata paths answer <code>Access-Control-Allow-Origin: *</code>, <code>Allow-Methods: POST, OPTIONS</code>, <code>Allow-Headers: Authorization, Content-Type, Mcp-Protocol-Version, Mcp-Session-Id</code>, <code>Expose-Headers: WWW-Authenticate</code>, no credentials, so <code>*</code> is safe. <code>/api/agent/*</code> keeps <code>buildCorsHeaders</code> (<code>R/router-http.ts:50</code>) and the guard.</p>
+<h2>7. Policy against today&#39;s code</h2>
+<p><strong>Entitlement.</strong> Dispatch step 9 and approve step 3 call <code>readWindowTrialOfferWithStripeSync(env, ownerId, now)</code>. Active trials pass; expired trials are walled on write, spend and publish; reads, retract and destroy stay open as the browser&#39;s GETs, unpublish and DELETE do (<code>R/trial-wall.ts:83-84, 213-227</code>). <code>suspendedAt</code> refuses everything. A test asserts no SQL under <code>R/agent/</code> names <code>access_grants</code> or <code>subscriptions</code>.</p>
+<p><strong>Rate limits.</strong> Two stages on the existing bindings, <code>agent-sub:&lt;sub&gt;</code> before D1 and <code>agent:&lt;connectionId&gt;</code> by effect. DCR re-registration gets a new connection and a new counter, which is why connections are capped at ten and land pending after a revoke.</p>
+<p><strong>Daily generation cap.</strong> <code>JOB_POLICY.journey_page_generation</code> (<code>R/jobs-store.ts:19-23</code>) gains <code>perDay: 66</code>; the other kinds say <code>perDay: null</code>. <code>createJob</code>&#39;s guarded INSERT (<code>:58-63</code>) gains one clause:</p>
+<pre><code class="language-sql">  AND (?10 IS NULL OR (SELECT COUNT(*) FROM jobs
+        WHERE kind = ?2 AND workspace_id = ?3 AND state &lt;&gt; &#39;dead&#39; AND created_at &gt;= ?9) &lt; ?10)
+</code></pre>
+<p>with <code>?9 = Date.UTC(y, m, d)</code> for <code>now</code> and <code>?10 = perDay</code>. Dead rows (a provider 502 that <code>failJob</code> recorded) do not spend the cap. The zero-change path (<code>:66-70</code>) gains one read, so <code>CreateJobOutcome</code> gains <code>{ status: &#39;day_full&#39;; resetsAt: number }</code> and the order is subject running → <code>subject_busy</code>; day count at <code>perDay</code> → <code>day_full</code>; else <code>workspace_full</code>. The browser route (<code>R/journey-page-generation.ts:122-126</code>) maps <code>day_full</code> to <code>429 { reason: &#39;daily_limit&#39; }</code> with <code>Retry-After</code> in seconds to midnight. <code>whoami</code> reports the same count.</p>
+<p><strong>Upload and trim budgets.</strong> Every upload creates a Mux asset with a public playback policy and two static renditions billed as stored minutes (<code>packages/mux/src/client.ts:59-67</code>); every trim creates a clip asset (<code>W/mux-video-clip.ts:222-235</code>). Neither touches the generation cap, so each gets a daily workspace budget counted from <code>agent_actions</code> ok rows: 20 <code>videos_start_upload</code> and 30 <code>videos_edit</code> with <code>set-trim</code> per UTC day (§12). Exposure and spend are separate fields on the operation because a video edit can be both.</p>
+<p><strong>Approvals.</strong> Publish and destroy never run from the agent&#39;s call. One pending or executing row per <code>(connection, operation, input_hash)</code>; expired rows lapse lazily; a deny blocks the same ask for ten minutes; facts carry a digest so the owner approves what they read. Standing publish per connection would be one nullable column, one toggle and one branch at step 12; not built, because a column with no reader is a column with no test.</p>
+<p><strong>Idempotency per operation.</strong> <code>videos_start_upload</code> by <code>clientKey</code> (true replay after #936). <code>videos_finish_upload</code> by <code>videoId</code> through <code>createMuxVideoNode</code>&#39;s own replay. <code>videos_edit</code> by manifest digest. <code>videos_update</code> by an optional <code>idempotencyKey</code> input field (a header is unreachable from a tool call). <code>pages_create</code> by the required caller-minted <code>pageId</code>. <code>pages_generate</code> by <code>jobId</code>. <code>pages_publish</code> by revision. <code>videos_share_page</code> by the 0030 index. <code>pages_delete</code> and <code>videos_delete</code> by approval row. <code>pages_update</code>, <code>pages_set_theme</code> and <code>pages_unpublish</code> carry no key, because the revision CAS and the store&#39;s own idempotence serialize them and a key on <code>baseRevision</code> would refuse a corrected document at the same revision. <code>approval_required</code> outcomes are not replay rows; the ask falls through to step 12.</p>
+<p><strong>Concurrency with the editor.</strong> Every page write is read, modify, <code>saveDraft({ expectedRevision })</code>. On conflict the agent gets <code>stale_revision</code> and re-reads with <code>pages_get</code>; the browser&#39;s 409 carries the current document and merges with <code>mergeDrafts</code> (<code>R/journey-pages-native.ts:336-354</code>), which agents get in a later step. An agent that writes its old document after <code>pages_generate</code> landed erases the generation; the description says to re-read first.</p>
+<p><strong>Prompt injection, the residual risk.</strong> <code>pages_leads</code> and <code>contacts_list</code> return prospect-typed text, off until the owner turns <code>leads_contacts</code> on, wrapped as untrusted. <code>pages_get</code> returns a document that generation filled from pasted contexts and that an earlier agent session may have written, also wrapped. Approval pages show server-held facts and label agent text. What remains is a model that reads a poisoned document and then asks to publish, and a human who clicks without reading. The approval page cannot tell a good publish from a bad one; it makes the decision legible. Caps and budgets bound the spend. This design claims no defense against a human who approves blindly.</p>
+<h2>8. WorkOS spike plan</h2>
+<p>Three parts, each with its own gate. Steps marked W are William&#39;s hands; Part A needs his approval before it starts (§12).</p>
+<p><strong>Part A: auth discovery.</strong> S0 and S1 before PR 1 merges; S2 to S6 on staging after it merges (staging deploys only from main, <code>cloudflare-deploy.yml:455</code>, and PR 1 ships <code>AGENT_AUTH_ISSUER</code> in <code>env.staging.vars</code>).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do</th>
+<th>Success</th>
+<th>Hands</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>S0</td>
+<td><code>curl https://&lt;authkit-domain&gt;/.well-known/oauth-authorization-server</code></td>
+<td><code>jwks_uri</code>, <code>&quot;none&quot;</code> in <code>token_endpoint_auth_methods_supported</code>, CIMD flag recorded</td>
+<td>W names the domain</td>
+</tr>
+<tr>
+<td>S1</td>
+<td>Connect → Configuration: enable CIMD, keep DCR; add Resource Indicator <code>https://staging.clarity.video/mcp</code>; try <code>https://*.clarity-video.workers.dev/mcp</code></td>
+<td>CIMD true; staging indicator listed; wildcard accepted or refused (recorded)</td>
+<td>W</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>PR 1 merges; staging redeploys</td>
+<td>PRM 200 on both paths; bare <code>POST /mcp</code> 401 with <code>resource_metadata</code>; <code>/__deploy-info</code> shows the var</td>
+<td>none</td>
+</tr>
+<tr>
+<td>S3</td>
+<td><code>claude mcp add --transport http clarity-stg https://staging.clarity.video/mcp</code> as the staging test account (org-less)</td>
+<td>consent once; <code>whoami</code> returns that owner id; claims recorded (<code>sub</code>, <code>aud</code>, <code>client_id</code> or <code>azp</code>, <code>scope</code>, <code>act</code> absent). No client claim fails the spike</td>
+<td>W&#39;s browser</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>claude.ai custom connector, ChatGPT developer mode, Codex, Cursor</td>
+<td>each reaches <code>whoami</code>; CIMD vs DCR and the ChatGPT callback-id form recorded</td>
+<td>W for claude.ai and ChatGPT</td>
+</tr>
+<tr>
+<td>S5</td>
+<td><code>GET /user_management/users/{sub}/authorized_applications</code></td>
+<td>CIMD and DCR clients listed or not (recorded); no DELETE in v1</td>
+<td>none (API key on stdin)</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>Idle a host 70 minutes, call again</td>
+<td>refreshed silently or re-prompted (recorded)</td>
+<td>none</td>
+</tr>
+</tbody></table></div>
+<p>If the wildcard in S1 is accepted, previews also support real OAuth for manual checks (<code>AGENT_AUTH_ISSUER</code> set on previews on purpose) while CI keeps the synthetic signer.</p>
+<p><strong>Part B: upload probe</strong>, after PR 3 merges. S7 runs the walkthrough with a 2 GB file against staging from Claude Code&#39;s and Codex&#39;s shell tools, not a terminal, with detached curl as the instructions say. Success is <code>videos_get</code> reaching <code>ready</code> and the elapsed time recorded. If Mux refuses a single whole-body PUT, a 60-line <code>npx</code> byte mover reusing the browser&#39;s chunk loop ships in its own PR.</p>
+<p><strong>Part C: production</strong>, after PR 5 merges and revocation, pending connections and approvals work on staging. S8 (W) asks WorkOS whether MCP auth sits in the free AuthKit tier. S9 (W) adds <code>https://clarity.video/mcp</code> as a Resource Indicator. PR 8 puts <code>AGENT_AUTH_ISSUER</code> in <code>env.production.vars</code>, merged in the 02:00 to 06:00 UTC night window because main auto-deploys.</p>
+<p><strong>Fallback ladder</strong> if S3 fails for an org-less user. First, Clarity-issued personal tokens. <code>/settings/agents</code> mints <code>agt_…</code>, stored as a sha256 hash in a new nullable column on <code>agent_connections</code> and accepted by hash lookup in <code>caller.ts</code>; a day, covering Claude Code, Codex and Cursor. Second, for claude.ai and ChatGPT, a Clarity-hosted authorization server (<code>@cloudflare/workers-oauth-provider</code>). That is issuance, registration, refresh, consent, metadata and storage, a separately estimated design, not a one-file change.</p>
+<h2>9. Build plan</h2>
+<p>Each step is one PR against main, verified on its PR preview (migrations rehearse there since #942; previews redeploy on every push). Generation is proven on staging after merge. Sizes are pipeline days: typing, Gate 0, the review loop, preview verify-loop and the merge gate (<code>docs/agents/pipeline.md</code>).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>PR</th>
+<th>Size</th>
+<th>Tests</th>
+<th>Preview check</th>
+<th>Blocked by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Door. <code>zod/mini</code> and <code>jose</code> (lockfile makes the merge a stack deploy; say so); <code>AGENT_AUTH_ISSUER</code> in <code>env.staging.vars</code>; <code>AGENT_PREVIEW_SIGNING_KEY</code> to JWK var in <code>cloudflare-deploy.yml</code>, <code>deploy-cloudflare.sh</code>, <code>deploy-pr-preview.sh</code>, and the var deleted in <code>preview-wrangler-config.mjs</code>; PRM both paths; <code>/mcp</code> 2025-xx lane with text content blocks; <code>caller.ts</code> (one key set per issuer, <code>act</code> and scope checks, 503 on JWKS failure); limiter stage one; <code>whoami</code> without <code>limits</code>; <code>BEARER_PATHS</code>; CORS; <code>scripts/agent-mcp.mjs</code> conformance and mint</td>
+<td>3</td>
+<td>jose matrix (wrong <code>iss</code>, wrong <code>aud</code>, expired, <code>HS256</code>, <code>act</code> present, cookie present, preview token claiming the WorkOS issuer); JWKS failure 503; both lanes against <code>worker.fetch</code>; batch array -32600; origin guard still 403s a foreign-Origin POST to <code>/api/journey-pages</code>; <code>deploy-config.test.sh</code> forbids the preview var outside previews</td>
+<td>mint a token, <code>tools/list</code> and <code>whoami</code>; bare POST shows the 401 header</td>
+<td>S0, S1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Rows and reads. Migration 0034, row types; connection insert with pending rule and cap; dispatch steps 1 to 14 with scoped replay and server ids; <code>policy.ts</code> (walled cache, budgets); <code>sweep.ts</code> in <code>router.scheduled</code>; <code>library_list</code>, <code>videos_get</code>, <code>pages_get</code>, <code>pages_stats</code>, <code>pages_leads</code>, <code>contacts_list</code> (lifted), <code>approvals_get</code>; connections API</td>
+<td>5</td>
+<td>policy matrix on <code>createSqliteAuthDb()</code> (entitled, walled, suspended, revoked, pending, re-enabled) × (read, write, retract); <code>permission_required</code> until toggled; replay same and different hash, failed row does not block retry, two pages at revision 3 do not collide; revoked pair refuses a refreshed token; unseen client after a revoke lands pending; eleventh connection refused; impersonated non-GET refused; Stripe throw is 503; no entitlement SQL under <code>R/agent/</code></td>
+<td>conformance lists the seeded Library; revoke, pending, enable through the API</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Video path and the lever. <code>videos_start_upload</code>, <code>videos_finish_upload</code>, <code>videos_update</code>, <code>videos_edit</code> through <code>handleBrowserRequest</code>; upload and clip budgets; <code>scripts/agent-mcp.mjs walkthrough</code> (start → detached PUT of a 3 MB fixture → finish → <code>videos_get</code> with wait → asserts <code>ready</code>)</td>
+<td>3.5 (3 if #936 is in)</td>
+<td>both answer shapes; 409 mapping; <code>videoId</code> is the upload id; <code>videos_get</code> settles on first and last poll only; 21st upload of the day refused</td>
+<td>walkthrough against the preview with the staging Mux credentials</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Pages. <code>pages_create</code> (lift <code>insertNewJourneyPage</code>), <code>pages_update</code>, <code>pages_set_theme</code>, <code>pages_generate</code> with <code>startGeneration</code>, <code>perDay</code> and the <code>leaseJob</code> handoff, <code>pages_generation_status</code>, <code>pages_unpublish</code>; browser <code>429 daily_limit</code>; editor copy</td>
+<td>4</td>
+<td><code>day_full</code> at 66 under concurrent inserts, across midnight, dead rows not counted; <code>day_full</code> vs <code>workspace_full</code> vs <code>subject_busy</code> order; a model fake sleeping 75 s returns <code>running</code> and the job lands through <code>resumeAbandonedJobs</code>; <code>readJob</code> refuses another page&#39;s job; <code>pages_create</code> replay by <code>pageId</code>; theme clears hero <code>ctaColor</code>; unpublish, publish, unpublish leaves the route inactive</td>
+<td>walkthrough through theme and unpublish; <code>pages_generate</code> answers the 503 refusal on the preview; staging proves a landed revision after merge</td>
+<td>3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Approvals and the human side. <code>pages_publish</code>, <code>videos_share_page</code>, <code>pages_delete</code>, <code>videos_delete</code> (main-branch tombstone), <code>liveExposure</code> on <code>videos_edit</code> and <code>videos_update</code>; <code>/approve/:id</code> route, API, executor with claim state; <code>/settings/agents</code> with pending approvals; open-while-walled predicate and wall-page link; wall exits</td>
+<td>6</td>
+<td>two concurrent approves execute once; crash before effect and crash after effect both re-claim after 60 s and converge; expired lapses on re-ask; stale revision and stale digest refuse; deny blocks ten minutes; foreign owner 404; impersonated refused; walled owner approves a delete and is refused a publish; live page makes <code>videos_edit</code> an approval; <code>videos_share_page</code> on a live page needs no approval and its approved run activates the route; table test: every publish/destroy op has <code>facts</code> and never runs from dispatch, <code>destructiveHint</code> per op</td>
+<td>walkthrough ends with <code>pages_publish</code>, logs in as the seeded account via <code>POST /auth/password</code>, approves, <code>GET /page/&lt;shareId&gt;</code> 200 with the hero title; then <code>videos_edit</code> on that video returns <code>approval_required</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Docs and the verification surface. <code>features/agent-mcp.md</code>, CONTEXT.md, ARCHITECTURE.md, SECURITY.md, DEPLOY.md; connector <code>instructions</code> against both directories; the annotation table test rides here so CI runs</td>
+<td>1</td>
+<td>annotation and name-pattern table test</td>
+<td>conformance green</td>
+<td>5</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Remote-host handoff <code>/upload/:videoId</code> over the <code>videos</code> row&#39;s <code>upload_url</code></td>
+<td>3 (1.5 if #936 is in)</td>
+<td>foreign owner 404; no row 404</td>
+<td>claude.ai agent calls <code>videos_start_upload</code>, the human drops a file on the page, <code>videos_get</code> reaches <code>ready</code></td>
+<td>3, #936</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Production enablement: <code>AGENT_AUTH_ISSUER</code> in <code>env.production.vars</code></td>
+<td>0.5</td>
+<td><code>deploy-config.test.sh</code></td>
+<td>none; merged in the night window after S9</td>
+<td>5, Part C</td>
+</tr>
+</tbody></table></div>
+<p>Total 26 pipeline days, 24 if #936 lands before steps 3 and 7. Part A of the spike runs between PRs 1 and 3.</p>
+<h2>10. Draft Linear briefs under WIL-3245</h2>
+<p>Drafts. Nothing was filed; no label is applied until William reads them. PRs 1, 2, 5 and 8 change auth policy, which the merge rule says needs explicit approval, so they route <code>steer</code> unless William records approval of this design on WIL-3245, in which case they route <code>auto</code>.</p>
+<p><strong>Agent 1: AuthKit bearer door at /mcp.</strong> Why: no agent host can hold a Clarity cookie and the router verifies no JWT. Scope: <code>zod/mini</code>, <code>jose</code>; <code>AGENT_AUTH_ISSUER</code> in <code>wrangler.jsonc</code> <code>env.staging.vars</code>; preview signer plumbing in <code>.github/workflows/cloudflare-deploy.yml</code>, <code>scripts/deploy-cloudflare.sh</code>, <code>scripts/deploy-pr-preview.sh</code>, <code>scripts/preview-wrangler-config.mjs</code>, <code>scripts/deploy-config.test.sh</code>; PRM both paths; <code>/mcp</code> 2025-xx lane with text blocks; <code>caller.ts</code>; limiter stage one; <code>whoami</code> (identity only); <code>BEARER_PATHS</code>; CORS; <code>scripts/agent-mcp.mjs</code>. Acceptance: a minted preview token reaches <code>whoami</code>; bearer plus cookie is 401; no token is 401 with <code>resource_metadata</code>; a JWKS outage is 503; a preview token claiming the WorkOS issuer is refused; bundle grows under 30 KB gzip. Verify on preview: <code>scripts/agent-mcp.mjs conformance</code>. Size 3 d. Blocked by: S0, S1. Merge routing: steer. Note: stack deploy (lockfile); the staging door opens on merge.</p>
+<p><strong>Agent 2: connections, audit, policy dispatcher, read operations.</strong> Why: every agent write needs a record, a replay rule and a revocation rule before the first write ships. Scope: migration 0034, row types, the dispatcher, <code>policy.ts</code>, the 90-day sweep, seven read ops with <code>leads_contacts</code> gating, connections API with pending approval. Acceptance: policy matrix green; a revoked pair refuses a refreshed token; an unseen client after a revoke lands pending; replay never collides or blocks a retry after a failure; impersonated non-GET refused. Verify on preview: conformance lists the Library; revoke, pending, enable through the API. Size 5 d. Blocked by: Agent 1. Merge routing: steer.</p>
+<p><strong>Agent 3: upload a local video to Mux and wait for ready.</strong> Why: the first slice that proves bytes reach Mux without passing through Clarity. Scope: four video ops through <code>handleBrowserRequest</code>, budgets, walkthrough mode. Acceptance: a 3 MB fixture reaches <code>ready</code> on a preview in under three minutes; a replayed finish answers the same video; the 21st upload of the day is refused. Verify on preview: the walkthrough. Size 3.5 d. Blocked by: Agent 2. Merge routing: auto.</p>
+<p><strong>Agent 4: create, generate, theme, update and unpublish pages; the daily cap.</strong> Why: the page is the product, and people and agents share one spend limit. Scope: six page ops, lifted <code>insertNewJourneyPage</code> and <code>startGeneration</code>, <code>perDay: 66</code> with <code>day_full</code>, <code>leaseJob</code> handoff, browser <code>429 daily_limit</code>. Acceptance: a page created from a video renders the hero; the 67th generation refuses for browser and agent alike; a 75 s model answer returns <code>running</code> and the job lands through the cron; unpublish, publish, unpublish leaves the route inactive. Verify: walkthrough on the preview; generation on staging after merge. Size 4 d. Blocked by: Agent 3. Merge routing: auto.</p>
+<p><strong>Agent 5: approvals, publish, share page, delete, live-media edits, Settings.</strong> Why: every public URL, deletion and change to public media an agent asks for passes a human, exactly once. Scope: four gated ops, <code>liveExposure</code>, approve route and executor with claim state, Settings with pending approvals, open-while-walled predicate, wall exits. Acceptance: a URL only after Approve; two concurrent approves publish once; a crash on either side of the effect converges on re-claim; a moved draft or changed facts make the approval stale; a walled owner reaches the page and can approve a delete but not a publish; a trim on a video used by a live page needs approval. Verify: walkthrough with the seeded account&#39;s session, then the public page 200. Size 6 d. Blocked by: Agent 4. Merge routing: steer.</p>
+<p><strong>Agent 6: docs, verify-loop feature, directory conformance test.</strong> Why: the repo keeps no ADRs and docs-only PRs run no CI. Scope: the §11 entries, <code>features/agent-mcp.md</code> and its table row, the connector <code>instructions</code>, the annotation table test. Acceptance: every operation has a title, explicit boolean annotations and a name matching the pattern; SECURITY.md invariant 12 covers live-media edits; the feature file drives the walkthrough. Verify on preview: conformance green. Size 1 d. Blocked by: Agent 5. Merge routing: auto.</p>
+<p><strong>Agent 7: upload handoff page for remote hosts.</strong> Why: claude.ai and ChatGPT hold no file. Scope: <code>/upload/:videoId</code>, signed-in owner, reads the <code>videos</code> row&#39;s <code>upload_url</code>, runs the editor&#39;s chunked uploader; <code>handoffUrl</code> in <code>videos_start_upload</code>&#39;s answer once the row exists at grant. Acceptance: a file dropped there reaches <code>ready</code> for the agent&#39;s <code>videoId</code>; a foreign owner and a missing row 404. Verify on preview: <code>videos_start_upload</code> from a remote host, drop a file, <code>videos_get</code> reaches <code>ready</code>. Size 3 d. Blocked by: Agent 3, WIL-3494 PR 5 (#936). Merge routing: auto.</p>
+<p><strong>Agent 8: enable on production.</strong> Why: ship. Scope: <code>AGENT_AUTH_ISSUER</code> in <code>env.production.vars</code>, merged in the night window after S9. Acceptance: William&#39;s Claude Code publishes a page through an approval on <code>clarity.video</code>. Size 0.5 d. Blocked by: Agent 5, spike Part C. Merge routing: steer.</p>
+<h2>11. Where decisions are recorded</h2>
+<p>The repo keeps no ADRs (AGENTS.md), so each decision lands where the code or the owner meets it.</p>
+<ul>
+<li><p><strong>Linear.</strong> The eight briefs as children of WIL-3245; William&#39;s answers to §12 as comments on the parent; a comment on WIL-3401 recording the new column values.</p>
+</li>
+<li><p><strong>Code comments.</strong> The dispatcher order at the top of <code>dispatch.ts</code>; the header of <code>M/0034</code>; the <code>BEARER_PATHS</code> comment; the &quot;before /api/admin&quot; comment; the bundle numbers in <code>mcp.ts</code>; the 30 s <code>waitUntil</code> rule at the <code>leaseJob</code> call.</p>
+</li>
+<li><p><strong>Tests and lint.</strong> The policy matrix; the executor&#39;s crash tests; the replay collision tests; the directory table test (title, annotations, name pattern, <code>destructiveHint</code> per op, every publish/destroy op has <code>facts</code> and never runs from dispatch, a <code>write</code> op never yields a share route); the no-entitlement-SQL test; the bearer-plus-cookie 401; <code>deploy-config.test.sh</code> on the preview var.</p>
+</li>
+<li><p><strong>CONTEXT.md</strong>, in the glossary form:</p>
+<p><strong>Agent Connection</strong>:
+A person&#39;s link between one agent client (Claude Code, claude.ai, ChatGPT, Codex, Cursor) and their Clarity account, created at the client&#39;s first verified call, revocable and re-enablable from Settings, pending the owner&#39;s approval once anything has been revoked, and carrying the extra permissions the owner granted it.
+<em>Avoid</em>: integration, API key, grant</p>
+<p><strong>Operation</strong>:
+One named thing an agent can ask Clarity to do, with a typed input and one effect class. The MCP tool list is the operation registry.
+<em>Avoid</em>: endpoint, tool (except when speaking about MCP&#39;s wire format)</p>
+<p><strong>Effect class</strong>:
+What an Operation does to what prospects can see: read, write, spend, publish, retract or destroy. It decides entitlement, the rate tier and whether a human must approve. A write that changes media a live page serves counts as publish.
+<em>Avoid</em>: scope, permission level</p>
+<p><strong>Approval</strong>:
+A Clarity User&#39;s one-time yes to a specific agent Operation that publishes or destroys, given on the Approve page or in Settings and executed by the server exactly once with the input the agent sent.
+<em>Avoid</em>: confirmation, grant, consent (the AuthKit screen)</p>
+<p><strong>Daily generation cap</strong>:
+The number of AI generations one Workspace may start in a UTC day, people and agents counted together, enforced where the job is created. Failed attempts do not count.
+<em>Avoid</em>: agent quota, token budget</p>
+<p>The root-namespace bullet (<code>CONTEXT.md:160</code>) gains <code>/mcp</code> and <code>/.well-known</code> to the reserved prefixes and <code>/approve/:id</code>, <code>/settings/agents</code>, <code>/upload/:videoId</code> to the app list.</p>
+</li>
+<li><p><strong>ARCHITECTURE.md.</strong> Topology adds <code>/mcp</code>; &quot;Who owns what&quot; gains the three tables; the code map gains <code>Agent access | workers/frontend-router/src/agent/</code>; rule 2 gains &quot;a bearer token is resolved to the same identity value, and router code reaches the Library only through <code>library.ts</code>&quot;.</p>
+</li>
+<li><p><strong>docs/SECURITY.md.</strong> Invariant 12: &quot;Agent calls carry an AuthKit bearer and never a cookie. <code>/mcp</code> refuses a request with both, verifies RS256 against one issuer&#39;s JWKS with audience pinned, refuses impersonation (<code>act</code>) tokens, maps <code>sub</code> to an account, and never exchanges the token for a session. No bearer-authenticated path publishes a page, deletes, or changes media a live page serves; a human&#39;s session does.&quot; Open work gains the <code>external_id</code> gap. The security-scan catalog gains a check on <code>BEARER_PATHS</code> and on <code>clarity_session</code> under <code>R/agent/</code>.</p>
+</li>
+<li><p><strong>DEPLOY.md.</strong> <code>AGENT_AUTH_ISSUER</code> per environment in <code>wrangler.jsonc</code>, the dashboard steps, <code>AGENT_PREVIEW_SIGNING_KEY</code> and the JWK var, the stack-deploy note for PR 1, the night-window note for PR 8.</p>
+</li>
+<li><p><strong>verify-loop.</strong> <code>features/agent-mcp.md</code> with <code>scripts/agent-mcp.mjs</code> as the driving recipe, and a row in the features README.</p>
+</li>
+</ul>
+<h2>12. Defaults awaiting William</h2>
+<p>Each is built as stated. Each flip is named.</p>
+<ol>
+<li><strong>The WorkOS auth discovery runs on staging only and needs your approval before it starts.</strong> Default, awaiting William. Why: staging shares the WorkOS environment with production, and S1 and S9 change the dashboard. Flip: say go; or name a different account for S3.</li>
+<li><strong>Every publish, share-page creation, delete, and edit to a video a live page uses needs an approval; editing a draft page needs none.</strong> Default, awaiting William. Why: a draft page never reaches a prospect until a new publish, but a video edit changes what a live page plays at once (<code>block-media.ts:86-96</code>). Flip to standing publish per connection: a nullable <code>standing_publish_at</code> column, a toggle, one branch at dispatch step 12.</li>
+<li><strong>&quot;Put together&quot; means trim, a share page, and a Journey Page around one video; no stitching.</strong> Default, awaiting William. <code>videos_share_page</code> is in v1 with effect <code>publish</code>; <code>pages_create</code> takes one optional <code>videoId</code>. Flip: a <code>videoIds</code> array on <code>pages_create</code>.</li>
+<li><strong>Agent access follows the browser&#39;s entitlement rules.</strong> Default, awaiting William. Flip to an agent-only tier with one branch in <code>decideEntitlement</code>, never in the dispatcher.</li>
+<li><strong>One generation cap per workspace, people and agents together, 66 per UTC day, counting generations that did not die.</strong> Default, awaiting William. Why 66: prod RUM <code>ai_generate</code> over 90 days peaks at 22 attempts in one day across all accounts combined (2026-08-13; next 15 on 2026-09-03), so the heaviest single user&#39;s busiest day is at most 22 and three times that is 66. The 22 is an upper bound because RUM points carry no workspace id. Flip: one constant; add <code>workspaceId</code> to the point for a per-user figure.</li>
+<li><strong>Leads and contacts sit behind a per-connection permission that starts off.</strong> Default, awaiting William. Flip: default the column to 1, or cut <code>pages_leads</code>, <code>contacts_list</code>, the column, the toggle and the lift (about a day; the hosts critic&#39;s recommendation).</li>
+<li><strong>Custom connector only in v1; names and annotations already follow both directories&#39; rules.</strong> Default, awaiting William. Flip: a directory submission is a form plus test credentials; confirm the Claude rule on AI-generated media does not read on <code>pages_generate</code>.</li>
+<li><strong>Upload budget 20 and trim budget 30 per workspace per UTC day, counted on agent actions only.</strong> Default, awaiting William. Why: each upload stores an asset with two renditions and each trim stores a clip; neither touches the generation cap. Flip: two constants in <code>policy.ts</code>; or count browser uploads too through a <code>videos</code>-row count.</li>
+<li><strong>After any revoke, an unseen client lands pending until approved in Settings; at most ten connections per user.</strong> Default, awaiting William. Why: ChatGPT and Cursor mint new client ids, so a bare pair rule can be re-registered around. Flip: insert <code>active</code> always, or make every first connection pending.</li>
+<li><strong>The WorkOS authorized-application DELETE is not called on revoke.</strong> Default, awaiting William. Why: its effect on refresh is undocumented, the id form is unconfirmed, and the row is the mechanism. Flip: one best-effort call in <code>connections-api.ts</code> with <code>WORKOS_API_KEY</code>, verified in S5.</li>
+<li><strong>Approval window 24 hours; a denied ask is blocked for 10 minutes.</strong> Default, awaiting William. Flip: two constants.</li>
+<li><strong><code>pages_create</code> from a video does not claim <code>source_video_id</code>.</strong> Default, awaiting William. Why: that column means &quot;the recorder&#39;s own page for this take&quot; (0030). Flip: a <code>claimAsSharePage</code> flag.</li>
+<li><strong>Previews carry a synthetic signer from a GitHub secret.</strong> Default, awaiting William. Flip: if the S1 wildcard is accepted, drop the signer and verify previews with real OAuth.</li>
+<li><strong>No <code>outputSchema</code> in v1; <code>stale_revision</code> carries the revision only.</strong> Default, awaiting William. Flip: output schemas that include <code>Refusal</code>; the current document on <code>stale_revision</code> (up to 8k tokens per conflict); or server-side <code>mergeDrafts</code> for agent edits as its own step.</li>
+</ol>
+<h2>13. Alternatives considered</h2>
+<ul>
+<li><strong>The MCP SDK or Cloudflare&#39;s <code>agents</code> package.</strong> +57% and +45% gzip, the latter pinned to an old server package.</li>
+<li><strong>A bearer on the existing <code>/api/*</code> routes.</strong> <code>Request</code>-shaped handlers, a path-list wall, no per-operation effect, billing and admin one header away.</li>
+<li><strong>A Clarity-owned OAuth server from day one.</strong> Owning issuance, refresh, registration abuse and consent UI for users who already have AuthKit. Kept as the remote-host fallback.</li>
+<li><strong>A separate <code>/mcp</code> Worker.</strong> The router already runs the Library in-process.</li>
+<li><strong>One <code>execute(code)</code> tool.</strong> Rejected by both directories.</li>
+<li><strong>Access levels at consent.</strong> CIMD and DCR clients cannot carry per-client scopes (422).</li>
+<li><strong>Approval as a token the agent re-sends.</strong> More states, an agent holding a credential, a race the human cannot see.</li>
+<li><strong>A draft video version bound to the publication.</strong> Would let trims stay drafts until publish, at the cost of a new Mux asset lifecycle and a change to how public pages resolve media; the promoted-effect rule gets the same safety with one query.</li>
+<li><strong>Cutting the catalog to 13 (hosts critic).</strong> Not taken whole, because default 3 includes trim and the share page, default 2 implies delete exists, and stats is the &quot;read stats&quot; leg of WIL-3245. Leads and contacts are the cheapest cut (§12.6).</li>
+<li><strong>Both protocol lanes now.</strong> No host sends <code>server/discover</code>.</li>
+<li><strong>Reusing <code>admin_actions</code>.</strong> Its CHECK demands a target account.</li>
+<li><strong>Landing WIL-3401 first.</strong> Blocks agent access on a migration nobody has started.</li>
+</ul>
+<h2>14. Risks and unverified items</h2>
+<ul>
+<li>An org-less AuthKit user completing the MCP consent flow is documented by implication, never exercised live; no host has been exercised before S3 (the prototype&#39;s client was the Inspector CLI).</li>
+<li>Whether Connect tokens carry <code>client_id</code> or <code>azp</code>. Neither is a spike failure.</li>
+<li>Whether the <code>*.clarity-video.workers.dev</code> wildcard indicator is accepted.</li>
+<li>Mux&#39;s maximum single-PUT size and host shell timeouts (Part B).</li>
+<li>The audit row lands after the effect; a crash loses one row and every keyed write converges.</li>
+<li><code>videos_start_upload</code> on main is not idempotent; a retry mints a stray Mux upload that times out in 13 hours. Gone when #936 lands.</li>
+<li><code>clipPending</code> tells the agent a trim is still rendering, but nothing stops it publishing before the clip is ready; the page plays the source until then.</li>
+<li>The preview signer is production code that trusts a non-WorkOS key on <code>pr-N</code> hosts, bounded by the host regex, the var, per-PR databases and <code>deploy-config.test.sh</code>.</li>
+<li>Generation cannot be proven on a PR preview; staging after merge is the proof.</li>
+<li><code>pages_get</code> with <code>includeDocument</code> on a large page may exceed Claude Code&#39;s 25,000-token result cap. Default off.</li>
+<li>Bearer identity resolves by <code>workos_user_id</code> only (§6).</li>
+<li><code>livePagesUsingVideo</code> scans the owner&#39;s published documents for the video id, a few hundred rows per edit for a heavy owner.</li>
+<li>The prompt-injection residual (§7) is a human-factors risk no mechanism here removes.</li>
+<li>The +7% bundle delta assumes the router did not grow since the prototype measured it at 409 KB gzip.</li>
+</ul>
+<h2>15. Synthesis record</h2>
+<p><strong>Base.</strong> Candidate 1 (judge total 24 of 30; C2 22, C3 19, C4 21). Kept: registry with an effect class, <code>AgentCaller</code> with no role or org fields, hand-rolled <code>/mcp</code> with zod/mini and jose, AuthKit as authorization server, server-executed approvals from stored <code>input_json</code>, atomic daily cap inside <code>createJob</code>, door-first build order, <code>agent_actions</code> as the replay store, underscore tool names (Claude&#39;s pattern forbids dots).</p>
+<p><strong>Grafts.</strong> From candidate 2: <code>/mcp</code> refuses any request carrying <code>clarity_session</code> with the bearer-plus-cookie test; <code>azp</code> fallback; the test that no SQL under <code>R/agent/</code> names <code>access_grants</code> or <code>subscriptions</code>; <code>status</code> on connections. From candidate 3: the RFC 9728 path form; publish approvals bound to the revision; the 2 GB single-PUT probe; the conformance script; the preview-only issuer; <code>AGENT_AUTH_ISSUER</code>. From candidate 4: approvals decided through a same-origin <code>POST /api/agent/approvals/:id</code> under the human&#39;s cookie session with entitlement re-checked; <code>/approve/:id</code> via <code>isSingleSegmentRoute</code>; <code>target_id</code> on approvals. From the judge: one row per <code>(workos_user_id, client_id)</code> and the revocation rule; the <code>day_full</code> third read; the &quot;before /api/admin&quot; comment; server-held facts and labelled agent text; untrusted lead text. From the coordinator&#39;s addendum: <code>retract</code>; <code>videos_share_page</code>; <code>pages_leads</code> and <code>contacts_list</code> behind <code>leads_contacts</code>; perDay 66; no migration preview gate; spike on staging after merge.</p>
+<p><strong>Rejections.</strong> C1&#39;s partial unique index, &quot;revoke then reconnect makes a new row&quot;, preview trick <code>aud === WORKOS_CLIENT_ID</code>, and server-rendered <code>/connect/*</code> pages. C2&#39;s single-batch writes, approval-as-token, <code>pages_edit_blocks</code>, <code>pages_list</code>, <code>videos_list</code> and HTTP RPC. C3&#39;s <code>iat</code>-revive revocation, dotted names and missing dedupe index. C4&#39;s <code>CHECK</code> on <code>agent_approvals.operation</code>, stored <code>expired</code> status, non-atomic budget SELECT, <code>AI_DAILY_GENERATION_CAP</code> var, <code>handoffUrl</code> before a row exists, and HTTP-status refusals inside <code>tools/call</code>.</p>
+<p><strong>Deviation from a lead decision, stated.</strong> Lead decision 6 puts the approve POST behind the trial wall. The browser lets a walled account delete (<code>R/trial-wall.ts:220</code>) and decision 4 says agents follow the browser, so the approve POST is a wall exit by pattern and the handler calls the dispatcher&#39;s <code>entitlementRequired(effect)</code> with the same Stripe-synced read. Publish is still refused when walled.</p>
+<p><strong>Convergence.</strong> All four candidates chose the registry with an effect class, the hand-rolled transport, AuthKit, the cap in or beside <code>createJob</code>, auto-created connections, and the registry staying separate from WIL-3401&#39;s table.</p>
+<p><strong>Verification.</strong> Every file:line was opened in the snapshot at <code>1a5e996e1</code>. Lines that moved since the candidates wrote against <code>20400b43</code>: <code>index.ts</code> placements (138, 197, 226), <code>createJob</code> INSERT (58-63) and zero-change path (66-70), <code>publishJourneyPage</code> (73) and <code>unpublishJourneyPage</code> (88), <code>resolveJourneyPageShareRoute</code> (90), <code>findIdentityByWorkosUserId</code> (184, a store method on <code>createAuthAccountMappingStore</code>), <code>readSpineEntitlementInput</code> (50), <code>BROWSER_VIDEO_METADATA_FIELDS</code> (257), <code>MUX_DISCARD_RUNNER</code> (46), <code>handleCreateMuxUploadRoute</code> (64), <code>handleCreateMuxVideoRoute</code> (114). <code>journeyPageHasProspectContent</code> is in <code>D/publish-readiness.ts:25</code>. <code>fetchLegacyContactSnapshots</code> is module-private (<code>R/contacts-api.ts:164</code>). <code>W/video-grant.ts</code> does not exist on main; it is #936.</p>
+<h2>Critic round</h2>
+<p>Reviewers: security, build plan, hosts and ergonomics, data and policy (each Fable 5.1), and one all-lens cross-family seat (GPT-6 Astra via Codex). Lead verdict in <code>critics/lead-verdict.md</code>; evidence in the five critic files.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Seats</th>
+<th>What changed</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Approval executor fails its own CHECK; run-first or drop-the-CHECK both break exactly-once</td>
+<td>data, astra (reproduced in SQLite)</td>
+<td><code>executing</code> claim state, <code>claimed_at</code>, 60 s re-claim, <code>failed</code> outcome, three crash tests</td>
+</tr>
+<tr>
+<td>Replay keys collide across pages and operations; failed rows block retries; JSON-RPC ids as primary keys</td>
+<td>all five</td>
+<td>Keys <code>${operation}:${target}:${value}</code>, success-only partial index, server uuids, <code>pages_update</code> and <code>pages_set_theme</code> keyless, <code>pageId</code> required on create, <code>idempotencyKey</code> input field replaces the header</td>
+</tr>
+<tr>
+<td><code>waitUntil</code> ends 30 s after the response; long generations run twice</td>
+<td>hosts, astra</td>
+<td>Measured max 27.3 s; keep the 45 s await, <code>leaseJob(now)</code> on loss, <code>checkAfterSeconds</code>, 75 s fake test</td>
+</tr>
+<tr>
+<td>Video edits change public media without approval</td>
+<td>security, astra</td>
+<td><code>liveExposure</code> promotes <code>videos_edit</code> and <code>videos_update</code> to <code>publish</code> when a live page uses the video; SECURITY.md sentence corrected</td>
+</tr>
+<tr>
+<td><code>videos_share_page</code> returns a dead URL and re-asks for a live page; facts unbound for video ops</td>
+<td>data, astra, security</td>
+<td>Explicit route activation; live page answers without approval; <code>facts_digest</code> and stale check; <code>input_json</code> re-parsed</td>
+</tr>
+<tr>
+<td>Expired pending approvals block re-asks</td>
+<td>astra</td>
+<td>Lazy <code>lapsed</code> in the find-or-insert batch; 10 min deny cooldown</td>
+</tr>
+<tr>
+<td>Unstable client ids defeat revocation; <code>unknown</code> bucket merges permissions</td>
+<td>hosts, astra</td>
+<td>Pending rule after any revoke, cap of ten, no claim is a spike failure, <code>enabled_at</code></td>
+</tr>
+<tr>
+<td>Walled owner cannot reach the approve or Settings screens</td>
+<td>security</td>
+<td>Open-while-walled shell predicate, wall-page link</td>
+</tr>
+<tr>
+<td>Impersonators can enable connections; <code>act</code> tokens accepted; JWKS failure answers 401; merged key sets</td>
+<td>security</td>
+<td>Non-GET refusals, <code>act</code> and scope checks, 503 with <code>Retry-After</code>, one key set per unverified <code>iss</code></td>
+</tr>
+<tr>
+<td>No cost controls on Mux; limiter after D1; <code>videos_get</code> hammers Mux</td>
+<td>security, hosts, astra, data</td>
+<td>Two-stage limiter, upload and trim budgets, settle on first and last poll only</td>
+</tr>
+<tr>
+<td>Dashboard var is wiped by the next deploy; only CI can mint a preview token; sweep has no owner; preview inherits production vars</td>
+<td>build</td>
+<td>Var in <code>wrangler.jsonc</code>; signer from a GitHub secret; sweep in PR 2; generator deletes the var; <code>whoami</code> without <code>limits</code> in PR 1</td>
+</tr>
+<tr>
+<td>Video ops import <code>W/</code> route handlers past the Library port</td>
+<td>build</td>
+<td>Synthesized requests through <code>handleBrowserRequest</code>; <code>W/index.ts</code> untouched</td>
+</tr>
+<tr>
+<td>Briefs lack Merge routing and briefs 6 and 7 were stubs; sizes were typing days</td>
+<td>build</td>
+<td><code>steer</code> on 1, 2, 5, 8; briefs completed; 24 to 26 pipeline days</td>
+</tr>
+<tr>
+<td>Spike depends on later PRs; OAuth fallback is not one file; wildcard untested</td>
+<td>astra</td>
+<td>Three parts with gates; wildcard step; fallback restated</td>
+</tr>
+<tr>
+<td>Refusals in <code>structuredContent</code> break validating clients; no text blocks; upload instructions ignore shell timeouts; <code>library_list</code> unprojected; remote hosts guess; <code>destructiveHint</code> on creates</td>
+<td>hosts</td>
+<td>No <code>outputSchema</code>; text block always; detached curl instructions; projection with limit 20; description opener; hint per op</td>
+</tr>
+<tr>
+<td><code>videos_delete</code> leaves the share page live on main; <code>readJob</code> unscoped; Stripe throw undefined; cap counts dead attempts; title lost at start; two video id forms</td>
+<td>data</td>
+<td>Main-branch tombstone; <code>subject_id</code> and <code>workspace_id</code> check; 503 and 5 min walled cache; <code>state &lt;&gt; &#39;dead&#39;</code>, <code>Date.UTC</code>, seconds to midnight; <code>title</code> required at finish; upload id everywhere</td>
+</tr>
+</tbody></table></div>
+<p>Considered and kept. Leads and contacts in v1 behind the off permission (William&#39;s default 6; the cut is noted in §12.6). <code>stale_revision</code> with the revision only, the description saying re-read (merge is a later step). <code>pages_get</code> document wrapped untrusted. Pending approvals listed in Settings. Dropped from v1 on the critics&#39; advice. The WorkOS authorized-application DELETE, and the 2026-07-28 protocol lane until a host sends it. Dismissed. The hosts critic&#39;s catalog cut to 13, for the reasons in §13.</p>
+<h2>Models and roles</h2>
+<p>Explorers: 4x Fable 5.1. WorkOS and MCP research: Fable 5.1. Prototype: Fable 5.1. Architects: 4x Fable 5.1. Cross-judge: Fable 5.1. Synthesizer: Fable 5.1. Critics: security, build, hosts, data on Fable 5.1; cross-family all-lens seat on GPT-6 Astra via Codex. Lead (exploration plan, arena pick, critic verdict, publishing): Claude Opus 5.5, the session running poteto-mode.</p>
+</main></body></html>
