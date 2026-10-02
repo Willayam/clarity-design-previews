@@ -259,6 +259,7 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li><strong>One <code>SourceRecorder</code> per source.</strong> Each has its own MediaRecorder, its own resumable Mux upload (today&#39;s uploader, moved into <code>packages/mux</code>) and its own journal session.</li>
 <li><strong><code>TakeClock</code>.</strong> It records each recorder&#39;s <code>start</code> event as a first guess at its offset, and stamps layout cuts and mute gaps on one <code>performance.now()</code> origin.</li>
 <li><strong>Alignment.</strong> Every source recorder carries the mic. At claim time the server cross-correlates the mic copies and turns each guess into an aligned offset, or leaves it estimated when the take is silent.</li>
+<li><strong>Pre-roll.</strong> Source recorders start about 2 seconds before the countdown ends, and the take clock&#39;s zero sits at the end of the countdown. That hides the screen encoder&#39;s warm-up, which the iPhone probe measured.</li>
 </ul>
 <p>The monitor still draws the composed frame live through <code>paintScene</code>, but it is not recorded. Recorder telemetry logs draw-loop fps and every encoder&#39;s frame rate for every take.</p>
 <p>If the composite fill is ever switched on, it records that monitor canvas as a third stream on desktop, and its chunks upload first. A guard drops it if its track falls below 20 fps for 5 s.</p>
@@ -352,11 +353,14 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li>While hidden, animation frames stop and the audio clock can be suspended. A canvas compositor on a phone would freeze, which confirms &quot;no canvas on phones&quot;.</li>
 <li>Camera settings claim 1920×1080, but the frames and the recorded file are 1080×1920.</li>
 <li>Rotation keeps each file&#39;s starting shape. The screen&#39;s landscape content lands sideways in a portrait frame. The camera&#39;s frames switch to 1920×1080 inside a file that stays 1080×1920.</li>
-<li>Uncapped, Safari recorded about 10 Mbps for the camera and 6.6 Mbps for the screen. Probe v2 checks whether it honours Clarity&#39;s 2 and 2.5 Mbps caps.</li>
+<li>Uncapped, Safari recorded about 10 Mbps for the camera and 6.6 Mbps for the screen. With Clarity&#39;s caps it honours them, at 2.02 Mbps for the camera and 1.22 Mbps for a mostly still screen under a 2.5 Mbps cap.</li>
+<li>The mic records into both files, and the two copies are identical. Matching them places the files within 2 ms of the recorder start events, far inside the 40 ms bar.</li>
+<li>The screen file missed a flash 1.5 s into the take and caught the other five, each about 67 ms after the page drew it. Its first chunk also came a second after the camera&#39;s. The first second or two of a screen file can be stale.</li>
+<li>A white flash on the screen did not visibly light the face in a bright room, so camera-to-screen video offset was not measured directly. It rests on each file&#39;s own audio and video sync, which the browser keeps.</li>
 </ul>
 <h2>Open questions and device facts</h2>
 <ul>
-<li>Does the voice survive while the rep is in another app, in the camera file, the screen file&#39;s mic copy, or neither? <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">Probe v2</a> measures it.</li>
+<li>Does the voice survive while the rep is in another app, in the camera file, the screen file&#39;s mic copy, or neither? The second iPhone run did not leave Safari mid-take. <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">Probe v2.1</a> now refuses to continue until the rep does.</li>
 <li>What does the camera file show after a rotation: sideways, squashed or letterboxed? Probe v2&#39;s frame strip shows it.</li>
 <li>Does Mux honour Safari&#39;s rotation transform in <code>aspect_ratio</code> and stills?</li>
 <li>Does mic cross-correlation align camera and screen within 40 ms on every target browser, including through silence, app switching and a screen swap? This is the design&#39;s biggest risk. A standalone two-recorder capture with a flash-and-click reference retires it before any upload or render service gets built.</li>
