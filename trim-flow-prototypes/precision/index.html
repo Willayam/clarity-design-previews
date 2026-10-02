@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trim precision prototype · Clarity</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell" aria-hidden="true">
+    <div class="shell-side">
+      <div class="shell-logo"><i></i>Clarity</div>
+      <div class="shell-nav"></div>
+      <div class="shell-nav on"></div>
+      <div class="shell-nav"></div>
+      <div class="shell-nav"></div>
+    </div>
+    <div class="shell-main">
+      <div class="shell-title"></div>
+      <div class="shell-grid">
+        <div class="shell-card"></div><div class="shell-card"></div><div class="shell-card"></div><div class="shell-card"></div>
+        <div class="shell-card"></div><div class="shell-card"></div><div class="shell-card"></div><div class="shell-card"></div>
+      </div>
+    </div>
+  </div>
+  <div class="backdrop"></div>
+
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" id="dialog">
+    <div class="dialog-header"><h2 class="dialog-title" id="dlg-title">Edit Video</h2></div>
+    <button class="dialog-close" aria-label="Close" type="button" id="dialog-close"></button>
+    <div class="editor-grid">
+      <section class="stage">
+        <div class="player-card" id="player-card">
+          <div class="loading-note" id="loading-note">Loading video…</div>
+          <div class="timecode" id="timecode"><span class="tc">00:00.00</span><span class="frame">f 0</span></div>
+        </div>
+        <div class="dock glass glass-media" id="dock"></div>
+      </section>
+      <aside class="aside" id="aside">
+        <div id="aside-slot" class="aside-panel"></div>
+        <div class="aside-bottom">
+          <div class="aside-actions">
+            <span class="save-status" id="save-status">Saved</span>
+            <button class="btn outline" type="button">Share</button>
+            <button class="btn primary" type="button">Done</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="switcher glass" id="switcher"></div>
+  <div class="debug" id="debug"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
