@@ -107,6 +107,9 @@ h2 { font-size: 21px; letter-spacing: -0.01em; margin: 48px 0 6px; }
 .report th, .report td { border: 1px solid var(--line); padding: 7px 9px; vertical-align: top; text-align: left; }
 .report th { background: #f8fafc; color: var(--ink); }
 h2.sk { font-size: 26px; margin-top: 64px; }
+.report blockquote { border-left: 3px solid #f59e0b; background: #fffbeb; margin: 18px 0 8px; padding: 10px 16px; border-radius: 8px; color: #78350f; }
+.report blockquote p { margin: 0; }
+.report del { color: var(--muted); }
 @media (max-width: 640px) { .report { padding: 4px 18px 18px; font-size: 15px; } body { padding: 20px 12px 60px; } .variant.wide { width: 100%; } .desk-wrap { width: 346px; height: 216px; } .desk { transform: scale(.36); } }
 .footer { margin-top: 56px; color: var(--muted); font-size: 12px; }
 </style>
@@ -115,7 +118,10 @@ h2.sk { font-size: 26px; margin-top: 64px; }
 <div class="doc">
   <h1>Portrait video in Clarity</h1>
   <p class="lede">Research for William, 2 October 2026. The report comes first. The sketches below it compare the card and viewer treatments it refers to.</p>
-  <article class="report"><h2>The short version</h2>
+  <article class="report"><blockquote>
+<p><strong>Correction, later on 2 October.</strong> This report said iPhone Safari cannot share a screen. That was wrong. Safari on iOS 27 added screen capture without announcing it, and MDN&#39;s data has not caught up. William&#39;s phone records a 1/3 split. The camera still mutes whenever the page is hidden, so leaving Safari mid-take blacks out the camera. William has since decided to build multi-track recording, so the &quot;defer it&quot; advice below no longer applies. The design for it follows separately.</p>
+</blockquote>
+<h2>The short version</h2>
 <p>The blue is painted into the video file, so no screen can undo it. Fix the recorder on phones first. Record the camera itself, with no canvas, and the public page already shows a tall portrait frame. Then give the Library card a blurred backdrop taken from the clip itself (sketch A below). Multi-track recording gives flexibility only on desktop, needs a renderer we deleted in September, and is not where the performance win is. Defer it until a rep asks to move the camera after recording.</p>
 <p>Two models wrote this independently (Fable 5.1 and GPT-6 Astra) from the same four research briefs. They agreed on every main call. Where they split, the pick and the reason are noted.</p>
 <h2>1. What is happening</h2>
@@ -123,7 +129,7 @@ h2.sk { font-size: 26px; margin-top: 64px; }
 <p>Every surface shows the strip because every surface is honest about a dishonest file. The public page already sizes its frame from the ratio Mux measured (<code>workers/frontend-router/src/public-video-policy.ts:93</code>, <code>packages/journey-page-domain/src/journey-page-styles.ts:277</code>). #913 shipped that and #955 backfilled it. About 945 production takes are not 16:9. A real 9:16 file renders as a tall frame on a phone, capped at 75svh, and a test covers it. The recording is the only thing in the way.</p>
 <p>It also breaks the design rule we wrote down. <code>DESIGN.md:10</code> says the rep&#39;s video is the object and Clarity&#39;s chrome recedes. <code>DESIGN.md:12</code> rules out gratuitous gradients. This one is painted inside the rep&#39;s content.</p>
 <h2>2. Portrait, surface by surface</h2>
-<p><strong>Recorder on a phone.</strong> Record the camera track itself. No canvas. iOS Safari has no screen share, so one MediaRecorder on the camera stream is the whole job. The asset becomes a true 9:16 and the per-frame canvas work disappears. Gate it on &quot;this browser cannot share a screen&quot;, not on sniffing for a phone. Show the monitor in the camera&#39;s own shape. There is a nearby bug. Three of the four layout tiles do nothing on an iPhone, because the missing screen share fails silently (<code>editor/src/hooks/use-screen-share.ts:33</code>). Hide them there.</p>
+<p><strong>Recorder on a phone.</strong> Record the camera track itself. No canvas. <del>iOS Safari has no screen share, so one MediaRecorder on the camera stream is the whole job.</del> (Wrong, see the correction above.) The asset becomes a true 9:16 and the per-frame canvas work disappears. Gate it on &quot;this browser cannot share a screen&quot;, not on sniffing for a phone. Show the monitor in the camera&#39;s own shape. </p>
 <p><strong>Recorder on desktop.</strong> Keep the compositor for now. Webcams are 16:9 and fill the canvas, and switching layout mid-take is the point of the picker (<code>editor/src/components/RecorderLayoutPicker.tsx:86</code>). A raw track cannot switch layout. Replace the gradient with a flat dark mat. WIL-3409 and WIL-3416 would then save black clips, not blue. Their real fix is refusing to start without a video track.</p>
 <p><strong>Library card.</strong> Sketch A, own-frame blur. The grid keeps one rhythm, the sides are the clip itself blurred, and 16:9 cards look exactly as today. The card must read the ratio the row already stores. Today it never does (<code>editor/src/components/MediaCard.tsx:152</code> is a fixed 16:9 box). It should ask Mux for the still with <code>fit_mode=preserve</code> instead of <code>smartcrop</code> (<code>workers/workspace-tree/src/workspace-tree-card-read-model.ts:13</code>). One still, drawn twice. B shows the face bigger but crops 30 percent of the frame and breaks the rhythm. C crops screen recordings badly and hides the share button.</p>
 <p><strong>Inline player and edit modal.</strong> The inline player defaults to <code>cover</code> (<code>editor/src/components/VideoPlayer.tsx:72</code>) in a 16:9 box (<code>:349</code>). An honest portrait file would crop to the nose. Pass <code>contain</code> when the ratio is not 16:9, with the same blurred still behind it. The edit modal already uses <code>contain</code>, so leave it.</p>
