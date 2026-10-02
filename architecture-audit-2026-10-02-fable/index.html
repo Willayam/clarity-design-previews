@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clarity architecture audit, 2026-10-02 (sixth pass, Fable lead)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .schem { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .75rem; border-bottom: 1px solid #e2e8f0; font-size: .875rem; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; }
+  code { font-size: .8em; background: #f1f5f9; padding: .05rem .3rem; border-radius: .25rem; }
+  .p p { margin-bottom: .75rem; }
+  .p li { margin-bottom: .4rem; }
+  h2 { font-family: ui-serif, Georgia, serif; font-size: 1.75rem; margin-bottom: 1rem; }
+  h3 { font-weight: 600; margin: 1.25rem 0 .5rem; }
+  .tw { overflow-x: auto; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main class="max-w-5xl mx-auto px-5 py-10 space-y-14">
+
+<header class="space-y-4">
+  <p class="schem text-slate-500">Clarity · origin/main 1a5e996e · 2026-10-02 · sixth pass · Fable lead</p>
+  <h1 class="font-serif text-4xl">The designs are right. Six of them are four-fifths connected, and the bugs live in the last fifth.</h1>
+  <div class="text-slate-600 max-w-3xl p">
+    <p>About 60 pull requests shipped against yesterday's audit. This pass asks what they changed and what to do next. Seven explorers (GPT-6 Sol) read the code at today's main. One lane (Opus) re-measured production read-only and timed staging signed in. Fable merged the findings, and three models critiqued the result independently: Fable 5.1, Opus 5.5 and GPT-6 Astra. I checked the claims the ranking rests on against the code. Security specifics are kept off this public page. Page names are withheld because they are real customer pages.</p>
+  </div>
+</header>
+
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Tap to first frame</p><p class="text-3xl font-serif">142 to 173 ms</p><p class="text-xs text-slate-500">every page and viewport in the lab. Yesterday 519 to 6,754 ms</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Bytes before a tap</p><p class="text-3xl font-serif">5,282 KB</p><p class="text-xs text-slate-500">one page on a phone, 4,686 KB of it video. Yesterday 843 KB, no video</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Fixes to the save hook</p><p class="text-3xl font-serif">10, then 0</p><p class="text-xs text-slate-500"><code>use-editor-page.ts</code> before and after the document store landed</p></div>
+  <div class="rounded-lg border border-slate-200 bg-white p-4"><p class="schem text-slate-500">Fixes in Library video</p><p class="text-3xl font-serif">49</p><p class="text-xs text-slate-500">since 25 Sept, and the only cluster still growing since last night</p></div>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>Bottom line</h2>
+  <p>Yesterday's fixes worked where they finished. The editor save hook took 10 fix commits before the document store and none since. Stripe webhooks can no longer be acknowledged and lost. Database reads are typed from the migrations. A prospect's tap now starts the video in about 150 ms.</p>
+  <p>Several of them stopped one step short, and that step is where today's defects are. The typed <code>videos</code> table exists and reads go through it, but every write still goes to both the row and the old JSON, and in production the new lifecycle code produces effects that are all thrown away. A real job table sits beside a second job queue written in JSON. An index built for sweeping unfinished videos has no reader. The document store has two writers still outside it. The access rule works out why an account is walled and the wall ignores the reason.</p>
+  <p>All three critics picked the same next move without seeing each other's answers: finish the video handover and delete the double write. They also agree on the stopping point. There is about one to two weeks of structural work left that pays, most of it ending in deleted code. After that the return is in the product, and the commit mix says so too. Since 25 September there are 106 fix commits and 61 feature commits.</p>
+</section>
+
+<section class="p">
+  <h2>Did yesterday's fixes work</h2>
+  <div class="tw"><table>
+    <tr><th>Fix</th><th>Measured or verified today</th><th>Verdict</th><th>What remains</th></tr>
+    <tr><td>Editor document store</td><td>No refs left in the hook. 0 fix commits since it landed, 10 before. Click to editable 225 and 523 ms, unchanged</td><td>Error class closed in the editor</td><td>The Library share dialog keeps its own document session (about 135 lines). AI generation adopts drafts through a ref</td></tr>
+    <tr><td>Generated row types and lint</td><td>About 100 typed reads, 2 untyped. The rule resolves through the type checker, so a renamed copy fails</td><td>Closed for read shapes</td><td>Writes. About 200 <code>.bind()</code> calls order their placeholders by hand. Nothing proves a query selects the columns its type names</td></tr>
+    <tr><td>Stripe event inbox</td><td>Capture before the 200, 503 if capture fails, fenced retries, loud abandonment</td><td>Closed for Stripe webhooks</td><td>An abandoned event has no requeue. Five customer ids are shared by more than one account (WIL-3474). Mail has no sweeper for a send cut off mid-flight</td></tr>
+    <tr><td>Typed <code>videos</code> table</td><td>Reads flipped. Writes still dual. The only effect the new code is allowed to run is switched on in staging only</td><td>Half done, and costing more than before</td><td>WIL-3494 pull requests 5 and 7: share pages and clips join the take's batch, clip work moves to <code>jobs</code>, then the JSON projection and the 413-line parity test go</td></tr>
+    <tr><td>Edge cache for published pages</td><td>19 of 19 fresh pages missed cold and hit warm. Worker time 26 ms on a miss, 13 ms on a hit</td><td>Correct, and worth little so far</td><td>An entry lives 60 seconds in one data center. At about 1,500 measured page loads a week, two views of one page rarely land that close. Field TTFB is untouched (see performance)</td></tr>
+    <tr><td>Image variants</td><td>Customer images on one phone page fell from 1,979 KB to 316 KB</td><td>Works, with one broken format</td><td>The same photo is 118 KB as AVIF, 197 KB as JPEG and 1,280 KB as WebP. Every variant is served <code>private, no-store</code></td></tr>
+    <tr><td>First-player warm-up</td><td>Tap to first frame 142 to 173 ms in all nine lab cells</td><td>Fast, and expensive</td><td>Video now downloads before any tap. See the first performance item</td></tr>
+    <tr><td>Pinned player file</td><td>313 KB, <code>immutable</code>, served from cache</td><td>Done</td><td>Nothing</td></tr>
+    <tr><td>Empty-publish guard, lead form, card buttons</td><td>Publish stays disabled on an empty draft. Card Edit and Actions take a plain click</td><td>Done</td><td>A successful lead still replaces the whole page</td></tr>
+    <tr><td>Email through Cloudflare</td><td>Production and staging both send through the binding</td><td>Flipped</td><td>All Resend code, secrets and the webhook remain until 9 October</td></tr>
+  </table></div>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>The highest-leverage move</h2>
+  <p><b>Finish WIL-3494 and delete the double write.</b> Hand share pages and clips to the take's reducer batch, move clip work into the <code>jobs</code> table, sweep unfinished videos from the one-minute cron using the index that already exists, then delete the JSON projection, the read overlay and the parity test, in that order.</p>
+  <p>Why this one. Library video has 49 fix commits since 25 September and about a dozen since last night, while every other hot area went quiet. It is the only item that gets more expensive by waiting, because production now reads through an overlay that falls back to the old JSON without telling anyone when a row fails to parse, and every day adds takes created inside the double-write window. The destination code is already written. And it is the only candidate that ends with less code, somewhere between 600 and 1,000 lines counting the parity test.</p>
+  <p>It beats the route table (WIL-3401) because that surface produced 11 fixes against video's 49, and it is waiting on answers to five questions. It beats a shared API contract package because that class does not show up in the fix history. It beats unifying the deploy scripts because they work.</p>
+  <p>One disagreement. Opus says holding the current position is the most expensive option, so either finish now or revert the read flip. Fable and Astra say revert nothing. I side with finishing. The ticket is in flight and the remaining steps are named in the code.</p>
+</section>
+
+<section class="p">
+  <h2>Error classes still open</h2>
+  <p class="max-w-3xl">Yesterday's list had eight. Hand-typed reads, editor save races and lost Stripe webhooks are closed. These remain, ranked by what they have cost.</p>
+  <div class="tw"><table>
+    <tr><th>#</th><th>Class</th><th>Cost evidence</th><th>Structure that ends it</th><th>Size</th></tr>
+    <tr><td>1</td><td>One video fact with three owners (row, node JSON, clip JSON)</td><td>49 fix commits. WIL-3453, 3451, 3450, 3426, 3424, 3459</td><td>The move above. One row, one reducer as the only writer, clip and cleanup work as leased <code>jobs</code> rows, a parked clip as a state the UI must show</td><td>1 to 2 weeks, staged</td></tr>
+    <tr><td>2</td><td>Recorder state outside its type</td><td>13 fix commits, five open tickets. <code>RecordingState</code> names 4 states. The route holds 11 <code>useState</code> and 17 <code>useRef</code> beside it</td><td>One per-take store built like the document store, with upload and edit as child states. The document store is the proof it works</td><td>3 to 5 days</td></tr>
+    <tr><td>3</td><td>Success reported for work that failed</td><td>A recorder edit that cannot be retried is dropped and <code>flush()</code> resolves as if saved, so Open page proceeds. A parked trim shows nothing. WIL-3450, 3451, 3453</td><td><code>flush()</code> returns a committed result or a typed failure. Terminal failures are states, not log lines</td><td>About 60 lines to start</td></tr>
+    <tr><td>4</td><td>Checks that pass because they did not run</td><td>The browser smoke runs on a hand-kept path list that leaves out the Library folder, the server file with the most fixes. Three preview steps exit green when a credential is missing</td><td>Pick checks from the import graph <code>deploy-plan.mjs</code> already computes. Report skipped as skipped</td><td>About 60 lines</td></tr>
+    <tr><td>5</td><td>Paid access applied to an ambiguous owner</td><td>WIL-3474 (five shared customer ids), WIL-3433 (payers missing from D1)</td><td>One customer-to-account mapping with a uniqueness rule, added as a table. Unresolved matches stay unresolved. A requeue for abandoned events</td><td>2 to 3 days after the census</td></tr>
+    <tr><td>6</td><td>Route policy in parallel lists</td><td>11 fix commits. WIL-3505</td><td>WIL-3401 as designed, when the five answers land. Split Env into config and services first, because tests inject services through Env today</td><td>3 to 4 days</td></tr>
+  </table></div>
+  <p class="max-w-3xl mt-4">Two cheap ones ride along. <code>validateJourneyPageDocument</code> exists and no write path calls it. One line fixes that. Insert and update shapes can come out of the same generator that makes the row types.</p>
+</section>
+
+<section class="p">
+  <h2>Deletions and simplifications, ranked</h2>
+  <div class="tw"><table>
+    <tr><th>#</th><th>What</th><th>Removes</th><th>Safe when</th></tr>
+    <tr><td>1</td><td>The video double write and the JSON clip queue</td><td>600 to 1,000 lines: the projection and overlay in <code>video-row.ts</code>, the scheduler half of <code>mux-video-clip.ts</code>, an expression index, the 413-line parity test</td><td>WIL-3494's gates pass and production parity covers every node. Delete the parity test last</td></tr>
+    <tr><td>2</td><td>The Library speaking HTTP to itself</td><td>150 to 250 lines. Seven router call sites build a Request, get a Response and reparse JSON from code in the same process</td><td>Each method returns a typed result and one staging listing matches byte for byte. Browser routes keep HTTP</td></tr>
+    <tr><td>3</td><td>Resend</td><td>About 450 lines: sender, webhook, mailer branches, a route, secrets, deploy checks</td><td>On or after 9 October</td></tr>
+    <tr><td>4</td><td>The share dialog's second document session</td><td>70 to 110 lines net</td><td>The store supports a session without editor navigation</td></tr>
+    <tr><td>5</td><td>The small basket</td><td>About 700 lines: the duplicate Leads screen (224), a billing read from a table nothing writes, invitation redirect shims, the remaining <code>step_</code> adapters, an unreferenced backfill script, five dormant tables</td><td>Each has a cheap check. The tables wait for the 8 October window. Old URLs get redirects</td></tr>
+  </table></div>
+  <p class="max-w-3xl mt-4">Not ranked: the deploy scripts. Yesterday's report offered 500 to 700 lines there. Two of three critics would not spend it yet, because the scripts partly do different jobs and they work. The real count of fix commits on them is 8, not the 38 I first reported (see corrections).</p>
+</section>
+
+<section class="p">
+  <h2>Performance and customer experience, ranked by impact per hour</h2>
+  <div class="tw"><table>
+    <tr><th>#</th><th>Change</th><th>Evidence today</th><th>Effort</th></tr>
+    <tr><td>1</td><td>Cap the player warm-up. Warm on intent, and ahead of the tap only for the first player on a fast connection</td><td>Every player near the viewport is warmed, and on this player "metadata" pulls segments. One phone page went from 843 KB to 5,282 KB before a tap. 68% of player loads never play. The 150 ms start is worth keeping. The price landed at the top of the range estimated yesterday</td><td>One function plus a comparison run</td></tr>
+    <tr><td>2</td><td>Fix the WebP variant and let published images cache</td><td>WebP is 6 to 7 times the JPEG at every width, because the transform passes no quality and the size guard compares against the stored original. Every image is <code>no-store</code>, so a returning prospect pays for all of them again</td><td>Hours</td></tr>
+    <tr><td>3</td><td>Diagnose playback failure before ranking a fix</td><td>Mux reports 13.4% over 7 days and 18.7% over 24 hours, 23.4% on Safari Mobile (94 views). One of four phone runs never started. Crawlers inflate the figure (WIL-3501), and the in-app webview case is open (WIL-3504). A video that never plays outweighs every other row here</td><td>A timeboxed day</td></tr>
+    <tr><td>4</td><td>Paint the app shell from the stored identity</td><td>A warm Home reload takes 782 to 924 ms while moving 300 bytes. The shell shows a spinner until <code>/auth/me</code> answers. The identity is already stored and the server walls every write</td><td>About 15 lines</td></tr>
+    <tr><td>5</td><td>Give the poster something to show</td><td>For the first few hundred milliseconds the frame holds a broken-image icon. On one page the poster is the LCP at 804 ms. Another page's poster is a motion-blurred first frame</td><td>Hours</td></tr>
+    <tr><td>6</td><td>Make the share link honest</td><td>The link can be live before the bytes land, and the recorder cannot say "link ready, video uploading". A later upload failure leaves a dead link in a prospect's inbox</td><td>A day</td></tr>
+    <tr><td>7</td><td>Answer a lead before linking the contact, and confirm in place</td><td>The prospect waits on a best-effort contact match, then the page they were watching is replaced by a sparse result page</td><td>Minutes, then a day</td></tr>
+    <tr><td>8</td><td>Find where field TTFB goes</td><td>Mobile p50 716 ms, p75 1,393 ms over 7 days (n=793). The lab sees 60 to 90 ms. The edge cache cannot move this at a 60-second window, and a hit still reads D1. Record the data center on every RUM event, then choose between a longer window and D1 read replicas</td><td>Hours to measure</td></tr>
+    <tr><td>9</td><td>Say why the account is walled</td><td>A lapsed subscriber is told "Your trial has ended." The access rule already returns the cause</td><td>Minutes</td></tr>
+  </table></div>
+  <p class="max-w-3xl mt-4">On the cache window: raising 60 seconds is a trade, not a free constant. The cache key holds the publication revision, so publish, unpublish and delete are immediate at any window. A trim or a new poster does not change the key, so the window is also how long a prospect can see the old video. Ten minutes is defensible. An hour needs a media version in the key.</p>
+  <p class="max-w-3xl">What would make the app feel instant: the shell paint in row 4, mutations that return the committed revision so Home and the editor can update first and confirm after, and listings that stop waiting on Mux (up to three checks of two seconds each) once the cron sweeps unfinished videos.</p>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>If we rebuilt it today</h2>
+  <p>The same platform, and nearly the same design. Workers, D1, R2, Mux, WorkOS, Stripe, a leased <code>jobs</code> table drained by a one-minute cron, string SSR for prospects and React for reps. The router spends 1.7 ms of CPU per request at p50 and threw 1 exception in 121,268 requests this week. Nothing in the numbers argues for different parts.</p>
+  <p>The gap is no longer a list of things to build. Most of the target exists in the repo as working code with one connection missing:</p>
+  <ul class="list-disc pl-5">
+    <li>The video reducer exists, and production discards every effect it produces.</li>
+    <li>The <code>jobs</code> table has a clip kind with a lease policy, and clip work runs from a JSON object with its own leases, attempts and backoff.</li>
+    <li>An index for unfinished videos exists, and listings still ask Mux inline.</li>
+    <li>The document store exists, and two writers sit outside it.</li>
+    <li>The import graph is computed and tested, and the browser check is chosen from a hand-kept list.</li>
+    <li>The access rule returns a cause, and the wall prints one message.</li>
+  </ul>
+  <p class="mt-3">Two pieces of the ideal are not started: one route table with parsed config (designed, waiting on answers), and request and response types shared by the editor and the Workers (35 casts today, no fix history against them). Neither is worth starting before the six connections above are made.</p>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>When to stop</h2>
+  <p>After one more wave. Finish the video handover and delete the double write. Give the recorder a per-take store, starting with a <code>flush()</code> that tells the truth. Move the share dialog onto the document store. Pick browser checks from the import graph. Delete Resend on 9 October and the dormant tables after the 8th. The critics put this at one to three weeks, and most of it removes code.</p>
+  <p>Then stop auditing. This is the sixth pass in twelve days, and the editor hook going from 10 fixes to 0 says finishing a migration pays more than finding the next one. A seventh pass before the video double write is gone would mostly repeat this one.</p>
+  <p>The product work the critics would spend the time on, from the open tickets:</p>
+  <ul class="list-disc pl-5">
+    <li>The free plan with page limits and upgrade prompts (WIL-3230). It is the revenue path and has sat in Next since 22 July.</li>
+    <li>Record as the primary action, and recording from inside the page editor (WIL-3343, WIL-3342). Create to link is already fast. The limit is now how many videos a rep makes.</li>
+    <li>The customer replies waiting since late August (WIL-3326, WIL-3304, WIL-3324).</li>
+    <li>The first activation and retention cohort review (WIL-3354), so the next ranking comes from what customers did.</li>
+  </ul>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>This week, small and independent</h2>
+  <ul class="list-disc pl-5">
+    <li>Cap the warm-up to the first player and measure bytes against first frame.</li>
+    <li>Pass a quality to the image transform and compare variants against the JPEG, not the stored original.</li>
+    <li>Use the wall cause in the wall message.</li>
+    <li>Make the recorder's <code>flush()</code> return its outcome.</li>
+    <li>Call <code>validateJourneyPageDocument</code> on write.</li>
+    <li>Paint the shell from the stored identity.</li>
+    <li>Remove the <code>support_invitations</code> read from billing.</li>
+    <li>Add the Library and media folders to the browser-check trigger, then replace the list with the import graph.</li>
+    <li>Answer the lead POST before the contact match.</li>
+    <li>Close the two tickets the code has passed: WIL-3488 (preview media is isolated) and WIL-3477 (generation already runs on the router).</li>
+  </ul>
+</section>
+
+<section class="p max-w-3xl">
+  <h2>Corrections, dismissals and disagreements</h2>
+  <ul class="list-disc pl-5">
+    <li><b>My fix counts were wrong for an hour.</b> A bug in my counting command reported every commit touching a file as a fix. The router entry file has 5 fix commits since 25 September, not 29, and the two deploy scripts have 8 between them, not 38. The synthesis lane caught it. The corrected counts put the cost in Library video (49) and the editor save path (33), which is where yesterday's work aimed.</li>
+    <li><b>"One confirmed contract drift" is not drift.</b> The synthesis reported a card preview kind present on the server and missing in the editor. Astra pointed out the router converts it before the response leaves, and the code confirms that. The seam is still held by a string comparison, which is an argument for typed Library results.</li>
+    <li><b>The cache header on a hit overstates its window.</b> A hit reports <code>s-maxage=14400</code> while entries reset at 60 seconds. Harmless today, misleading to anything downstream.</li>
+    <li><b>Slow lab requests were my network.</b> About 4 in 60 probes waited 1 to 4 seconds in TCP connect while the Worker answered in 15 ms. The measuring machine drops IPv4 connects. I did not rank it.</li>
+    <li><b>Left alone on purpose.</b> Publish then route activation is two steps with a stated, convergent retry. The public page inlines about 56 KB of CSS and script that compress to about 20 KB with nothing render-blocking. The readiness endpoint returns rendered HTML, which is fine for a string-rendered page. The availability read on every cache hit is the invalidation design.</li>
+    <li><b>Where the critics split.</b> Opus would revert the video read flip if the handover is not finished now. Fable puts the remaining structural work at two to three weeks, Astra and Opus at about one. Fable would unify the deploy scripts. Astra and Opus would not yet.</li>
+    <li><b>Worth copying, named by all three.</b> The <code>jobs</code> table, the Stripe inbox, the revision-keyed page cache, the row-type lint rule, the import graph in <code>deploy-plan.mjs</code>, and the document store.</li>
+  </ul>
+</section>
+
+<footer class="text-xs text-slate-500 border-t border-slate-200 pt-6">
+  Method: seven read-only explorers, one measurement lane (production read-only, one staging test page created and deleted), one synthesis, three independent critics, lead verification against 1a5e996e. Field data since today's deploys covers 33 page loads and is not used for any verdict. Previous passes: 21, 22, 24, 30 September and 1 October. Two other sessions ran this same audit in parallel and may publish their own reports.
+</footer>
+</main>
+</body>
+</html>
