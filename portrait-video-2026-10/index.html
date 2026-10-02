@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portrait video in Clarity: card and viewer treatments</title>
+<style>
+@font-face { font-family: "Geist"; src: url(./assets/geist.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+:root {
+  --blue: #2563eb; --ink: #0f172a; --ink-2: #334155; --muted: #64748b; --line: #e2e8f0;
+  --page: #f8fafc; --card: #ffffff; --radius: 14px;
+  font-family: "Geist", -apple-system, system-ui, sans-serif; color: var(--ink); background: #eef2f7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 32px 20px 80px; }
+.doc { max-width: 1300px; margin: 0 auto; }
+h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 8px; }
+h2 { font-size: 21px; letter-spacing: -0.01em; margin: 48px 0 6px; }
+.lede { color: var(--ink-2); max-width: 760px; line-height: 1.55; margin: 0 0 6px; }
+.note { color: var(--muted); font-size: 13px; }
+.row { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 18px; align-items: flex-start; }
+.variant { width: 300px; }
+.variant h3 { font-size: 15px; margin: 12px 0 4px; }
+.variant p { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0 0 6px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #e0e7ff; color: #3730a3; margin-right: 4px; }
+.tag.today { background: #fee2e2; color: #991b1b; }
+.tag.pick { background: #dcfce7; color: #166534; }
+.scheme { display: inline-flex; gap: 0; border: 1px solid var(--line); border-radius: 999px; background: #fff; padding: 3px; margin-top: 14px; }
+.scheme button { font: inherit; font-size: 13px; border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--ink-2); }
+.scheme button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+/* phone */
+.phone { --bg: #f1f5fb; --fg: #0f172a; --fg-2: #64748b; --chip: #ffffff; --chip-line: #e2e8f0;
+  width: 300px; height: 640px; border-radius: 40px; background: var(--bg); color: var(--fg);
+  border: 8px solid #0b0d12; overflow: hidden; position: relative; box-shadow: 0 20px 50px -20px rgba(15,23,42,.35); }
+.phone.dark { --bg: #0b1120; --fg: #f1f5f9; --fg-2: #94a3b8; --chip: #172033; --chip-line: #233049; }
+.phone .scroll { position: absolute; inset: 0; overflow-y: auto; padding: 38px 14px 24px; scrollbar-width: none; }
+.phone .scroll::-webkit-scrollbar { display: none; }
+.statusbar { position: absolute; top: 0; left: 0; right: 0; height: 30px; display: flex; justify-content: space-between; align-items: center; padding: 0 26px; font-size: 12px; font-weight: 600; z-index: 5; background: var(--bg); }
+.phone h4 { font-size: 26px; letter-spacing: -0.02em; margin: 6px 2px 12px; }
+.actions { display: grid; grid-template-columns: 1fr 1fr 1.25fr; gap: 6px; margin-bottom: 16px; }
+.actions span { font-size: 12px; font-weight: 500; text-align: center; padding: 9px 0; border-radius: 10px; background: var(--chip); border: 1px solid var(--chip-line); }
+.actions span.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* card media */
+.card { margin-bottom: 18px; }
+.media { position: relative; border-radius: var(--radius); overflow: hidden; background: #0b0d12; }
+.media.r169 { aspect-ratio: 16 / 9; }
+.media.r45 { aspect-ratio: 4 / 5; }
+.media.r916 { aspect-ratio: 9 / 16; }
+.media img.fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.media img.fit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.media .baked { position: absolute; inset: 0; background: radial-gradient(120% 140% at 30% 20%, #aac6ff 0%, #5ea3fa 30%, #2563eb 65%, #162c76 100%); }
+.media .blur { position: absolute; inset: -12%; background-size: cover; background-position: center; filter: blur(14px) saturate(1.15) brightness(.82); }
+.media .shade { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,.28)); }
+.play { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(15,23,42,.62); display: grid; place-items: center; }
+.play::after { content: ""; border-left: 14px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 4px; }
+.tools { position: absolute; left: 8px; top: 8px; display: grid; gap: 6px; }
+.tools i { width: 30px; height: 30px; border-radius: 9px; background: rgba(15,23,42,.72); display: block; }
+.tools.glass i { background: rgba(255,255,255,.18); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.28); }
+.more { position: absolute; right: 8px; top: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(15,23,42,.55); backdrop-filter: blur(8px); }
+.dur { position: absolute; right: 8px; bottom: 8px; font-size: 11px; font-weight: 600; color: #fff; background: rgba(15,23,42,.6); padding: 2px 6px; border-radius: 6px; }
+.meta-t { font-weight: 600; font-size: 15px; margin: 8px 2px 2px; }
+.meta-s { font-size: 12px; color: var(--fg-2); margin: 0 2px; }
+.grid2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px 8px; }
+.grid2 .card { margin-bottom: 4px; }
+.grid2 .meta-t { font-size: 13px; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grid2 .play { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
+.grid2 .play::after { border-left-width: 10px; border-top-width: 7px; border-bottom-width: 7px; margin-left: 3px; }
+
+/* viewer phone */
+.vpage { padding: 38px 16px 24px; }
+.vbrand { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin: 4px 0 12px; }
+.vbrand b { width: 26px; height: 26px; border-radius: 50%; background: #f59e0b; display: inline-block; }
+.vh { font-size: 20px; line-height: 1.2; letter-spacing: -0.01em; margin: 14px 0 6px; font-weight: 650; }
+.vp { font-size: 13px; color: var(--fg-2); line-height: 1.5; margin: 0 0 14px; }
+.cta { display: block; text-align: center; background: #0f766e; color: #fff; font-weight: 600; font-size: 14px; padding: 12px; border-radius: 12px; }
+.vmedia-fullbleed { margin: 0 -16px; border-radius: 0; }
+.pchrome { position: absolute; left: 10px; right: 10px; bottom: 10px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.35); }
+.pchrome::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 22%; border-radius: 4px; background: #fff; }
+
+/* desktop */
+.desk-wrap { width: 576px; height: 360px; overflow: hidden; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 20px 50px -24px rgba(15,23,42,.35); background: #fff; }
+.desk { width: 960px; height: 600px; transform: scale(.6); transform-origin: 0 0; background: #f8fafc; position: relative; overflow: hidden; }
+.desk .bar { height: 34px; background: #e2e8f0; display: flex; align-items: center; gap: 6px; padding: 0 12px; }
+.desk .bar i { width: 11px; height: 11px; border-radius: 50%; background: #cbd5e1; display: block; }
+.desk .bar span { margin-left: 16px; font-size: 12px; color: #64748b; background: #fff; border-radius: 6px; padding: 3px 12px; }
+.desk .col { width: 760px; margin: 0 auto; padding: 22px 0; }
+.desk .vh { font-size: 26px; margin-top: 18px; }
+.desk .vp { font-size: 15px; }
+.desk .cta { display: inline-block; padding: 12px 22px; }
+.split { display: grid; grid-template-columns: 270px 1fr; gap: 36px; align-items: center; width: 820px; margin: 0 auto; padding: 22px 0; }
+.split .vh { margin-top: 0; }
+.variant.wide { width: 576px; }
+
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #e2e8f0; padding: 1px 5px; border-radius: 5px; }
+
+.report { max-width: 760px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 8px 32px 24px; margin-top: 20px; line-height: 1.6; color: var(--ink-2); font-size: 15.5px; }
+.report h1, .report h2 { color: var(--ink); font-size: 20px; margin: 30px 0 8px; }
+.report h3 { color: var(--ink); font-size: 16px; margin: 22px 0 6px; }
+.report p, .report li { margin: 0 0 10px; }
+.report ul, .report ol { padding-left: 22px; }
+.report code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: #f1f5f9; padding: 1px 5px; border-radius: 5px; word-break: break-word; }
+.report a { color: var(--blue); }
+.report .tbl { overflow-x: auto; margin: 12px 0 16px; }
+.report table { border-collapse: collapse; font-size: 13px; line-height: 1.45; min-width: 680px; }
+.report th, .report td { border: 1px solid var(--line); padding: 7px 9px; vertical-align: top; text-align: left; }
+.report th { background: #f8fafc; color: var(--ink); }
+h2.sk { font-size: 26px; margin-top: 64px; }
+@media (max-width: 640px) { .report { padding: 4px 18px 18px; font-size: 15px; } body { padding: 20px 12px 60px; } .variant.wide { width: 100%; } .desk-wrap { width: 346px; height: 216px; } .desk { transform: scale(.36); } }
+.footer { margin-top: 56px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Portrait video in Clarity</h1>
+  <p class="lede">Research for William, 2 October 2026. The report comes first. The sketches below it compare the card and viewer treatments it refers to.</p>
+  <article class="report"><h2>The short version</h2>
+<p>The blue is painted into the video file, so no screen can undo it. Fix the recorder on phones first. Record the camera itself, with no canvas, and the public page already shows a tall portrait frame. Then give the Library card a blurred backdrop taken from the clip itself (sketch A below). Multi-track recording gives flexibility only on desktop, needs a renderer we deleted in September, and is not where the performance win is. Defer it until a rep asks to move the camera after recording.</p>
+<p>Two models wrote this independently (Fable 5.1 and GPT-6 Astra) from the same four research briefs. They agreed on every main call. Where they split, the pick and the reason are noted.</p>
+<h2>1. What is happening</h2>
+<p>The recorder records a 1920×1080 canvas, not your camera (<code>editor/src/hooks/use-canvas-compositor.ts:9</code>). Every frame starts with a radial blue gradient (<code>:80</code>). The camera is then fitted inside without cropping (<code>:107</code>). A phone held upright sends a portrait feed, so each frame is a strip of you about a third of the width, on blue, and that is what gets encoded (<code>editor/src/hooks/use-media-recorder.ts:147</code>). Mux measures the upload as 16:9 and the videos row stores that. The gradient came with the 2025 Angular recorder and nobody wrote down why. The live monitor plays the canvas too (<code>editor/src/routes/RecordVideoRoute.tsx:703</code>), so you see the strip while recording.</p>
+<p>Every surface shows the strip because every surface is honest about a dishonest file. The public page already sizes its frame from the ratio Mux measured (<code>workers/frontend-router/src/public-video-policy.ts:93</code>, <code>packages/journey-page-domain/src/journey-page-styles.ts:277</code>). #913 shipped that and #955 backfilled it. About 945 production takes are not 16:9. A real 9:16 file renders as a tall frame on a phone, capped at 75svh, and a test covers it. The recording is the only thing in the way.</p>
+<p>It also breaks the design rule we wrote down. <code>DESIGN.md:10</code> says the rep&#39;s video is the object and Clarity&#39;s chrome recedes. <code>DESIGN.md:12</code> rules out gratuitous gradients. This one is painted inside the rep&#39;s content.</p>
+<h2>2. Portrait, surface by surface</h2>
+<p><strong>Recorder on a phone.</strong> Record the camera track itself. No canvas. iOS Safari has no screen share, so one MediaRecorder on the camera stream is the whole job. The asset becomes a true 9:16 and the per-frame canvas work disappears. Gate it on &quot;this browser cannot share a screen&quot;, not on sniffing for a phone. Show the monitor in the camera&#39;s own shape. There is a nearby bug. Three of the four layout tiles do nothing on an iPhone, because the missing screen share fails silently (<code>editor/src/hooks/use-screen-share.ts:33</code>). Hide them there.</p>
+<p><strong>Recorder on desktop.</strong> Keep the compositor for now. Webcams are 16:9 and fill the canvas, and switching layout mid-take is the point of the picker (<code>editor/src/components/RecorderLayoutPicker.tsx:86</code>). A raw track cannot switch layout. Replace the gradient with a flat dark mat. WIL-3409 and WIL-3416 would then save black clips, not blue. Their real fix is refusing to start without a video track.</p>
+<p><strong>Library card.</strong> Sketch A, own-frame blur. The grid keeps one rhythm, the sides are the clip itself blurred, and 16:9 cards look exactly as today. The card must read the ratio the row already stores. Today it never does (<code>editor/src/components/MediaCard.tsx:152</code> is a fixed 16:9 box). It should ask Mux for the still with <code>fit_mode=preserve</code> instead of <code>smartcrop</code> (<code>workers/workspace-tree/src/workspace-tree-card-read-model.ts:13</code>). One still, drawn twice. B shows the face bigger but crops 30 percent of the frame and breaks the rhythm. C crops screen recordings badly and hides the share button.</p>
+<p><strong>Inline player and edit modal.</strong> The inline player defaults to <code>cover</code> (<code>editor/src/components/VideoPlayer.tsx:72</code>) in a 16:9 box (<code>:349</code>). An honest portrait file would crop to the nose. Pass <code>contain</code> when the ratio is not 16:9, with the same blurred still behind it. The edit modal already uses <code>contain</code>, so leave it.</p>
+<p><strong>Filmstrip.</strong> Each tile is drawn into a fixed 112×63 canvas (<code>editor/src/lib/video-filmstrip.ts:402</code>), which squashes a portrait frame sideways. Draw with cover instead. The helper exists (<code>drawVideoCover</code>, <code>:178</code>). Astra preferred contain on a neutral tile. Cover wins here because the strip is for finding a moment, and squashed slivers are harder to read.</p>
+<p><strong>Public page on a phone.</strong> Already built. Nothing to do once the file is honest.</p>
+<p><strong>Public page on a laptop.</strong> D1, already built. Tall player centred, capped at <code>min(56vh, 640px)</code>. D2 makes the rep smaller than D1 and adds decoration. D3 looks best and breaks the single-column rule. That is your call, in section 5.</p>
+<p><strong>Share image.</strong> Keep the 1200×630 smartcrop (<code>workers/frontend-router/src/public-page-delivery/render-blocks.ts:730</code>). Link previews are wide everywhere, and a face crop fills them. Astra wanted the full portrait on a neutral backdrop. That rebuilds the narrow strip we are removing, so Fable&#39;s pick stands. Check one real portrait take.</p>
+<p><strong>Email GIF.</strong> Nothing to build. Mux renders the animated GIF in the asset&#39;s own shape, up to 640px a side. Today it ships the gradient.</p>
+<p><strong>Old recordings.</strong> Takes already recorded keep their baked blue. Don&#39;t auto-crop them. Guessing the strip&#39;s edges from pixels will be wrong often enough to hurt.</p>
+<h2>3. Multi-track</h2>
+<p><strong>Does it make performance better?</strong> Only partly, and the part that helps is not multi-track. A phone has one video source. Dropping the canvas removes a two-megapixel gradient fill, a draw and a frame capture per frame, plus the AudioContext clock. That needs no second track. On desktop with a screen, separate tracks remove the draw loop but add a second encoder and more upload bytes. Keeping an instant composite for the share link adds a third. WIL-3181&#39;s strongest argument was background-tab throttling, and the audio clock from May 2026 already handles that. The editor has no telemetry for dropped frames, fps or CPU, so nobody can show a desktop performance problem today.</p>
+<p><strong>Does it clean things up?</strong> Raw camera recording on phones deletes code. Multi-track adds it. The journal, upload grant, video row, Mux clip and edit manifest all assume one source (<code>packages/video-derivations/src/manifest.ts:8</code>). Separate tracks need a layout model, a sync manifest, two upload identities and a compositor somewhere.</p>
+<p><strong>Does it give flexibility after recording?</strong> On desktop, yes, and only there. A phone has nothing to re-layout. Every re-layout needs a renderer. The one we had, <code>media-artifact-producer</code>, went with #769. WIL-3189, WIL-3190 and WIL-3194 were closed the next day with a note to re-file against Mux.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Kept separate</th>
+<th>Composite where</th>
+<th>Makes possible</th>
+<th>Costs</th>
+<th>Link at Stop</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a. No change</td>
+<td>Nothing</td>
+<td>Canvas at record time</td>
+<td>Nothing</td>
+<td>Zero</td>
+<td>Kept</td>
+<td>Strip baked into every file</td>
+</tr>
+<tr>
+<td>b. Raw camera on phone</td>
+<td>One source</td>
+<td>None</td>
+<td>True 9:16, no canvas work</td>
+<td>Small recorder branch</td>
+<td>Kept</td>
+<td>Safari rotation flag; no-camera takes must refuse to start</td>
+</tr>
+<tr>
+<td>c. Desktop composite for the link, raw tracks kept, re-rendered on edit</td>
+<td>Screen, camera with mic</td>
+<td>Canvas for the link; server on first edit</td>
+<td>Change layout after recording on desktop</td>
+<td>Three encoders per tab, 3× journal and upload, layout model, render host</td>
+<td>Kept</td>
+<td>Weak laptops; up to 8 s recorder start lag; sync</td>
+</tr>
+<tr>
+<td>d. Two Mux assets played together</td>
+<td>Screen, camera with mic</td>
+<td>Viewer&#39;s browser, every play</td>
+<td>Layout editable forever, no render</td>
+<td>Our own sync, two-player page, no single MP4 for download, GIF or og:image</td>
+<td>Both assets must be ready</td>
+<td>iOS plays one video with sound at a time; stalls couple; breaks WIL-3183</td>
+</tr>
+<tr>
+<td>e. Server render on demand</td>
+<td>Screen, camera with mic</td>
+<td>FFmpeg on Cloudflare Containers, minutes later</td>
+<td>One baked MP4 per layout; pairs with c</td>
+<td>About $0.007 per minute of render, a queue, a container we deleted</td>
+<td>Broken unless paired with c</td>
+<td>The ops load the Mux move removed</td>
+</tr>
+</tbody></table></div>
+<p>A link that exists at Stop is not the same as a video that plays. None of these options changes the second number. WIL-3196 measures it.</p>
+<p><strong>WIL-3183 should stand.</strong> One baked MP4 as the only public asset is why the page, still, GIF, download and trim all work from one id. Only d breaks it, and d also has the iOS audio problem. Tella seems to composite at playback, so d works for some products. Cap and Screen Studio render a file instead. If multi-track ever comes, it is c plus e. The editor previews the synced sources, which WIL-3183 already allows, and a render swaps the public asset.</p>
+<h2>4. Recommendation and sequence</h2>
+<p>Build b now. Defer c and e until a rep asks to move the camera after recording, or telemetry shows the desktop composite dropping frames.</p>
+<ol>
+<li><strong>Device day.</strong> Run the tests in section 6 and post the numbers to a ticket.</li>
+<li><strong>Raw camera recording when the browser cannot share a screen.</strong> Monitor in the camera&#39;s shape, flat mat instead of the gradient on desktop. Done when a phone take on staging reports 9:16 in Mux and the public page shows the tall frame, with record-to-share time unchanged (WIL-3196).</li>
+<li><strong>Library card A, plus <code>contain</code> in the inline player.</strong> Done when one portrait take sits beside a screen recording in the Library and both look right, light and dark.</li>
+<li><strong>Filmstrip cover draw.</strong> Done when the trim modal shows an unsquashed portrait strip.</li>
+<li><strong>Check og:image and GIF on one portrait take.</strong> Fix only if the crop misses the face.</li>
+<li><strong>Recorder telemetry.</strong> Draw-loop fps and canvas-track fps per take, measured on the weakest laptop we can find. This decides whether c is ever worth building.</li>
+</ol>
+<p>This touches <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3409/recorder-saves-a-blank-recording-when-no-camera-or-microphone-exists">WIL-3409</a>, <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3416/recorder-saves-a-stream-with-no-frames-and-shows-no-camera-loading">WIL-3416</a> and <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3414/screen-and-split-capture-fail-intermittently-when-chosen-before-device">WIL-3414</a> in the recorder, <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3494/server-owned-recording-lifecycle-and-a-typed-videos-table">WIL-3494</a> for the typed row the card reads, <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3196/record-to-share-time-metric">WIL-3196</a> for the metric that must hold, and <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3183/decide-the-public-share-asset-is-one-baked-mp4">WIL-3183</a>, which stands. <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3189/grill-layout-timeline-model-and-re-bake-semantics">WIL-3189</a>, <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3190/grill-multi-track-take-data-model">WIL-3190</a> and <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3194/design-editable-camera-and-screen-recording-with-post-recording-layout">WIL-3194</a> stay closed until step 6 or a customer gives a reason. Then re-file them against Mux as c plus e.</p>
+<h2>5. Calls only you can make</h2>
+<ul>
+<li><strong>Card shape.</strong> A keeps the grid, B shows the face bigger and breaks the rhythm, C is a photo grid. Both models pick A.</li>
+<li><strong>Laptop viewer.</strong> D1 now, for free, or D3 as a hero layout that breaks the single-column rule (<code>DESIGN.md:123</code>). Both models pick D1 now and D3 as a later experiment.</li>
+<li><strong>What sits behind a desktop screen composite.</strong> A flat dark mat, or a colour the rep chooses, the way Vidyard does it. I pick the mat.</li>
+</ul>
+<h2>6. Facts that need a device test before building</h2>
+<ul>
+<li>Does Mux honour Safari&#39;s MP4 rotation flag? Safari stores a portrait recording as rotated metadata, not rotated pixels (<a target="_blank" rel="noopener" href="https://bugs.webkit.org/show_bug.cgi?id=198912">WebKit bug 198912</a>). Upload one raw iPhone take to staging. The asset must say 9:16 and the still must be upright. If not, the fallback is a canvas at the camera&#39;s own size with no gradient.</li>
+<li>What the iPhone negotiates. Width, height and fps after the first frame, front and back camera, Safari and Chrome. It reports 1920×1080 for the first few hundred milliseconds before flipping (<a target="_blank" rel="noopener" href="https://github.com/livekit/client-sdk-js/issues/2099">livekit issue 2099</a>). Also whether rotating mid-take changes the track.</li>
+<li>Whether the streaming upload and record-to-share time hold on a raw track.</li>
+<li>Whether smartcrop finds the face in a true portrait still at 400×250 and 1200×630.</li>
+<li>Later, for c. How many 1080p MediaRecorders a weak Windows laptop runs without dropping frames.</li>
+</ul>
+<h2>Sources</h2>
+<p>Cap keeps display, camera, mic and system audio as separate files and composites in its editor (<a target="_blank" rel="noopener" href="https://cap.so/docs/recording/studio-mode">Cap Studio mode</a>). Tella records separate streams in the browser (<a target="_blank" rel="noopener" href="https://www.tella.com/recorder">Tella recorder</a>). Loom composites at record time and draws backgrounds on the viewer page (<a target="_blank" rel="noopener" href="https://support.atlassian.com/loom/docs/add-a-background-to-your-loom-video">Loom backgrounds</a>). Vidyard fills the empty space around vertical video with a configurable colour (<a target="_blank" rel="noopener" href="https://knowledge.vidyard.com/hc/en-us/articles/360009991513">Vidyard</a>). Instagram moved its grid to 3:4 because most uploads are vertical (<a target="_blank" rel="noopener" href="https://petapixel.com/2025/01/23/instagram-swaps-square-profile-grids-for-rectangles/">PetaPixel</a>). Mux cannot add a second video track to an asset (<a target="_blank" rel="noopener" href="https://www.mux.com/docs/api-reference/video/assets/create-asset-track">Mux tracks API</a>), and its watermark overlay takes images only (<a target="_blank" rel="noopener" href="https://www.mux.com/docs/guides/add-watermarks-to-your-videos">Mux watermarks</a>). The thumbnail fit modes are in <a target="_blank" rel="noopener" href="https://www.mux.com/docs/guides/get-images-from-a-video">Mux images</a>. <a target="_blank" rel="noopener" href="https://linear.app/cocco/issue/WIL-3181/research-multi-stream-recording-and-post-hoc-layout-mechanics">WIL-3181</a> recommended two recorders and a later FFmpeg composite in July. The June design docs made source tracks the target and were deleted on 25 September in <code>7f3cd4cf7</code>.</p>
+<p>Code references point at origin/main <code>e19c4ba1a</code>.</p>
+</article>
+  <h2 class="sk">Sketches</h2>
+  <p class="lede">These assume the recorder stops painting the gradient and saves the clip in its own shape. Then each surface can choose how to show it.</p>
+  <p class="note">Sketch only. Stock photos, mock UI, approximate tokens from DESIGN.md. Scroll inside the phones.</p>
+  <div class="scheme" role="group" aria-label="Colour scheme">
+    <button type="button" data-scheme="light" aria-pressed="true">Light</button>
+    <button type="button" data-scheme="dark" aria-pressed="false">Dark</button>
+  </div>
+
+  <h2>1. Library card</h2>
+  <p class="lede">Same library in each phone, two portrait clips and one landscape. The question is whether the grid keeps one rhythm or lets each clip keep its shape.</p>
+  <div class="row" id="library"></div>
+
+  <h2>2. Viewer page on a phone</h2>
+  <p class="lede">This is what the prospect sees after opening the share link. A rep who filmed upright made a phone-shaped video for a phone-shaped screen.</p>
+  <div class="row" id="viewer"></div>
+
+  <h2>3. Viewer page on a laptop</h2>
+  <p class="lede">The published page is a 760px single column. A 9:16 video at full column width would be 1350px tall, so it needs a rule.</p>
+  <div class="row" id="desktop"></div>
+
+  <p class="footer">Published from the vertical-video research run, 2026-10-02.</p>
+</div>
+
+<template id="lib-head">
+  <div class="statusbar"><span>14:13</span><span>●●●</span></div>
+  <h4>Videos</h4>
+  <div class="actions"><span>Upload</span><span>Record</span><span class="primary">+ New page</span></div>
+</template>
+
+<script>
+const clips = [
+  { t: "Untitled Video", s: "0:03 · 3h ago", img: "portrait.jpg", portrait: true },
+  { t: "Q4 pricing walkthrough", s: "2:41 · Yesterday", img: "landscape.jpg", portrait: false },
+  { t: "Quick hello for Dana", s: "0:42 · 2d ago", img: "portrait-b.jpg", portrait: true },
+];
+
+const tools = (glass) => `<div class="tools${glass ? " glass" : ""}"><i></i><i></i><i></i></div>`;
+
+const cardToday = (c) => `<div class="card"><div class="media r169">
+  ${c.portrait ? `<div class="baked"></div><img class="fit" src="${c.img}" alt="">` : `<img class="fill" src="${c.img}" alt="">`}
+  ${tools(false)}<div class="play"></div></div>
+  <div class="meta-t">${c.t}</div><div class="meta-s">${c.s}</div></div>`;
+
+const cardBlur = (c) => `<div class="card"><div class="media r169">
+  ${c.portrait ? `<div class="blur" style="background-image:url(${c.img})"></div><img class="fit" src="${c.img}" alt="">` : `<img class="fill" src="${c.img}" alt="">`}
+  ${tools(true)}<div class="play"></div></div>
+  <div class="meta-t">${c.t}</div><div class="meta-s">${c.s}</div></div>`;
+
+const cardShape = (c) => `<div class="card"><div class="media ${c.portrait ? "r45" : "r169"}">
+  <img class="fill" src="${c.img}" alt="" style="object-position:50% 30%"><div class="shade"></div>
+  ${tools(true)}<div class="play"></div></div>
+  <div class="meta-t">${c.t}</div><div class="meta-s">${c.s}</div></div>`;
+
+const cardGrid = (c) => `<div class="card"><div class="media r45">
+  <img class="fill" src="${c.img}" alt="" style="object-position:50% 30%"><div class="shade"></div>
+  <div class="more"></div><div class="play"></div><div class="dur">${c.s.split(" · ")[0]}</div></div>
+  <div class="meta-t">${c.t}</div><div class="meta-s">${c.s.split(" · ")[1]}</div></div>`;
+
+const head = () => document.getElementById("lib-head").innerHTML;
+const phone = (inner, dark) => `<div class="phone${dark ? " dark" : ""}"><div class="scroll">${inner}</div></div>`;
+
+const library = [
+  { tag: ["today", "Today"], h: "Baked gradient", p: "The gradient is in the video pixels. Mux reports the asset as 16:9, so no surface can recover the real shape. The card frame is also fixed at 16:9 (MediaCard.tsx), and inline playback uses cover, so even a real 9:16 file would crop to the nose. Breaks DESIGN.md's deference rule twice: it puts Clarity's paint inside the rep's video, and it is a manufactured gradient.", body: () => head() + clips.map(cardToday).join("") },
+  { tag: ["pick", "A · Recommended"], h: "Own-frame blur", p: "Keeps the 16:9 grid. The space beside the clip is the clip itself, blurred and dimmed, so it always matches. Needs the card to read mux_aspect_ratio, which the row already stores. One Mux still with fit_mode=preserve, drawn twice (blurred behind, contained in front). Landscape clips look exactly as today.", body: () => head() + clips.map(cardBlur).join("") },
+  { tag: ["", "B"], h: "Shape follows the clip", p: "Portrait clips get a 4:5 card, landscape keeps 16:9. Reads like a social feed and shows the face larger. Cost is an uneven rhythm, and a 4:5 crop cuts about 30% of a 9:16 frame.", body: () => head() + clips.map(cardShape).join("") },
+  { tag: ["", "C"], h: "Two-column grid", p: "Every clip becomes a 4:5 tile, like Photos. Twice the clips per screen. Cost is that landscape screen recordings crop badly, and the share/edit buttons move into a menu.", body: () => head() + `<div class="grid2">${clips.concat(clips.slice(0, 1)).map(cardGrid).join("")}</div>` },
+];
+
+const vClip = clips[0];
+const viewer = [
+  { tag: ["today", "Today"], h: "16:9 box", p: "The prospect sees a postage stamp of the rep and a lot of blue.", body: () => `<div class="vpage"><div class="statusbar"><span>9:41</span><span>●●●</span></div><div class="vbrand"><b></b>Northwind Solar</div><div class="media r169"><div class="baked"></div><img class="fit" src="${vClip.img}" alt=""><div class="play"></div></div><div class="vh">Your quote, walked through</div><p class="vp">I recorded this for you after our call. Two minutes, then the numbers are below.</p><span class="cta">Book a follow-up</span></div>` },
+  { tag: ["pick", "Already built"], h: "Portrait frame, 75svh cap", p: "The public page already does this for a real 9:16 file. It caps height at min(75svh, 640px) on phones and takes width from the ratio (journey-page-styles.ts:277). The baked recording is the only thing in the way.", body: () => `<div class="vpage"><div class="statusbar"><span>9:41</span><span>●●●</span></div><div class="vbrand"><b></b>Northwind Solar</div><div class="media r916" style="width:100%"><img class="fill" src="${vClip.img}" alt=""><div class="play"></div><div class="pchrome"></div></div><div class="vh">Your quote, walked through</div><p class="vp">I recorded this for you after our call. Two minutes, then the numbers are below.</p><span class="cta">Book a follow-up</span></div>` },
+];
+
+const desktop = [
+  { tag: ["pick", "D1 · Already built"], h: "Tall player, centred", p: "What the public page does today for a real 9:16 file. Height capped at min(56vh, 640px), width follows the ratio. Stays inside the single-column rule. Correct, slightly lonely on a wide screen.", body: () => `<div class="desk"><div class="bar"><i></i><i></i><i></i><span>clarity.video/p/northwind</span></div><div class="col" style="text-align:center"><div class="media" style="height:336px;width:189px;margin:0 auto"><img class="fill" src="${vClip.img}" alt=""><div class="play"></div></div><div class="vh">Your quote, walked through</div><span class="cta">Book a follow-up</span></div></div>` },
+  { tag: ["", "D2"], h: "16:9 stage, own-frame blur", p: "Same treatment as card A. Every video occupies the same box on every page, so page layouts never shift. The blur keeps the sides alive without adding Clarity paint.", body: () => `<div class="desk"><div class="bar"><i></i><i></i><i></i><span>clarity.video/p/northwind</span></div><div class="col"><div class="media r169"><div class="blur" style="background-image:url(${vClip.img})"></div><img class="fit" src="${vClip.img}" alt=""><div class="play"></div></div><div class="vh">Your quote, walked through</div></div></div>` },
+  { tag: ["", "D3 · Best looking"], h: "Side by side", p: "Video left, headline and CTA right, all above the fold. The rep talks while the button is in view. This breaks the single-column rule in DESIGN.md, so it needs your call.", body: () => `<div class="desk"><div class="bar"><i></i><i></i><i></i><span>clarity.video/p/northwind</span></div><div class="split"><div class="media r916"><img class="fill" src="${vClip.img}" alt=""><div class="play"></div></div><div style="text-align:left"><div class="vbrand"><b></b>Northwind Solar</div><div class="vh">Your quote, walked through</div><p class="vp">I recorded this for you after our call. Two minutes, then the numbers are below.</p><span class="cta">Book a follow-up</span></div></div></div>` },
+];
+
+function render(dark) {
+  const tagHtml = (t) => `<span class="tag ${t[0]}">${t[1]}</span>`;
+  document.getElementById("library").innerHTML = library.map((v) => `<div class="variant">${phone(v.body(), dark)}<h3>${tagHtml(v.tag)}${v.h}</h3><p>${v.p}</p></div>`).join("");
+  document.getElementById("viewer").innerHTML = viewer.map((v) => `<div class="variant">${phone(v.body(), dark)}<h3>${tagHtml(v.tag)}${v.h}</h3><p>${v.p}</p></div>`).join("");
+  document.getElementById("desktop").innerHTML = desktop.map((v) => `<div class="variant wide"><div class="desk-wrap">${v.body()}</div><h3>${tagHtml(v.tag)}${v.h}</h3><p>${v.p}</p></div>`).join("");
+}
+
+document.querySelectorAll(".scheme button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(".scheme button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  render(b.dataset.scheme === "dark");
+}));
+render(window.matchMedia("(prefers-color-scheme: dark)").matches && false);
+</script>
+</body>
+</html>
