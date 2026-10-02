@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clarity navigation cleanup</title>
+<style>
+body{font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;margin:0;background:#f5f7fb;color:#18181b}
+main{max-width:1280px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:32px;margin:0 0 8px;letter-spacing:-.02em}h2{font-size:22px;margin:48px 0 8px}h3{font-size:16px;margin:0 0 8px}
+p{max-width:68ch;color:#3f3f46}.row{display:flex;gap:16px;overflow-x:auto;padding:8px 0 16px}
+figure{margin:0;flex:none}figure img{display:block;border-radius:14px;border:1px solid #e4e4e7;background:#fff}
+.phone img{width:250px}.wide img{width:min(100%,900px)}figcaption{font-size:13px;color:#52525b;margin-top:6px;max-width:250px}
+.variant{background:#fff;border:1px solid #e4e4e7;border-radius:16px;padding:20px;margin:16px 0}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:#dbeafe;color:#1d4ed8;margin-left:8px;vertical-align:middle}
+code{background:#eef2f7;padding:1px 5px;border-radius:5px;font-size:14px}a{color:#2563eb}
+</style></head><body><main>
+<h1>Navigation cleanup</h1>
+<p>Live on the PR preview at <a href="https://pr-937.clarity-video.workers.dev/home">pr-937.clarity-video.workers.dev</a>. Pull request: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/937">#937</a>. Screens use test accounts on the preview's own seeded database.</p>
+
+<h2>What was wrong</h2>
+<p>Tapping a link in the phone drawer left the drawer open. Settings stayed expanded after you left it. Settings and Learn listed their sub-pages twice, once in the sidebar and again as tabs on the page. Admin listed its sub-pages only in the sidebar. Home listed five type filters that the page's own filter already covers. The desktop sidebar forgot that you had collapsed it.</p>
+<div class="row">
+<figure class="phone"><img src="img/before-drawer.jpg" alt=""><figcaption>Before: drawer on Settings, sub-pages repeated from the tabs behind it.</figcaption></figure>
+<figure class="phone"><img src="img/before-after-tap.jpg" alt=""><figcaption>Before: after tapping Contacts, the drawer is still open and Settings is still expanded.</figcaption></figure>
+<figure class="wide"><img src="img/before-desktop-settings.jpg" alt=""><figcaption>Before: Branding, Notifications, Billing… in the sidebar and again as tabs.</figcaption></figure>
+</div>
+
+<h2>What ships in every option</h2>
+<p>One list of places, used everywhere: Home, Contacts, Learn, Settings, and Admin for admins. Each section lists its sub-pages once, as links under the page title. The drawer closes when you tap a link or press Escape, and a closed drawer can't take keyboard focus. The desktop sidebar remembers that you collapsed it.</p>
+<div class="row">
+<figure class="wide"><img src="img/d-settings_billing.jpg" alt=""><figcaption>After: flat sidebar, sub-pages only under the title.</figcaption></figure>
+<figure class="wide"><img src="img/d-collapsed-reload.jpg" alt=""><figcaption>After: collapsed sidebar, still collapsed after a reload.</figcaption></figure>
+</div>
+
+<h2>Pick a phone pattern</h2>
+<p>Open the preview on your phone with one of these links. Your choice sticks until you switch.</p>
+
+<div class="variant"><h3>A. Drawer <code>?nav=drawer</code></h3>
+<p>A menu button in each page header opens the sidebar. Closest to today. Every move to another section costs two taps, and Record lives only on Home.</p>
+<p><a href="https://pr-937.clarity-video.workers.dev/home?nav=drawer">Try it</a></p>
+<div class="row">
+<figure class="phone"><img src="img/m-drawer-home.jpg" alt=""><figcaption>Home</figcaption></figure>
+<figure class="phone"><img src="img/m-drawer-settings_billing.jpg" alt=""><figcaption>Settings</figcaption></figure>
+<figure class="phone"><img src="img/m-drawer-drawer.jpg" alt=""><figcaption>Drawer open</figcaption></figure>
+</div></div>
+
+<div class="variant"><h3>B. Bottom tab bar <code>?nav=tabs</code><span class="tag">Recommended</span></h3>
+<p>Home, Contacts, Record, Learn, More, always one thumb away. Record sits in the middle because recording is the product. More opens the drawer for Settings, Admin, Profile and Sign out. This is the standard pattern on iOS and Android for apps with four or five main places.</p>
+<p><a href="https://pr-937.clarity-video.workers.dev/home?nav=tabs">Try it</a></p>
+<div class="row">
+<figure class="phone"><img src="img/m-tabs-home.jpg" alt=""><figcaption>Home</figcaption></figure>
+<figure class="phone"><img src="img/m-tabs-settings_billing.jpg" alt=""><figcaption>Settings</figcaption></figure>
+<figure class="phone"><img src="img/m-tabs-contacts.jpg" alt=""><figcaption>Contacts</figcaption></figure>
+<figure class="phone"><img src="img/m-tabs-drawer.jpg" alt=""><figcaption>More opens the drawer</figcaption></figure>
+</div></div>
+
+<div class="variant"><h3>C. Top bar <code>?nav=top</code></h3>
+<p>Logo, account button, and a scrolling row of places at the top. Everything is one tap away, but on Settings and Learn it stacks two rows of links, and Admin falls off the right edge on a narrow phone.</p>
+<p><a href="https://pr-937.clarity-video.workers.dev/home?nav=top">Try it</a></p>
+<div class="row">
+<figure class="phone"><img src="img/m-top-home.jpg" alt=""><figcaption>Home</figcaption></figure>
+<figure class="phone"><img src="img/m-top-settings_billing.jpg" alt=""><figcaption>Settings: two rows of links</figcaption></figure>
+<figure class="phone"><img src="img/m-top-drawer.jpg" alt=""><figcaption>Account button opens the drawer</figcaption></figure>
+</div></div>
+</main></body></html>
