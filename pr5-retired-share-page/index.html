@@ -1,12 +1,19 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Deleted video: what the share link shows</title>
-<style>body{font:16px/1.5 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#111}h2{margin-top:2.5rem}.row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start}figure{margin:0}img{border:1px solid #ddd;max-width:100%}figcaption{font-size:14px;color:#555}.desk{flex:1 1 640px}.phone{flex:0 1 220px}</style></head><body>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#111}h2{margin-top:2.5rem}.row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start}figure{margin:0}img{border:1px solid #ddd;max-width:100%}figcaption{font-size:14px;color:#555}.desk{flex:1 1 640px}.phone{flex:0 1 220px}table{border-collapse:collapse}td,th{border:1px solid #ddd;padding:.4rem .7rem;text-align:left}</style></head><body>
 <h1>Deleted video: what a prospect sees on its share link</h1>
-<p>WIL-3494 PR 5 (#936). Captured on staging, 2 October 2026, as a logged-out visitor. Both are test takes from the QA account.</p>
-<h2>Today (main): the page stays up</h2>
-<p>The link still answers 200. The page renders with the video block showing "Video unavailable. Please contact the sender for help." The browser tab title is the take's title or filename. Anything the rep added to the page (text, buttons, pricing) would still show around that card.</p>
+<p>WIL-3494 PR 5 (#936), with William's rule of 2 October 2026. Screenshots are from staging, as a logged-out visitor, using test takes from the QA account.</p>
+<table>
+<tr><th>Share page</th><th>Today (main)</th><th>With PR 5</th></tr>
+<tr><td>Never edited (no Library card)</td><td>200, "Video unavailable" card</td><td>404, "Page not found"</td></tr>
+<tr><td>Edited by its owner (has a Library card)</td><td>200, "Video unavailable" card</td><td>200, "Video unavailable" card, unchanged</td></tr>
+</table>
+<p>A page gets its Library card on its first edit, so the card is how the server tells an edited page from an untouched one. The check runs in the same database transaction as the delete. If an edit lands before the delete, the page stays. If the delete lands first, the edit is refused and the page stays retired.</p>
+<p>The 221 production pages that migration 0031 linked to existing videos follow the same rule. As of 2 October 2026, 110 of them have a card, so they stay published when their video is deleted. The other 111 have none, so they are retired. None of the 221 has been edited (all are at revision 1). The 110 cards were planted when those pages were created, before cards moved to the first edit.</p>
+<h2>Kept: a page its owner edited, and every page today</h2>
+<p>The link answers 200. The video block shows "Video unavailable. Please contact the sender for help." Anything the rep added to the page stays.</p>
 <div class="row"><figure class="desk"><img src="before-1280.png" alt="Share page with a Video unavailable card"><figcaption>Desktop</figcaption></figure><figure class="phone"><img src="before-390.png" alt="Same page on a phone"><figcaption>Phone</figcaption></figure></div>
-<h2>With PR 5: the page is retired</h2>
-<p>The link answers 404 with the site's plain "Page not found". The page is tombstoned, its route disabled, its publication and Library card removed. This applies to edited pages too, and to the 221 production pages the backfill linked to existing videos, whenever their video is deleted.</p>
+<h2>Retired with PR 5: a page no one edited</h2>
+<p>The link answers 404 with the site's plain "Page not found". The page is tombstoned, its route disabled and its publication removed.</p>
 <div class="row"><figure class="desk"><img src="after-1280.png" alt="Page not found"><figcaption>Desktop</figcaption></figure><figure class="phone"><img src="after-390.png" alt="Page not found on a phone"><figcaption>Phone</figcaption></figure></div>
 </body></html>
