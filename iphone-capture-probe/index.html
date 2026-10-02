@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone capture probe</title>
+<style>
+:root { font-family: -apple-system, system-ui, sans-serif; color: #0f172a; background: #f8fafc; }
+body { margin: 0; padding: 18px 16px 60px; max-width: 640px; margin-inline: auto; }
+h1 { font-size: 24px; margin: 4px 0 6px; letter-spacing: -0.01em; }
+p, li { font-size: 15px; line-height: 1.5; color: #334155; }
+ol { padding-left: 20px; margin: 8px 0 16px; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+button { font: inherit; font-size: 15px; font-weight: 600; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; }
+button.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+button.stop { background: #dc2626; border-color: #dc2626; color: #fff; }
+button:disabled { opacity: .4; }
+.status { font-size: 14px; font-weight: 600; padding: 10px 12px; border-radius: 10px; background: #e2e8f0; }
+.previews { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.previews video { width: 100%; aspect-ratio: 3 / 4; object-fit: contain; background: #0f172a; border-radius: 10px; }
+.cap { font-size: 12px; color: #64748b; margin-top: 2px; }
+#log { font: 12px/1.45 ui-monospace, Menlo, monospace; background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 10px; max-height: 260px; overflow-y: auto; white-space: pre-wrap; }
+#results video { width: 100%; max-height: 60vh; object-fit: contain; background: #000; border-radius: 10px; margin-top: 6px; }
+#summary { font: 13px/1.5 ui-monospace, Menlo, monospace; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; white-space: pre-wrap; }
+textarea { width: 100%; height: 120px; font: 11px ui-monospace, Menlo, monospace; border-radius: 10px; border: 1px solid #cbd5e1; padding: 8px; box-sizing: border-box; }
+.note { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+<h1>iPhone capture probe</h1>
+<p>This tests what Clarity's multi-track recorder can rely on. It records camera and screen as two separate files, on this phone only. Nothing is uploaded.</p>
+<ol>
+  <li>Tap <b>Camera + mic</b> and allow both.</li>
+  <li>Tap <b>Share screen</b> and start sharing.</li>
+  <li>Tap <b>Record</b>. Talk for about 5 seconds.</li>
+  <li>Swipe to the home screen. Open Notes or Settings and scroll for about 10 seconds. Keep talking.</li>
+  <li>Come back to Safari. Wait 5 seconds.</li>
+  <li>Open another Safari tab for about 5 seconds, then come back.</li>
+  <li>Turn the phone sideways for 5 seconds, then back upright.</li>
+  <li>Tap <b>Stop</b>. Watch both clips, then tap <b>Copy results</b> and paste them to Claude.</li>
+</ol>
+<div class="status" id="status">Ready.</div>
+<div class="btns">
+  <button id="camBtn" class="primary">Camera + mic</button>
+  <button id="scrBtn">Share screen</button>
+  <button id="recBtn" disabled>Record</button>
+  <button id="stopBtn" class="stop" disabled>Stop</button>
+</div>
+<div class="previews">
+  <div><video id="camPrev" playsinline muted autoplay></video><div class="cap" id="camCap">Camera</div></div>
+  <div><video id="scrPrev" playsinline muted autoplay></video><div class="cap" id="scrCap">Screen</div></div>
+</div>
+<div id="log"></div>
+<div id="results"></div>
+<h2 style="font-size:17px;margin:18px 0 6px">Results</h2>
+<div id="summary">Record and stop to see the summary.</div>
+<div class="btns"><button id="copyBtn" class="primary" disabled>Copy results</button><button id="clearBtn">Reset page</button></div>
+<textarea id="out" readonly placeholder="Results JSON appears here after Stop."></textarea>
+<p class="note">Probe for the multi-track design, 2 October 2026. Static page, no network calls after load.</p>
+
+<script>
+const t0 = performance.now();
+const wall0 = new Date().toISOString();
+const events = [];
+const samples = [];
+const logEl = document.getElementById("log");
+const statusEl = document.getElementById("status");
+const sec = () => +((performance.now() - t0) / 1000).toFixed(2);
+
+function ev(type, data = {}) {
+  const e = { t: sec(), type, ...data };
+  events.push(e);
+  const line = document.createElement("div");
+  line.textContent = `${e.t.toFixed(2)}  ${type}  ${JSON.stringify(data)}`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+  return e;
+}
+const status = (s) => { statusEl.textContent = s; };
+
+let rafCount = 0, intCount = 0, lastSample = performance.now();
+let actx = null, lastAc = null;
+(function raf() { rafCount++; requestAnimationFrame(raf); })();
+setInterval(() => { intCount++; }, 100);
+setInterval(() => {
+  const now = performance.now();
+  const ac = actx ? actx.currentTime : null;
+  samples.push({
+    t: sec(), gapMs: Math.round(now - lastSample), raf: rafCount, int100: intCount,
+    acState: actx ? actx.state : null, acAdvance: ac !== null && lastAc !== null ? +(ac - lastAc).toFixed(2) : null,
+    vis: document.visibilityState,
+  });
+  rafCount = 0; intCount = 0; lastSample = now; lastAc = ac;
+}, 1000);
+
+document.addEventListener("visibilitychange", () => ev("visibility", { state: document.visibilityState }));
+for (const n of ["pagehide", "pageshow", "focus", "blur"]) window.addEventListener(n, () => ev(n));
+document.addEventListener("freeze", () => ev("freeze"));
+document.addEventListener("resume", () => ev("resume"));
+window.addEventListener("orientationchange", () => ev("orientation", { angle: screen.orientation ? screen.orientation.angle : window.orientation }));
+
+let cam = null, scr = null;
+const recs = {};
+
+function watchTrack(label, track) {
+  ev("track", { label, kind: track.kind, settings: track.getSettings() });
+  for (const n of ["mute", "unmute", "ended"]) {
+    track.addEventListener(n, () => ev("track-" + n, { label, kind: track.kind, readyState: track.readyState, muted: track.muted }));
+  }
+}
+function watchSize(video, label, capEl) {
+  video.addEventListener("resize", () => {
+    const s = { label, w: video.videoWidth, h: video.videoHeight };
+    capEl.textContent = `${label} ${s.w}×${s.h}`;
+    ev("frame-size", s);
+  });
+}
+watchSize(document.getElementById("camPrev"), "camera", document.getElementById("camCap"));
+watchSize(document.getElementById("scrPrev"), "screen", document.getElementById("scrCap"));
+
+document.getElementById("camBtn").onclick = async () => {
+  try {
+    cam = await navigator.mediaDevices.getUserMedia({
+      video: { width: { min: 640, ideal: 1920, max: 1920 }, height: { min: 480, ideal: 1080, max: 1080 }, aspectRatio: { ideal: 16 / 9 } },
+      audio: true,
+    });
+    cam.getTracks().forEach((t) => watchTrack("cam", t));
+    document.getElementById("camPrev").srcObject = cam;
+    document.getElementById("recBtn").disabled = false;
+    status("Camera on. Share the screen next, or record camera only.");
+  } catch (e) { ev("cam-error", { name: e.name, message: e.message }); status("Camera failed: " + e.name); }
+};
+
+document.getElementById("scrBtn").onclick = async () => {
+  if (!navigator.mediaDevices.getDisplayMedia) { ev("screen-unsupported"); status("This browser has no getDisplayMedia."); return; }
+  try {
+    scr = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    scr.getTracks().forEach((t) => watchTrack("scr", t));
+    document.getElementById("scrPrev").srcObject = scr;
+    status("Screen shared. Tap Record.");
+  } catch (e) { ev("screen-error", { name: e.name, message: e.message }); status("Screen share failed: " + e.name); }
+};
+
+function pickMime() {
+  const c = ["video/mp4;codecs=avc1,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm"];
+  return c.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
+}
+
+function startRecorder(name, stream) {
+  const mimeType = pickMime();
+  let r;
+  try { r = new MediaRecorder(stream, mimeType ? { mimeType } : undefined); }
+  catch (e) { ev("rec-create-error", { name, error: e.name, message: e.message }); return; }
+  const rec = { r, chunks: [], arrivals: [], bytes: 0, mime: r.mimeType };
+  recs[name] = rec;
+  r.ondataavailable = (e) => {
+    rec.chunks.push(e.data); rec.bytes += e.data.size; rec.arrivals.push(sec());
+    if (rec.arrivals.length <= 3 || rec.arrivals.length % 10 === 0) ev("chunk", { name, n: rec.arrivals.length, size: e.data.size });
+  };
+  r.onerror = (e) => ev("rec-error", { name, error: e.error ? e.error.name : "unknown" });
+  r.onpause = () => ev("rec-pause", { name });
+  r.onresume = () => ev("rec-resume", { name });
+  r.onstart = () => ev("rec-start", { name, mime: r.mimeType, state: r.state });
+  r.onstop = () => ev("rec-stop", { name });
+  r.start(1000);
+  ev("rec-start-called", { name });
+}
+
+document.getElementById("recBtn").onclick = async () => {
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = actx.createOscillator(); const g = actx.createGain(); g.gain.value = 0;
+  osc.connect(g).connect(actx.destination); osc.start();
+  actx.onstatechange = () => ev("audioctx", { state: actx.state });
+  if (cam) startRecorder("camera", cam);
+  if (scr) startRecorder("screen", scr);
+  document.getElementById("recBtn").disabled = true;
+  document.getElementById("stopBtn").disabled = false;
+  status(`Recording ${Object.keys(recs).join(" + ")}. Follow steps 4 to 7, then Stop.`);
+};
+
+function hiddenIntervals() {
+  const out = []; let start = null;
+  for (const e of events) {
+    if (e.type !== "visibility") continue;
+    if (e.state === "hidden" && start === null) start = e.t;
+    if (e.state === "visible" && start !== null) { out.push([start, e.t]); start = null; }
+  }
+  if (start !== null) out.push([start, sec()]);
+  return out;
+}
+
+function maxGap(arr) { let g = 0; for (let i = 1; i < arr.length; i++) g = Math.max(g, arr[i] - arr[i - 1]); return +g.toFixed(2); }
+
+async function finish() {
+  const names = Object.keys(recs);
+  await Promise.all(names.map((n) => new Promise((res) => {
+    const { r } = recs[n];
+    if (r.state === "inactive") return res();
+    r.addEventListener("stop", res, { once: true });
+    r.stop();
+  })));
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+  const media = {};
+  for (const n of names) {
+    const rec = recs[n];
+    const blob = new Blob(rec.chunks, { type: rec.mime || "video/mp4" });
+    const v = document.createElement("video");
+    v.controls = true; v.playsInline = true; v.src = URL.createObjectURL(blob);
+    const cap = document.createElement("div"); cap.className = "cap"; cap.textContent = `${n} clip`;
+    results.append(cap, v);
+    media[n] = await new Promise((res) => {
+      v.onloadedmetadata = () => res({ w: v.videoWidth, h: v.videoHeight, duration: isFinite(v.duration) ? +v.duration.toFixed(2) : String(v.duration) });
+      v.onerror = () => res({ error: v.error ? v.error.code : "load failed" });
+      setTimeout(() => res({ timeout: true }), 5000);
+    });
+  }
+  const hidden = hiddenIntervals();
+  const hiddenSamples = samples.filter((s) => s.vis === "hidden");
+  const summary = {
+    ua: navigator.userAgent, started: wall0,
+    hiddenIntervals: hidden,
+    recorders: Object.fromEntries(names.map((n) => [n, {
+      mime: recs[n].mime, chunks: recs[n].arrivals.length, bytes: recs[n].bytes,
+      maxChunkGapS: maxGap(recs[n].arrivals), arrivals: recs[n].arrivals, firstChunkAt: recs[n].arrivals[0] ?? null, lastChunkAt: recs[n].arrivals.at(-1) ?? null,
+      playback: media[n],
+    }])),
+    trackEvents: events.filter((e) => e.type.startsWith("track-")),
+    whileHidden: {
+      samples: hiddenSamples.length,
+      rafTotal: hiddenSamples.reduce((a, s) => a + s.raf, 0),
+      interval100Total: hiddenSamples.reduce((a, s) => a + s.int100, 0),
+      audioCtxAdvanceS: +hiddenSamples.reduce((a, s) => a + (s.acAdvance || 0), 0).toFixed(2),
+      maxSampleGapMs: Math.max(0, ...samples.map((s) => s.gapMs)),
+    },
+  };
+  document.getElementById("summary").textContent = JSON.stringify(summary, null, 2);
+  document.getElementById("out").value = JSON.stringify({ summary, events, samples });
+  document.getElementById("copyBtn").disabled = false;
+  status("Done. Watch both clips, then Copy results.");
+}
+
+document.getElementById("stopBtn").onclick = () => {
+  document.getElementById("stopBtn").disabled = true;
+  ev("stop-tapped");
+  finish().catch((e) => { ev("finish-error", { message: e.message }); status("Stop failed: " + e.message); });
+};
+
+document.getElementById("copyBtn").onclick = async () => {
+  const text = document.getElementById("out").value;
+  try { await navigator.clipboard.writeText(text); status("Copied. Paste it to Claude."); }
+  catch { document.getElementById("out").select(); status("Copy blocked. Select the text box and copy by hand."); }
+};
+document.getElementById("clearBtn").onclick = () => location.reload();
+ev("loaded", { ua: navigator.userAgent, displayMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia), mime: pickMime() });
+</script>
+</body>
+</html>
