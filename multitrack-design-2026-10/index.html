@@ -357,11 +357,13 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li>The mic records into both files, and the two copies are identical. Matching them places the files within 2 ms of the recorder start events, far inside the 40 ms bar.</li>
 <li>The screen file missed a flash 1.5 s into the take and caught the other five, each about 67 ms after the page drew it. Its first chunk also came a second after the camera&#39;s. The first second or two of a screen file can be stale.</li>
 <li>A white flash on the screen did not visibly light the face in a bright room, so camera-to-screen video offset was not measured directly. It rests on each file&#39;s own audio and video sync, which the browser keeps.</li>
+<li>Leaving Safari for 6.5 s mid-take (third run): the voice kept recording in both files, at a level of 8.2 against 9.5 while visible. The camera file holds one frozen frame for that span, bounded exactly by its <code>mute</code> and <code>unmute</code> events. The screen file shows the other app. The mic copies still align within 1 ms after the return, so the gap shifts nothing.</li>
+<li>In the third run the screen caught all six flashes, each within one frame of the page drawing it. The second run&#39;s missed first flash makes the 2 s pre-roll a precaution, not a fix for a constant fault.</li>
 </ul>
 <h2>Open questions and device facts</h2>
 <ul>
-<li>Does the voice survive while the rep is in another app, in the camera file, the screen file&#39;s mic copy, or neither? The second iPhone run did not leave Safari mid-take. <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">Probe v2.1</a> now refuses to continue until the rep does.</li>
-<li>What does the camera file show after a rotation: sideways, squashed or letterboxed? Probe v2&#39;s frame strip shows it.</li>
+<li>What does the camera file show after a rotation: sideways, squashed or letterboxed? The probe&#39;s frame strip shows it, and a screenshot of it settles the camera&#39;s turn handling.</li>
+<li>Do desktop Chrome, Safari and Firefox align as well? <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">The same probe</a> runs on a Mac and is the desktop half of step 0.</li>
 <li>Does Mux honour Safari&#39;s rotation transform in <code>aspect_ratio</code> and stills?</li>
 <li>Does mic cross-correlation align camera and screen within 40 ms on every target browser, including through silence, app switching and a screen swap? This is the design&#39;s biggest risk. A standalone two-recorder capture with a flash-and-click reference retires it before any upload or render service gets built.</li>
 <li>How long is Stop-to-playable for camera-plus-screen takes rendered in the container, and is it close enough to today&#39;s?</li>
@@ -378,7 +380,7 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li><strong>Style panel for one-source and legacy takes.</strong> Aspect, background and frame, plus versioned publish and the 5 s pending-page rule. William turns a portrait take into 16:9 with blurred sides, and the share link follows. We measure Apply-to-viewer p50 and p75.</li>
 <li><strong>Parallel spans.</strong> Apply-to-viewer p75 must come in under 30 s for a 3-minute take.</li>
 <li><strong>Desktop camera-plus-screen takes, behind a flag.</strong> Two source recorders, mic alignment, cuts, and the layout and camera controls. William records a demo as a bubble and switches it to split after Stop. We measure sync error, dropped frames, and Stop-to-playable against today&#39;s. The flag comes off only when that last number is close enough. If it is not, the browser-composite fill switches on first.</li>
-<li><strong>iPhone screen with camera</strong>, gated on probe v2&#39;s voice and sync results. William sees the bubble disappear for the span the rep spent in another app, and a sideways span come out upright.</li>
+<li><strong>iPhone screen with camera.</strong> The probe has cleared voice and sync on Safari 27. William sees the bubble disappear for the span the rep spent in another app, and a sideways span come out upright.</li>
 <li><strong>Workspace presets.</strong></li>
 <li><strong>A live synced preview in the style panel</strong>, owner-only.</li>
 <li><strong>Delete the v1 edit manifest and the old trim route</strong>, in their own PR after the code deploy.</li>
