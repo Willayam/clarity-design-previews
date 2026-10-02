@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restyle after recording: prototype</title>
+<style>
+@font-face { font-family: "Geist"; src: url(./assets/geist.woff2) format("woff2"); font-weight: 100 900; }
+:root { --blue: #2563eb; --ink: #0f172a; --ink-2: #334155; --muted: #64748b; --line: #e2e8f0; font-family: "Geist", -apple-system, system-ui, sans-serif; color: var(--ink); background: #eef2f7; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 28px 20px 60px; }
+.doc { max-width: 1180px; margin: 0 auto; }
+h1 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
+.lede { color: var(--ink-2); line-height: 1.55; max-width: 760px; margin: 0 0 6px; }
+.note { color: var(--muted); font-size: 13px; line-height: 1.5; max-width: 760px; }
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; margin-top: 20px; align-items: start; }
+@media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+.stage { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.stage canvas { display: block; width: auto; height: auto; max-width: 100%; max-height: 70vh; border-radius: 10px; margin: 0 auto; }
+.status { margin-top: 12px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-2); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #059669; flex: none; }
+.dot.busy { background: #f59e0b; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.panel { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 16px; }
+.group h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
+.seg button { font: inherit; font-size: 13px; font-weight: 500; padding: 9px 6px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink-2); cursor: pointer; }
+.seg button[aria-pressed="true"] { border-color: var(--blue); background: #eff6ff; color: var(--blue); }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatches button { width: 34px; height: 34px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; }
+.swatches button[aria-pressed="true"] { border-color: var(--ink); }
+.publish { font: inherit; font-weight: 600; font-size: 15px; padding: 12px; border-radius: 12px; border: 0; background: var(--blue); color: #fff; cursor: pointer; }
+.publish:disabled { opacity: .45; cursor: default; }
+.footer { margin-top: 36px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Restyle after recording</h1>
+  <p class="lede">A prototype of the style panel for multi-track takes. The camera and the screen stay separate sources, so the layout, camera shape and background are a choice you make after Stop. Every frame here is drawn by the real <code>packages/composition</code> painter from PR #984, the same code the recorder now uses and the render container will use.</p>
+  <p class="note">Sketch only: stock camera stills and a drawn dashboard stand in for a real take. Changes preview instantly. Apply simulates the real flow, where a new version renders in about 25 seconds while viewers keep the old one. Padding, corner radius and a stacked portrait layout are in the design but not in the painter yet, so 9:16 shows the current layouts as they are.</p>
+
+  <div class="wrap">
+    <div class="stage">
+      <canvas id="preview" width="1920" height="1080"></canvas>
+      <div class="status"><span class="dot" id="dot"></span><span id="statusText">Viewers see version 1.</span></div>
+    </div>
+    <div class="panel">
+      <div class="group"><h3>Layout</h3><div class="seg" data-key="layout">
+        <button data-v="camera">Camera</button><button data-v="bubble">Bubble</button><button data-v="split">Split</button><button data-v="screen">Screen</button>
+      </div></div>
+      <div class="group"><h3>Camera shape</h3><div class="seg" data-key="shape">
+        <button data-v="circle">Circle</button><button data-v="squircle">Squircle</button><button data-v="rect">Square</button>
+      </div></div>
+      <div class="group"><h3>Background</h3><div class="swatches" data-key="background">
+        <button data-v="none" title="None" style="background:#020617"></button>
+        <button data-v="brand" title="Brand colour" style="background:#2563eb"></button>
+        <button data-v="warm" title="Warm" style="background:#f59e0b"></button>
+        <button data-v="gradient" title="Gradient" style="background:linear-gradient(135deg,#0f766e,#1e3a8a)"></button>
+        <button data-v="blur" title="Blur of the video" style="background:radial-gradient(circle at 40% 40%,#94a3b8,#334155)"></button>
+      </div></div>
+      <div class="group"><h3>Shape of the video</h3><div class="seg" data-key="aspect">
+        <button data-v="16:9">16:9</button><button data-v="9:16">9:16</button><button data-v="1:1">1:1</button>
+      </div></div>
+      <div class="group"><h3>Camera</h3><div class="seg" data-key="camera">
+        <button data-v="laptop">Laptop</button><button data-v="phone">Phone</button>
+      </div><div class="seg" data-key="mirror" style="margin-top:6px">
+        <button data-v="off">Not mirrored</button><button data-v="on">Mirrored</button>
+      </div></div>
+      <button class="publish" id="apply" disabled>Apply</button>
+    </div>
+  </div>
+  <p class="footer">Prototype for the multi-track program (WIL-3519), 2 October 2026.</p>
+</div>
+
+<script type="module">
+import { layoutScene, paintScene } from "./composition.js";
+
+const backgrounds = {
+  none: { kind: "none" },
+  brand: { kind: "color", hex: "#2563eb" },
+  warm: { kind: "color", hex: "#f59e0b" },
+  gradient: { kind: "gradient", from: "#0f766e", to: "#1e3a8a", angleDeg: 135 },
+  blur: { kind: "blur" },
+};
+const outputs = { "16:9": { width: 1920, height: 1080 }, "9:16": { width: 1080, height: 1920 }, "1:1": { width: 1080, height: 1080 } };
+const state = { layout: "bubble", shape: "circle", background: "none", aspect: "16:9", camera: "laptop", mirror: "off" };
+let published = JSON.stringify(state);
+let version = 1;
+
+const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const cameras = { laptop: await load("./camera.jpg"), phone: await load("./camera-portrait.jpg") };
+
+function drawScreen() {
+  const c = document.createElement("canvas"); c.width = 2560; c.height = 1600;
+  const g = c.getContext("2d");
+  g.fillStyle = "#f8fafc"; g.fillRect(0, 0, 2560, 1600);
+  g.fillStyle = "#e2e8f0"; g.fillRect(0, 0, 2560, 110);
+  for (const [x, col] of [[60, "#ef4444"], [110, "#f59e0b"], [160, "#10b981"]]) { g.fillStyle = col; g.beginPath(); g.arc(x, 55, 18, 0, 7); g.fill(); }
+  g.fillStyle = "#0f172a"; g.fillRect(0, 110, 420, 1490);
+  g.fillStyle = "#334155"; for (let i = 0; i < 7; i++) g.fillRect(50, 200 + i * 110, 320, 46);
+  g.fillStyle = "#0f172a"; g.font = "700 72px Geist, system-ui"; g.fillText("Q4 pricing walkthrough", 500, 260);
+  g.fillStyle = "#64748b"; g.font = "400 40px Geist, system-ui"; g.fillText("Northwind Solar · proposal", 500, 330);
+  const bars = [0.42, 0.6, 0.55, 0.78, 0.7, 0.92];
+  bars.forEach((h, i) => { g.fillStyle = i === 5 ? "#2563eb" : "#93c5fd"; g.fillRect(560 + i * 300, 1450 - h * 900, 200, h * 900); });
+  g.strokeStyle = "#cbd5e1"; g.lineWidth = 4; g.beginPath(); g.moveTo(520, 1452); g.lineTo(2450, 1452); g.stroke();
+  return c;
+}
+const screen = drawScreen();
+
+const canvas = document.getElementById("preview");
+const ctx = canvas.getContext("2d");
+
+function render() {
+  const out = outputs[state.aspect];
+  canvas.width = out.width; canvas.height = out.height;
+  const cam = cameras[state.camera];
+  const style = { background: backgrounds[state.background], camera: { shape: state.shape, mirror: state.mirror === "on" } };
+  const scene = layoutScene({ layout: state.layout, style, output: out, sources: { camera: { width: cam.naturalWidth, height: cam.naturalHeight }, screen: { width: screen.width, height: screen.height } } });
+  paintScene(ctx, scene, { frame: (role) => (role === "camera" ? cam : screen) });
+  for (const seg of document.querySelectorAll("[data-key]")) for (const b of seg.querySelectorAll("button")) b.setAttribute("aria-pressed", String(state[seg.dataset.key] === b.dataset.v));
+  document.getElementById("apply").disabled = JSON.stringify(state) === published || busy;
+}
+
+let busy = false;
+for (const seg of document.querySelectorAll("[data-key]")) {
+  seg.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-v]"); if (!b) return;
+    state[seg.dataset.key] = b.dataset.v; render();
+  });
+}
+document.getElementById("apply").addEventListener("click", () => {
+  busy = true; render();
+  const dot = document.getElementById("dot"), text = document.getElementById("statusText");
+  dot.classList.add("busy");
+  text.textContent = `Rendering version ${version + 1}. Viewers keep version ${version} until it is ready.`;
+  setTimeout(() => {
+    version += 1; published = JSON.stringify(state); busy = false;
+    dot.classList.remove("busy");
+    text.textContent = `Viewers see version ${version}. The page, card, link preview, GIF and download all switched together.`;
+    render();
+  }, 3000);
+});
+render();
+</script>
+</body>
+</html>
