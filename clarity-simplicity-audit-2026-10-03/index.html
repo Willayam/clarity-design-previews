@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity, ten times simpler</title>
+<style>
+  :root { --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --blue:#1d4ed8; --bg:#f8fafc; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color:var(--ink); background:#fff; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:2rem; line-height:1.2; margin:0 0 8px; }
+  h2 { font-size:1.35rem; margin:48px 0 12px; padding-top:16px; border-top:1px solid var(--line); }
+  h3 { font-size:1.05rem; margin:28px 0 8px; }
+  p, li { color:var(--ink); }
+  .meta { color:var(--muted); font-size:.9rem; margin-bottom:28px; }
+  .lede { font-size:1.15rem; }
+  table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:.92rem; }
+  th, td { text-align:left; vertical-align:top; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { background:var(--bg); font-weight:600; }
+  .wrap { overflow-x:auto; }
+  figure { margin:20px 0; }
+  figure img { width:100%; border:1px solid var(--line); border-radius:8px; display:block; }
+  figcaption { color:var(--muted); font-size:.88rem; margin-top:6px; }
+  .tag { display:inline-block; font-size:.75rem; font-weight:600; padding:1px 8px; border-radius:99px; background:#e0e7ff; color:#3730a3; }
+  .tag.cut { background:#fee2e2; color:#991b1b; }
+  .tag.merge { background:#fef3c7; color:#92400e; }
+  .tag.add { background:#dcfce7; color:#166534; }
+  ol li, ul li { margin-bottom:6px; }
+  code { font-size:.88em; background:var(--bg); padding:1px 4px; border-radius:4px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Clarity, ten times simpler</h1>
+<div class="meta">Product simplicity audit, 3 October 2026. Evidence comes from three passes. A code inventory listed every user-facing surface. A production usage census ran aggregate counts over D1 and RUM. A hands-on walkthrough on staging captured 208 screenshots and timings, as a rep and as a prospect.</div>
+
+<p class="lede">Customers use Clarity for one thing. They record a video, send the link, and see whether the prospect watched. Most of the rest of the product sits around that loop, and almost nobody touches it. The way to make Clarity feel ten times simpler is to make that loop the whole product, finish it properly, and move everything else out of the way.</p>
+
+<p>Today the loop is fast and still feels unfinished. It takes 6 clicks and about 20 seconds from the login screen to a copied link, and the link is live 81 ms after Stop. But what the prospect opens is a bare video called "Untitled Video", with no name, no face and no button. Then the rep can't find the page in their own Library. The page builder around the loop has 8 block types, 28 style controls and up to 183 visible controls in the editor. Customers use one block.</p>
+
+<h2>What people actually do</h2>
+
+<p>All figures are customer accounts only, with internal and test accounts excluded. Windows are counted back from 2 October 2026.</p>
+
+<div class="wrap"><table>
+<tr><th>Signal</th><th>Measured</th><th>What it means</th></tr>
+<tr><td>New customer pages that are only a video (hero block, nothing else)</td><td>70% in the last 30 days</td><td>The page builder is not the product. The video link is.</td></tr>
+<tr><td>New customer pages made from one recorded video</td><td>97 of 139 in 30 days</td><td>Record then share is the main path.</td></tr>
+<tr><td>CTA clicks that hit the hero's primary button</td><td>764 of 1,082 ever</td><td>One button does the work. Payment, sign and custom buttons were each on 3 or fewer new pages.</td></tr>
+<tr><td>Gallery block on customer pages</td><td>16 pages ever, 12 owners</td><td>Built recently and barely used.</td></tr>
+<tr><td>Summary block on customer pages</td><td>9 pages ever, 6 owners</td><td>Same.</td></tr>
+<tr><td>Rolling logos variant</td><td>17 blocks, against 1,240 static</td><td>An option nobody picks.</td></tr>
+<tr><td>Theme set on a customer page</td><td>24 pages, 15 owners. Font, size, corner or background overrides on 10 pages from 5 owners.</td><td>The presets are enough.</td></tr>
+<tr><td>AI generation</td><td>17 runs in 30 days, all edits, 0 new pages. 7 customer pages carry a generation id.</td><td>Strong when used (6.8 s to a full page), but people don't reach it.</td></tr>
+<tr><td>Folders</td><td>69% empty. 11 nested below the top level, in 3 workspaces. 6 created in 30 days.</td><td>Nested folders are not used.</td></tr>
+<tr><td>Learn</td><td>Content last edited November 2024. 0 training video plays in 90 days.</td><td>A sidebar slot for content nobody watches.</td></tr>
+<tr><td>Contacts</td><td>1 contact added by hand in 30 days. No imports since March 2025.</td><td>A CRM table nobody maintains.</td></tr>
+<tr><td>Customer and affiliate admin roles</td><td>3 of 16 org admins signed in within 90 days. 22 corporate accounts have never signed in.</td><td>The roles exist, but the product shows these admins nothing different from a rep.</td></tr>
+<tr><td>Rep notification preferences</td><td>Stored on 191 profiles. No email is ever sent, and no screen sets them.</td><td>Dead data.</td></tr>
+<tr><td>New customer pages that got at least one view</td><td>28% in 30 days</td><td>Most links are never opened, or never sent. Worth asking why before adding features.</td></tr>
+</table></div>
+
+<p>Internal accounts made 71% of all pages created in the last 30 days. Any dashboard that doesn't filter them out will mislead product decisions.</p>
+
+<h2>The target shape</h2>
+
+<p>Clarity has one object, <strong>a video page sent to a person</strong>. Everything a rep does either makes one, sends one, or reads what happened to one.</p>
+
+<ol>
+<li><strong>Record.</strong> The recorder asks one question before the take: "Who is this for?" That answer names the video, the page, the link and the page headline. It fixes "Untitled Video" at the source.</li>
+<li><strong>Page.</strong> The page builds itself from the answer and the rep's profile. It shows the rep's name, photo, company logo and one button, their calendar link. The editor becomes the exception, not a step.</li>
+<li><strong>Share.</strong> The finish screen says the link is live and shows a thumbnail of what the prospect will see. Copy link is the primary action.</li>
+<li><strong>Know.</strong> Home lists sent pages by prospect and last activity ("Dana at Acme watched 100% today"), not a file manager of videos, images and documents.</li>
+</ol>
+
+<h2>Cut</h2>
+
+<p>Each cut removes a control from the screen, not data from the database. Existing pages that use a removed block keep rendering.</p>
+
+<div class="wrap"><table>
+<tr><th>Cut</th><th>Evidence</th><th>What replaces it</th></tr>
+<tr><td><span class="tag cut">cut</span> Learn from the sidebar and the mobile tab bar</td><td>0 plays in 90 days. The videos cover an older product and carry another brand.</td><td>Nothing, or one 60-second first-run video recorded in Clarity, shown once.</td></tr>
+<tr><td><span class="tag cut">cut</span> Summary and Gallery from Add section</td><td>9 and 16 customer pages ever.</td><td>Document covers files. AI can still add a table if asked.</td></tr>
+<tr><td><span class="tag cut">cut</span> Rolling variant and the three color modes on Logos</td><td>17 rolling blocks against 1,240 static.</td><td>One static logo row.</td></tr>
+<tr><td><span class="tag cut">cut</span> Fonts, Size, Corners and Background in Page style</td><td>Overrides on 10 customer pages from 5 owners.</td><td>The six presets, shown as previews of the rep's own page.</td></tr>
+<tr><td><span class="tag cut">cut</span> The alignment switch next to every title</td><td>Seven blocks each carry one. They add about 20 controls to a full page.</td><td>One sensible alignment per block.</td></tr>
+<tr><td><span class="tag cut">cut</span> Form redirect URL, per-field Required toggles, Cancel button and the mobile-number default</td><td>2 new customer pages with a form in 30 days. The form asks four fields to say "I'm interested".</td><td>An email field and an optional message. Submit confirms in place.</td></tr>
+<tr><td><span class="tag cut">cut</span> Search, filter, sort, New folder and the duplicate start buttons on an empty Home</td><td>A new user sees three ways to start, shown twice, plus tools for zero items.</td><td>One "Record a video" call to action. Upload and a blank page appear as text links below it.</td></tr>
+<tr><td><span class="tag cut">cut</span> Folder nesting</td><td>11 nested folders across 3 workspaces.</td><td>One level of folders. Existing nested folders flatten or stay readable.</td></tr>
+<tr><td><span class="tag cut">cut</span> Import from URL</td><td>It handles images and documents only. Its use is unmeasured, and it is hidden inside the media picker.</td><td>Upload and drag and drop.</td></tr>
+<tr><td><span class="tag cut">cut</span> Billing tab</td><td>It says "Add a payment method" and has no button to do it.</td><td>A "Manage billing" link on the subscription line, which opens Stripe.</td></tr>
+<tr><td><span class="tag cut">cut</span> Profile's work and home phone, full postal address and timezone</td><td>15 fields, none of which appear on a page.</td><td>Name, photo, company and calendar link, the four fields a page uses.</td></tr>
+<tr><td><span class="tag cut">cut</span> Contact CRM fields (department, industry, job title, phone types) and CSV import</td><td>1 manual contact in 30 days. No imports in 18 months.</td><td>Leads (see Merge). Export stays.</td></tr>
+<tr><td><span class="tag cut">cut</span> The mobile More drawer</td><td>Three of its four items are already in the tab bar.</td><td>Two tabs, Record and Pages. Settings moves behind the avatar.</td></tr>
+<tr><td><span class="tag cut">cut</span> Notification preference storage</td><td>191 profiles hold toggles that do nothing.</td><td>Nothing until a notification email exists.</td></tr>
+<tr><td><span class="tag cut">cut</span> Layout and device pickers while recording</td><td>They stay clickable mid-take. A take has one layout.</td><td>They hide on Record.</td></tr>
+<tr><td><span class="tag cut">cut</span> Edit as both a hover button and a menu item on cards, and Share inside the video modal</td><td>Up to 10 actions per card, three of them duplicates.</td><td>One primary action (Open), one secondary (Copy link), one menu.</td></tr>
+</table></div>
+
+<h2>Merge</h2>
+
+<div class="wrap"><table>
+<tr><th>Merge</th><th>Why</th></tr>
+<tr><td><span class="tag merge">merge</span> Profile, Branding and Password into one "You" page</td><td>Company is asked twice today. Logo and color are asked in three places (Branding, the canvas, the style panel). A rep has one brand.</td></tr>
+<tr><td><span class="tag merge">merge</span> Video statistics into page statistics</td><td>Prospects watch pages, not files. The page modal already shows plays, retention and location per video.</td></tr>
+<tr><td><span class="tag merge">merge</span> Contacts into Leads, attached to pages</td><td>A form submission belongs to the page that captured it. Today submissions land in a table with no link back.</td></tr>
+<tr><td><span class="tag merge">merge</span> The three meanings of Share into one</td><td>Share on a page card opens a dialog. Share on a video card creates a new page and opens the editor. The recorder has Copy link. Share should always mean "give me the link to this video's page".</td></tr>
+<tr><td><span class="tag merge">merge</span> Canvas and side panel editing</td><td>Every field exists twice. The roadmap already moves editing onto the canvas. Finishing it halves the editor.</td></tr>
+<tr><td><span class="tag merge">merge</span> Sign in and Get started on the marketing site</td><td>They lead to the same login screen.</td></tr>
+<tr><td><span class="tag merge">merge</span> Retired-route and not-found responses into one branded page with a way home</td><td>Today they are bare monospace text.</td></tr>
+</table></div>
+
+<h2>Make it delightful</h2>
+
+<p>These are the few additions worth making. Each one finishes the core loop rather than widening the product.</p>
+
+<figure><img src="img/07-prospect-recorder-desktop.jpg" alt="The page a prospect opens from the fast path: a video on a white page and nothing else"><figcaption>What the 6-click path sends today. The test account had no brand set. In code, the fast-path page never renders the rep's name or photo even with a full profile (inferred from <code>render-blocks.ts</code>).</figcaption></figure>
+
+<ol>
+<li><span class="tag add">add</span> <strong>"Who is this for?" in the recorder.</strong> It is one text field above the preview, and it names everything downstream.</li>
+<li><span class="tag add">add</span> <strong>The fast-path page carries the rep.</strong> It shows the rep's name, photo, company logo, the prospect's name as the headline, one calendar button and a quiet "Sent with Clarity" line. All of it comes from the profile and the recorder answer.</li>
+<li><span class="tag add">add</span> <strong>The page exists in the Library the moment it exists.</strong> Today the recorder's page is missing from Home until it is edited and saved, and then it shows a stale name.</li>
+<li><span class="tag add">add</span> <strong>Home shows activity, not files.</strong> Each card gets the prospect and the last thing they did. The data already exists in page statistics.</li>
+<li><span class="tag add">add</span> <strong>The finish screen previews the prospect's view.</strong> "Your page is live" with a thumbnail, so the rep trusts the link before sending it.</li>
+<li><span class="tag add">add</span> <strong>Empty sections never publish.</strong> A "Pricing" heading over nothing reached the public page in the walkthrough.</li>
+<li><span class="tag add">add</span> <strong>A new account lands in the recorder.</strong> The first Home visit should already have the first sent page on it.</li>
+</ol>
+
+<figure><img src="img/02-first-run-home-desktop.jpg" alt="Empty Home for a new account with three start buttons shown twice and a consent card"><figcaption>First run. Three ways to start, shown twice, tools for zero items, and a consent card that follows the user from the marketing site.</figcaption></figure>
+
+<figure><img src="img/06-editor-style-panel-desktop.jpg" alt="Page style panel with presets, colors, backgrounds, six fonts, sizes and corners next to a form editor"><figcaption>The editor with the style panel open. 28 style controls on top of the block panel. The presets alone would do the job.</figcaption></figure>
+
+<figure><img src="img/07-prospect-audit-desktop-form.jpg" alt="Public lead form with four fields, a consent checkbox about orders, Cancel and Submit"><figcaption>The prospect's lead form. Labels read like placeholders. The mobile number is required and accepted letters, and the consent text talks about orders. After Submit, the whole page is replaced by "Form submitted successfully".</figcaption></figure>
+
+<h2>Keep</h2>
+
+<p>These already feel right. Simplifying must not break them.</p>
+<ol>
+<li>The login screen. It has one field and creates an account on the same screen. Lookup takes 36 ms, and signup reaches Home in 1.3 s.</li>
+<li>The link exists before Stop. Copy link is ready 81 ms after the take ends.</li>
+<li>The recorder finish screen, with play, Trim, Edit Preview, Re-record, Open page and Copy link.</li>
+<li>Recorder defaults. Layout tiles, a record button named after what it records, clean device names and a live mic meter.</li>
+<li>One filmstrip dock for trim and preview, shared by the recorder and Edit Video.</li>
+<li>The share dialog. One sentence of state, one link, one password switch. Publish takes 0.34 s.</li>
+<li>AI Generate. One box, example chips, and 6.8 s to a full page.</li>
+<li>Page statistics. A mini page beside three numbers, then plays, retention, location and clicks per element.</li>
+<li>The public page. 314 KB, ready in 0.3 s, no Clarity chrome, the video first.</li>
+<li>Speed throughout. Home loads in 0.84 s, the editor in 0.85 s and the recorder in 1.7 s. Admin copy is written in plain sentences.</li>
+</ol>
+
+<h2>Bugs found on the way</h2>
+<ul>
+<li>A take abandoned by navigating away leaves a "Preparing video" card that never resolves, and no recovery card appears on return.</li>
+<li>The lead form's mobile number field accepts any text, and that text lands in the Contacts phone column.</li>
+<li>The lead form confirmation replaces the page with "Form submitted successfully" and no way back.</li>
+<li>The Record button stays active beside the "No camera or microphone found" card. This was seen headless and still needs checking on a real machine with the camera denied.</li>
+<li>Settings tabs clip on a phone, and the mobile editor's panel toggle made no visible change.</li>
+<li>Of 51 takes on the new recorder in 30 days, 35 were discarded, and so were 21 of 29 uploads. That may be re-records working as designed, or a flow that loses work. It is unexplained and should be checked before the recorder changes.</li>
+<li>RUM shows about 16,000 successful password sign-ins in 30 days against a small set of signed-in accounts. Synthetic monitoring is the likely cause (a guess). Filter it out before reading sign-in metrics.</li>
+</ul>
+
+<h2>Order of work</h2>
+<p>Subtract first, then finish the loop on the simpler base.</p>
+<ol>
+<li><strong>Pure cuts</strong>, one small PR each, no data changes. Learn out of navigation. Summary, Gallery and Logos variants out of Add section. Page style reduced to presets. Alignment switches gone. Billing tab folded into Subscription. Profile trimmed to four fields. Empty-Home tools hidden. Mobile More drawer removed. Branded not-found page.</li>
+<li><strong>The core loop.</strong> "Who is this for?" in the recorder. The fast-path page carries the rep. The page appears in the Library at once. Share means one thing. The lead form becomes one field. Empty sections never publish.</li>
+<li><strong>The new Home.</strong> Sent pages by prospect and activity. Video stats merged into page stats. Contacts become Leads per page. On mobile, two tabs.</li>
+<li><strong>The editor.</strong> Finish canvas editing and remove the side-panel fields one control at a time.</li>
+</ol>
+
+<h2>Decisions that are William's</h2>
+<ol>
+<li><strong>Analytics consent.</strong> Cutting the banner may conflict with EU consent rules. The options are to show it only on the marketing site, ask once at signup, or move to cookieless measurement that needs no consent. Recommended: ask at signup.</li>
+<li><strong>Publish model.</strong> The recorder's page is live at once, but any edit takes it out of sync until Publish is pressed again. Recommended: once a page is published, Done publishes, and Unpublish stays available.</li>
+<li><strong>Contacts become Leads.</strong> This drops CRM editing for the few who use it. Existing contacts stay exportable.</li>
+<li><strong>Customer and affiliate admins.</strong> Either give them a team view of pages and activity, or stop presenting the role as a feature.</li>
+<li><strong>FAQ, Pricing, Document and Form.</strong> They were heavily used in the old app (FAQ by 633 owners, Pricing by 431) and lightly used since. Recommended: keep them in Add section and drop them from new-page defaults.</li>
+</ol>
+
+<h2>Method and limits</h2>
+<p>The usage census ran read-only aggregate queries against production D1 and RUM. It counted no names, emails or page content. Some things are not stored anywhere, including recorder layout choice, share dialog opens, downloads, consent choices, and visits to Learn, Contacts and Settings. The sign-in date undercounts activity, and page views include owners opening their own pages. The walkthrough ran on staging with a fake camera, so recorded takes are test patterns. Control counts were taken by script from the first viewport.</p>
+
+</main>
+</body>
+</html>
