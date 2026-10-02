@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iPhone capture probe v2</title>
+<title>iPhone capture probe v2.1</title>
 <style>
 :root { font-family: -apple-system, system-ui, sans-serif; color: #0f172a; background: #f8fafc; }
 body { margin: 0; padding: 18px 16px 60px; max-width: 640px; margin-inline: auto; }
@@ -38,8 +38,8 @@ textarea { width: 100%; height: 110px; font: 11px ui-monospace, Menlo, monospace
 </style>
 </head>
 <body>
-<h1>iPhone capture probe v2</h1>
-<p>Second round. This one also measures sync between the camera and screen files, whether your voice survives while you are in another app, and what rotation does to each file. Everything stays on this phone.</p>
+<h1>iPhone capture probe v2.1</h1>
+<p>Third round, same page. Sync check now unlocks only after you have left Safari and come back, because that step is the one still unmeasured. This page also measures sync between the camera and screen files, whether your voice survives while you are in another app, and what rotation does to each file. Everything stays on this phone.</p>
 <ol>
   <li>Tap <b>Camera + mic</b>, then <b>Share screen</b>.</li>
   <li>Tap <b>Record</b>. A dark screen appears and flashes white three times. Look at the phone and keep talking.</li>
@@ -213,9 +213,25 @@ document.getElementById("recBtn").onclick = async () => {
   document.getElementById("recBtn").disabled = true;
   stage.classList.add("on");
   stageText.textContent = "Recording. Look at the phone and keep talking.";
+  document.getElementById("syncBtn").disabled = true;
+  document.getElementById("syncBtn").textContent = "Leave Safari first";
   await flashBurst("start", [1500, 1500, 1500]);
-  stageText.textContent = "Now go to another app for about 10 seconds and keep talking. Then come back and tap Sync check.";
+  stageText.textContent = "Now swipe up and open another app for about 10 seconds. Keep talking, say what you see. Then come back here.";
+  leftAndReturned = false;
 };
+
+let leftAndReturned = true;
+let wasHiddenDuringTake = false;
+document.addEventListener("visibilitychange", () => {
+  if (!stage.classList.contains("on")) return;
+  if (document.visibilityState === "hidden") wasHiddenDuringTake = true;
+  if (document.visibilityState === "visible" && wasHiddenDuringTake && !leftAndReturned) {
+    leftAndReturned = true;
+    const b = document.getElementById("syncBtn");
+    b.disabled = false; b.textContent = "Sync check";
+    stageText.textContent = "Welcome back. Tap Sync check.";
+  }
+});
 
 document.getElementById("syncBtn").onclick = async () => {
   document.getElementById("syncBtn").disabled = true;
