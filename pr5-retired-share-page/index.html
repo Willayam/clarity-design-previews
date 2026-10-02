@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deleted video: what the share link shows</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#111}h2{margin-top:2.5rem}.row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start}figure{margin:0}img{border:1px solid #ddd;max-width:100%}figcaption{font-size:14px;color:#555}.desk{flex:1 1 640px}.phone{flex:0 1 220px}</style></head><body>
+<h1>Deleted video: what a prospect sees on its share link</h1>
+<p>WIL-3494 PR 5 (#936). Captured on staging, 2 October 2026, as a logged-out visitor. Both are test takes from the QA account.</p>
+<h2>Today (main): the page stays up</h2>
+<p>The link still answers 200. The page renders with the video block showing "Video unavailable. Please contact the sender for help." The browser tab title is the take's title or filename. Anything the rep added to the page (text, buttons, pricing) would still show around that card.</p>
+<div class="row"><figure class="desk"><img src="before-1280.png" alt="Share page with a Video unavailable card"><figcaption>Desktop</figcaption></figure><figure class="phone"><img src="before-390.png" alt="Same page on a phone"><figcaption>Phone</figcaption></figure></div>
+<h2>With PR 5: the page is retired</h2>
+<p>The link answers 404 with the site's plain "Page not found". The page is tombstoned, its route disabled, its publication and Library card removed. This applies to edited pages too, and to the 221 production pages the backfill linked to existing videos, whenever their video is deleted.</p>
+<div class="row"><figure class="desk"><img src="after-1280.png" alt="Page not found"><figcaption>Desktop</figcaption></figure><figure class="phone"><img src="after-390.png" alt="Page not found on a phone"><figcaption>Phone</figcaption></figure></div>
+</body></html>
