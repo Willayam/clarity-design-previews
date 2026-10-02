@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portrait video PRs: evidence for merge</title>
+<style>
+@font-face { font-family: "Geist"; src: url(./assets/geist.woff2) format("woff2"); font-weight: 100 900; }
+:root { --ink: #0f172a; --ink-2: #334155; --muted: #64748b; --line: #e2e8f0; font-family: "Geist", -apple-system, system-ui, sans-serif; color: var(--ink); background: #eef2f7; }
+body { margin: 0; padding: 28px 18px 60px; }
+.doc { max-width: 980px; margin: 0 auto; }
+h1 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
+h2 { font-size: 20px; margin: 40px 0 6px; }
+p { color: var(--ink-2); line-height: 1.55; max-width: 760px; margin: 0 0 10px; }
+a { color: #2563eb; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 14px; }
+figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+figure img { width: 100%; height: auto; border-radius: 8px; display: block; }
+figcaption { font-size: 13px; color: var(--ink-2); line-height: 1.45; margin-top: 8px; }
+.wide { grid-column: 1 / -1; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: #dcfce7; color: #166534; margin-right: 6px; }
+.note { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Portrait video: evidence for merge</h1>
+  <p>Two PRs fix what you saw: a portrait recording squeezed onto a blue gradient. Both were proven on their own preview environments, then confirmed by a second, independent agent that did not write the code. Test footage is a drawn stand-in, not a real person.</p>
+  <p><span class="pill">Verified</span><a href="https://github.com/Clarity-Video-HQ/clarity/pull/982">#982</a> Library, inline player and filmstrip. <span class="pill">Verified</span><a href="https://github.com/Clarity-Video-HQ/clarity/pull/983">#983</a> the recorder. Still owed: one real iPhone take on the #983 preview.</p>
+
+  <h2>Library (#982)</h2>
+  <p>A portrait video's card shows the whole frame over a blurred copy of itself. Landscape cards are unchanged, down to the exact image URL.</p>
+  <div class="grid">
+    <figure class="wide"><img src="img/lib-desktop.jpg" alt=""><figcaption>Landscape and portrait uploads side by side, desktop.</figcaption></figure>
+    <figure><img src="img/lib-phone-light.jpg" alt=""><figcaption>Portrait card on a phone, light.</figcaption></figure>
+    <figure><img src="img/lib-phone-dark.jpg" alt=""><figcaption>Portrait card on a phone, dark.</figcaption></figure>
+    <figure><img src="img/lib-inline-portrait.jpg" alt=""><figcaption>Portrait playing inline: whole frame, blurred backdrop. It used to crop to the middle.</figcaption></figure>
+    <figure><img src="img/lib-inline-landscape.jpg" alt=""><figcaption>Landscape playing inline, exactly as before.</figcaption></figure>
+    <figure class="wide"><img src="img/lib-trim.jpg" alt=""><figcaption>Trim filmstrip on the portrait video. Each tile crops to fill instead of squashing the frame sideways.</figcaption></figure>
+  </div>
+
+  <h2>Recorder (#983)</h2>
+  <p>A take that starts with a phone held upright records the camera itself, so the video is portrait. The screen layouts and the camera picker lock for that take. Every other take keeps today's recorder, with a dark matte where the blue gradient was.</p>
+  <div class="grid">
+    <figure><img src="img/rec-phone-idle.jpg" alt=""><figcaption>Before recording, phone width: the monitor is the camera's own shape.</figcaption></figure>
+    <figure><img src="img/rec-phone-locked.jpg" alt=""><figcaption>Recording: the three screen layouts dim and ignore taps, the camera picker is disabled.</figcaption></figure>
+    <figure class="wide"><img src="img/rec-finish.jpg" alt=""><figcaption>After Stop: the take plays back portrait, 640x1080 from this test camera.</figcaption></figure>
+    <figure><img src="img/share-before.jpg" alt=""><figcaption>Share page before the poster fix: a landscape crop letterboxed in the tall frame.</figcaption></figure>
+    <figure><img src="img/share-after.jpg" alt=""><figcaption>Share page now, logged out on a phone: tall frame, portrait poster.</figcaption></figure>
+    <figure class="wide"><img src="img/rec-matte.jpg" alt=""><figcaption>A 4:3 camera on desktop: the sides are the dark player matte, no blue.</figcaption></figure>
+    <figure class="wide"><img src="img/rec-wide-inset.jpg" alt=""><figcaption>A desktop take still switches to Camera inset mid-take. (The round bubble comes with #984.)</figcaption></figure>
+  </div>
+  <p class="note">Checks behind these images: doctor green at each PR head, logged-in and logged-out runs in Google Chrome over IPv4, and an independent agent's report with byte-level facts (image URLs, computed styles, recorded file sizes, pixel samples). Published 2 October 2026.</p>
+</div>
+</body>
+</html>
