@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-track recording and restyle after recording: design</title>
+<style>
+@font-face { font-family: "Geist"; src: url(./assets/geist.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+:root { --blue: #2563eb; --ink: #0f172a; --ink-2: #334155; --muted: #64748b; --line: #e2e8f0; font-family: "Geist", -apple-system, system-ui, sans-serif; color: var(--ink); background: #eef2f7; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 32px 20px 80px; }
+.doc { max-width: 860px; margin: 0 auto; }
+h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 8px; }
+.lede { color: var(--ink-2); line-height: 1.55; margin: 0 0 6px; }
+.report { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 8px 32px 24px; margin-top: 20px; line-height: 1.6; color: var(--ink-2); font-size: 15.5px; }
+.report h2 { color: var(--ink); font-size: 21px; margin: 34px 0 8px; }
+.report h3 { color: var(--ink); font-size: 16.5px; margin: 24px 0 6px; }
+.report p, .report li { margin: 0 0 10px; }
+.report ul, .report ol { padding-left: 22px; }
+.report code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: #f1f5f9; padding: 1px 5px; border-radius: 5px; word-break: break-word; }
+.report pre { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 12px; line-height: 1.5; }
+.report pre code { background: none; padding: 0; color: inherit; font-size: 12px; word-break: normal; }
+.report a { color: var(--blue); }
+.report blockquote { border-left: 3px solid #f59e0b; background: #fffbeb; margin: 18px 0 8px; padding: 10px 16px; border-radius: 8px; color: #78350f; }
+.footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
+@media (max-width: 640px) { .report { padding: 4px 16px 18px; font-size: 15px; } body { padding: 20px 10px 60px; } }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Multi-track recording, restyled after recording</h1>
+  <p class="lede">Design for Clarity, 2 October 2026. Synthesized from three independent model designs and a blinded judge, grounded in a teardown of Supercut, Tella, Cap, Loom and Screen Studio, the current recorder code, and iOS 27 Safari's screen capture. Earlier portrait research: <a href="https://willayam.github.io/clarity-design-previews/portrait-video-2026-10/">portrait-video-2026-10</a>.</p>
+  <article class="report"><h2>The short version</h2>
+<p>Camera and screen are recorded as separate sources. How they look together is a small document, the composition: which layout when, camera shape, size and position, background, padding and corners, and output aspect. Every restyle saves a new version of that document.</p>
+<p>Viewers always play one rendered video per version, the way Supercut, Tella, Loom and Screen Studio do. A restyle renders in a container. The target is under 30 seconds for a 3-minute take, and it is an estimate until the container exists. The previous version keeps playing until the new one is ready, then every surface switches at once. That covers the page, card, link preview, GIF, download and captions.</p>
+<p>The link at Stop stays as fast as today for single-source takes, the common case. A take with one source needs no render, because the source is the video. A camera-plus-screen take gets version 1 from the container. If measured Stop-to-playable time for those takes misses today&#39;s by too much, the recording browser also records a composed version 1, as it does now but without the gradient. That fill is already in the model, so adding it changes nothing else.</p>
+<p>One painter, <code>packages/composition</code>, draws every frame for the recorder, the editor&#39;s style panel and the render container. A lint rule keeps drawing code out of everywhere else, so the three cannot drift.</p>
+<p>The editor previews a restyle instantly from still frames, as Supercut does. A live synced preview for the owner comes later.</p>
+<p>Existing surfaces need no changes. Publishing a version rewrites the same <code>videos</code> columns every reader uses today. The 7,444 existing videos become one-source takes without re-encoding.</p>
+<h2>How this was decided</h2>
+<p>Three models wrote independent designs from the same grounding: Fable 5.1, Opus 5.5 and GPT-6 Astra.</p>
+<ul>
+<li><strong>Opus and Astra converged on &quot;render per version&quot;.</strong> Viewers play one stream, as in every reference product, and a restyle renders while the old version keeps playing.</li>
+<li><strong>Fable went the other way.</strong> It packed the sources side by side into one unstyled asset and drew the layout live in each viewer&#39;s browser. Restyles were instant. It lost on the viewer side, explained under Alternatives.</li>
+</ul>
+<p>A blinded judge (Astra again, with author names stripped) scored Astra&#39;s design 18/21, Opus&#39;s 14 and Fable&#39;s 8, and picked Astra&#39;s as the base. I had picked Opus&#39;s. The judge may have recognized its own work, but its three corrections to Opus&#39;s design were right, and they are applied below.</p>
+<p>After the corrections, the two converge. This design keeps Opus&#39;s leaner tables, fill planner and publish projection. It takes Astra&#39;s publication fence, its strict timing states and its &quot;no browser composite until measured&quot; stance. &quot;Synthesis decision&quot; lists each graft.</p>
+<h2>Problem</h2>
+<p>Every viewer surface in Clarity is built on one Mux playback id per video:</p>
+<ul>
+<li>the journey page and the Library card</li>
+<li>the editor&#39;s page preview</li>
+<li>og:image, the email GIF and the MP4 download</li>
+<li>captions, first-party analytics and trim</li>
+</ul>
+<p>Multi-track breaks that. Camera and screen become separate uploads. Mux cannot add a second video track to an asset. It also cannot sync two on-demand players.</p>
+<p>Five constraints make the shape non-obvious:</p>
+<ul>
+<li><strong>The link at Stop.</strong> It must exist about 1 s after Stop. That works today only because the recorder claims the node from an upload that is still streaming.</li>
+<li><strong>The recording browser</strong> is the cheapest place to composite version 1. But it cannot restyle later. It also stops drawing when an iPhone rep leaves Safari, and iOS mutes the camera then anyway.</li>
+<li><strong>The viewer&#39;s browser</strong> is the cheapest place to restyle. But drawing HLS video to a canvas is unreliable on iOS and in the in-app browsers prospects open links in.</li>
+<li><strong>There is no render host.</strong> The FFmpeg container left with the Mux move (#769).</li>
+<li><strong>Old videos are baked.</strong> 7,444 single-file videos must keep playing.</li>
+</ul>
+<h2>Usage, caller&#39;s view</h2>
+<p>A <strong>take</strong> is a set of <strong>sources</strong> on one clock: a raw camera with mic, a raw screen, or one baked legacy file. A <strong>composition</strong> says how to show them. Compositions are versioned and append-only. Viewers play the take&#39;s <strong>published render</strong>, one Mux asset that is a pure function of the sources and one composition. Whoever can fill a render most cheaply fills it, in this order:</p>
+<ol>
+<li>The source itself (identity).</li>
+<li>A Mux clip (trim).</li>
+<li>The render container.</li>
+</ol>
+<p>A fourth fill, the recording browser&#39;s live composite, is in the model but switched off until measurements call for it.</p>
+<pre><code class="language-tsx">// Recorder: editor/src/routes/RecordVideoRoute.tsx
+const take = useTakeRecorder({
+  camera: devices.stream,           // raw camera + mic
+  screen: screenShare.stream,       // raw display capture or null
+  style: presets.workspaceDefault,  // a snapshot taken at Start
+})
+&lt;Monitor stream={take.monitor} /&gt;   // the composed frame on desktop, the raw camera on phones
+&lt;RecorderLayoutPicker layout={take.layout} onLayoutChange={take.setLayout} /&gt;  // mid-take: a cut, not pixels
+
+async function onStop() {
+  take.stop()                                                         // every recorder stops in one task
+  const { sharePage } = await take.claim({ title, parentId: folder })  // about 1 s; bytes keep streaming
+  showShareLink(sharePage.url)
+}
+</code></pre>
+<pre><code class="language-tsx">// Style panel: editor/src/components/style/StylePanel.tsx
+const style = useTakeStyle(videoId)
+// style.status: &#39;published&#39; | { pending: { version, etaSeconds } } | &#39;sources-uploading&#39;
+&lt;StyleCanvas paint={(ctx) =&gt; style.paint(ctx, playhead)} /&gt;    // sceneAt + paintScene over source stills
+&lt;LayoutPicker value={style.layoutAt(playhead)}
+  onChange={(layout) =&gt; style.edit({ kind: &#39;layout&#39;, at: playhead, layout })} /&gt;
+&lt;Button onClick={style.apply}&gt;Apply&lt;/Button&gt;                    // version n+1; viewers switch when its render is ready
+</code></pre>
+<pre><code class="language-ts">// Public page: workers/frontend-router/src/public-page-delivery/render-media.ts (unchanged)
+const playback = resolvePlayback(video)  // the published render, or &#39;processing&#39;
+`&lt;mux-player playback-id=&quot;${playback.muxPlaybackId}&quot; ...&gt;`  // tracking, captions, fullscreen as today
+</code></pre>
+<h2>Shape</h2>
+<h3>Where data lives</h3>
+<p>Everything lives in AUTH_DB beside <code>videos</code>, and the migration is additive only. All writes for one take go through the existing rev-fenced batch on <code>videos.rev</code>, so each take has one writer at a time.</p>
+<pre><code class="language-sql">-- 0034_takes.sql
+CREATE TABLE video_sources (
+  node_id TEXT NOT NULL, source_id TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN (&#39;camera&#39;,&#39;screen&#39;,&#39;baked&#39;)),
+  start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL, gaps_json TEXT NOT NULL,
+  display_width INTEGER NOT NULL, display_height INTEGER NOT NULL, has_mic INTEGER NOT NULL,
+  upload_id TEXT, mux_state TEXT NOT NULL, mux_asset_id TEXT, mux_playback_id TEXT, error TEXT,
+  PRIMARY KEY (node_id, source_id));
+CREATE TABLE video_compositions (       -- append-only history; undo is a new version
+  node_id TEXT NOT NULL, version INTEGER NOT NULL, doc_json TEXT NOT NULL,
+  visual_digest TEXT NOT NULL, render_key TEXT NOT NULL, author TEXT NOT NULL, created_at TEXT NOT NULL,
+  PRIMARY KEY (node_id, version));
+CREATE TABLE video_renders (            -- a cache keyed by content
+  node_id TEXT NOT NULL, render_key TEXT NOT NULL, visual_digest TEXT NOT NULL,
+  requested_by INTEGER NOT NULL, recipe TEXT NOT NULL,
+  fill_kind TEXT NOT NULL CHECK (fill_kind IN (&#39;identity&#39;,&#39;clip&#39;,&#39;recorder&#39;,&#39;container&#39;)),
+  fill_json TEXT NOT NULL, upload_id TEXT, mux_state TEXT, mux_asset_id TEXT, mux_playback_id TEXT,
+  aspect_ratio TEXT, duration_seconds REAL, ready_at TEXT,
+  PRIMARY KEY (node_id, render_key));
+CREATE TABLE style_presets (
+  workspace_id TEXT NOT NULL, preset_id TEXT NOT NULL, name TEXT NOT NULL, style_json TEXT NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0, rev TEXT NOT NULL, updated_at TEXT NOT NULL,
+  PRIMARY KEY (workspace_id, preset_id));
+CREATE UNIQUE INDEX style_presets_one_default ON style_presets (workspace_id) WHERE is_default = 1;
+CREATE INDEX video_sources_by_upload ON video_sources (upload_id);
+CREATE INDEX video_renders_by_upload ON video_renders (upload_id);
+ALTER TABLE videos ADD COLUMN head_version INTEGER;
+ALTER TABLE videos ADD COLUMN published_render_key TEXT;
+</code></pre>
+<p>The node id keeps today&#39;s format. The path from node to pixels is the <code>videos</code> row, then <code>published_render_key</code>, then the render row.</p>
+<p>Publishing also rewrites <code>mux_asset_id</code>, <code>mux_playback_id</code>, <code>aspect_ratio</code>, <code>duration_seconds</code> and the <code>clip_*</code> columns. Those columns become a projection written only by publish, and every surface already reads them. That is why no reader changes.</p>
+<p>Each of the 7,444 legacy rows is backfilled into the same shape:</p>
+<ul>
+<li>one <code>baked</code> source</li>
+<li>composition v1, the identity plus the existing trim</li>
+<li>an identity render, plus a clip render where the video is trimmed</li>
+</ul>
+<p>The projection then equals today&#39;s columns, which a read-only production check proves before anything else ships.</p>
+<h3>The painter: <code>packages/composition</code></h3>
+<p>This is the only module that knows layout geometry or how to paint. It has no Mux, DOM, D1 or wire types.</p>
+<pre><code class="language-ts">declare const brand: unique symbol
+type Brand&lt;T, B extends string&gt; = T &amp; { readonly [brand]: B }
+
+export type TakeMs = Brand&lt;number, &#39;TakeMs&#39;&gt;      // take clock, 0 = first recorder&#39;s `start` event
+export type SourceMs = Brand&lt;number, &#39;SourceMs&#39;&gt;  // inside one source; only sourceTime() makes one
+export type SourceId = Brand&lt;string, &#39;SourceId&#39;&gt;
+export type VisualDigest = Brand&lt;string, &#39;VisualDigest&#39;&gt;  // style + cuts + source facts
+export type RenderKey = Brand&lt;string, &#39;RenderKey&#39;&gt;        // visual digest + trim
+export type Span = Readonly&lt;{ startMs: TakeMs; endMs: TakeMs }&gt;
+
+export type SourceFacts = Readonly&lt;{
+  id: SourceId
+  role: &#39;camera&#39; | &#39;screen&#39; | &#39;baked&#39;
+  span: Span                 // where the source sits on the take clock, once aligned
+  timing: Timing
+  gaps: readonly Span[]      // muted spans, such as an iPhone rep in another app; drawn as absent
+  display: Readonly&lt;{ width: number; height: number }&gt;  // after the MP4 rotation transform
+  hasMic: boolean
+}&gt;
+/** Recorder `start` events fire after recording begins, so they are only a first guess.
+    Every source recorder also carries the mic, and cross-correlating those copies places
+    each source to within a few milliseconds. Silence leaves the guess in place, flagged. */
+export type Timing =
+  | { kind: &#39;aligned&#39;; offsetMs: number; method: &#39;mic-xcorr&#39; }
+  | { kind: &#39;estimated&#39;; offsetMs: number; uncertaintyMs: number }  // shown as &quot;sync estimated&quot; in the editor
+
+export type TakeSources = Brand&lt;Readonly&lt;{ sources: readonly SourceFacts[]; durationMs: TakeMs }&gt;, &#39;TakeSources&#39;&gt;
+
+export type LayoutKind = &#39;camera&#39; | &#39;screen&#39; | &#39;bubble&#39; | &#39;split&#39; | &#39;stack&#39;
+export type Cut = Readonly&lt;{ atMs: TakeMs; layout: LayoutKind }&gt;
+export type Cuts = Brand&lt;readonly [Cut, ...Cut[]], &#39;Cuts&#39;&gt;  // first at 0, strictly increasing
+
+export type Background =
+  | { kind: &#39;none&#39; }                                     // neutral mat; no Clarity paint
+  | { kind: &#39;color&#39;; hex: `#${string}` }
+  | { kind: &#39;gradient&#39;; from: `#${string}`; to: `#${string}`; angleDeg: number }
+  | { kind: &#39;image&#39;; image: ImageAssetId }
+  | { kind: &#39;blur&#39; }                                     // the primary source, cover-scaled and blurred
+
+export type Style = Readonly&lt;{
+  aspect: &#39;auto&#39; | &#39;16:9&#39; | &#39;9:16&#39; | &#39;1:1&#39;
+  background: Background
+  frame: Readonly&lt;{ paddingPct: number; radiusPx: number }&gt;
+  camera: Readonly&lt;{ shape: &#39;circle&#39; | &#39;squircle&#39; | &#39;rect&#39;; sizePct: number; x: number; y: number; mirror: boolean }&gt;
+  split: Readonly&lt;{ cameraFirst: boolean; cameraSharePct: number }&gt;
+}&gt;
+
+export type Composition = Readonly&lt;{
+  schema: 2               // schema 1 is today&#39;s EditManifest; parse upgrades it
+  style: Style            // a snapshot: editing a preset never restyles a video
+  presetId: string | null
+  cuts: Cuts
+  trim: Span | null
+  posterMs: TakeMs | null // outside the visual digest, so a poster change never re-renders
+  preview: Span | null
+}&gt;
+
+export type Layer =
+  | { kind: &#39;backdrop&#39;; fill: Background; blurOf: SourceId | null }
+  | { kind: &#39;video&#39;; source: SourceId; at: SourceMs; crop: Rect; dest: Rect
+      shape: &#39;circle&#39; | &#39;squircle&#39; | &#39;rect&#39;; radiusPx: number; mirror: boolean }
+export type Scene = Readonly&lt;{ width: number; height: number; layers: readonly Layer[]; audio: SourceId | null }&gt;
+
+/** Met by the browser&#39;s 2D context and by @napi-rs/canvas (Skia) in the container. */
+export interface Canvas2D { /* save, restore, clip, roundRect, ellipse, fillRect, drawImage, gradients */ }
+
+export function parseComposition(raw: unknown, take: TakeSources): Composition { throw new Error(&#39;not implemented&#39;) }
+export function applyEdit(c: Composition, edit: Edit, take: TakeSources): Composition { throw new Error(&#39;not implemented&#39;) }
+export function outputFrame(c: Composition, take: TakeSources): Readonly&lt;{ width: number; height: number }&gt; { throw new Error(&#39;not implemented&#39;) }
+/** Picks the cut at t, drops sources absent at t, degrades the layout, lays out rects. */
+export function sceneAt(c: Composition, take: TakeSources, t: TakeMs): Scene { throw new Error(&#39;not implemented&#39;) }
+export function paintScene(ctx: Canvas2D, scene: Scene, host: PaintHost): void { throw new Error(&#39;not implemented&#39;) }
+/** Non-null when the output is one untouched source, so no pixels need rendering. */
+export function identityOf(c: Composition, take: TakeSources): Readonly&lt;{ source: SourceId; trim: Span | null }&gt; | null { throw new Error(&#39;not implemented&#39;) }
+export function digests(c: Composition, take: TakeSources): Readonly&lt;{ visual: VisualDigest; render: RenderKey; untrimmed: RenderKey }&gt; { throw new Error(&#39;not implemented&#39;) }
+</code></pre>
+<p><code>sceneAt</code> resolves each layout against the sources present at t:</p>
+<ul>
+<li>A bubble with no camera becomes screen-only. That is what a viewer sees while an iPhone rep is in another app.</li>
+<li>A bubble with no screen becomes camera-only.</li>
+<li>Program audio comes from the camera when one covers t, and otherwise from the screen source&#39;s copy of the mic.</li>
+<li><code>auto</code> takes the primary source&#39;s shape, which is the screen if one exists and otherwise the camera. It is resolved once per take, with a 1,080 px short side.</li>
+</ul>
+<p>The lint rule bans <code>drawImage</code> and <code>roundRect</code> in <code>editor/src</code> outside this package.</p>
+<h3>The take: reducer, planner, publish</h3>
+<p>This extends the WIL-3494 lifecycle reducer. Today&#39;s single delivery state becomes one <code>MuxObject</code> per upload, clip or render.</p>
+<pre><code class="language-ts">export type Fill =
+  | { kind: &#39;identity&#39;; source: SourceId }
+  | { kind: &#39;clip&#39;; of: RenderKey; span: Span; mux: MuxObject }
+  | { kind: &#39;recorder&#39;; offsetMs: number; mux: MuxObject }
+  | { kind: &#39;container&#39;; job: JobId; mux: MuxObject | null }
+
+export type Take = Readonly&lt;{
+  video: Video
+  take: TakeSources
+  sources: readonly Source[]
+  head: Readonly&lt;{ version: CompositionVersion; composition: Composition }&gt;
+  renders: ReadonlyMap&lt;RenderKey, Render&gt;
+  published: RenderKey | null      // the only thing a viewer can play
+}&gt;
+
+export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime): TakeOutcome { throw new Error(&#39;not implemented&#39;) }
+</code></pre>
+<p>After every event, a private pure planner picks a fill for the head&#39;s render key. It tries these in order:</p>
+<ol>
+<li>A ready render already holds the key, so publish it. Reverting to an earlier style publishes at once.</li>
+<li>The output is one untouched source with no trim, so use an identity fill.</li>
+<li>A trim is set, so clip the untrimmed render of the same look.</li>
+<li>Otherwise, start a container job once every source the composition shows is ready.</li>
+</ol>
+<p>A render publishes only if its key equals the head&#39;s render key when it becomes ready. Any other finished render stays in the cache. A late render for an older version can never go live while a newer one is wanted, and reverting to it later publishes at once.</p>
+<h3>Recorder</h3>
+<p><code>createTakeRecorder</code> hides three parts:</p>
+<ul>
+<li><strong>One <code>SourceRecorder</code> per source.</strong> Each has its own MediaRecorder, its own resumable Mux upload (today&#39;s uploader, moved into <code>packages/mux</code>) and its own journal session.</li>
+<li><strong><code>TakeClock</code>.</strong> It records each recorder&#39;s <code>start</code> event as a first guess at its offset, and stamps layout cuts and mute gaps on one <code>performance.now()</code> origin.</li>
+<li><strong>Alignment.</strong> Every source recorder carries the mic. At claim time the server cross-correlates the mic copies and turns each guess into an aligned offset, or leaves it estimated when the take is silent.</li>
+</ul>
+<p>The monitor still draws the composed frame live through <code>paintScene</code>, but it is not recorded. Recorder telemetry logs draw-loop fps and every encoder&#39;s frame rate for every take.</p>
+<p>If the composite fill is ever switched on, it records that monitor canvas as a third stream on desktop, and its chunks upload first. A guard drops it if its track falls below 20 fps for 5 s.</p>
+<p>Source uploads are signed and owner-only, with no renditions and no captions. The container reads them at full quality through Mux&#39;s temporary master access, so a restyle never compounds compression.</p>
+<h3>Renderer</h3>
+<p><code>containers/composition-renderer</code> runs Node with ffmpeg and <code>@napi-rs/canvas</code>, and it imports <code>packages/composition</code>.</p>
+<ul>
+<li>Each job splits the take into 20-second spans and renders them in parallel.</li>
+<li>Each span decodes its sources, runs <code>paintScene</code> per frame and encodes with x264. Pieces land on deterministic R2 keys, so a crashed job resumes.</li>
+<li><code>assemble</code> joins the pieces, encodes the program audio once, and streams the result to a Mux direct upload. That upload&#39;s passthrough carries the node and render key.</li>
+</ul>
+<h2>Flows</h2>
+<p><strong>Stop to link.</strong></p>
+<ol>
+<li><strong>Start.</strong> <code>POST /tree/media/takes</code> creates one Mux direct upload per source, camera and screen. The first upload names the node.</li>
+<li><strong>Stop.</strong> All recorders stop in one task. <code>POST /tree/media/takes/:id/claim</code> sends the source facts and composition v1. One batch writes the row, sources, v1, the v1 render row and the share page. It returns the URL in about 1 s.</li>
+<li><strong>Page.</strong> The page shows the processing card until something publishes. A single-source take publishes as fast as today, because its render is the source. A camera-plus-screen take publishes when its container render lands, after both sources are ready and aligned.</li>
+</ol>
+<p><strong>Restyle.</strong></p>
+<ol>
+<li><strong>Preview.</strong> The panel previews instantly by painting the new composition over source stills.</li>
+<li><strong>Apply.</strong> Apply sends edit operations against a base version. If another tab moved the head, the server replays the operations on the current head and returns the merged result.</li>
+<li><strong>Pending.</strong> Viewers keep the previous render. Pages with a pending render cache for 5 s, the same as processing pages do now. The next load after publish gets the new version, and anyone mid-watch keeps the old one.</li>
+<li><strong>Cleanup.</strong> Unpublished renders are discarded after 7 days.</li>
+</ol>
+<p><strong>An iPhone rep leaves Safari mid-take.</strong></p>
+<ol>
+<li>The camera fires <code>mute</code>, and the recorder stamps a gap.</li>
+<li>On return, the recorder starts a fresh camera source.</li>
+<li>The screen source keeps going if iOS keeps capture alive. Otherwise it ends cleanly.</li>
+<li>Viewers see screen-only for the gap, not a frozen face.</li>
+</ol>
+<p>The iPhone probe below tells us which of these iOS 27 actually does.</p>
+<h2>Synthesis decision</h2>
+<p><strong>Base: Opus&#39;s structure, with Astra&#39;s rules.</strong> I kept Opus&#39;s tables, fill planner and publish projection, because they extend the WIL-3494 reducer and the existing upload path instead of adding a second one. The judge preferred Astra&#39;s design as the base, and its three corrections are applied:</p>
+<ul>
+<li><strong>The publication fence.</strong> A render publishes only when it matches the wanted version. Opus&#39;s &quot;newer than published&quot; rule could put an outdated style live.</li>
+<li><strong>Mandatory alignment.</strong> Recorder <code>start</code> events fire after recording begins, so they cannot place sources. Mic cross-correlation is now the sync method, not a later fix.</li>
+<li><strong>Portrait containment in PR 1.</strong> The Library&#39;s inline player crops portrait video today, so &quot;no reader changes&quot; was wrong there.</li>
+</ul>
+<p><strong>Grafted from Astra:</strong></p>
+<ul>
+<li><strong>No browser composite until measured.</strong> It would cost a third encoder and three times the upload. It stays a dormant fill until camera-plus-screen Stop-to-playable numbers say it is needed.</li>
+<li><strong>Strict timing states.</strong> A source is either aligned or flagged as estimated, never silently assumed.</li>
+<li><strong>Source fidelity.</strong> Astra stored originals in R2 so restyles never compound compression. We get the same result without a second upload path by reading sources through Mux&#39;s temporary master access.</li>
+<li><strong>An identity-only render before any style UI.</strong> This proves the container&#39;s cost and latency on real takes before anyone depends on it.</li>
+<li><strong>Release targets.</strong> p75 under 1 s from Stop to link, under 100 ms for a warm style preview, and under 30 s from Apply to viewers for a 3-minute take.</li>
+</ul>
+<p><strong>Grafted from Fable:</strong></p>
+<ul>
+<li><strong>Mic cross-correlation as the sync method.</strong> Fable gave the concrete function. It needs no special signal in the audio.</li>
+<li><strong>Per-take recorder fps telemetry.</strong> This replaces guessing about weak laptops.</li>
+<li><strong>The bandwidth argument against two-stream playback.</strong> Two streams per view come to about 4.76 Mbps, above the 3 Mbps floor the recorder&#39;s bitrates were tuned for after a customer&#39;s freeze.</li>
+<li><strong>The first PR&#39;s framing.</strong> &quot;When one source is shared, record the source itself.&quot; It does not switch off iPhone screen share.</li>
+</ul>
+<p><strong>Rejected:</strong></p>
+<ul>
+<li><strong>Fable&#39;s live viewer composition.</strong> Every viewer would draw Mux HLS onto a canvas. That has a run of iOS and WKWebView failures, and WKWebView is what Gmail and LinkedIn open links in. iPhone also cannot full-screen a non-video element. Captions, AirPlay and picture-in-picture would all need custom work.</li>
+<li><strong>Astra&#39;s inaudible clock channel, for now.</strong> It depends on stereo surviving every browser&#39;s encoder, and the mic cross-correlation needs nothing special. If silence-heavy takes prove the correlation too weak, the clock channel is the next thing to test.</li>
+<li><strong>Astra&#39;s render for unchanged single-source takes.</strong> Those publish the source itself, at no cost.</li>
+<li><strong>Astra&#39;s CanvasKit (Skia compiled to WebAssembly).</strong> Both designs use Skia. Opus&#39;s <code>Canvas2D</code> interface lets the browser&#39;s own context and the container&#39;s native Skia run the same painter.</li>
+</ul>
+<h2>Tradeoffs accepted</h2>
+<ul>
+<li><strong>Restyle delay.</strong> We accept about 25 s from Apply to viewers, with the old version still playing. In exchange, viewers always get one stream, so iOS audio, fullscreen, stalls, seeking, analytics, captions, og:image, GIF and download work exactly as today. Supercut shows &quot;Processing new version&quot; for the same reason.</li>
+<li><strong>First play for camera-plus-screen takes.</strong> We accept that these wait for a container render after Stop, in exchange for two encoders instead of three on the rep&#39;s machine. Single-source takes are unaffected. If the measured wait is too long, the dormant browser-composite fill closes the gap without touching anything else.</li>
+<li><strong>A container to run.</strong> We accept operating one again. Every option needs one, because download, the GIF and og:image need a single composed file.</li>
+<li><strong>Storage.</strong> We accept 2 to 4 times the Mux storage for camera-plus-screen takes. In exchange, restyling never needs a re-upload.</li>
+<li><strong>Presets are snapshots.</strong> Editing a preset restyles new takes only. In exchange, one edit never triggers thousands of renders.</li>
+<li><strong>WIL-3183, reworded.</strong> One rendered Mux asset per published version is the only public asset. Sources are signed and owner-only.</li>
+</ul>
+<h2>Alternatives considered</h2>
+<ul>
+<li><strong>Live composite in the viewer (Fable).</strong> Restyles are instant. The cost is that the composition leaks into every viewer device. Canvas drawing of HLS is unreliable in exactly the in-app browsers prospects use, and a renderer is still needed for single-file outputs.</li>
+<li><strong>Server render for every take, single-source included (Astra&#39;s first draft).</strong> Every first play would wait on a render, including the common camera-only take that needs none.</li>
+<li><strong>A Supercut port, rendering segments while tracks upload.</strong> It puts a container on every take&#39;s critical path and needs a second upload path, because Mux does not expose uploads in progress.</li>
+<li><strong>The rep&#39;s browser re-renders on Apply.</strong> A 3-minute take takes about 7.5 minutes on an iPhone, and the tab must stay open.</li>
+</ul>
+<h2>Calls for William</h2>
+<ul>
+<li><strong>Restyle speed.</strong> About 25 s with the old version playing, like Supercut, or instant with live compositing in the viewer and the risks above. I recommend 25 s.</li>
+<li><strong>Presets.</strong> Should editing a brand preset offer &quot;apply to existing videos&quot;, which costs a render each, or only change new takes?</li>
+<li><strong>The default look for new takes.</strong> Bare, meaning no background and no padding, or the workspace preset?</li>
+<li><strong>iPhone screen share.</strong> Keep offering it, given that iOS mutes the camera the moment the rep leaves Safari? The probe settles what still works.</li>
+</ul>
+<h2>Open questions and device facts</h2>
+<ul>
+<li>What survives leaving Safari on iOS 27, track by track? <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">The iPhone probe</a> answers it.</li>
+<li>Can an iPhone run camera and screen recorders at once?</li>
+<li>Does Mux honour Safari&#39;s rotation transform in <code>aspect_ratio</code> and stills?</li>
+<li>Does mic cross-correlation align camera and screen within 40 ms on every target browser, including through silence, app switching and a screen swap? This is the design&#39;s biggest risk. A standalone two-recorder capture with a flash-and-click reference retires it before any upload or render service gets built.</li>
+<li>How long is Stop-to-playable for camera-plus-screen takes rendered in the container, and is it close enough to today&#39;s?</li>
+<li>Do container cold starts and 20 s spans keep Apply-to-viewer under 30 s at p75?</li>
+<li>Does Mux bill generated captions on every render asset?</li>
+</ul>
+<h2>Delivery sequence</h2>
+<ol start="0">
+<li><strong>Sync experiment.</strong> A standalone page records camera and screen with two recorders and a flash-and-click reference, on desktop Chrome, Safari, Firefox and the iPhone. It measures alignment error after mic cross-correlation, through silence, app switching and a screen swap. The bar is 40 ms.</li>
+<li><strong>Record the source itself when only one source is shared, and contain portrait everywhere.</strong> Any device, no canvas, no gradient. The Library card gets the own-frame blur and the inline player uses <code>contain</code>. William sees a phone take as a tall 9:16 frame on the page and in the Library. Mux must report 9:16 with an upright still, and record-to-share time must not move (WIL-3196).</li>
+<li><strong>One painter.</strong> The desktop recorder draws through <code>paintScene</code> with background <code>none</code>, and the lint rule lands. William sees desktop takes with no gradient and a round camera bubble. Recorder fps telemetry starts logging on every take.</li>
+<li><strong>Take tables, backfill and the publish projection.</strong> A read-only production check must show the projected playback id, aspect and clip span equal today&#39;s for all 7,444 rows.</li>
+<li><strong>Render container, identity renders only.</strong> We measure cost per minute and Stop-to-render latency on 20 staging takes, with sources read through master access.</li>
+<li><strong>Style panel for one-source and legacy takes.</strong> Aspect, background and frame, plus versioned publish and the 5 s pending-page rule. William turns a portrait take into 16:9 with blurred sides, and the share link follows. We measure Apply-to-viewer p50 and p75.</li>
+<li><strong>Parallel spans.</strong> Apply-to-viewer p75 must come in under 30 s for a 3-minute take.</li>
+<li><strong>Desktop camera-plus-screen takes, behind a flag.</strong> Two source recorders, mic alignment, cuts, and the layout and camera controls. William records a demo as a bubble and switches it to split after Stop. We measure sync error, dropped frames, and Stop-to-playable against today&#39;s. The flag comes off only when that last number is close enough. If it is not, the browser-composite fill switches on first.</li>
+<li><strong>iPhone screen with camera</strong>, gated on the probe. William sees the bubble disappear for the span the rep spent in another app.</li>
+<li><strong>Workspace presets.</strong></li>
+<li><strong>A live synced preview in the style panel</strong>, owner-only.</li>
+<li><strong>Delete the v1 edit manifest and the old trim route</strong>, in their own PR after the code deploy.</li>
+</ol>
+<h2>Next implementation step</h2>
+<p>PR 1. When only one source is shared, hand the recorder the source&#39;s own track instead of the canvas. Delete <code>drawBackground</code>. Show on staging that an iPhone take reports 9:16 in Mux with an upright still.</p>
+</article>
+  <p class="footer">Code references point at origin/main. Nothing in the repository changed.</p>
+</div>
+</body>
+</html>
