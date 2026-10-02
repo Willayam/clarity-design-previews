@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iPhone capture probe</title>
+<title>iPhone capture probe v2</title>
 <style>
 :root { font-family: -apple-system, system-ui, sans-serif; color: #0f172a; background: #f8fafc; }
 body { margin: 0; padding: 18px 16px 60px; max-width: 640px; margin-inline: auto; }
 h1 { font-size: 24px; margin: 4px 0 6px; letter-spacing: -0.01em; }
+h2 { font-size: 17px; margin: 18px 0 6px; }
 p, li { font-size: 15px; line-height: 1.5; color: #334155; }
 ol { padding-left: 20px; margin: 8px 0 16px; }
 .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
@@ -19,56 +20,80 @@ button:disabled { opacity: .4; }
 .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
 .previews video { width: 100%; aspect-ratio: 3 / 4; object-fit: contain; background: #0f172a; border-radius: 10px; }
 .cap { font-size: 12px; color: #64748b; margin-top: 2px; }
-#log { font: 12px/1.45 ui-monospace, Menlo, monospace; background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 10px; max-height: 260px; overflow-y: auto; white-space: pre-wrap; }
-#results video { width: 100%; max-height: 60vh; object-fit: contain; background: #000; border-radius: 10px; margin-top: 6px; }
-#summary { font: 13px/1.5 ui-monospace, Menlo, monospace; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; white-space: pre-wrap; }
-textarea { width: 100%; height: 120px; font: 11px ui-monospace, Menlo, monospace; border-radius: 10px; border: 1px solid #cbd5e1; padding: 8px; box-sizing: border-box; }
+#log { font: 12px/1.45 ui-monospace, Menlo, monospace; background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 10px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+#summary { font: 12px/1.5 ui-monospace, Menlo, monospace; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; white-space: pre-wrap; overflow-x: auto; }
+textarea { width: 100%; height: 110px; font: 11px ui-monospace, Menlo, monospace; border-radius: 10px; border: 1px solid #cbd5e1; padding: 8px; box-sizing: border-box; }
 .note { font-size: 13px; color: #64748b; }
+.strip { display: flex; gap: 3px; overflow-x: auto; padding: 4px 0 8px; }
+.strip figure { margin: 0; flex: none; text-align: center; }
+.strip canvas { height: 84px; border-radius: 4px; background: #000; display: block; }
+.strip figcaption { font: 10px ui-monospace, Menlo, monospace; color: #64748b; }
+.strip figure.hidden-span canvas { outline: 2px solid #f59e0b; }
+#stage { position: fixed; inset: 0; background: #0b1120; color: #f8fafc; display: none; flex-direction: column; justify-content: center; align-items: center; gap: 18px; padding: 24px; text-align: center; z-index: 10; }
+#stage.on { display: flex; }
+#stage.flash { background: #ffffff; color: #ffffff; }
+#stage p { color: inherit; font-size: 19px; line-height: 1.45; max-width: 420px; margin: 0; }
+#stage .btns { width: 100%; max-width: 420px; }
+#analysisVideo { position: fixed; right: 0; bottom: 0; width: 4px; height: 4px; opacity: 0.02; pointer-events: none; }
 </style>
 </head>
 <body>
-<h1>iPhone capture probe</h1>
-<p>This tests what Clarity's multi-track recorder can rely on. It records camera and screen as two separate files, on this phone only. Nothing is uploaded.</p>
+<h1>iPhone capture probe v2</h1>
+<p>Second round. This one also measures sync between the camera and screen files, whether your voice survives while you are in another app, and what rotation does to each file. Everything stays on this phone.</p>
 <ol>
-  <li>Tap <b>Camera + mic</b> and allow both.</li>
-  <li>Tap <b>Share screen</b> and start sharing.</li>
-  <li>Tap <b>Record</b>. Talk for about 5 seconds.</li>
-  <li>Swipe to the home screen. Open Notes or Settings and scroll for about 10 seconds. Keep talking.</li>
-  <li>Come back to Safari. Wait 5 seconds.</li>
-  <li>Open another Safari tab for about 5 seconds, then come back.</li>
-  <li>Turn the phone sideways for 5 seconds, then back upright.</li>
-  <li>Tap <b>Stop</b>. Watch both clips, then tap <b>Copy results</b> and paste them to Claude.</li>
+  <li>Tap <b>Camera + mic</b>, then <b>Share screen</b>.</li>
+  <li>Tap <b>Record</b>. A dark screen appears and flashes white three times. Look at the phone and keep talking.</li>
+  <li>Go to another app for about 10 seconds. Keep talking, say what you see.</li>
+  <li>Come back and tap <b>Sync check</b>. It flashes three more times.</li>
+  <li>Turn the phone sideways for about 5 seconds, then upright again.</li>
+  <li>Tap <b>Stop</b>. Analysis takes up to a minute. Then tap <b>Copy results</b> and paste them to Claude.</li>
 </ol>
+<p class="note">Indoors helps: the flashes light your face, and the camera has to see that.</p>
 <div class="status" id="status">Ready.</div>
 <div class="btns">
   <button id="camBtn" class="primary">Camera + mic</button>
   <button id="scrBtn">Share screen</button>
   <button id="recBtn" disabled>Record</button>
-  <button id="stopBtn" class="stop" disabled>Stop</button>
+  <button id="resetBtn">Reset page</button>
 </div>
 <div class="previews">
   <div><video id="camPrev" playsinline muted autoplay></video><div class="cap" id="camCap">Camera</div></div>
   <div><video id="scrPrev" playsinline muted autoplay></video><div class="cap" id="scrCap">Screen</div></div>
 </div>
 <div id="log"></div>
-<div id="results"></div>
-<h2 style="font-size:17px;margin:18px 0 6px">Results</h2>
+<h2>Results</h2>
 <div id="summary">Record and stop to see the summary.</div>
-<div class="btns"><button id="copyBtn" class="primary" disabled>Copy results</button><button id="clearBtn">Reset page</button></div>
-<textarea id="out" readonly placeholder="Results JSON appears here after Stop."></textarea>
-<p class="note">Probe for the multi-track design, 2 October 2026. Static page, no network calls after load.</p>
+<div id="strips"></div>
+<div id="results"></div>
+<div class="btns"><button id="copyBtn" class="primary" disabled>Copy results</button><button id="reset2Btn">Reset page</button></div>
+<textarea id="out" readonly placeholder="Results JSON appears here after analysis."></textarea>
+<p class="note">Probe v2 for the multi-track design, 2 October 2026. Static page, no network calls after load.</p>
+
+<div id="stage">
+  <p id="stageText">Recording. Look at the phone and keep talking.</p>
+  <div class="btns">
+    <button id="syncBtn">Sync check</button>
+    <button id="stopBtn" class="stop">Stop</button>
+  </div>
+</div>
+<video id="analysisVideo" playsinline muted preload="auto"></video>
 
 <script>
+const BITRATE = { camera: 2_000_000, screen: 2_500_000, audio: 128_000 };
 const t0 = performance.now();
 const wall0 = new Date().toISOString();
 const events = [];
 const samples = [];
+const flashes = [];
 const logEl = document.getElementById("log");
 const statusEl = document.getElementById("status");
-const sec = () => +((performance.now() - t0) / 1000).toFixed(2);
+const stage = document.getElementById("stage");
+const stageText = document.getElementById("stageText");
+const sec = () => +((performance.now() - t0) / 1000).toFixed(3);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function ev(type, data = {}) {
-  const e = { t: sec(), type, ...data };
+  const e = { t: +sec().toFixed(2), type, ...data };
   events.push(e);
   const line = document.createElement("div");
   line.textContent = `${e.t.toFixed(2)}  ${type}  ${JSON.stringify(data)}`;
@@ -86,7 +111,7 @@ setInterval(() => {
   const now = performance.now();
   const ac = actx ? actx.currentTime : null;
   samples.push({
-    t: sec(), gapMs: Math.round(now - lastSample), raf: rafCount, int100: intCount,
+    t: +sec().toFixed(2), gapMs: Math.round(now - lastSample), raf: rafCount, int100: intCount,
     acState: actx ? actx.state : null, acAdvance: ac !== null && lastAc !== null ? +(ac - lastAc).toFixed(2) : null,
     vis: document.visibilityState,
   });
@@ -94,12 +119,10 @@ setInterval(() => {
 }, 1000);
 
 document.addEventListener("visibilitychange", () => ev("visibility", { state: document.visibilityState }));
-for (const n of ["pagehide", "pageshow", "focus", "blur"]) window.addEventListener(n, () => ev(n));
-document.addEventListener("freeze", () => ev("freeze"));
-document.addEventListener("resume", () => ev("resume"));
+for (const n of ["pagehide", "pageshow"]) window.addEventListener(n, () => ev(n));
 window.addEventListener("orientationchange", () => ev("orientation", { angle: screen.orientation ? screen.orientation.angle : window.orientation }));
 
-let cam = null, scr = null;
+let cam = null, scr = null, mic = null;
 const recs = {};
 
 function watchTrack(label, track) {
@@ -110,9 +133,8 @@ function watchTrack(label, track) {
 }
 function watchSize(video, label, capEl) {
   video.addEventListener("resize", () => {
-    const s = { label, w: video.videoWidth, h: video.videoHeight };
-    capEl.textContent = `${label} ${s.w}×${s.h}`;
-    ev("frame-size", s);
+    capEl.textContent = `${label} ${video.videoWidth}×${video.videoHeight}`;
+    ev("frame-size", { label, w: video.videoWidth, h: video.videoHeight });
   });
 }
 watchSize(document.getElementById("camPrev"), "camera", document.getElementById("camCap"));
@@ -125,9 +147,10 @@ document.getElementById("camBtn").onclick = async () => {
       audio: true,
     });
     cam.getTracks().forEach((t) => watchTrack("cam", t));
+    mic = cam.getAudioTracks()[0] || null;
     document.getElementById("camPrev").srcObject = cam;
     document.getElementById("recBtn").disabled = false;
-    status("Camera on. Share the screen next, or record camera only.");
+    status("Camera on. Share the screen next.");
   } catch (e) { ev("cam-error", { name: e.name, message: e.message }); status("Camera failed: " + e.name); }
 };
 
@@ -146,24 +169,34 @@ function pickMime() {
   return c.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
 }
 
-function startRecorder(name, stream) {
+function startRecorder(name, tracks, videoBps) {
   const mimeType = pickMime();
+  const stream = new MediaStream(tracks.filter(Boolean));
   let r;
-  try { r = new MediaRecorder(stream, mimeType ? { mimeType } : undefined); }
+  try { r = new MediaRecorder(stream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: videoBps, audioBitsPerSecond: BITRATE.audio }); }
   catch (e) { ev("rec-create-error", { name, error: e.name, message: e.message }); return; }
-  const rec = { r, chunks: [], arrivals: [], bytes: 0, mime: r.mimeType };
+  const rec = { r, chunks: [], arrivals: [], bytes: 0, mime: r.mimeType, startT: null, tracks: stream.getTracks().map((t) => t.kind) };
   recs[name] = rec;
   r.ondataavailable = (e) => {
-    rec.chunks.push(e.data); rec.bytes += e.data.size; rec.arrivals.push(sec());
-    if (rec.arrivals.length <= 3 || rec.arrivals.length % 10 === 0) ev("chunk", { name, n: rec.arrivals.length, size: e.data.size });
+    rec.chunks.push(e.data); rec.bytes += e.data.size; rec.arrivals.push(+sec().toFixed(2));
+    if (rec.arrivals.length <= 2 || rec.arrivals.length % 20 === 0) ev("chunk", { name, n: rec.arrivals.length, size: e.data.size });
   };
   r.onerror = (e) => ev("rec-error", { name, error: e.error ? e.error.name : "unknown" });
-  r.onpause = () => ev("rec-pause", { name });
-  r.onresume = () => ev("rec-resume", { name });
-  r.onstart = () => ev("rec-start", { name, mime: r.mimeType, state: r.state });
+  r.onstart = () => { rec.startT = sec(); ev("rec-start", { name, mime: r.mimeType, tracks: rec.tracks }); };
   r.onstop = () => ev("rec-stop", { name });
   r.start(1000);
-  ev("rec-start-called", { name });
+}
+
+async function flashBurst(label, delays) {
+  for (const d of delays) {
+    await sleep(d);
+    stage.classList.add("flash");
+    const t = sec();
+    flashes.push({ label, t });
+    await sleep(160);
+    stage.classList.remove("flash");
+  }
+  ev("flashes", { label, times: flashes.filter((f) => f.label === label).map((f) => +f.t.toFixed(3)) });
 }
 
 document.getElementById("recBtn").onclick = async () => {
@@ -171,11 +204,24 @@ document.getElementById("recBtn").onclick = async () => {
   const osc = actx.createOscillator(); const g = actx.createGain(); g.gain.value = 0;
   osc.connect(g).connect(actx.destination); osc.start();
   actx.onstatechange = () => ev("audioctx", { state: actx.state });
-  if (cam) startRecorder("camera", cam);
-  if (scr) startRecorder("screen", scr);
+  if (cam) startRecorder("camera", [cam.getVideoTracks()[0], mic], BITRATE.camera);
+  if (scr) {
+    let micCopy = null;
+    try { micCopy = mic ? mic.clone() : null; } catch (e) { ev("mic-clone-error", { message: e.message }); }
+    startRecorder("screen", [scr.getVideoTracks()[0], micCopy], BITRATE.screen);
+  }
   document.getElementById("recBtn").disabled = true;
-  document.getElementById("stopBtn").disabled = false;
-  status(`Recording ${Object.keys(recs).join(" + ")}. Follow steps 4 to 7, then Stop.`);
+  stage.classList.add("on");
+  stageText.textContent = "Recording. Look at the phone and keep talking.";
+  await flashBurst("start", [1500, 1500, 1500]);
+  stageText.textContent = "Now go to another app for about 10 seconds and keep talking. Then come back and tap Sync check.";
+};
+
+document.getElementById("syncBtn").onclick = async () => {
+  document.getElementById("syncBtn").disabled = true;
+  stageText.textContent = "Look at the phone. Three flashes.";
+  await flashBurst("after-return", [700, 1500, 1500]);
+  stageText.textContent = "Turn the phone sideways for about 5 seconds, then upright. Then tap Stop.";
 };
 
 function hiddenIntervals() {
@@ -188,62 +234,209 @@ function hiddenIntervals() {
   if (start !== null) out.push([start, sec()]);
   return out;
 }
-
 function maxGap(arr) { let g = 0; for (let i = 1; i < arr.length; i++) g = Math.max(g, arr[i] - arr[i - 1]); return +g.toFixed(2); }
 
-async function finish() {
+const av = document.getElementById("analysisVideo");
+const tiny = document.createElement("canvas"); tiny.width = 24; tiny.height = 24;
+const tctx = tiny.getContext("2d", { willReadFrequently: true });
+
+async function loadClip(url) {
+  av.src = url;
+  await new Promise((res, rej) => { av.onloadedmetadata = res; av.onerror = () => rej(new Error("load failed")); setTimeout(res, 8000); });
+  return { w: av.videoWidth, h: av.videoHeight, duration: av.duration };
+}
+async function seekTo(t) {
+  await new Promise((res) => {
+    const done = () => { av.removeEventListener("seeked", done); res(); };
+    av.addEventListener("seeked", done);
+    av.currentTime = Math.max(0, t);
+    setTimeout(done, 1500);
+  });
+  await new Promise((res) => {
+    if (av.requestVideoFrameCallback) { av.requestVideoFrameCallback(() => res()); setTimeout(res, 120); }
+    else setTimeout(res, 40);
+  });
+}
+function lumaOf(centerOnly) {
+  const w = av.videoWidth, h = av.videoHeight;
+  const sx = centerOnly ? w * 0.25 : 0, sy = centerOnly ? h * 0.2 : 0;
+  const sw = centerOnly ? w * 0.5 : w, sh = centerOnly ? h * 0.5 : h;
+  tctx.drawImage(av, sx, sy, sw, sh, 0, 0, 24, 24);
+  const d = tctx.getImageData(0, 0, 24, 24).data;
+  let s = 0; const g = new Float32Array(576);
+  for (let i = 0; i < 576; i++) { const v = 0.2126 * d[i * 4] + 0.7152 * d[i * 4 + 1] + 0.0722 * d[i * 4 + 2]; g[i] = v; s += v; }
+  return { mean: s / 576, gray: g };
+}
+
+async function findFlash(expected, before, after, centerOnly) {
+  const step = 1 / 30;
+  let prev = null, best = { jump: -1, t: null };
+  for (let t = expected - before; t <= expected + after; t += step) {
+    await seekTo(t);
+    const L = lumaOf(centerOnly).mean;
+    if (prev !== null && L - prev.L > best.jump) best = { jump: +(L - prev.L).toFixed(1), t: +av.currentTime.toFixed(3) };
+    prev = { L };
+  }
+  best.clear = best.jump >= (centerOnly ? 6 : 25);
+  return best;
+}
+
+async function stripFor(name, url, every, hidden, recStart) {
+  const meta = await loadClip(url);
+  const wrap = document.createElement("div");
+  const h = document.createElement("div"); h.className = "cap"; h.textContent = `${name} frames every ${every} s (orange = you were in another app)`;
+  const strip = document.createElement("div"); strip.className = "strip";
+  wrap.append(h, strip); document.getElementById("strips").append(wrap);
+  const out = []; let prevGray = null;
+  for (let t = 0.5; t < meta.duration; t += every) {
+    await seekTo(t);
+    const { mean, gray } = lumaOf(false);
+    let diff = null;
+    if (prevGray) { let s = 0; for (let i = 0; i < 576; i++) s += Math.abs(gray[i] - prevGray[i]); diff = +(s / 576).toFixed(1); }
+    prevGray = gray;
+    const wall = recStart + t;
+    const inHidden = hidden.some(([a, b]) => wall >= a && wall <= b);
+    const fig = document.createElement("figure"); if (inHidden) fig.className = "hidden-span";
+    const c = document.createElement("canvas");
+    const H = 84; c.height = H; c.width = Math.max(1, Math.round(H * av.videoWidth / av.videoHeight));
+    c.getContext("2d").drawImage(av, 0, 0, c.width, c.height);
+    const cap = document.createElement("figcaption"); cap.textContent = `${t.toFixed(0)}s ${av.videoWidth}×${av.videoHeight}`;
+    fig.append(c, cap); strip.append(fig);
+    out.push({ t: +t.toFixed(1), w: av.videoWidth, h: av.videoHeight, lum: +mean.toFixed(1), diff, inHidden });
+  }
+  return { meta: { w: meta.w, h: meta.h, duration: +meta.duration.toFixed(2) }, frames: out };
+}
+
+async function envelopeOf(blob) {
+  const buf = await blob.arrayBuffer();
+  const ctx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  const audio = await new Promise((res, rej) => ctx.decodeAudioData(buf, res, rej));
+  const ch = audio.getChannelData(0);
+  const per = Math.round(audio.sampleRate / 1000);
+  const n = Math.floor(ch.length / per);
+  const env = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let s = 0; const o = i * per; for (let j = 0; j < per; j++) s += Math.abs(ch[o + j]); env[i] = s / per; }
+  return { env, duration: +audio.duration.toFixed(2), sampleRate: audio.sampleRate, channels: audio.numberOfChannels };
+}
+function rmsPerSecond(env) {
+  const out = [];
+  for (let s = 0; s * 1000 < env.length; s++) { let m = 0, c = 0; for (let i = s * 1000; i < Math.min(env.length, (s + 1) * 1000); i++) { m += env[i]; c++; } out.push(+(1000 * m / Math.max(1, c)).toFixed(1)); }
+  return out;
+}
+function xcorr(a, aStartMs, b, bStartMs, lenMs, maxLagMs) {
+  const seg = (x, s) => { const o = new Float32Array(lenMs); let m = 0; for (let i = 0; i < lenMs; i++) { o[i] = x[s + i] || 0; m += o[i]; } m /= lenMs; let v = 0; for (let i = 0; i < lenMs; i++) { o[i] -= m; v += o[i] * o[i]; } return { o, v }; };
+  const A = seg(a, aStartMs);
+  let best = { lagMs: null, r: -2 };
+  for (let lag = -maxLagMs; lag <= maxLagMs; lag++) {
+    const s = bStartMs + lag; if (s < 0 || s + lenMs > b.length) continue;
+    let dot = 0, v = 0;
+    for (let i = 0; i < lenMs; i++) { const y = b[s + i]; dot += A.o[i] * y; v += y * y; }
+    let mb = 0; for (let i = 0; i < lenMs; i++) mb += b[s + i]; mb /= lenMs;
+    const vb = v - lenMs * mb * mb;
+    const r = dot / Math.sqrt(A.v * vb || 1);
+    if (r > best.r) best = { lagMs: lag, r: +r.toFixed(3) };
+  }
+  return best;
+}
+
+async function analyze() {
   const names = Object.keys(recs);
-  await Promise.all(names.map((n) => new Promise((res) => {
+  const hidden = hiddenIntervals();
+  const report = { ua: navigator.userAgent, started: wall0, bitrateRequested: BITRATE, hiddenIntervals: hidden, flashes: flashes.map((f) => ({ label: f.label, t: +f.t.toFixed(3) })), recorders: {} };
+  const blobs = {};
+  for (const n of names) {
+    const rec = recs[n];
+    blobs[n] = new Blob(rec.chunks, { type: rec.mime || "video/mp4" });
+    const visibleSec = Math.max(1, (rec.arrivals.at(-1) ?? 0) - (rec.startT ?? 0));
+    report.recorders[n] = { mime: rec.mime, tracks: rec.tracks, startT: rec.startT, chunks: rec.arrivals.length, bytes: rec.bytes, mbps: +((rec.bytes * 8) / visibleSec / 1e6).toFixed(2), maxChunkGapS: maxGap(rec.arrivals), arrivals: rec.arrivals };
+  }
+  const urls = Object.fromEntries(names.map((n) => [n, URL.createObjectURL(blobs[n])]));
+
+  status("Analysing frames (1/3)…");
+  for (const n of names) {
+    try { report.recorders[n].frames = await stripFor(n, urls[n], 4, hidden, recs[n].startT); }
+    catch (e) { report.recorders[n].framesError = e.message; }
+  }
+
+  status("Finding the flashes (2/3)…");
+  for (const n of names) {
+    const out = [];
+    try {
+      await loadClip(urls[n]);
+      for (const f of flashes) {
+        const expected = f.t - recs[n].startT;
+        const wide = f.label !== "start";
+        out.push({ label: f.label, expected: +expected.toFixed(3), ...(await findFlash(expected, wide ? 1.5 : 0.5, wide ? 1.0 : 0.8, n === "camera")) });
+      }
+    } catch (e) { out.push({ error: e.message }); }
+    report.recorders[n].flashDetections = out;
+  }
+  if (recs.camera && recs.screen) {
+    const cam = report.recorders.camera.flashDetections, scrD = report.recorders.screen.flashDetections;
+    report.videoOffsetMs = cam.map((c, i) => (c.clear && scrD[i] && scrD[i].clear)
+      ? { label: c.label, screenMinusCameraMs: Math.round(((scrD[i].t + recs.screen.startT) - (c.t + recs.camera.startT)) * 1000), camJump: c.jump, scrJump: scrD[i].jump }
+      : { label: c.label, unclear: true, camJump: c.jump, scrJump: scrD[i] ? scrD[i].jump : null });
+  }
+
+  status("Comparing audio (3/3)…");
+  const envs = {};
+  for (const n of names) {
+    try {
+      const e = await envelopeOf(blobs[n]);
+      envs[n] = e;
+      const rps = rmsPerSecond(e.env);
+      const inHidden = (s) => hidden.some(([a, b]) => recs[n].startT + s >= a && recs[n].startT + s + 1 <= b);
+      const hid = rps.filter((_, s) => inHidden(s)), vis = rps.filter((_, s) => !inHidden(s));
+      const mean = (a) => a.length ? +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(1) : null;
+      report.recorders[n].audio = { duration: e.duration, sampleRate: e.sampleRate, channels: e.channels, meanLevelVisible: mean(vis), meanLevelHidden: mean(hid), levelPerSecond: rps };
+    } catch (err) { report.recorders[n].audio = { error: err.message || String(err) }; }
+  }
+  if (envs.camera && envs.screen) {
+    const off = Math.round((recs.screen.startT - recs.camera.startT) * 1000);
+    const firstHide = hidden.length ? hidden[0][0] : null;
+    const lastShow = hidden.length ? hidden.at(-1)[1] : null;
+    const winBeforeStart = Math.max(500, Math.round(((recs.screen.startT + 0.5) - recs.screen.startT) * 1000));
+    const lenBefore = firstHide ? Math.min(12000, Math.round((firstHide - recs.screen.startT) * 1000) - winBeforeStart - 1100) : 12000;
+    const res = {};
+    if (lenBefore > 2000) res.beforeHide = xcorr(envs.screen.env, winBeforeStart, envs.camera.env, winBeforeStart + off, lenBefore, 1000);
+    if (lastShow) {
+      const s = Math.round((lastShow + 1.5 - recs.screen.startT) * 1000);
+      const len = Math.min(12000, envs.screen.env.length - s - 1100);
+      if (len > 2000) res.afterReturn = xcorr(envs.screen.env, s, envs.camera.env, s + off, len, 1000);
+    }
+    report.audioXcorr = { note: "lagMs is how far the recorder start events are from the true alignment found by matching the two mic copies; 0 means the start events are exact", startOffsetMs: off, ...res };
+  }
+
+  for (const n of names) {
+    const v = document.createElement("video"); v.controls = true; v.playsInline = true; v.src = urls[n];
+    v.style.cssText = "width:100%;max-height:50vh;background:#000;border-radius:10px;margin-top:6px";
+    const cap = document.createElement("div"); cap.className = "cap"; cap.textContent = `${n} clip`;
+    document.getElementById("results").append(cap, v);
+  }
+  report.trackEvents = events.filter((e) => e.type.startsWith("track-") || e.type === "orientation" || e.type === "frame-size");
+  const hiddenSamples = samples.filter((s) => s.vis === "hidden");
+  report.whileHidden = { samples: hiddenSamples.length, rafTotal: hiddenSamples.reduce((a, s) => a + s.raf, 0), audioCtxAdvanceS: +hiddenSamples.reduce((a, s) => a + (s.acAdvance || 0), 0).toFixed(2) };
+
+  const brief = JSON.parse(JSON.stringify(report));
+  for (const n of names) { delete brief.recorders[n].arrivals; if (brief.recorders[n].audio) delete brief.recorders[n].audio.levelPerSecond; if (brief.recorders[n].frames) brief.recorders[n].frames = brief.recorders[n].frames.frames.length + " frames"; }
+  document.getElementById("summary").textContent = JSON.stringify(brief, null, 2);
+  document.getElementById("out").value = JSON.stringify({ report, events });
+  document.getElementById("copyBtn").disabled = false;
+  status("Done. Watch the strips and clips, then Copy results.");
+}
+
+document.getElementById("stopBtn").onclick = async () => {
+  document.getElementById("stopBtn").disabled = true;
+  ev("stop-tapped");
+  await Promise.all(Object.keys(recs).map((n) => new Promise((res) => {
     const { r } = recs[n];
     if (r.state === "inactive") return res();
     r.addEventListener("stop", res, { once: true });
     r.stop();
   })));
-  const results = document.getElementById("results");
-  results.innerHTML = "";
-  const media = {};
-  for (const n of names) {
-    const rec = recs[n];
-    const blob = new Blob(rec.chunks, { type: rec.mime || "video/mp4" });
-    const v = document.createElement("video");
-    v.controls = true; v.playsInline = true; v.src = URL.createObjectURL(blob);
-    const cap = document.createElement("div"); cap.className = "cap"; cap.textContent = `${n} clip`;
-    results.append(cap, v);
-    media[n] = await new Promise((res) => {
-      v.onloadedmetadata = () => res({ w: v.videoWidth, h: v.videoHeight, duration: isFinite(v.duration) ? +v.duration.toFixed(2) : String(v.duration) });
-      v.onerror = () => res({ error: v.error ? v.error.code : "load failed" });
-      setTimeout(() => res({ timeout: true }), 5000);
-    });
-  }
-  const hidden = hiddenIntervals();
-  const hiddenSamples = samples.filter((s) => s.vis === "hidden");
-  const summary = {
-    ua: navigator.userAgent, started: wall0,
-    hiddenIntervals: hidden,
-    recorders: Object.fromEntries(names.map((n) => [n, {
-      mime: recs[n].mime, chunks: recs[n].arrivals.length, bytes: recs[n].bytes,
-      maxChunkGapS: maxGap(recs[n].arrivals), arrivals: recs[n].arrivals, firstChunkAt: recs[n].arrivals[0] ?? null, lastChunkAt: recs[n].arrivals.at(-1) ?? null,
-      playback: media[n],
-    }])),
-    trackEvents: events.filter((e) => e.type.startsWith("track-")),
-    whileHidden: {
-      samples: hiddenSamples.length,
-      rafTotal: hiddenSamples.reduce((a, s) => a + s.raf, 0),
-      interval100Total: hiddenSamples.reduce((a, s) => a + s.int100, 0),
-      audioCtxAdvanceS: +hiddenSamples.reduce((a, s) => a + (s.acAdvance || 0), 0).toFixed(2),
-      maxSampleGapMs: Math.max(0, ...samples.map((s) => s.gapMs)),
-    },
-  };
-  document.getElementById("summary").textContent = JSON.stringify(summary, null, 2);
-  document.getElementById("out").value = JSON.stringify({ summary, events, samples });
-  document.getElementById("copyBtn").disabled = false;
-  status("Done. Watch both clips, then Copy results.");
-}
-
-document.getElementById("stopBtn").onclick = () => {
-  document.getElementById("stopBtn").disabled = true;
-  ev("stop-tapped");
-  finish().catch((e) => { ev("finish-error", { message: e.message }); status("Stop failed: " + e.message); });
+  stage.classList.remove("on");
+  window.scrollTo(0, document.getElementById("summary").offsetTop - 60);
+  analyze().catch((e) => { ev("analyze-error", { message: e.message }); status("Analysis failed: " + e.message); });
 };
 
 document.getElementById("copyBtn").onclick = async () => {
@@ -251,7 +444,7 @@ document.getElementById("copyBtn").onclick = async () => {
   try { await navigator.clipboard.writeText(text); status("Copied. Paste it to Claude."); }
   catch { document.getElementById("out").select(); status("Copy blocked. Select the text box and copy by hand."); }
 };
-document.getElementById("clearBtn").onclick = () => location.reload();
+for (const id of ["resetBtn", "reset2Btn"]) document.getElementById(id).onclick = () => location.reload();
 ev("loaded", { ua: navigator.userAgent, displayMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia), mime: pickMime() });
 </script>
 </body>
