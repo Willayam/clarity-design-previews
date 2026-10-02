@@ -157,6 +157,7 @@ export type SourceFacts = Readonly&lt;{
   timing: Timing
   gaps: readonly Span[]      // muted spans, such as an iPhone rep in another app; drawn as absent
   display: Readonly&lt;{ width: number; height: number }&gt;  // after the MP4 rotation transform
+  turns: readonly Readonly&lt;{ atMs: TakeMs; quarterTurns: 0 | 1 | 2 | 3 }&gt;[]  // device rotation; the painter turns the source upright
   hasMic: boolean
 }&gt;
 /** Recorder `start` events fire after recording begins, so they are only a first guess.
@@ -221,6 +222,7 @@ export function digests(c: Composition, take: TakeSources): Readonly&lt;{ visual
 <li>A bubble with no camera becomes screen-only. That is what a viewer sees while an iPhone rep is in another app.</li>
 <li>A bubble with no screen becomes camera-only.</li>
 <li>Program audio comes from the camera when one covers t, and otherwise from the screen source&#39;s copy of the mic.</li>
+<li>A source with <code>turns</code> is drawn rotated back to upright for each span. On an iPhone the screen file keeps its portrait frame and draws landscape content sideways inside it, so this is the only way that span can look right.</li>
 <li><code>auto</code> takes the primary source&#39;s shape, which is the screen if one exists and otherwise the camera. It is resolved once per take, with a 1,080 px short side.</li>
 </ul>
 <p>The lint rule bans <code>drawImage</code> and <code>roundRect</code> in <code>editor/src</code> outside this package.</p>
@@ -282,14 +284,14 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li><strong>Pending.</strong> Viewers keep the previous render. Pages with a pending render cache for 5 s, the same as processing pages do now. The next load after publish gets the new version, and anyone mid-watch keeps the old one.</li>
 <li><strong>Cleanup.</strong> Unpublished renders are discarded after 7 days.</li>
 </ol>
-<p><strong>An iPhone rep leaves Safari mid-take.</strong></p>
+<p><strong>An iPhone rep leaves Safari mid-take.</strong> Measured on William&#39;s iPhone with Safari 27:</p>
 <ol>
-<li>The camera fires <code>mute</code>, and the recorder stamps a gap.</li>
-<li>On return, the recorder starts a fresh camera source.</li>
-<li>The screen source keeps going if iOS keeps capture alive. Otherwise it ends cleanly.</li>
+<li>The camera fires <code>mute</code> and the recorder stamps a gap. Its recorder emits nothing while hidden.</li>
+<li>On return the camera fires <code>unmute</code>, the track is still live, and its recorder carries on in the same file. No restart is needed.</li>
+<li>The screen source keeps recording the whole time. A 31-second absence lost no screen chunks.</li>
 <li>Viewers see screen-only for the gap, not a frozen face.</li>
 </ol>
-<p>The iPhone probe below tells us which of these iOS 27 actually does.</p>
+<p><strong>An iPhone rep rotates the phone mid-take.</strong> The recorder logs <code>orientationchange</code> as a turn on each source. The screen file keeps its portrait frame with the content sideways, and the painter turns it upright for that span.</p>
 <h2>Synthesis decision</h2>
 <p><strong>Base: Opus&#39;s structure, with Astra&#39;s rules.</strong> I kept Opus&#39;s tables, fill planner and publish projection, because they extend the WIL-3494 reducer and the existing upload path instead of adding a second one. The judge preferred Astra&#39;s design as the base, and its three corrections are applied:</p>
 <ul>
@@ -342,10 +344,20 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li><strong>The default look for new takes.</strong> Bare, meaning no background and no padding, or the workspace preset?</li>
 <li><strong>iPhone screen share.</strong> Keep offering it, given that iOS mutes the camera the moment the rep leaves Safari? The probe settles what still works.</li>
 </ul>
+<h2>Measured on William&#39;s iPhone, Safari 27</h2>
+<ul>
+<li>Camera and screen recorders run at the same time, and both start within 10 ms of each other.</li>
+<li>Screen capture and its recorder survive leaving Safari: 84 of 84 one-second chunks, with the longest gap 1.35 s during a 31-second absence.</li>
+<li>The camera&#39;s video mutes while the page is hidden and unmutes on return without a restart.</li>
+<li>While hidden, animation frames stop and the audio clock can be suspended. A canvas compositor on a phone would freeze, which confirms &quot;no canvas on phones&quot;.</li>
+<li>Camera settings claim 1920×1080, but the frames and the recorded file are 1080×1920.</li>
+<li>Rotation keeps each file&#39;s starting shape. The screen&#39;s landscape content lands sideways in a portrait frame. The camera&#39;s frames switch to 1920×1080 inside a file that stays 1080×1920.</li>
+<li>Uncapped, Safari recorded about 10 Mbps for the camera and 6.6 Mbps for the screen. Probe v2 checks whether it honours Clarity&#39;s 2 and 2.5 Mbps caps.</li>
+</ul>
 <h2>Open questions and device facts</h2>
 <ul>
-<li>What survives leaving Safari on iOS 27, track by track? <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">The iPhone probe</a> answers it.</li>
-<li>Can an iPhone run camera and screen recorders at once?</li>
+<li>Does the voice survive while the rep is in another app, in the camera file, the screen file&#39;s mic copy, or neither? <a target="_blank" rel="noopener" href="https://willayam.github.io/clarity-design-previews/iphone-capture-probe/">Probe v2</a> measures it.</li>
+<li>What does the camera file show after a rotation: sideways, squashed or letterboxed? Probe v2&#39;s frame strip shows it.</li>
 <li>Does Mux honour Safari&#39;s rotation transform in <code>aspect_ratio</code> and stills?</li>
 <li>Does mic cross-correlation align camera and screen within 40 ms on every target browser, including through silence, app switching and a screen swap? This is the design&#39;s biggest risk. A standalone two-recorder capture with a flash-and-click reference retires it before any upload or render service gets built.</li>
 <li>How long is Stop-to-playable for camera-plus-screen takes rendered in the container, and is it close enough to today&#39;s?</li>
@@ -354,7 +366,7 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 </ul>
 <h2>Delivery sequence</h2>
 <ol start="0">
-<li><strong>Sync experiment.</strong> A standalone page records camera and screen with two recorders and a flash-and-click reference, on desktop Chrome, Safari, Firefox and the iPhone. It measures alignment error after mic cross-correlation, through silence, app switching and a screen swap. The bar is 40 ms.</li>
+<li><strong>Sync experiment.</strong> A standalone page records camera and screen with two recorders and a flash reference, on desktop Chrome, Safari, Firefox and the iPhone. Probe v2 is the iPhone half and already exists. It measures alignment error after mic cross-correlation, through silence, app switching and a screen swap. The bar is 40 ms.</li>
 <li><strong>Record the source itself when only one source is shared, and contain portrait everywhere.</strong> Any device, no canvas, no gradient. The Library card gets the own-frame blur and the inline player uses <code>contain</code>. William sees a phone take as a tall 9:16 frame on the page and in the Library. Mux must report 9:16 with an upright still, and record-to-share time must not move (WIL-3196).</li>
 <li><strong>One painter.</strong> The desktop recorder draws through <code>paintScene</code> with background <code>none</code>, and the lint rule lands. William sees desktop takes with no gradient and a round camera bubble. Recorder fps telemetry starts logging on every take.</li>
 <li><strong>Take tables, backfill and the publish projection.</strong> A read-only production check must show the projected playback id, aspect and clip span equal today&#39;s for all 7,444 rows.</li>
@@ -362,7 +374,7 @@ export function applyTakeEvent(take: Take | null, event: TakeEvent, now: IsoTime
 <li><strong>Style panel for one-source and legacy takes.</strong> Aspect, background and frame, plus versioned publish and the 5 s pending-page rule. William turns a portrait take into 16:9 with blurred sides, and the share link follows. We measure Apply-to-viewer p50 and p75.</li>
 <li><strong>Parallel spans.</strong> Apply-to-viewer p75 must come in under 30 s for a 3-minute take.</li>
 <li><strong>Desktop camera-plus-screen takes, behind a flag.</strong> Two source recorders, mic alignment, cuts, and the layout and camera controls. William records a demo as a bubble and switches it to split after Stop. We measure sync error, dropped frames, and Stop-to-playable against today&#39;s. The flag comes off only when that last number is close enough. If it is not, the browser-composite fill switches on first.</li>
-<li><strong>iPhone screen with camera</strong>, gated on the probe. William sees the bubble disappear for the span the rep spent in another app.</li>
+<li><strong>iPhone screen with camera</strong>, gated on probe v2&#39;s voice and sync results. William sees the bubble disappear for the span the rep spent in another app, and a sideways span come out upright.</li>
 <li><strong>Workspace presets.</strong></li>
 <li><strong>A live synced preview in the style panel</strong>, owner-only.</li>
 <li><strong>Delete the v1 edit manifest and the old trim route</strong>, in their own PR after the code deploy.</li>
