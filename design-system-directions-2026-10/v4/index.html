@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Clarity · V4 Editorial</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Theme before first paint: ?theme= wins, then this session's choice, then the OS.
+    (function () {
+      try {
+        var p = new URLSearchParams(location.search);
+        var t = p.get('theme');
+        if (t !== 'light' && t !== 'dark') t = sessionStorage.getItem('clarity-v4-theme');
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        if (t === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="app" id="app">
+    <div class="rail-scrim" id="rail-scrim"></div>
+    <nav class="rail" id="rail" aria-label="Workspace"></nav>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main id="main" tabindex="-1"></main>
+    </div>
+  </div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <div id="layer"></div>
+  <script src="icons.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clarity · Design directions</title><link rel="stylesheet" href="review.css"></head>
+<body>
+<header class="review-bar">
+  <a class="review-brand" href="overview.html">Clarity <span>All directions</span></a>
+  <div class="review-controls">
+    <label>Direction<select id="direction"><option value="v1">V1 · Current</option><option value="v2">V2 · Refined current</option><option value="v3">V3 · Flat minimal</option><option value="v4">V4 · Editorial workspace</option><option value="v5">V5 · Contextual studio</option></select></label>
+    <label>Screen<select id="view"><option value="library">Library</option><option value="editor">Editor</option><option value="system">System & states</option></select></label>
+    <label>Theme<select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+    <button id="phone" aria-pressed="false">Phone preview</button>
+    <button id="compare" aria-pressed="false">Compare V1</button>
+    <button id="notes" aria-expanded="false" aria-controls="notes-panel">Design notes</button>
+    <a id="direct" href="v2/" target="_blank" rel="noopener">Open full screen ↗</a>
+  </div>
+</header>
+<aside id="notes-panel" hidden><div><p class="eyebrow" id="notes-version"></p><h1 id="notes-title"></h1><p id="notes-description"></p><a id="spec-link" href="v2/DESIGN.md" target="_blank" rel="noopener">Read implementation specification ↗</a></div><p class="review-disclaimer">Interactive design prototypes with fictional content. The selected direction still needs implementation in the product, accessibility verification, regression coverage, and a staged rollout.</p></aside>
+<main id="frames"><section id="before" hidden><div class="frame-label">Before <span>V1 · Current</span></div><iframe title="V1 current design" id="baseline"></iframe></section><section id="after"><div class="frame-label"><span id="frame-version">V2 · Refined current</span><span>Interactive prototype</span></div><iframe title="Selected Clarity design direction" id="candidate"></iframe></section></main>
+<script src="review.js"></script>
+</body></html>

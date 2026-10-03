@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity V2 · Refined current</title>
+<script>
+/* Resolve the colour scheme before first paint. Order: ?theme, this tab's session, the OS. */
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("theme");
+    var s = sessionStorage.getItem("v2-theme");
+    var t = q === "dark" || q === "light" ? q : s === "dark" || s === "light" ? s : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.classList.toggle("dark", t === "dark");
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg hidden xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-home" viewBox="0 0 16 16"><path d="M2.5 7.5 8 3l5.5 4.5V13a.5.5 0 0 1-.5.5h-3v-4H6v4H3a.5.5 0 0 1-.5-.5z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><circle cx="2.8" cy="4" r=".9" fill="currentColor" stroke="none"/><circle cx="2.8" cy="8" r=".9" fill="currentColor" stroke="none"/><circle cx="2.8" cy="12" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-users" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/><path d="M10.5 3.3a2.5 2.5 0 0 1 0 4.4M12 9.7c1.5.5 2.5 1.8 2.5 3.8"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M3 13.5V9M8 13.5V3M13 13.5V6.5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 16 16"><path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/></symbol>
+  <symbol id="i-record" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-chev-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chev-up" viewBox="0 0 16 16"><path d="m4 10 4-4 4 4"/></symbol>
+  <symbol id="i-chev-left" viewBox="0 0 16 16"><path d="m10 3-5 5 5 5"/></symbol>
+  <symbol id="i-chev-right" viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 16 16"><circle cx="3.5" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="12.5" cy="8" r="1.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.4 2.7a.6.6 0 0 0-.9.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 16 16"><rect x="3.5" y="3" width="3.2" height="10" rx=".8"/><rect x="9.3" y="3" width="3.2" height="10" rx=".8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 16 16"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h3L8 4.5h4.5A1.5 1.5 0 0 1 14 6v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 2.5h5l3.5 3.5v7.5a1 1 0 0 1-1 1h-7.5a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1z"/><path d="M9 2.5V6h3.5M6 9h4M6 11.5h4"/></symbol>
+  <symbol id="i-page" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.5 6h11M5 9h6M5 11h4"/></symbol>
+  <symbol id="i-video" viewBox="0 0 16 16"><rect x="1.5" y="4" width="9" height="8" rx="1.5"/><path d="m10.5 7 3.5-2v6l-3.5-2z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3 8.5 3 3 7-7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></symbol>
+  <symbol id="i-link" viewBox="0 0 16 16"><path d="M6.5 9.5l3-3"/><path d="M7 11.5 5.8 12.7a2.5 2.5 0 0 1-3.5-3.5L3.5 8"/><path d="M9 4.5l1.2-1.2a2.5 2.5 0 0 1 3.5 3.5L12.5 8"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 16 16"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 16 16"><path d="M3 4.5h10M6.5 4.5v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1M4 4.5l.7 8a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9l.7-8"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 16 16"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 16 16"><path d="M5 2.5v11M2.5 11 5 13.5 7.5 11M11 13.5v-11M8.5 5 11 2.5 13.5 5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M13 2.5v3h-3"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.5 14 13H2z"/><path d="M8 6.5v3M8 11.5v.1"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 7.5v3.5M8 5.2v.1"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 16 16"><rect x="5.5" y="1.5" width="5" height="8" rx="2.5"/><path d="M3 7.5a5 5 0 0 0 10 0M8 12.5v2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 16 16"><path d="M2 5.5a1 1 0 0 1 1-1h2l1-1.5h4l1 1.5h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/><circle cx="8" cy="9" r="2.5"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 16 16"><rect x="1.5" y="3" width="13" height="8.5" rx="1.5"/><path d="M5.5 14h5M8 11.5V14"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 16 16"><rect x="4.5" y="1.5" width="7" height="13" rx="1.5"/><path d="M7 12.5h2"/></symbol>
+  <symbol id="i-captions" viewBox="0 0 16 16"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M4.5 8.5h3M9.5 8.5h2M4.5 10.5h2M8.5 10.5h3"/></symbol>
+  <symbol id="i-fullscreen" viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 16 16"><path d="M4 11V7.5a4 4 0 0 1 8 0V11l1 1.5H3z"/><path d="M6.5 14.5a1.5 1.5 0 0 0 3 0"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M7 3H3.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1H12a1 1 0 0 0 1-1V9M9.5 2.5h4v4M13.5 2.5 8 8"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></symbol>
+  <symbol id="i-image" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="5.5" cy="6.5" r="1.2"/><path d="m14 10.5-3.5-3.5L4 13"/></symbol>
+  <symbol id="i-type" viewBox="0 0 16 16"><path d="M3.5 4.5V3h9v1.5M8 3v10M6 13h4"/></symbol>
+  <symbol id="i-form" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="4" rx="1"/><rect x="2" y="9" width="12" height="4" rx="1"/></symbol>
+  <symbol id="i-pointer" viewBox="0 0 16 16"><path d="M3.5 2.5 13 7l-4 1.2L7.8 12z"/></symbol>
+  <symbol id="i-logos" viewBox="0 0 16 16"><circle cx="4" cy="8" r="1.8"/><circle cx="8" cy="8" r="1.8"/><circle cx="12" cy="8" r="1.8"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M7 6.5v7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 16 16"><path d="M8 10.5V3M4.5 6.5 8 3l3.5 3.5M3 11.5V13h10v-1.5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 3v7.5M4.5 7 8 10.5 11.5 7M3 11.5V13h10v-1.5"/></symbol>
+  <symbol id="i-move" viewBox="0 0 16 16"><path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h3L8 4.5h4.5A1.5 1.5 0 0 1 14 6v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12z"/><path d="M6 9.5h4M8.5 8 10 9.5 8.5 11"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 16 16"><path d="m11 2.5 2.5 2.5-8 8H3v-2.5z"/></symbol>
+  <symbol id="i-share" viewBox="0 0 16 16"><path d="M8 10V2.5M5 5.5 8 2.5l3 3"/><path d="M3 8.5v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-scissors" viewBox="0 0 16 16"><circle cx="4.5" cy="4.5" r="2"/><circle cx="4.5" cy="11.5" r="2"/><path d="m6 6 7.5 6M6 10l7.5-6"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="m2.5 4.5 5.5 4.5 5.5-4.5"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10.5" rx="1.5"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 16 16"><path d="M9 1.5 3 9h4.5L7 14.5 13 7H8.5z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.5 13 3.5v4c0 3-2 5.3-5 6.5-3-1.2-5-3.5-5-6.5v-4z"/><path d="m5.5 8 1.8 1.8L10.5 6.5"/></symbol>
+</svg>
+
+<header class="proto-bar">
+  <div class="proto-title">Clarity V2 <span>Refined current</span></div>
+  <nav class="proto-tabs" aria-label="Preview screen">
+    <a href="?view=library" data-view="library">Library</a>
+    <a href="?view=editor" data-view="editor">Editor</a>
+    <a href="?view=system" data-view="system">System</a>
+  </nav>
+  <div class="proto-right">
+    <span class="proto-note">Prototype, sample data</span>
+    <div class="proto-seg" role="group" aria-label="Colour scheme">
+      <button type="button" data-theme="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+</header>
+
+<div class="nav-scrim" id="nav-scrim" hidden></div>
+
+<main>
+
+<!-- LIBRARY -->
+<section class="screen" id="library" tabindex="-1" aria-label="Library">
+  <div class="shell">
+    <aside class="sidebar" data-sidebar="library"></aside>
+    <div class="content">
+      <header class="page-head">
+        <div class="page-head-row">
+          <button class="icon-btn nav-toggle" type="button" aria-label="Open navigation" data-nav-toggle><svg class="i"><use href="#i-menu"/></svg></button>
+          <h1>Library</h1>
+          <div class="page-actions">
+            <div class="menu-wrap">
+              <button class="btn btn-ghost btn-new" type="button" data-menu="menu-new" aria-haspopup="menu" aria-expanded="false" aria-label="New"><svg class="i"><use href="#i-plus"/></svg><span class="btn-label">New</span><svg class="i chev"><use href="#i-chev-down"/></svg></button>
+              <div class="menu left" id="menu-new" role="menu" aria-label="New">
+                <button class="menu-item" role="menuitem" type="button" data-demo="new-page"><svg class="i"><use href="#i-page"/></svg>Page</button>
+                <button class="menu-item" role="menuitem" type="button" data-demo="new-page"><svg class="i"><use href="#i-layout"/></svg>From a template</button>
+                <button class="menu-item" role="menuitem" type="button" id="new-folder"><svg class="i"><use href="#i-folder"/></svg>Folder</button>
+              </div>
+            </div>
+            <button class="btn btn-secondary" type="button" data-dialog="upload-dialog"><svg class="i"><use href="#i-upload"/></svg>Upload</button>
+            <a class="btn btn-primary" href="?view=recorder" data-view="recorder"><svg class="i"><use href="#i-record"/></svg>Record</a>
+          </div>
+        </div>
+        <div class="toolbar-row">
+          <div class="search">
+            <svg class="i"><use href="#i-search"/></svg>
+            <input class="input" id="lib-search" type="search" placeholder="Search videos, pages and files" aria-label="Search the library" autocomplete="off">
+            <button class="icon-btn sm search-clear" id="lib-search-clear" type="button" aria-label="Clear search" hidden><svg class="i"><use href="#i-x"/></svg></button>
+          </div>
+          <div class="seg" id="lib-filter" role="group" aria-label="Filter by type">
+            <button type="button" aria-pressed="true" data-filter="all">All</button>
+            <button type="button" aria-pressed="false" data-filter="video">Videos</button>
+            <button type="button" aria-pressed="false" data-filter="page">Pages</button>
+            <button type="button" aria-pressed="false" data-filter="doc">Documents</button>
+          </div>
+          <div class="toolbar-end">
+            <div class="menu-wrap">
+              <button class="icon-btn" id="sort-btn" type="button" data-menu="menu-sort" aria-haspopup="menu" aria-expanded="false" aria-label="Sort: Last edited" data-tip="Sort"><svg class="i"><use href="#i-sort"/></svg></button>
+              <div class="menu" id="menu-sort" role="menu" aria-label="Sort">
+                <div class="menu-label">Sort by</div>
+                <button class="menu-item" role="menuitemradio" aria-checked="true" type="button" data-sort="recent">Last edited<svg class="i trail check"><use href="#i-check"/></svg></button>
+                <button class="menu-item" role="menuitemradio" aria-checked="false" type="button" data-sort="name">Name<svg class="i trail check"><use href="#i-check"/></svg></button>
+                <button class="menu-item" role="menuitemradio" aria-checked="false" type="button" data-sort="views">Most viewed<svg class="i trail check"><use href="#i-check"/></svg></button>
+              </div>
+            </div>
+            <div class="seg icons" role="group" aria-label="Layout">
+              <button type="button" aria-pressed="true" data-layout-mode="grid" aria-label="Grid" data-tip="Grid"><svg class="i"><use href="#i-grid"/></svg></button>
+              <button type="button" aria-pressed="false" data-layout-mode="list" aria-label="List" data-tip="List"><svg class="i"><use href="#i-list"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="folders" id="folders" aria-label="Folders">
+        <button class="folder" type="button" data-demo="folder"><svg class="i"><use href="#i-folder"/></svg>Brand assets<span>12</span></button>
+      </div>
+
+      <div class="grid" id="lib-grid" data-cards="northstar,proposal,overview,brief,maya"></div>
+
+      <div class="empty" id="lib-empty" role="status" hidden>
+        <svg class="i"><use href="#i-search"/></svg>
+        <h2>No results for "<span id="lib-empty-q"></span>"</h2>
+        <p>Check the spelling, try a shorter word, or clear the type filter.</p>
+        <div class="empty-actions"><button class="btn btn-secondary" type="button" id="lib-empty-clear">Clear search and filter</button></div>
+      </div>
+
+      <div class="selection-bar" id="selection-bar" hidden>
+        <span class="count"><b id="sel-count">0</b> selected</span>
+        <button class="btn btn-ghost btn-sm" type="button" data-demo="move"><svg class="i"><use href="#i-move"/></svg>Move to</button>
+        <button class="btn btn-ghost btn-sm" type="button" id="sel-share" data-dialog="share-dialog" data-share-what="selection" disabled><svg class="i"><use href="#i-link"/></svg>Share</button>
+        <button class="btn btn-ghost btn-sm btn-danger" type="button" id="sel-delete"><svg class="i"><use href="#i-trash"/></svg>Delete</button>
+        <span class="vr"></span>
+        <button class="icon-btn sm" type="button" id="sel-clear" aria-label="Clear selection"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDITOR -->
+<section class="screen tool" id="editor" tabindex="-1" aria-label="Page editor">
+  <header class="toolbar">
+    <div class="tb-left">
+      <a class="icon-btn" href="?view=library" data-view="library" aria-label="Back to Library" data-tip="Library"><svg class="i"><use href="#i-chev-left"/></svg></a>
+      <input class="doc-title" id="doc-title" value="Welcome to your proposal" aria-label="Page title" spellcheck="false">
+      <span class="chip" id="pub-chip">Draft</span>
+      <span class="saved" id="saved" role="status">Saved locally</span>
+    </div>
+    <div class="tb-center seg" role="group" aria-label="Preview width">
+      <button type="button" aria-pressed="true" data-canvas="desktop"><svg class="i"><use href="#i-monitor"/></svg>Desktop</button>
+      <button type="button" aria-pressed="false" data-canvas="mobile"><svg class="i"><use href="#i-phone"/></svg>Phone</button>
+    </div>
+    <div class="tb-right">
+      <a class="btn btn-ghost" href="?view=public" data-view="public"><svg class="i"><use href="#i-eye"/></svg>Preview</a>
+      <button class="btn btn-secondary" type="button" data-dialog="share-dialog"><svg class="i"><use href="#i-link"/></svg>Share</button>
+      <button class="btn btn-primary" type="button" id="publish">Publish</button>
+    </div>
+  </header>
+  <div class="editor-body">
+    <div class="canvas" id="canvas">
+      <article class="jp" id="jp" style="--brand:#0f766e;--brand-hover:#0b5f58">
+        <header class="jp-head">
+          <span class="avatar">AM</span>
+          <div><b>Alex Morgan</b><span>Account executive, Harbor</span></div>
+        </header>
+
+        <div class="jp-block is-selected" data-block="video" tabindex="0" role="group" aria-label="Intro video section">
+          <div class="block-toolbar" role="toolbar" aria-label="Intro video section">
+            <button class="icon-btn sm" type="button" aria-label="Move up" data-tip="Move up" disabled><svg class="i"><use href="#i-arrow-up"/></svg></button>
+            <button class="icon-btn sm" type="button" aria-label="Move down" data-tip="Move down" data-move="down"><svg class="i"><use href="#i-arrow-down"/></svg></button>
+            <span class="vr"></span>
+            <button class="icon-btn sm" type="button" aria-label="Replace video" data-tip="Replace" data-demo="replace"><svg class="i"><use href="#i-video"/></svg></button>
+            <button class="icon-btn sm" type="button" aria-label="Trim" data-tip="Trim" data-focus="trim-start"><svg class="i"><use href="#i-scissors"/></svg></button>
+          </div>
+          <div class="player" data-state="paused" style="--scene-a:#dbe4f6;--scene-b:#aebfe6;--skin:#efcdb5;--shirt:#35456a">
+            <div class="player-scene"><span class="thumb-screen"></span><span class="thumb-cam"></span></div>
+            <button class="player-big" type="button" aria-label="Play"><svg class="i fill"><use href="#i-play"/></svg></button>
+            <div class="player-bar on-media">
+              <button class="icon-btn media" type="button" aria-label="Play" data-player="toggle"><svg class="i fill" data-player="icon"><use href="#i-play"/></svg></button>
+              <span class="time"><b data-player="current">0:00</b> / <span data-player="duration">4:12</span></span>
+              <div class="scrub" data-player="scrub" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="252" aria-valuenow="0" tabindex="0"><div class="scrub-track"><div class="scrub-fill" data-player="fill"></div></div></div>
+              <button class="pill-media" type="button" data-player="speed" aria-label="Playback speed 1x">1×</button>
+              <button class="icon-btn media" type="button" aria-label="Captions" aria-pressed="false" data-player="cc"><svg class="i"><use href="#i-captions"/></svg></button>
+              <button class="icon-btn media" type="button" aria-label="Fullscreen" data-player="full"><svg class="i"><use href="#i-fullscreen"/></svg></button>
+            </div>
+            <div class="player-caption">Here is what changes with Northstar, and what stays the same.</div>
+          </div>
+        </div>
+
+        <div class="jp-block" data-block="value" tabindex="0" role="group" aria-label="Value section">
+          <div class="block-toolbar" role="toolbar" aria-label="Value section">
+            <button class="icon-btn sm" type="button" aria-label="Move up" data-tip="Move up" data-move="up"><svg class="i"><use href="#i-arrow-up"/></svg></button>
+            <button class="icon-btn sm" type="button" aria-label="Move down" data-tip="Move down" data-move="down"><svg class="i"><use href="#i-arrow-down"/></svg></button>
+            <span class="vr"></span>
+            <button class="icon-btn sm" type="button" aria-label="Duplicate section" data-tip="Duplicate" data-demo="duplicate-section"><svg class="i"><use href="#i-copy"/></svg></button>
+          </div>
+          <h1 id="jp-headline">Your proposal, in four minutes</h1>
+          <p id="jp-body">Hi Maya. I walked through what changes with Northstar, what it costs, and when it could be live. The full proposal is below if you want the numbers in writing.</p>
+          <ul class="jp-values" id="jp-values">
+            <li><span class="jp-value-icon"><svg class="i"><use href="#i-zap"/></svg></span><div><b>Live in six weeks</b><span>Your three sites move in one cut-over, with the old system kept warm.</span></div></li>
+            <li><span class="jp-value-icon"><svg class="i"><use href="#i-shield"/></svg></span><div><b>One contract</b><span>Northstar replaces the two renewals due in March.</span></div></li>
+            <li><span class="jp-value-icon"><svg class="i"><use href="#i-chart"/></svg></span><div><b>Numbers from day one</b><span>The dashboard in the video is the one you get.</span></div></li>
+          </ul>
+        </div>
+
+        <div class="jp-block" data-block="cta" tabindex="0" role="group" aria-label="Call to action section">
+          <div class="block-toolbar" role="toolbar" aria-label="Call to action section">
+            <button class="icon-btn sm" type="button" aria-label="Move up" data-tip="Move up" data-move="up"><svg class="i"><use href="#i-arrow-up"/></svg></button>
+            <button class="icon-btn sm" type="button" aria-label="Move down" data-tip="Move down" disabled><svg class="i"><use href="#i-arrow-down"/></svg></button>
+          </div>
+          <div class="jp-cta">
+            <h2 id="jp-cta-title">Ready when you are</h2>
+            <div class="jp-cta-row">
+              <a class="btn btn-brand btn-lg" id="jp-cta" href="https://calendar.example.com/alex/20" data-demo="external">Book 20 minutes</a>
+              <a class="link jp-cta-alt" href="mailto:alex@example.com" data-demo="external">Or email Alex</a>
+            </div>
+          </div>
+          <div class="lead" id="jp-lead" hidden>
+            <h3>Get the full proposal</h3>
+            <div class="fields">
+              <input class="input" placeholder="Name" aria-label="Name">
+              <input class="input" type="email" placeholder="Work email" aria-label="Work email">
+            </div>
+            <button class="btn btn-brand" type="button" data-toast="Demo: nothing was sent">Send me the proposal</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <aside class="pane pane-inspector" id="inspector" aria-label="Page properties">
+      <div class="acc" id="acc">
+        <section class="acc-item is-open" data-block="video">
+          <h2><button class="acc-head" type="button" aria-expanded="true" aria-controls="acc-video"><svg class="i kind"><use href="#i-video"/></svg><span class="acc-name">Intro video</span><span class="acc-meta">4:12</span><svg class="i chev"><use href="#i-chev-down"/></svg></button></h2>
+          <div class="acc-body" id="acc-video">
+            <div class="field"><label class="label" for="ins-src">Source</label>
+              <select class="input" id="ins-src"><option value="northstar">Northstar launch walkthrough · 4:12</option><option value="maya">Follow-up for Maya · 0:52</option><option value="overview">Product overview · 7:48</option><option disabled>Upload…</option></select></div>
+            <div class="inspector-row"><span class="label" id="l-aspect">Aspect</span>
+              <div class="seg" role="group" aria-labelledby="l-aspect"><button type="button" aria-pressed="true" data-toggle-group>Auto</button><button type="button" aria-pressed="false" data-toggle-group>16:9</button><button type="button" aria-pressed="false" data-toggle-group>9:16</button></div></div>
+            <div class="field"><span class="label" id="l-trim">Trim</span>
+              <div class="filmstrip" id="filmstrip" role="group" aria-labelledby="l-trim" style="--scene-a:#dbe4f6;--scene-b:#aebfe6;--l:0%;--r:0%">
+                <div class="trim-dim l"></div><div class="trim-dim r"></div>
+                <div class="trim-range"><div class="trim-handle l" id="trim-start" role="slider" tabindex="0" aria-label="Trim start" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="252" aria-valuenow="0" data-handle="l"></div><div class="trim-handle r" role="slider" tabindex="0" aria-label="Trim end" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="252" aria-valuenow="252" data-handle="r"></div></div>
+              </div>
+              <div class="trim-times"><span id="trim-start-t">0:00</span><span id="trim-len">4:12 kept</span><span id="trim-end-t">4:12</span></div>
+              <span class="hint">Drag the handles, or use the arrow keys while one is focused.</span></div>
+            <div class="inspector-row"><span class="label" id="l-autoplay">Autoplay, muted</span><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-autoplay"></button></div>
+            <div class="inspector-row"><span class="label" id="l-cc">Captions</span><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="l-cc"></button></div>
+            <div class="field"><span class="label">Poster</span><div class="dropzone" tabindex="0" role="button" data-demo="poster"><svg class="i"><use href="#i-image"/></svg>Frame at 0:03. Drop an image to replace.</div></div>
+          </div>
+        </section>
+
+        <section class="acc-item" data-block="value">
+          <h2><button class="acc-head" type="button" aria-expanded="false" aria-controls="acc-value"><svg class="i kind"><use href="#i-type"/></svg><span class="acc-name">Value</span><span class="acc-meta">3 points</span><svg class="i chev"><use href="#i-chev-down"/></svg></button></h2>
+          <div class="acc-body" id="acc-value" hidden>
+            <div class="field"><label class="label" for="ins-headline">Headline</label><textarea class="input" id="ins-headline" rows="2" data-sync="jp-headline">Your proposal, in four minutes</textarea></div>
+            <div class="field"><label class="label" for="ins-body">Text</label><textarea class="input" id="ins-body" data-sync="jp-body">Hi Maya. I walked through what changes with Northstar, what it costs, and when it could be live. The full proposal is below if you want the numbers in writing.</textarea></div>
+            <div class="inspector-row"><span class="label" id="l-layout">Points</span>
+              <div class="seg" role="group" aria-labelledby="l-layout"><button type="button" aria-pressed="true" data-values="list">List</button><button type="button" aria-pressed="false" data-values="grid">Grid</button><button type="button" aria-pressed="false" data-values="off">Off</button></div></div>
+            <div class="field"><span class="label">Point titles</span>
+              <input class="input" value="Live in six weeks" aria-label="Point 1" data-sync-value="0">
+              <input class="input" value="One contract" aria-label="Point 2" data-sync-value="1">
+              <input class="input" value="Numbers from day one" aria-label="Point 3" data-sync-value="2"></div>
+          </div>
+        </section>
+
+        <section class="acc-item" data-block="cta">
+          <h2><button class="acc-head" type="button" aria-expanded="false" aria-controls="acc-cta"><svg class="i kind"><use href="#i-pointer"/></svg><span class="acc-name">Call to action</span><span class="acc-meta">Book 20 minutes</span><svg class="i chev"><use href="#i-chev-down"/></svg></button></h2>
+          <div class="acc-body" id="acc-cta" hidden>
+            <div class="field"><label class="label" for="ins-cta-title">Heading</label><input class="input" id="ins-cta-title" value="Ready when you are" data-sync="jp-cta-title"></div>
+            <div class="field"><label class="label" for="ins-cta-label">Button label</label><input class="input" id="ins-cta-label" value="Book 20 minutes" data-sync="jp-cta"></div>
+            <div class="field"><label class="label" for="ins-cta-url">Button link</label><input class="input" id="ins-cta-url" value="https://calendar.example.com/alex/20" aria-describedby="ins-cta-url-err"><span class="hint error-text" id="ins-cta-url-err" hidden><svg class="i"><use href="#i-alert"/></svg>Enter a link that starts with https://</span></div>
+            <div class="inspector-row"><span class="label" id="l-style">Style</span><div class="seg" role="group" aria-labelledby="l-style"><button type="button" aria-pressed="true" data-cta-style="brand">Brand</button><button type="button" aria-pressed="false" data-cta-style="quiet">Quiet</button></div></div>
+            <div class="inspector-row"><span class="label" id="l-lead">Ask for contact details</span><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-lead" id="ins-lead"></button></div>
+            <div class="field" id="ins-lead-fields" hidden><span class="label">Form fields</span>
+              <label class="check"><input type="checkbox" checked disabled><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Name</label>
+              <label class="check"><input type="checkbox" checked disabled><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Work email</label>
+              <label class="check"><input type="checkbox"><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Phone</label>
+              <label class="check"><input type="checkbox"><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Company</label></div>
+          </div>
+        </section>
+
+        <section class="acc-item" data-block="page">
+          <h2><button class="acc-head" type="button" aria-expanded="false" aria-controls="acc-page"><svg class="i kind"><use href="#i-sliders"/></svg><span class="acc-name">Page settings</span><span class="acc-meta">Draft</span><svg class="i chev"><use href="#i-chev-down"/></svg></button></h2>
+          <div class="acc-body" id="acc-page" hidden>
+            <div class="field"><label class="label" for="page-title-field">Title</label><input class="input" id="page-title-field" value="Welcome to your proposal"></div>
+            <div class="field"><span class="label" id="l-brand">Brand colour</span>
+              <div class="swatches" role="group" aria-labelledby="l-brand">
+                <button class="swatch" type="button" style="--c:#0f766e" aria-pressed="true" aria-label="Teal" data-brand="#0f766e" data-brand-hover="#0b5f58"></button>
+                <button class="swatch" type="button" style="--c:#2563eb" aria-pressed="false" aria-label="Blue" data-brand="#2563eb" data-brand-hover="#1d4ed8"></button>
+                <button class="swatch" type="button" style="--c:#7c3aed" aria-pressed="false" aria-label="Violet" data-brand="#7c3aed" data-brand-hover="#6d28d9"></button>
+                <button class="swatch" type="button" style="--c:#c2410c" aria-pressed="false" aria-label="Rust" data-brand="#c2410c" data-brand-hover="#9a3412"></button>
+                <button class="swatch" type="button" style="--c:#15181e" aria-pressed="false" aria-label="Ink" data-brand="#15181e" data-brand-hover="#2a2f38"></button>
+              </div></div>
+            <span class="hint">Access and view alerts are set in Share, on the toolbar.</span>
+          </div>
+        </section>
+      </div>
+      <div class="menu-wrap add-section">
+        <button class="btn btn-ghost btn-block" type="button" data-menu="menu-add" aria-haspopup="menu" aria-expanded="false"><svg class="i"><use href="#i-plus"/></svg>Add section</button>
+        <div class="menu up left" id="menu-add" role="menu" aria-label="Add section">
+          <button class="menu-item" role="menuitem" type="button" data-demo="add-section"><svg class="i"><use href="#i-type"/></svg>Text</button>
+          <button class="menu-item" role="menuitem" type="button" data-demo="add-section"><svg class="i"><use href="#i-logos"/></svg>Logos</button>
+          <button class="menu-item" role="menuitem" type="button" data-demo="add-section"><svg class="i"><use href="#i-file"/></svg>Document</button>
+          <button class="menu-item" role="menuitem" type="button" data-demo="add-section"><svg class="i"><use href="#i-form"/></svg>Lead form</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- SYSTEM -->
+<section class="screen" id="system" tabindex="-1" aria-label="System sheet">
+  <div class="sys">
+    <div class="sys-intro">
+      <h1>V2 Refined current</h1>
+      <p>The current Clarity with its depth budget cut to four edge treatments and one translucent level. The structure stays: sidebar and content, 16:9 media cards, the page editor with its right-hand properties panel, the dark bar over video. What goes is the stacking: bevels on buttons, outlines on everything, hover states that add a second fill on top of the first.</p>
+      <p class="legend"><span class="chip live">Live</span> responds to your pointer and keyboard. <span class="chip sim">Simulated</span> is a class that paints the state so it can be compared side by side. Everything on this sheet is sample data.</p>
+    </div>
+
+    <section class="sys-section">
+      <h2>Depth: one treatment per surface</h2>
+      <p>Every surface picks exactly one. Tone for panels on canvas, a hairline where tone cannot separate (sidebar, lists, form fields), shadow for raised things in light mode, glass for the one floating level. The fifth tile is the pattern this direction removes.</p>
+      <div class="sys-grid">
+        <div class="sys-tile"><div class="demo"><div class="demo-surface tone"></div></div><b>Tone</b><span>Cards' thumbnails, panels, folder tiles, dropzones. Surface on canvas, no border, no shadow.</span></div>
+        <div class="sys-tile"><div class="demo"><div class="demo-surface hairline"></div></div><b>Hairline</b><span>Sidebar edge, list rows, form fields, accordion rows, dark-mode raised surfaces. 1px at 10% alpha, 18% on fields.</span></div>
+        <div class="sys-tile"><div class="demo"><div class="demo-surface shadow"></div></div><b>Shadow</b><span>Menus, dialogs, toasts, the paper inside a document card. Light mode only; dark mode uses a hairline.</span></div>
+        <div class="sys-tile"><div class="demo on-scene"><div class="demo-surface glass"></div></div><b>Glass</b><span>Player bar, recorder dock, section toolbar, selection bar, chips and buttons over media. Tint, blur, one edge.</span></div>
+        <div class="sys-tile"><div class="demo no"><div class="demo-surface stacked"></div></div><b>Stacked</b><span>Gradient fill, outline, inner highlight, inner shade and drop shadow on one control. Removed everywhere.</span></div>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Colour</h2>
+      <p>Cool grey neutrals and the brand blue as the only accent, used for the primary action, selection and switches. Public pages take the rep's brand colour for their buttons; the app never does. Values below are read from the live stylesheet for the current scheme.</p>
+      <div class="colors" id="colors"></div>
+      <div class="table-wrap">
+      <table class="table contrast">
+        <thead><tr><th>Pair</th><th class="num">Light</th><th class="num">Dark</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>text on surface</td><td class="num">17.8</td><td class="num">15.0</td><td>body and headings</td></tr>
+          <tr><td>text-2 on surface / canvas</td><td class="num">7.2 / 6.6</td><td class="num">7.4 / 8.1</td><td>secondary copy, ghost buttons, nav items</td></tr>
+          <tr><td>text-3 on surface / canvas</td><td class="num">5.2 / 4.7</td><td class="num">4.8 / 5.2</td><td>meta lines under cards sit on canvas</td></tr>
+          <tr><td>white on accent</td><td class="num">5.2</td><td class="num">4.5</td><td>primary button, switch, selection</td></tr>
+          <tr><td>accent-text on surface</td><td class="num">6.7</td><td class="num">8.2</td><td>links, the Live chip</td></tr>
+          <tr><td>danger-text on surface</td><td class="num">6.3</td><td class="num">6.7</td><td>Delete, inline errors</td></tr>
+          <tr><td>white on glass-media over the lightest scene</td><td class="num">5.4</td><td class="num">5.4</td><td>player bar, duration chip; the tint is 60% dark</td></tr>
+          <tr><td colspan="4" class="muted">Ratios computed with the WCAG 2 formula from the token values. Not measured in a browser.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Type</h2>
+      <p>Geist at 400, 500 and 600. Nothing heavier; emphasis comes from size and colour. Durations and counts are tabular.</p>
+      <div class="type-ramp">
+        <div><code>display 28/34 600</code><span style="font:var(--text-display);letter-spacing:var(--tracking-display)">Library</span></div>
+        <div><code>h1 22/28 600</code><span style="font:var(--text-h1);letter-spacing:var(--tracking-tight)">Welcome to your proposal</span></div>
+        <div><code>h2 17/24 600</code><span style="font:var(--text-h2)">Recent</span></div>
+        <div><code>h3 15/22 600</code><span style="font:var(--text-h3)">Get the full proposal</span></div>
+        <div><code>body 14/20 400</code><span style="font:var(--text-body)">Page, edited yesterday. Two sections changed since the last publish.</span></div>
+        <div><code>body-md 14/20 500</code><span style="font:var(--text-body-md)">Northstar launch walkthrough</span></div>
+        <div><code>small 13/18 400</code><span style="font:var(--text-small);color:var(--text-2)">Changing it sends a confirmation to both addresses.</span></div>
+        <div><code>micro 12/16 500</code><span style="font:var(--text-micro);color:var(--text-3)">4:12 · 3 days ago · 12 views</span></div>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Space, radius, size</h2>
+      <p>A 4px grid. Five radii plus the pill; small buttons and fields share the 8px of their full-size versions. Three control heights with a fine pointer. On a coarse pointer, and at 720px and under, the two smaller ones become 44 and the large one 48; segment buttons are 40 inside their 44 track. Labels and glyphs keep their size.</p>
+      <div class="scale-row" aria-label="Spacing scale">
+        <div class="scale"><i style="width:4px"></i><code>4</code></div><div class="scale"><i style="width:8px"></i><code>8</code></div><div class="scale"><i style="width:12px"></i><code>12</code></div><div class="scale"><i style="width:16px"></i><code>16</code></div><div class="scale"><i style="width:20px"></i><code>20</code></div><div class="scale"><i style="width:24px"></i><code>24</code></div><div class="scale"><i style="width:32px"></i><code>32</code></div><div class="scale"><i style="width:40px"></i><code>40</code></div><div class="scale"><i style="width:48px"></i><code>48</code></div>
+      </div>
+      <div class="scale-row" aria-label="Radius scale">
+        <div class="radius-demo" style="--r:6px"><code>6 chips</code></div><div class="radius-demo" style="--r:8px"><code>8 controls</code></div><div class="radius-demo" style="--r:10px"><code>10 thumbnails, menus</code></div><div class="radius-demo" style="--r:12px"><code>12 cards, player</code></div><div class="radius-demo" style="--r:16px"><code>16 panels, dialogs</code></div><div class="radius-demo" style="--r:999px"><code>pill</code></div>
+      </div>
+      <div class="sys-row">
+        <button class="btn btn-secondary btn-sm" type="button">28 small</button><button class="btn btn-secondary" type="button">36 medium</button><button class="btn btn-secondary btn-lg" type="button">44 large</button>
+        <span class="muted" style="font:var(--text-small)">Coarse pointer, or 720px and under: 44 / 44 / 48.</span>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Buttons</h2>
+      <p>Flat fills, one primary per view. Hover changes the fill and nothing else. Busy keeps the label and adds a spinner. The rest column is live; hover, pressed and focus are simulated so they can be compared in one glance.</p>
+      <div class="table-wrap">
+      <div class="matrix" role="table" aria-label="Button states">
+        <span class="h"></span><span class="h">Rest <span class="chip live">Live</span></span><span class="h">Hover <span class="chip sim">Sim</span></span><span class="h">Pressed <span class="chip sim">Sim</span></span><span class="h">Focus <span class="chip sim">Sim</span></span><span class="h">Disabled</span><span class="h">Busy</span>
+        <span class="h">Primary</span><span><button class="btn btn-primary" type="button">Publish</button></span><span><button class="btn btn-primary sim-hover" type="button" tabindex="-1">Publish</button></span><span><button class="btn btn-primary sim-active" type="button" tabindex="-1">Publish</button></span><span><button class="btn btn-primary sim-focus" type="button" tabindex="-1">Publish</button></span><span><button class="btn btn-primary" type="button" disabled>Publish</button></span><span><button class="btn btn-primary" type="button" aria-busy="true">Publish</button></span>
+        <span class="h">Secondary</span><span><button class="btn btn-secondary" type="button"><svg class="i"><use href="#i-upload"/></svg>Upload</button></span><span><button class="btn btn-secondary sim-hover" type="button" tabindex="-1"><svg class="i"><use href="#i-upload"/></svg>Upload</button></span><span><button class="btn btn-secondary sim-active" type="button" tabindex="-1"><svg class="i"><use href="#i-upload"/></svg>Upload</button></span><span><button class="btn btn-secondary sim-focus" type="button" tabindex="-1"><svg class="i"><use href="#i-upload"/></svg>Upload</button></span><span><button class="btn btn-secondary" type="button" disabled><svg class="i"><use href="#i-upload"/></svg>Upload</button></span><span><button class="btn btn-secondary" type="button" aria-busy="true">Upload</button></span>
+        <span class="h">Ghost</span><span><button class="btn btn-ghost" type="button">Preview</button></span><span><button class="btn btn-ghost sim-hover" type="button" tabindex="-1">Preview</button></span><span><button class="btn btn-ghost sim-active" type="button" tabindex="-1">Preview</button></span><span><button class="btn btn-ghost sim-focus" type="button" tabindex="-1">Preview</button></span><span><button class="btn btn-ghost" type="button" disabled>Preview</button></span><span><button class="btn btn-ghost" type="button" aria-busy="true">Preview</button></span>
+        <span class="h">Danger</span><span><button class="btn btn-danger" type="button">Delete</button></span><span><button class="btn btn-danger sim-hover" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn-danger sim-active" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn-danger sim-focus" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn-danger" type="button" disabled>Delete</button></span><span><button class="btn btn-danger-solid" type="button" aria-busy="true">Delete 3 items</button></span>
+        <span class="h">Icon</span><span><button class="icon-btn" type="button" aria-label="More"><svg class="i"><use href="#i-more"/></svg></button></span><span><button class="icon-btn sim-hover" type="button" tabindex="-1" aria-label="More, hover"><svg class="i"><use href="#i-more"/></svg></button></span><span><button class="icon-btn sim-active" type="button" tabindex="-1" aria-label="More, pressed"><svg class="i"><use href="#i-more"/></svg></button></span><span><button class="icon-btn sim-focus" type="button" tabindex="-1" aria-label="More, focus"><svg class="i"><use href="#i-more"/></svg></button></span><span><button class="icon-btn" type="button" disabled aria-label="More, disabled"><svg class="i"><use href="#i-more"/></svg></button></span><span></span>
+      </div>
+      </div>
+      <div class="on-media-demo">
+        <button class="icon-btn media" type="button" aria-label="Play"><svg class="i fill"><use href="#i-play"/></svg></button>
+        <button class="pill-media" type="button">1.5×</button>
+        <button class="pill-media" type="button" aria-pressed="true">CC</button>
+        <button class="btn btn-media btn-sm" type="button">Both</button>
+        <button class="icon-btn chip-btn" type="button" aria-label="More"><svg class="i"><use href="#i-more"/></svg></button>
+        <span class="chip media">4:12</span>
+        <button class="btn btn-brand" type="button" style="--brand:#0f766e;--brand-hover:#0b5f58">Brand (public pages)</button>
+        <span class="muted" style="color:var(--on-media-2);font:var(--text-small)">Controls over media use white at 12 / 20 / 30% fill, in both schemes. The brand button exists only on public pages.</span>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Fields and selection</h2>
+      <p>Form fields carry one hairline and gain the accent on focus. Errors turn the hairline red and add a line of text under the field. The toolbar search is tonal because it sits among tonal controls. No inset shadows, no inner highlights.</p>
+      <div class="sys-grid fields-grid">
+        <div class="field"><label class="label" for="d-in">Text <span class="chip live">Live</span></label><input class="input" id="d-in" placeholder="Placeholder"></div>
+        <div class="field"><label class="label" for="d-focus">Focus <span class="chip sim">Sim</span></label><input class="input sim-focus" id="d-focus" value="Welcome to your proposal" tabindex="-1" readonly></div>
+        <div class="field"><label class="label" for="d-err">Error</label><input class="input" id="d-err" value="calendar.example" aria-invalid="true" aria-describedby="d-err-t"><span class="hint error-text" id="d-err-t"><svg class="i"><use href="#i-alert"/></svg>Enter a link that starts with https://</span></div>
+        <div class="field"><label class="label" for="d-dis">Disabled</label><input class="input" id="d-dis" value="Managed by your admin" disabled></div>
+        <div class="field"><label class="label" for="d-sel">Select</label><select class="input" id="d-sel"><option>Anyone with the link</option><option>People with the password</option></select></div>
+        <div class="field"><label class="label" for="d-ro">Read only with copy</label><div class="field-row"><input class="input" id="d-ro" readonly value="https://clarity.example.com/p/welcome-to-your-proposal"><button class="btn btn-secondary" type="button" data-copy="d-ro">Copy</button></div><span class="hint">Sample link; copy writes to your clipboard only.</span></div>
+        <div class="field"><label class="label" for="d-ta">Textarea</label><textarea class="input" id="d-ta" rows="2">Hi Maya. I walked through what changes with Northstar.</textarea></div>
+        <div class="field"><label class="label" for="d-search">Toolbar search <span class="chip live">Live</span></label><div class="search" style="width:100%"><svg class="i"><use href="#i-search"/></svg><input class="input" id="d-search" type="search" placeholder="Search"></div></div>
+      </div>
+      <div class="sys-row">
+        <button class="switch" type="button" role="switch" aria-checked="true" aria-label="On"></button>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Off"></button>
+        <button class="switch sim-focus" type="button" role="switch" aria-checked="true" aria-label="On, focus simulated" tabindex="-1"></button>
+        <button class="switch" type="button" role="switch" aria-checked="true" aria-label="On, disabled" disabled></button>
+        <span class="vr"></span>
+        <label class="check"><input type="checkbox" checked><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Checked</label>
+        <label class="check"><input type="checkbox"><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Unchecked</label>
+        <label class="check"><input type="checkbox" class="sim-focus-input" tabindex="-1"><span class="box sim-focus"><svg class="i"><use href="#i-check"/></svg></span>Focus <span class="chip sim">Sim</span></label>
+        <label class="check"><input type="checkbox" disabled checked><span class="box"><svg class="i"><use href="#i-check"/></svg></span>Disabled</label>
+      </div>
+      <div class="sys-row">
+        <div class="seg" role="group" aria-label="Segmented"><button type="button" aria-pressed="true" data-toggle-group>Desktop</button><button type="button" aria-pressed="false" data-toggle-group>Phone</button></div>
+        <span class="chip">Draft</span><span class="chip accent">Live</span><span class="chip success">Paid</span><span class="chip warning">Processing</span><span class="chip danger">Failed</span><span class="chip">Demo</span>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Tabs example" style="max-width:420px"><button class="tab" type="button" role="tab" aria-selected="true" data-toggle-group="selected">Account</button><button class="tab" type="button" role="tab" aria-selected="false" data-toggle-group="selected">Brand</button><button class="tab sim-focus" type="button" role="tab" aria-selected="false" tabindex="-1">Alerts <span class="chip sim">Sim focus</span></button><button class="tab" type="button" role="tab" aria-selected="false" data-toggle-group="selected">Billing</button></div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Raised and floating</h2>
+      <p>Menus, dialogs and toasts are raised: shadow in light, hairline in dark, never both. Toasts and tooltips are ink in light; in dark they take the menu's surface and hairline, not a white pill. The menu below is live; the dialog is a static copy of the share dialog.</p>
+      <div class="demo-static">
+        <div class="menu" role="menu" aria-label="Example menu">
+          <button class="menu-item" role="menuitem" type="button"><svg class="i"><use href="#i-external"/></svg>Open<span class="kbd">↵</span></button>
+          <button class="menu-item" role="menuitem" type="button"><svg class="i"><use href="#i-link"/></svg>Copy link<span class="kbd">⌘C</span></button>
+          <button class="menu-item sim-hover" role="menuitem" type="button" tabindex="-1"><svg class="i"><use href="#i-pencil"/></svg>Rename<span class="chip sim">Sim hover</span></button>
+          <button class="menu-item" role="menuitem" type="button"><svg class="i"><use href="#i-move"/></svg>Move to<svg class="i trail"><use href="#i-chev-right"/></svg></button>
+          <div class="menu-sep"></div>
+          <button class="menu-item danger" role="menuitem" type="button"><svg class="i"><use href="#i-trash"/></svg>Delete</button>
+        </div>
+        <div class="dialog-static">
+          <div class="dialog-head"><h2>Share</h2><button class="icon-btn sm" type="button" aria-label="Close (static example)"><svg class="i"><use href="#i-x"/></svg></button></div>
+          <div class="dialog-body">
+            <div class="field"><label class="label" for="d-link">Public link</label><div class="field-row"><input class="input" id="d-link" readonly value="https://clarity.example.com/p/welcome-to-your-proposal"><button class="btn btn-primary" type="button" data-copy="d-link">Copy link</button></div></div>
+            <div class="row"><div class="row-text"><b>Who can open it</b><span>Anyone with the link</span></div><select class="input" style="width:190px" aria-label="Who can open it"><option>Anyone with the link</option><option>People with the password</option></select></div>
+          </div>
+          <div class="dialog-foot"><button class="btn btn-ghost" type="button" data-dialog="share-dialog">Open the real one</button></div>
+        </div>
+        <div class="demo-col">
+          <span class="toast-static"><svg class="i"><use href="#i-check"/></svg>Sample link copied</span>
+          <button class="btn btn-secondary" type="button" id="sys-toast-btn">Show a live toast</button>
+          <button class="btn btn-secondary" type="button" data-tip="Tooltip text">Hover or focus for a tooltip</button>
+          <span class="tip-static"><span>Tooltip, always shown</span><span class="chip sim">Sim</span></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Loading, empty, error</h2>
+      <p>Skeletons hold the card's shape while a list loads. Empty states say what to do next. Errors say what failed and offer the retry; the retry below is live and ends in a demo success.</p>
+      <div class="feedback-grid">
+        <div class="feedback-tile">
+          <div class="feedback-title">Loading <span class="chip">Demo</span></div>
+          <div class="grid skeleton-grid" aria-hidden="true">
+            <div class="card skeleton"><div class="thumb"></div><div class="card-body"><i style="width:70%"></i><i style="width:45%"></i></div></div>
+            <div class="card skeleton"><div class="thumb"></div><div class="card-body"><i style="width:55%"></i><i style="width:40%"></i></div></div>
+          </div>
+        </div>
+        <div class="feedback-tile">
+          <div class="feedback-title">Empty search</div>
+          <div class="empty compact">
+            <svg class="i"><use href="#i-search"/></svg>
+            <h2>No results for "quarterly"</h2>
+            <p>Check the spelling, try a shorter word, or clear the type filter.</p>
+            <div class="empty-actions"><button class="btn btn-secondary" type="button" data-toast="Demo: the Library search clears for real">Clear search and filter</button></div>
+          </div>
+        </div>
+        <div class="feedback-tile">
+          <div class="feedback-title">Error <span class="chip live">Live retry</span></div>
+          <div class="alert error" id="sys-error" role="alert">
+            <svg class="i"><use href="#i-alert"/></svg>
+            <div class="alert-text"><b>Couldn't load views</b><span>The request timed out. Your page is still live.</span></div>
+            <button class="btn btn-secondary btn-sm" type="button" id="sys-error-retry"><svg class="i"><use href="#i-refresh"/></svg>Retry</button>
+          </div>
+          <div class="alert success" id="sys-error-ok" role="status" hidden>
+            <svg class="i"><use href="#i-check"/></svg>
+            <div class="alert-text"><b>Views loaded</b><span>Demo: the retry succeeded locally.</span></div>
+            <button class="btn btn-ghost btn-sm" type="button" id="sys-error-reset">Reset</button>
+          </div>
+          <div class="field" style="margin-top:16px"><label class="label" for="d-err2">Inline field error</label><input class="input" id="d-err2" value="maya@example" type="email" aria-invalid="true" aria-describedby="d-err2-t"><span class="hint error-text" id="d-err2-t"><svg class="i"><use href="#i-alert"/></svg>That does not look like an email address.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Media card</h2>
+      <p>The thumbnail is the surface. There is no container, no border and no lift on hover. The first card carries the long title from the Library to show the two-line clamp.</p>
+      <div class="anatomy">
+        <div class="anatomy-cards" data-cards="pricing,maya"></div>
+        <ul>
+          <li><span class="yes">Always</span><span><b>Duration chip</b>, bottom right, tabular, glass-media tint. Every chip over a thumbnail uses this one recipe.</span></li>
+          <li><span class="yes">Always</span><span><b>Title</b> (two lines, then an ellipsis) and <b>one meta line</b> with the kind glyph, below the image, not over it. Each segment is its own span, so narrow phones drop the trailing ones instead of clipping a word.</span></li>
+          <li><span class="yes">When needed</span><span><b>Status or type chip</b> bottom left: Draft, Live, PDF. One at a time. Processing covers the image instead.</span></li>
+          <li><span class="yes">On hover or focus</span><span><b>Play glyph</b> centred and <b>More</b> top right; Share is in its menu. On a coarse pointer, and at 720px and under, More is always visible at 44px and nothing else sits on the image.</span></li>
+          <li><span class="yes">While selecting</span><span><b>Select box</b> top left, once More, then Select has started a selection on any card, or when the box has keyboard focus.</span></li>
+          <li><span class="yes">Selected</span><span>A 2px accent ring around the thumbnail, nothing else changes.</span></li>
+          <li><span class="no">Removed</span><span>Card container, outline, frosted stage behind every item, title overlay on the image, gradient scrims, hover lift, second hover fill, badges for views or dates, inline action rows.</span></li>
+          <li><span class="no">Removed</span><span>Portrait video letterboxed on a gradient. It gets a 9:16 frame on a blurred copy of its own colours.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Action hierarchy</h2>
+      <p>One primary per view, never two of the same weight next to each other.</p>
+      <div class="table-wrap">
+      <table class="hier">
+        <thead><tr><th>View</th><th>Primary</th><th>Secondary</th><th>Quiet</th></tr></thead>
+        <tbody>
+          <tr><td>Library</td><td>Record</td><td>Upload</td><td>New (page, template, folder), sort, layout, card More, selection bar</td></tr>
+          <tr><td>Editor</td><td>Publish, then Update</td><td>Share</td><td>Preview, section toolbar, Add section</td></tr>
+          <tr><td>Share dialog</td><td>Copy link</td><td></td><td>Open page, Done</td></tr>
+          <tr><td>Home</td><td>Record</td><td>Open editor</td><td>Preview, Library link</td></tr>
+          <tr><td>Recorder</td><td>Record, then Stop, then Copy link</td><td>Put it on a page</td><td>Record again, devices, Save to</td></tr>
+          <tr><td>Public page</td><td>The rep's call to action (brand colour)</td><td>Lead form submit (brand colour, inside its card)</td><td>Player controls, "Or email Alex"</td></tr>
+          <tr><td>Settings</td><td>Save, per section</td><td>Change password, Manage billing</td><td>Cancel, Delete…</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section class="sys-section">
+      <h2>Table</h2>
+      <p>Hairlines between rows, no zebra, hover fill on the row. Numbers right-aligned and tabular.</p>
+      <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Viewer</th><th>Page</th><th>Watched</th><th class="num">Opens</th><th>Last seen</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><b style="font-weight:500">Maya Chen</b> · maya@example.com</td><td>Welcome to your proposal</td><td><span class="chip success">To the end</span></td><td class="num">4</td><td class="muted">Yesterday 14:12</td><td><button class="icon-btn sm" type="button" aria-label="More"><svg class="i"><use href="#i-more"/></svg></button></td></tr>
+          <tr><td><b style="font-weight:500">Sam Lee</b> · sam@example.com</td><td>Product overview</td><td><span class="chip">62%</span></td><td class="num">2</td><td class="muted">Mon 09:40</td><td><button class="icon-btn sm" type="button" aria-label="More"><svg class="i"><use href="#i-more"/></svg></button></td></tr>
+          <tr><td><b style="font-weight:500">Jordan Park</b> · jordan@example.com</td><td>Northstar launch walkthrough</td><td><span class="chip warning">Opened only</span></td><td class="num">1</td><td class="muted">28 Sep</td><td><button class="icon-btn sm" type="button" aria-label="More"><svg class="i"><use href="#i-more"/></svg></button></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- HOME (extra) -->
+<section class="screen" id="home" tabindex="-1" aria-label="Home">
+  <div class="shell">
+    <aside class="sidebar" data-sidebar="home"></aside>
+    <div class="content">
+      <header class="page-head">
+        <div class="page-head-row">
+          <button class="icon-btn nav-toggle" type="button" aria-label="Open navigation" data-nav-toggle><svg class="i"><use href="#i-menu"/></svg></button>
+          <h1>Good morning, Alex</h1>
+          <div class="page-actions">
+            <div class="search"><svg class="i"><use href="#i-search"/></svg><input class="input" type="search" placeholder="Search videos, pages, contacts" aria-label="Search"></div>
+            <button class="icon-btn" type="button" aria-label="Notifications" data-tip="Notifications" data-toast="Demo: no notifications in this prototype"><svg class="i"><use href="#i-bell"/></svg></button>
+            <a class="btn btn-primary" href="?view=recorder" data-view="recorder"><svg class="i"><use href="#i-record"/></svg>Record</a>
+          </div>
+        </div>
+      </header>
+
+      <section class="stage" aria-label="Continue">
+        <div class="stage-copy">
+          <div class="eyebrow">Continue</div>
+          <h2>Welcome to your proposal</h2>
+          <p>Page for Maya Chen. Edited yesterday. Two sections changed since the last publish.</p>
+          <div class="stage-actions">
+            <a class="btn btn-secondary" href="?view=editor" data-view="editor"><svg class="i"><use href="#i-pencil"/></svg>Open editor</a>
+            <a class="btn btn-ghost" href="?view=public" data-view="public"><svg class="i"><use href="#i-eye"/></svg>Preview</a>
+            <button class="btn btn-ghost" type="button" data-dialog="share-dialog"><svg class="i"><use href="#i-link"/></svg>Share</button>
+          </div>
+        </div>
+        <div data-cards="proposal" data-nomenu></div>
+      </section>
+
+      <section class="rail" aria-label="Recent">
+        <header class="section-head"><h2>Recent</h2><a class="link" href="?view=library" data-view="library">Library</a></header>
+        <div class="rail-track" data-cards="northstar,maya,overview,brief"></div>
+      </section>
+
+      <section class="rail" aria-label="Shared with you">
+        <header class="section-head"><h2>Shared with you</h2></header>
+        <div class="rail-track" data-cards="security,casestudy"></div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- RECORDER (extra) -->
+<section class="screen tool recorder" id="recorder" data-state="idle" tabindex="-1" aria-label="Recorder">
+  <header class="toolbar">
+    <div class="tb-left">
+      <a class="icon-btn" href="?view=library" data-view="library" aria-label="Back to Library" data-tip="Library"><svg class="i"><use href="#i-chev-left"/></svg></a>
+      <span class="doc-title static">New recording</span>
+      <span class="chip">Mock preview, no camera</span>
+    </div>
+    <div class="tb-right">
+      <div class="menu-wrap">
+        <button class="btn btn-ghost" type="button" data-menu="menu-saveto" aria-haspopup="menu" aria-expanded="false"><svg class="i"><use href="#i-folder"/></svg>Save to Library<svg class="i"><use href="#i-chev-down"/></svg></button>
+        <div class="menu" id="menu-saveto" role="menu" aria-label="Save to folder">
+          <div class="menu-label">Folder</div>
+          <button class="menu-item" role="menuitemradio" aria-checked="true" type="button" data-saveto="Library"><svg class="i"><use href="#i-grid"/></svg>Library<svg class="i trail check"><use href="#i-check"/></svg></button>
+          <button class="menu-item" role="menuitemradio" aria-checked="false" type="button" data-saveto="Brand assets"><svg class="i"><use href="#i-folder"/></svg>Brand assets<svg class="i trail check"><use href="#i-check"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="rec-stage">
+    <div class="rec-preview" id="rec-preview" data-layout="both">
+      <div class="rec-screen"></div>
+      <div class="rec-cam"></div>
+      <div class="rec-badge"><span class="dot"></span>REC <span id="rec-badge-time">00:00</span></div>
+      <div class="rec-dock on-media">
+        <div class="seg media" role="group" aria-label="Layout">
+          <button type="button" aria-pressed="false" data-layout="camera" data-tip="Camera"><svg class="i"><use href="#i-camera"/></svg><span class="dock-label">Camera</span></button>
+          <button type="button" aria-pressed="false" data-layout="screen" data-tip="Screen"><svg class="i"><use href="#i-monitor"/></svg><span class="dock-label">Screen</span></button>
+          <button type="button" aria-pressed="true" data-layout="both" data-tip="Screen and camera"><svg class="i"><use href="#i-layout"/></svg><span class="dock-label">Both</span></button>
+        </div>
+        <span class="vr"></span>
+        <div class="menu-wrap">
+          <button class="device" type="button" data-menu="menu-mic" aria-haspopup="menu" aria-expanded="false"><svg class="i"><use href="#i-mic"/></svg><span class="dock-label">Built-in microphone</span><svg class="i chev"><use href="#i-chev-down"/></svg></button>
+          <div class="menu up left" id="menu-mic" role="menu" aria-label="Microphone">
+            <div class="menu-label">Microphone (sample list)</div>
+            <button class="menu-item" role="menuitemradio" aria-checked="true" type="button" data-radio>Built-in microphone<svg class="i trail check"><use href="#i-check"/></svg></button>
+            <button class="menu-item" role="menuitemradio" aria-checked="false" type="button" data-radio>Wireless earbuds<svg class="i trail check"><use href="#i-check"/></svg></button>
+            <button class="menu-item" role="menuitemradio" aria-checked="false" type="button" data-radio>USB microphone<svg class="i trail check"><use href="#i-check"/></svg></button>
+          </div>
+        </div>
+        <div class="menu-wrap">
+          <button class="device" type="button" data-menu="menu-cam" aria-haspopup="menu" aria-expanded="false"><svg class="i"><use href="#i-camera"/></svg><span class="dock-label">Built-in camera</span><svg class="i chev"><use href="#i-chev-down"/></svg></button>
+          <div class="menu up left" id="menu-cam" role="menu" aria-label="Camera">
+            <div class="menu-label">Camera (sample list)</div>
+            <button class="menu-item" role="menuitemradio" aria-checked="true" type="button" data-radio>Built-in camera<svg class="i trail check"><use href="#i-check"/></svg></button>
+            <button class="menu-item" role="menuitemradio" aria-checked="false" type="button" data-radio>Phone camera<svg class="i trail check"><use href="#i-check"/></svg></button>
+          </div>
+        </div>
+        <span class="vr"></span>
+        <button class="rec-btn" type="button" id="rec-main"><span class="rec-dot"></span><span id="rec-label">Record</span></button>
+        <span class="rec-timer" id="rec-timer">00:00</span>
+      </div>
+    </div>
+
+    <div class="rec-after">
+      <div class="thumb" style="--scene-a:#dbe4f6;--scene-b:#aebfe6;--skin:#efcdb5;--shirt:#35456a"><span class="thumb-screen"></span><span class="thumb-cam"></span><span class="chip media" id="rec-after-dur">0:00</span></div>
+      <div class="meta">
+        <h2>Recording finished</h2>
+        <div class="field"><label class="label" for="rec-title">Title</label><input class="input" id="rec-title" value="Follow-up for Maya"></div>
+        <div class="field"><label class="label" for="rec-link">Sample link</label>
+          <div class="field-row"><input class="input" id="rec-link" readonly value="https://clarity.example.com/w/k7m2qx"><button class="btn btn-primary" type="button" data-copy="rec-link"><svg class="i"><use href="#i-copy"/></svg>Copy link</button></div>
+          <div class="hint" id="rec-upload-hint" role="status">Demo upload, 0%. Nothing leaves this device.</div>
+          <div class="progress" aria-hidden="true"><i id="rec-progress"></i></div></div>
+        <div class="actions">
+          <a class="btn btn-secondary" href="?view=editor" data-view="editor"><svg class="i"><use href="#i-page"/></svg>Put it on a page</a>
+          <button class="btn btn-ghost" type="button" id="rec-again"><svg class="i"><use href="#i-record"/></svg>Record again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-states" role="group" aria-label="Recorder demo state">
+    Demo state
+    <button type="button" aria-pressed="true" data-rec-state="idle">Idle</button>
+    <button type="button" aria-pressed="false" data-rec-state="recording">Recording</button>
+    <button type="button" aria-pressed="false" data-rec-state="done">Done</button>
+  </div>
+</section>
+
+<!-- PUBLIC PAGE (extra) -->
+<section class="screen public" id="public" data-state="ready" tabindex="-1" aria-label="Public page" style="--brand:#0f766e;--brand-hover:#0b5f58">
+  <div class="public-wrap">
+    <header class="jp-head">
+      <span class="avatar lg">AM</span>
+      <div><b>Alex Morgan</b><span>Account executive, Harbor</span></div>
+    </header>
+    <h1 id="pub-headline">Your proposal, in four minutes</h1>
+
+    <div data-share="ready">
+      <div class="player" id="share-player" data-state="paused" style="--scene-a:#dbe4f6;--scene-b:#aebfe6;--skin:#efcdb5;--shirt:#35456a">
+        <div class="player-scene"><span class="thumb-screen"></span><span class="thumb-cam"></span></div>
+        <button class="player-big" type="button" aria-label="Play"><svg class="i fill"><use href="#i-play"/></svg></button>
+        <div class="player-bar on-media">
+          <button class="icon-btn media" type="button" aria-label="Play" data-player="toggle"><svg class="i fill" data-player="icon"><use href="#i-play"/></svg></button>
+          <span class="time"><b data-player="current">0:00</b> / <span data-player="duration">4:12</span></span>
+          <div class="scrub" data-player="scrub" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="252" aria-valuenow="0" tabindex="0"><div class="scrub-track"><div class="scrub-fill" data-player="fill"></div></div></div>
+          <button class="pill-media" type="button" data-player="speed" aria-label="Playback speed 1x">1×</button>
+          <button class="icon-btn media" type="button" aria-label="Captions" aria-pressed="false" data-player="cc"><svg class="i"><use href="#i-captions"/></svg></button>
+          <button class="icon-btn media" type="button" aria-label="Fullscreen" data-player="full"><svg class="i"><use href="#i-fullscreen"/></svg></button>
+        </div>
+        <div class="player-caption">Here is what changes with Northstar, and what stays the same.</div>
+      </div>
+    </div>
+
+    <div data-share="processing" hidden>
+      <div class="state-card">
+        <div class="spinner" aria-hidden="true"></div>
+        <h3>Alex's video is almost ready</h3>
+        <p>It was recorded a moment ago and is still being prepared. This page refreshes itself.</p>
+      </div>
+    </div>
+
+    <div data-share="locked" hidden>
+      <div class="state-card">
+        <svg class="i" style="width:24px;height:24px;color:var(--text-3)"><use href="#i-lock"/></svg>
+        <h3>This page is for Maya</h3>
+        <p>Enter the password from Alex's message to watch.</p>
+        <form id="unlock-form"><input class="input" type="password" placeholder="Password" aria-label="Password" required><button class="btn btn-brand" type="submit">Unlock</button></form>
+        <span class="hint">Demo: any password unlocks this sample.</span>
+      </div>
+    </div>
+
+    <p class="copy" id="pub-body">Hi Maya. I walked through what changes with Northstar, what it costs, and when it could be live. The full proposal is below if you want the numbers in writing.</p>
+
+    <ul class="jp-values public-values">
+      <li><span class="jp-value-icon"><svg class="i"><use href="#i-zap"/></svg></span><div><b>Live in six weeks</b><span>Your three sites move in one cut-over, with the old system kept warm.</span></div></li>
+      <li><span class="jp-value-icon"><svg class="i"><use href="#i-shield"/></svg></span><div><b>One contract</b><span>Northstar replaces the two renewals due in March.</span></div></li>
+      <li><span class="jp-value-icon"><svg class="i"><use href="#i-chart"/></svg></span><div><b>Numbers from day one</b><span>The dashboard in the video is the one you get.</span></div></li>
+    </ul>
+
+    <div class="jp-cta">
+      <h2>Ready when you are</h2>
+      <div class="jp-cta-row">
+        <a class="btn btn-brand btn-lg" href="https://calendar.example.com/alex/20" data-demo="external">Book 20 minutes</a>
+        <a class="link jp-cta-alt" href="mailto:alex@example.com" data-demo="external">Or email Alex</a>
+      </div>
+    </div>
+
+    <section class="lead" aria-label="Lead form">
+      <h3>Get the full proposal</h3>
+      <div class="fields">
+        <input class="input" placeholder="Name" aria-label="Name">
+        <input class="input" type="email" placeholder="Work email" aria-label="Work email">
+      </div>
+      <button class="btn btn-brand" type="button" data-toast="Demo: nothing was sent">Send me the proposal</button>
+    </section>
+
+    <footer>Recorded with <a href="?view=home" data-view="home">Clarity</a></footer>
+  </div>
+
+  <div class="proto-states" role="group" aria-label="Public page demo state">
+    Demo state
+    <button type="button" aria-pressed="true" data-share-state="ready">Ready</button>
+    <button type="button" aria-pressed="false" data-share-state="portrait">Portrait</button>
+    <button type="button" aria-pressed="false" data-share-state="processing">Processing</button>
+    <button type="button" aria-pressed="false" data-share-state="locked">Locked</button>
+  </div>
+</section>
+
+<!-- SETTINGS (extra) -->
+<section class="screen" id="settings" tabindex="-1" aria-label="Settings">
+  <div class="shell">
+    <aside class="sidebar" data-sidebar="settings"></aside>
+    <div class="content">
+      <header class="page-head">
+        <div class="page-head-row">
+          <button class="icon-btn nav-toggle" type="button" aria-label="Open navigation" data-nav-toggle><svg class="i"><use href="#i-menu"/></svg></button>
+          <h1>Settings</h1>
+        </div>
+      </header>
+      <div class="settings">
+        <div class="tabs" role="tablist" aria-label="Settings sections">
+          <button class="tab" type="button" role="tab" aria-selected="true" data-tab="account">Account</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="brand">Brand</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="alerts">Alerts</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="billing">Billing</button>
+        </div>
+
+        <div class="panel is-current" data-panel="account" role="tabpanel">
+          <section class="form-section">
+            <h2>Profile</h2>
+            <div class="form-grid">
+              <div class="field"><label class="label" for="s-name">Name</label><input class="input" id="s-name" value="Alex Morgan"></div>
+              <div class="field"><label class="label" for="s-title">Title</label><input class="input" id="s-title" value="Account executive"></div>
+              <div class="field"><label class="label" for="s-email">Email</label><input class="input" id="s-email" type="email" value="alex@example.com"><span class="hint">Changing it sends a confirmation to both addresses.</span></div>
+              <div class="field"><label class="label" for="s-tz">Time zone</label><select class="input" id="s-tz"><option>Europe/Stockholm</option><option>Europe/London</option><option>America/New_York</option></select></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-primary" type="button" data-toast="Saved in this prototype only">Save</button><button class="btn btn-ghost" type="button" data-toast="Changes discarded (demo)">Cancel</button></div>
+          </section>
+          <section class="form-section">
+            <h2>Password</h2>
+            <div class="form-grid">
+              <div class="field"><label class="label" for="s-pw1">Current password</label><input class="input" id="s-pw1" type="password" value="sample-password" autocomplete="off"></div>
+              <div class="field"><label class="label" for="s-pw2">New password</label><input class="input" id="s-pw2" type="password" placeholder="At least 12 characters" autocomplete="off"></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary" type="button" data-toast="Demo: no password was changed">Change password</button></div>
+          </section>
+          <div class="danger-zone">
+            <div class="row-text"><b>Delete account</b><span>Removes your videos, pages and contacts after 30 days.</span></div>
+            <button class="btn btn-danger" type="button" id="delete-account">Delete…</button>
+          </div>
+        </div>
+
+        <div class="panel" data-panel="brand" role="tabpanel">
+          <section class="form-section">
+            <h2>Brand colour</h2>
+            <p class="muted">Used for buttons and links on your public pages. The app itself stays neutral.</p>
+            <div class="swatches" role="group" aria-label="Brand colour">
+              <button class="swatch" type="button" style="--c:#0f766e" aria-pressed="true" aria-label="Teal" data-brand="#0f766e" data-brand-hover="#0b5f58"></button>
+              <button class="swatch" type="button" style="--c:#2563eb" aria-pressed="false" aria-label="Blue" data-brand="#2563eb" data-brand-hover="#1d4ed8"></button>
+              <button class="swatch" type="button" style="--c:#7c3aed" aria-pressed="false" aria-label="Violet" data-brand="#7c3aed" data-brand-hover="#6d28d9"></button>
+              <button class="swatch" type="button" style="--c:#c2410c" aria-pressed="false" aria-label="Rust" data-brand="#c2410c" data-brand-hover="#9a3412"></button>
+              <button class="swatch" type="button" style="--c:#15181e" aria-pressed="false" aria-label="Ink" data-brand="#15181e" data-brand-hover="#2a2f38"></button>
+            </div>
+            <div class="field" style="width:200px"><label class="label" for="s-hex">Hex</label><input class="input" id="s-hex" value="#0F766E"></div>
+          </section>
+          <section class="form-section">
+            <h2>Logo</h2>
+            <div class="dropzone" tabindex="0" role="button" data-demo="logo" style="min-height:120px"><svg class="i"><use href="#i-upload"/></svg>Drop an SVG or PNG. Shown on your public pages and in emails.</div>
+          </section>
+          <section class="form-section">
+            <h2>Public page defaults</h2>
+            <div class="form-grid">
+              <div class="field"><label class="label" for="s-cta">Default button</label><input class="input" id="s-cta" value="Book 20 minutes"></div>
+              <div class="field"><label class="label" for="s-cal">Booking link</label><input class="input" id="s-cal" value="https://calendar.example.com/alex/20"></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-primary" type="button" data-toast="Saved in this prototype only">Save</button></div>
+          </section>
+        </div>
+
+        <div class="panel" data-panel="alerts" role="tabpanel">
+          <section class="form-section">
+            <h2>Email me when</h2>
+            <div class="list">
+              <div class="row"><div class="row-text"><b id="a1">Someone submits a lead form</b><span>Sent at once, with the answers.</span></div><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="a1"></button></div>
+              <div class="row"><div class="row-text"><b id="a2">A page is viewed for the first time</b><span>Once per viewer, not per visit.</span></div><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="a2"></button></div>
+              <div class="row"><div class="row-text"><b id="a3">A video is watched to the end</b><span>Once per viewer.</span></div><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="a3"></button></div>
+              <div class="row"><div class="row-text"><b id="a4">Weekly summary</b><span>Monday morning: views, completion, leads.</span></div><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="a4"></button></div>
+              <div class="row"><div class="row-text"><b id="a5">Product updates</b><span>At most once a month.</span></div><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="a5"></button></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="panel" data-panel="billing" role="tabpanel">
+          <div class="plan">
+            <div><b>Pro, yearly</b><span>Renews 14 March 2027 · 1 190 kr a month, billed yearly</span></div>
+            <button class="btn btn-secondary" type="button" data-toast="Demo: would open the billing portal"><svg class="i"><use href="#i-external"/></svg>Manage billing</button>
+          </div>
+          <section class="form-section">
+            <h2>Invoices</h2>
+            <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>Date</th><th>Description</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>14 Mar 2026</td><td>Pro, yearly</td><td class="num">14 280 kr</td><td><span class="chip success">Paid</span></td><td><button class="link as-btn" type="button" data-toast="Demo: would download the invoice">PDF</button></td></tr>
+                <tr><td>14 Mar 2025</td><td>Pro, yearly</td><td class="num">13 080 kr</td><td><span class="chip success">Paid</span></td><td><button class="link as-btn" type="button" data-toast="Demo: would download the invoice">PDF</button></td></tr>
+                <tr><td>14 Mar 2024</td><td>Starter, yearly</td><td class="num">5 880 kr</td><td><span class="chip success">Paid</span></td><td><button class="link as-btn" type="button" data-toast="Demo: would download the invoice">PDF</button></td></tr>
+              </tbody>
+            </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- SHARE DIALOG -->
+<dialog class="dialog" id="share-dialog" aria-labelledby="sh-title">
+  <div class="dialog-head"><h2 id="sh-title">Share <span id="sh-title-name">"Welcome to your proposal"</span></h2><button class="icon-btn sm" type="button" aria-label="Close" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dialog-body">
+    <div class="field"><label class="label" for="sh-link">Public link</label>
+      <div class="field-row"><input class="input" id="sh-link" readonly value="https://clarity.example.com/p/welcome-to-your-proposal"><button class="btn btn-primary" type="button" id="sh-copy" data-copy="sh-link"><svg class="i"><use href="#i-copy"/></svg>Copy link</button></div>
+      <span class="hint" id="sh-hint" role="status">Sample link. Copy puts it on your clipboard; nothing is sent.</span></div>
+    <div class="row"><div class="row-text"><b>Who can open it</b><span id="sh-access-desc">Anyone with the link, no account needed.</span></div>
+      <select class="input sh-access" id="sh-access" aria-label="Who can open it"><option value="link">Anyone with the link</option><option value="password">People with the password</option><option value="off">Nobody, link paused</option></select></div>
+    <div class="field" id="sh-password" hidden><label class="label" for="sh-pw">Password</label><div class="field-row"><input class="input" id="sh-pw" value="northstar-2027"><button class="btn btn-secondary" type="button" data-copy="sh-pw">Copy</button></div></div>
+    <div class="row"><div class="row-text"><b id="sh-notify">Tell me when it is viewed</b><span>Once per viewer.</span></div><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="sh-notify"></button></div>
+    <section class="sh-people" aria-labelledby="sh-people-h">
+      <header class="sh-people-head">
+        <h3 id="sh-people-h">Views <span class="chip">Demo data</span></h3>
+      </header>
+      <div data-people="list">
+        <div class="person"><span class="avatar">MC</span><div class="row-text"><b>Maya Chen</b><span>maya@example.com · watched to the end · yesterday</span></div><span class="chip success">61%</span></div>
+        <div class="person"><span class="avatar alt">SL</span><div class="row-text"><b>Sam Lee</b><span>sam@example.com · opened, did not play · Monday</span></div><span class="chip warning">Opened</span></div>
+      </div>
+      <div data-people="loading" hidden aria-busy="true" aria-label="Loading views">
+        <div class="person skeleton"><i class="sk-avatar"></i><div class="row-text"><i style="width:40%"></i><i style="width:70%"></i></div></div>
+        <div class="person skeleton"><i class="sk-avatar"></i><div class="row-text"><i style="width:30%"></i><i style="width:60%"></i></div></div>
+      </div>
+      <div data-people="empty" hidden>
+        <div class="empty compact">
+          <svg class="i"><use href="#i-eye"/></svg>
+          <h2>No one has opened it yet</h2>
+          <p>Send the link to Maya. The first view shows up here and in your inbox.</p>
+        </div>
+      </div>
+      <div data-people="error" hidden>
+        <div class="alert error" role="alert">
+          <svg class="i"><use href="#i-alert"/></svg>
+          <div class="alert-text"><b>Couldn't load views</b><span>The request timed out. Your page is still live.</span></div>
+          <button class="btn btn-secondary btn-sm" type="button" id="sh-retry"><svg class="i"><use href="#i-refresh"/></svg>Retry</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="dialog-foot">
+    <span class="chip accent" id="sh-status">Link is live</span>
+    <span class="grow"></span>
+    <a class="btn btn-ghost" href="?view=public" data-view="public" data-close><svg class="i"><use href="#i-external"/></svg>Open page</a>
+    <button class="btn btn-ghost" type="button" data-close>Done</button>
+  </div>
+  <!-- Prototype chrome, inside the dialog so it stays interactive while the dialog is modal. Same dark recipe as the Public page and Recorder pills. -->
+  <div class="proto-states in-dialog" role="group" aria-label="Demo state of the views list">
+    Demo state
+    <button type="button" aria-pressed="true" data-people-state="list">List</button>
+    <button type="button" aria-pressed="false" data-people-state="loading">Loading</button>
+    <button type="button" aria-pressed="false" data-people-state="empty">Empty</button>
+    <button type="button" aria-pressed="false" data-people-state="error">Error</button>
+  </div>
+</dialog>
+
+<!-- UPLOAD DIALOG -->
+<dialog class="dialog" id="upload-dialog" aria-labelledby="up-title">
+  <div class="dialog-head"><h2 id="up-title">Upload</h2><button class="icon-btn sm" type="button" aria-label="Close" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dialog-body">
+    <div class="dropzone tall" id="up-drop" tabindex="0" role="button"><svg class="i"><use href="#i-upload"/></svg><b>Drop a video, PDF or image</b><span>or press to add a demo file. Nothing leaves this device.</span></div>
+    <div class="file-row" id="up-row" hidden>
+      <svg class="i"><use href="#i-video"/></svg>
+      <div class="row-text"><b>northstar-cut-2.mp4</b><span id="up-hint" role="status">Demo upload, 0%</span></div>
+      <span class="chip" id="up-chip">Demo</span>
+    </div>
+    <div class="progress" id="up-progress-wrap" hidden aria-hidden="true"><i id="up-progress"></i></div>
+    <div class="field"><label class="label" for="up-folder">Save to</label><select class="input" id="up-folder"><option>Library</option><option>Brand assets</option></select></div>
+  </div>
+  <div class="dialog-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-primary" type="button" id="up-add" disabled>Add to Library</button></div>
+</dialog>
+
+<!-- PREVIEW DIALOG (documents and images) -->
+<dialog class="dialog wide" id="preview-dialog" aria-labelledby="pv-title">
+  <div class="dialog-head"><h2 id="pv-title">Project brief.pdf</h2><button class="icon-btn sm" type="button" aria-label="Close" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dialog-body">
+    <div class="pv-stage" id="pv-stage"></div>
+    <div class="row"><span class="muted" id="pv-meta">14 pages · 1.2 MB</span><span class="chip">Sample file</span></div>
+  </div>
+  <div class="dialog-foot"><button class="btn btn-ghost" type="button" data-toast="Demo: would download the file"><svg class="i"><use href="#i-download"/></svg>Download</button><button class="btn btn-secondary" type="button" data-dialog="share-dialog" data-close><svg class="i"><use href="#i-link"/></svg>Share</button><button class="btn btn-ghost" type="button" data-close>Done</button></div>
+</dialog>
+
+<!-- CONFIRM DIALOG -->
+<dialog class="dialog" id="confirm-dialog" aria-labelledby="cf-title" aria-describedby="cf-text">
+  <div class="dialog-head"><h2 id="cf-title">Delete your account?</h2><button class="icon-btn sm" type="button" aria-label="Close" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dialog-body"><p id="cf-text" class="muted">Your videos, pages and contacts are removed after 30 days. Until then you can sign in and cancel.</p></div>
+  <div class="dialog-foot"><button class="btn btn-ghost" type="button" data-close autofocus>Cancel</button><button class="btn btn-danger-solid" type="button" id="cf-ok">Delete account</button></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><svg class="i"><use href="#i-check"/></svg><span id="toast-msg"></span><button class="toast-action" type="button" id="toast-action" hidden>Undo</button></div>
+
+<script src="app.js"></script>
+</body>
+</html>
