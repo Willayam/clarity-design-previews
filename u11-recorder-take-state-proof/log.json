@@ -1,0 +1,92 @@
+[
+  {
+    "at": "2026-10-04T08:29:25.011Z",
+    "step": "link pending while grant held",
+    "grantRequests": 1,
+    "copyDisabled": true,
+    "openDisabled": true
+  },
+  {
+    "at": "2026-10-04T08:29:25.116Z",
+    "step": "grant released, Copy link enabled"
+  },
+  {
+    "at": "2026-10-04T08:29:25.196Z",
+    "step": "copied",
+    "copiedUrlHasPage": true
+  },
+  {
+    "at": "2026-10-04T08:29:26.164Z",
+    "step": "Open page landed",
+    "url": "/edit/:id"
+  },
+  {
+    "at": "2026-10-04T08:29:38.972Z",
+    "step": "uploads failing",
+    "puts": [
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "aborted"
+      }
+    ]
+  },
+  {
+    "at": "2026-10-04T08:29:47.881Z",
+    "step": "uploads retried",
+    "puts": [
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "aborted"
+      },
+      {
+        "status": "200"
+      }
+    ]
+  },
+  {
+    "at": "2026-10-04T08:29:48.135Z",
+    "step": "copy failed then Try again copied"
+  },
+  {
+    "at": "2026-10-04T08:29:48.210Z",
+    "step": "retried take opened its page"
+  },
+  {
+    "at": "2026-10-04T08:31:55.781Z",
+    "step": "recovery card after reload"
+  },
+  {
+    "at": "2026-10-04T08:31:57.262Z",
+    "step": "recovered take reached a ready link"
+  },
+  {
+    "at": "2026-10-04T08:32:02.345Z",
+    "step": "Open page waiting on held finish",
+    "finishRequests": 1
+  },
+  {
+    "at": "2026-10-04T08:32:08.500Z",
+    "step": "late finish after Re-record: stayed on /record",
+    "url": "/record"
+  },
+  {
+    "at": "2026-10-04T08:32:13.722Z",
+    "step": "late copy failure after Re-record: no row on the new take"
+  }
+]
