@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity player · receding chrome</title>
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+  :root { --brand: #5b5bd6; font-family: InterVariable, Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  body { margin: 0; background: #f5f5f3; color: #18181b; }
+  header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 18px 28px; }
+  header h1 { font-size: 15px; font-weight: 600; margin: 0 14px 0 0; }
+  .group { display: flex; gap: 4px; padding: 3px; background: #e7e7e4; border-radius: 999px; }
+  header button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 0; background: transparent; cursor: pointer; color: #3f3f46; }
+  header button[aria-pressed="true"] { background: #fff; color: #18181b; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  header label { font-size: 13px; display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  main { max-width: 920px; margin: 4px auto 64px; padding: 0 24px; }
+  #note { font-size: 14px; line-height: 1.55; color: #52525b; margin: 0 0 16px; min-height: 44px; max-width: 70ch; }
+  .frame { border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 24px 60px -12px rgba(15,23,42,.28); }
+  mux-player { display: block; width: 100%; aspect-ratio: 16/9; --media-accent-color: var(--brand); --media-object-fit: contain; }
+  mux-player[data-v="current"] { --airplay-button: none; --cast-button: none; --pip-button: none; --controls-backdrop-color: rgba(15,23,42,.45); --media-primary-color: #fff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Player chrome</h1>
+  <div class="group" id="versions"></div>
+  <div class="group" id="videos"></div>
+  <label>Brand <input type="color" id="brand" value="#5b5bd6"></label>
+</header>
+<main>
+  <p id="note"></p>
+  <div class="frame"><mux-player id="p" stream-type="on-demand" playbackrates="1 1.25 1.5 2" preload="metadata" disable-tracking></mux-player></div>
+</main>
+
+<script>
+const I = {
+  play: '<path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6Z" fill="currentColor"/>',
+  pause: '<rect x="6.5" y="5" width="4" height="14" rx="1.25" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.25" fill="currentColor"/>',
+  replay: '<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4.5v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  vol: '<path d="M4 9.5v5a1 1 0 0 0 1 1h2.6l4 3.3a.8.8 0 0 0 1.4-.6V5.8a.8.8 0 0 0-1.4-.6l-4 3.3H5a1 1 0 0 0-1 1Z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  mute: '<path d="M4 9.5v5a1 1 0 0 0 1 1h2.6l4 3.3a.8.8 0 0 0 1.4-.6V5.8a.8.8 0 0 0-1.4-.6l-4 3.3H5a1 1 0 0 0-1 1Z" fill="currentColor"/><path d="m16.5 9.5 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  fsEnter: '<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  fsExit: '<path d="M9 4v3.5A1.5 1.5 0 0 1 7.5 9H4M20 9h-3.5A1.5 1.5 0 0 1 15 7.5V4M15 20v-3.5a1.5 1.5 0 0 1 1.5-1.5H20M4 15h3.5A1.5 1.5 0 0 1 9 16.5V20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  cc: '<rect x="3" y="5.5" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 10.3a2 2 0 1 0 0 3.4M16.5 10.3a2 2 0 1 0 0 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  ccOn: '<rect x="3" y="5.5" width="18" height="13" rx="3" fill="currentColor"/><path d="M10.5 10.3a2 2 0 1 0 0 3.4M16.5 10.3a2 2 0 1 0 0 3.4" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>',
+};
+const svg = (name, slot) => `<svg ${slot ? `slot="${slot}" ` : ''}viewBox="0 0 24 24" aria-hidden="true">${I[name]}</svg>`;
+const playBtn = (cls = '') => `<media-play-button notooltip class="${cls}">${svg('play', 'play')}${svg('pause', 'pause')}</media-play-button>`;
+const centerBtn = (cls) => `<media-play-button notooltip class="${cls}"><span slot="play" class="glyph">${svg('play')}${svg('replay')}</span>${svg('pause', 'pause')}</media-play-button>`;
+const muteBtn = (cls = '') => `<media-mute-button notooltip class="${cls}">${svg('vol', 'high')}${svg('vol', 'medium')}${svg('vol', 'low')}${svg('mute', 'off')}</media-mute-button>`;
+const fsBtn = `<media-fullscreen-button notooltip>${svg('fsEnter', 'enter')}${svg('fsExit', 'exit')}</media-fullscreen-button>`;
+const ccBtn = `<media-captions-button notooltip>${svg('ccOn', 'on')}${svg('cc', 'off')}</media-captions-button>`;
+const rateBtn = `<media-playback-rate-button notooltip rates="1 1.25 1.5 2"></media-playback-rate-button>`;
+
+// Everything every version shares: one icon weight, no tooltips, captions only with a track,
+// 44px touch targets, a focus ring that survives bright video, reduced motion, and
+// chrome that fades in quickly and out slowly.
+const BASE = `
+  media-controller { width: 100%; height: 100%; -webkit-font-smoothing: antialiased;
+    --media-control-background: transparent; --media-control-hover-background: transparent;
+    --media-primary-color: #fff; --media-text-color: #fff; --media-icon-color: #fff;
+    --media-font-family: InterVariable, Inter, ui-sans-serif, system-ui, sans-serif;
+    --media-font-size: 13px; --media-font-weight: 500; --media-tooltip-display: none;
+    --media-control-transition-in: opacity .18s ease-out; --media-control-transition-out: opacity .9s ease;
+    --media-focus-box-shadow: none; }
+  media-controller[userinactive]:not([mediapaused]) { cursor: none; }
+  svg { width: 22px; height: 22px; display: block; }
+  .row > * { height: 40px; padding: 0 9px; flex-shrink: 0; }
+  @media (pointer: coarse) { .row > * { height: 44px; min-width: 44px; } }
+  media-time-display { font-variant-numeric: tabular-nums; letter-spacing: .01em; padding: 0 8px; }
+  media-playback-rate-button { font-size: 13px; font-weight: 600; min-width: 42px; }
+  media-captions-button:not([mediasubtitleslist]) { display: none; }
+  :focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px rgba(0,0,0,.35); border-radius: 10px; }
+  media-time-range { height: 24px; padding: 0; --media-range-padding: 0;
+    --media-range-track-height: 3px; --media-range-track-border-radius: 999px;
+    --media-range-thumb-width: 12px; --media-range-thumb-height: 12px; --media-range-thumb-opacity: 0;
+    --media-range-thumb-background: #fff; --media-range-thumb-box-shadow: 0 1px 4px rgba(0,0,0,.35);
+    --media-preview-thumbnail-border-radius: 8px; --media-preview-thumbnail-border: 1px solid rgba(255,255,255,.18);
+    --media-preview-thumbnail-box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    --media-preview-time-background: transparent; --media-preview-time-margin: 6px 0 0; --media-preview-time-text-shadow: 0 1px 3px rgba(0,0,0,.6);
+    transition: --media-range-track-height .16s ease, --media-range-thumb-opacity .16s ease; }
+  media-time-range:hover, media-time-range:focus-visible { --media-range-track-height: 6px; --media-range-thumb-opacity: 1; }
+  .glyph svg + svg { display: none; }
+  media-controller[mediaended] .glyph svg:first-child { display: none; }
+  media-controller[mediaended] .glyph svg + svg { display: block; }
+  media-loading-indicator { --media-loading-indicator-icon-height: 44px; --media-loading-icon-color: rgba(255,255,255,.9); }
+  .prePlay { transition: opacity .25s ease, transform .25s cubic-bezier(.2,.8,.2,1); }
+  media-controller[mediahasplayed] .prePlay { opacity: 0; transform: scale(.94); pointer-events: none; }
+  media-controller:not([mediahasplayed]) .chrome { opacity: 0; pointer-events: none; }
+  media-controller:not([mediahasplayed]) .resume,
+  media-controller:not([mediapaused]) .resume { opacity: 0; pointer-events: none; transform: scale(.92); }
+  .resume { transition: opacity .2s ease, transform .2s cubic-bezier(.2,.8,.2,1); }
+  media-controller:not([breakpointmd]) .hide-sm { display: none; }
+  media-controller:not([breakpointsm]) .hide-xs { display: none; }
+  media-controller:not([breakpointmd]) .resume { margin-bottom: 44px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+`;
+
+const shell = (css, body) => `<style>${BASE}${css}</style>
+<media-controller breakpoints="sm:420 md:640" defaultstreamtype="on-demand" autohide="2" hotkeys="{{hotkeys}}" nohotkeys="{{nohotkeys}}" gesturesdisabled="{{disabled}}">
+  <slot name="media" slot="media"></slot>
+  <slot name="poster" slot="poster"></slot>
+  <media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+  ${body}
+</media-controller>`;
+
+const VERSIONS = {
+  current: {
+    label: 'Current',
+    note: 'Mux default theme as shipped today, with production CSS. For reference.',
+  },
+  hairline: {
+    label: '1 · Hairline',
+    note: 'The page, not the player, leads. Before play there is one brand pill with the length. While playing, the chrome leaves entirely except a 2px brand line along the bottom edge, so the viewer always knows how far in they are. On hover, a soft eased scrim rises only behind the controls.',
+    tpl: shell(`
+      .stack { display: grid; place-items: center; }
+      .stack > * { grid-area: 1 / 1; }
+      .prePlay { place-self: stretch; height: auto; padding: 0; border-radius: 999px;
+        background: var(--media-accent-color); box-shadow: 0 10px 30px -6px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.16); }
+      .prePlay .glyph { visibility: hidden; }
+      .prePlay:hover { transform: scale(1.03); }
+      .prePlayLabel { position: relative; z-index: 2; display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 24px 0 20px; pointer-events: none;
+        font-size: 15px; font-weight: 600; letter-spacing: -.005em; }
+      .prePlayLabel svg { width: 20px; height: 20px; margin-right: 2px; }
+      .prePlayLabel .sep { opacity: .55; }
+      .prePlayLabel media-duration-display { padding: 0; font-size: 15px; font-weight: 500; opacity: .85; --media-text-content-height: 20px; }
+      media-controller[mediahasplayed] .prePlayLabel { display: none; }
+      media-controller:not([breakpointmd]) .resume { width: 52px; height: 52px; }
+      .resume { width: 64px; height: 64px; padding: 0; border-radius: 999px; background: rgba(0,0,0,.32);
+        backdrop-filter: blur(14px) saturate(1.5); -webkit-backdrop-filter: blur(14px) saturate(1.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+      .resume svg { width: 26px; height: 26px; }
+      .resume .glyph svg:first-child { margin-left: 3px; }
+      media-controller:not([mediahasplayed]) .scrim { opacity: 0; }
+      .scrim { position: absolute; inset: auto 0 0 0; height: clamp(96px, 34%, 190px); pointer-events: none;
+        background: linear-gradient(to top, rgba(0,0,0,.56) 0%, rgba(0,0,0,.49) 12%, rgba(0,0,0,.4) 25%, rgba(0,0,0,.3) 38%, rgba(0,0,0,.2) 52%, rgba(0,0,0,.11) 67%, rgba(0,0,0,.05) 82%, transparent 100%); }
+      .chrome { position: relative; z-index: 1; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding: 0 16px 8px; transition: transform .9s ease; }
+      media-controller[userinactive]:not([mediapaused]) .chrome { transform: translateY(6px); }
+      media-controller:not([userinactive]) .chrome, media-controller[mediapaused] .chrome { transition-duration: .18s; }
+      .chrome media-time-range { width: auto; align-self: stretch; margin: 0 2px; --media-range-track-background: rgba(255,255,255,.26); --media-time-range-buffered-color: rgba(255,255,255,.32); --media-range-bar-color: var(--media-accent-color); }
+      .row { display: flex; align-items: center; margin: 0 -9px; }
+      .spacer { flex: 1; }
+      .ambient { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none; opacity: 0; transition: opacity .6s ease;
+        --media-range-track-height: 2px; --media-range-track-border-radius: 0; --media-range-thumb-opacity: 0;
+        --media-range-track-background: rgba(255,255,255,.14); --media-time-range-buffered-color: transparent; --media-range-bar-color: var(--media-accent-color); }
+      media-controller[userinactive]:not([mediapaused]) .ambient { opacity: .9; }
+    `, `
+      <div slot="centered-chrome" class="stack">
+        ${centerBtn('prePlay')}
+        <span class="prePlayLabel">${svg('play')}<span>Play</span><span class="sep">·</span><media-duration-display></media-duration-display></span>
+        ${centerBtn('resume')}
+      </div>
+      <div class="scrim"></div>
+      <media-time-range class="ambient" noautohide></media-time-range>
+      <div class="chrome">
+        <media-time-range></media-time-range>
+        <div class="row">
+          ${playBtn()}${muteBtn('hide-sm')}
+          <media-time-display showduration></media-time-display>
+          <span class="spacer"></span>
+          ${rateBtn}${ccBtn}${fsBtn}
+        </div>
+      </div>
+    `),
+  },
+  bare: {
+    label: '2 · Bare',
+    note: 'The most receding. No scrim, no shapes, nothing behind the controls at all. White glyphs and type carry a layered soft shadow instead. While playing, nothing is on screen. This is the test of how far recession can go before legibility breaks; check it on the bright video.',
+    tpl: shell(`
+      .lift { filter: drop-shadow(0 0 1px rgba(0,0,0,.45)) drop-shadow(0 1px 6px rgba(0,0,0,.35)); }
+      .stack { display: grid; place-items: center; }
+      .stack > * { grid-area: 1 / 1; }
+      .pre { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 30px; transition: opacity .25s ease; }
+      media-controller[mediahasplayed] .pre { opacity: 0; pointer-events: none; }
+      .prePlay { width: 76px; height: 76px; padding: 0; border-radius: 999px; background: #fff; color: #111; --media-primary-color: #111; --media-icon-color: #111;
+        box-shadow: 0 12px 34px -8px rgba(0,0,0,.5); }
+      .prePlay svg { width: 30px; height: 30px; margin-left: 3px; }
+      .prePlay:hover { transform: scale(1.04); }
+      .prePlayMeta { font-size: 13px; font-weight: 600; letter-spacing: .02em; text-shadow: 0 1px 2px rgba(0,0,0,.7), 0 0 14px rgba(0,0,0,.5); }
+      .prePlayMeta media-duration-display { padding: 0; --media-text-content-height: 18px; }
+      media-controller[mediahasplayed] .prePlayMeta { display: none; }
+      .resume { width: 64px; height: 64px; padding: 0; filter: drop-shadow(0 0 1px rgba(0,0,0,.45)) drop-shadow(0 2px 10px rgba(0,0,0,.4)); }
+      .resume svg { width: 40px; height: 40px; }
+      .chrome { width: 100%; box-sizing: border-box; padding: 0 12px 6px; }
+      .row { display: flex; align-items: center; gap: 2px; }
+      .row media-time-range { flex: 1 1 auto; flex-shrink: 1; min-width: 60px; margin: 0 6px; padding: 0;
+        --media-range-track-background: rgba(255,255,255,.4); --media-time-range-buffered-color: rgba(255,255,255,.5); --media-range-bar-color: #fff; }
+      media-time-display { text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 10px rgba(0,0,0,.35); }
+      media-playback-rate-button { text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 10px rgba(0,0,0,.35); }
+    `, `
+      <div slot="centered-chrome" class="stack">
+        <div class="pre">
+          ${centerBtn('prePlay')}
+          <span class="prePlayMeta"><media-duration-display></media-duration-display></span>
+        </div>
+        ${centerBtn('resume')}
+      </div>
+      <div class="chrome lift">
+        <div class="row">
+          ${playBtn()}
+          <media-time-display showduration class="hide-sm"></media-time-display>
+          <media-time-range></media-time-range>
+          ${muteBtn('hide-sm')}${rateBtn}${ccBtn}${fsBtn}
+        </div>
+      </div>
+    `),
+  },
+  capsule: {
+    label: '3 · Capsule',
+    note: 'QuickTime on macOS. One compact frosted capsule floats above the video, centered, no wider than it needs to be; the rest of the frame stays untouched. It disappears completely while playing. On a phone it widens to the edges and drops the elapsed time rather than squeezing the buttons.',
+    tpl: shell(`
+      .glass { background: rgba(18,18,22,.58); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), 0 10px 30px -10px rgba(0,0,0,.5); }
+      .stack { display: grid; place-items: center; }
+      .stack > * { grid-area: 1 / 1; }
+      .pre { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 34px; transition: opacity .25s ease; }
+      media-controller[mediahasplayed] .pre { opacity: 0; pointer-events: none; }
+      media-controller:not([breakpointmd]) .resume { width: 56px; height: 56px; }
+      .prePlay, .resume { width: 76px; height: 76px; padding: 0; border-radius: 999px; }
+      .prePlay svg, .resume svg { width: 30px; height: 30px; }
+      .prePlay .glyph svg:first-child, .resume .glyph svg:first-child { margin-left: 3px; }
+      .prePlay:hover { transform: scale(1.04); }
+      .prePlayMeta { padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+      .prePlayMeta media-duration-display { padding: 0; --media-text-content-height: 16px; }
+      media-controller[mediahasplayed] .prePlayMeta { display: none; }
+      .chrome { width: 100%; box-sizing: border-box; display: flex; justify-content: center; padding: 0 12px 14px;
+        transition: transform .9s ease; }
+      media-controller[userinactive]:not([mediapaused]) .chrome { transform: translateY(8px); }
+      media-controller:not([userinactive]) .chrome, media-controller[mediapaused] .chrome { transition-duration: .18s; }
+      .capsule { display: flex; align-items: center; width: 100%; max-width: 600px; height: 46px; padding: 0 6px; border-radius: 999px; }
+      .capsule > * { border-radius: 999px; }
+      .capsule media-time-range { flex: 1 1 auto; flex-shrink: 1; min-width: 64px; margin: 0 8px; padding: 0;
+        --media-range-track-background: rgba(255,255,255,.24); --media-time-range-buffered-color: rgba(255,255,255,.32); --media-range-bar-color: #fff; }
+      .capsule media-time-display { padding: 0 2px; min-width: 38px; color: rgba(255,255,255,.88); }
+    `, `
+      <div slot="centered-chrome" class="stack">
+        <div class="pre">
+          ${centerBtn('prePlay glass')}
+          <span class="prePlayMeta glass"><media-duration-display></media-duration-display></span>
+        </div>
+        ${centerBtn('resume glass')}
+      </div>
+      <div class="chrome">
+        <div class="capsule glass row">
+          ${playBtn()}
+          <media-time-display class="hide-sm"></media-time-display>
+          <media-time-range></media-time-range>
+          <media-time-display remaining class="hide-xs"></media-time-display>
+          ${muteBtn('hide-sm')}${rateBtn}${ccBtn}${fsBtn}
+        </div>
+      </div>
+    `),
+  },
+};
+
+for (const [id, v] of Object.entries(VERSIONS)) {
+  if (!v.tpl) continue;
+  const t = document.createElement('template');
+  t.id = `clarity-${id}`;
+  t.innerHTML = v.tpl;
+  document.body.append(t);
+}
+
+// Lets the scrubber's thickness and thumb animate instead of snapping.
+CSS.registerProperty?.({ name: '--media-range-track-height', syntax: '<length>', inherits: true, initialValue: '4px' });
+CSS.registerProperty?.({ name: '--media-range-thumb-opacity', syntax: '<number>', inherits: true, initialValue: '1' });
+
+const VIDEOS = {
+  talk: { label: 'Talking head', id: 'EcHgOK9coz5K4rjSwOkoE7Y7O01201YMIC200RI6lNxnhs' },
+  bright: { label: 'Bright', id: 'VcmKA6aqzIzlg3MayLJDnbF55kX00mds028Z65QxvBYaA' },
+  dark: { label: 'Dark', id: 'a4nOgmxGWg6gULfcBbAa00gXyfcwPnAFldF8RdsNyk8M' },
+};
+
+const params = new URLSearchParams(location.search);
+const state = { v: params.get('v') || 'hairline', video: params.get('video') || 'talk' };
+const p = document.getElementById('p');
+
+function render() {
+  const v = VERSIONS[state.v], video = VIDEOS[state.video];
+  p.dataset.v = state.v;
+  if (v.tpl) p.setAttribute('theme', `clarity-${state.v}`); else p.removeAttribute('theme');
+  if (p.getAttribute('playback-id') !== video.id) {
+    p.setAttribute('playback-id', video.id);
+    p.setAttribute('poster', `https://image.mux.com/${video.id}/thumbnail.webp?time=8&width=1600`);
+  }
+  document.getElementById('note').textContent = v.note;
+  for (const b of document.querySelectorAll('[data-k]')) b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.val));
+  history.replaceState(null, '', `?v=${state.v}&video=${state.video}`);
+}
+
+function buttons(el, k, map) {
+  for (const [val, { label }] of Object.entries(map)) {
+    const b = document.createElement('button');
+    Object.assign(b.dataset, { k, val });
+    b.textContent = label;
+    b.onclick = () => { state[k] = val; render(); };
+    el.append(b);
+  }
+}
+buttons(document.getElementById('versions'), 'v', VERSIONS);
+buttons(document.getElementById('videos'), 'video', VIDEOS);
+addEventListener('keydown', (e) => {
+  if (e.target !== document.body) return;
+  const keys = Object.keys(VERSIONS); const i = '0123'.indexOf(e.key);
+  if (i >= 0) { state.v = keys[i]; render(); }
+});
+document.getElementById('brand').oninput = (e) => document.documentElement.style.setProperty('--brand', e.target.value);
+render();
+</script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.4/+esm"></script>
+</body>
+</html>
