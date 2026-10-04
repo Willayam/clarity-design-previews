@@ -38,8 +38,8 @@
   <h2>1. The share page title</h2>
   <p>The take finished as "Untitled Video", so its share page had no headline. One sweep later the page reads the video's new title live. No page write happens, and the share link stays the same.</p>
   <div class="pair">
-    <figure><img src="share-before.png" alt="Share page before: no headline above the video"><figcaption><b>Before</b>Browser tab and og:title "Untitled Video", no headline, video 45.3 s.</figcaption></figure>
-    <figure><img src="share-after.png" alt="Share page after: headline Business mastery program pricing"><figcaption><b>After</b>Tab, og:title and headline "Business mastery program pricing", video 31.5 s. Same URL.</figcaption></figure>
+    <figure><img src="share-before.png" alt="Share page before: no headline above the video"><figcaption><b>Before</b>No headline. The HTML title and og:title read "Untitled Video". Video 45.3 s.</figcaption></figure>
+    <figure><img src="share-after.png" alt="Share page after: headline Business mastery program pricing"><figcaption><b>After</b>Headline, HTML title and og:title "Business mastery program pricing". Video 31.5 s. Same URL.</figcaption></figure>
   </div>
 
   <h2>2. The trim</h2>
@@ -65,13 +65,13 @@
   <p class="muted">A first run on this preview cut at 39.75 s and kept the first syllable of "Okay, how do I stop this". The pad after the last kept cue was meant for the true end of speech. Mux puts the boundary between two cues in the pause, so a dropped closing cue now gets the same 0.25 s pad as the head. That fix is in the PR and this run used it.</p>
 
   <h2>3. A user edit always wins</h2>
-  <p>On the first take I renamed the video to "Pricing for Sam" through the real Library rename, then forced the automatic pass to run again with the same judgment. It reported the title as the user's and left it alone. The share page showed "Pricing for Sam" within a minute, the edge cache's limit. The test suite covers the other orders: a rename or trim before, during or after the pass, and the recorder retrying its trim after losing a race.</p>
-  <figure style="margin-top:16px"><img src="rename-after.png" alt="Library with the Pricing for Sam card"><figcaption><b>Library after the rerun</b>"Pricing for Sam" (0:32) is the first take, still carrying the user's name. The "Untitled Video" cards are CI smoke recordings with no speech, which the pass leaves alone.</figcaption></figure>
+  <p>After the first take was titled and trimmed, I renamed it to "Pricing for Sam" through the real Library rename. The share page showed the new name about 30 seconds later, inside the edge cache's 60-second limit, with no page write. Then I forced the automatic pass to run again on the final code. It saw that the user owns the title, skipped the model, reported the title as the user's and the trim as the automatic one it already holds, and changed nothing. The test suite covers the other orders: a rename or trim before, during or after the pass, and the recorder retrying its trim after losing a race.</p>
+  <figure style="margin-top:16px"><img src="rename-after.png" alt="Library with the Pricing for Sam card"><figcaption><b>Library</b>"Pricing for Sam" (0:32) is the first take, carrying the user's name. The "Untitled Video" cards are 3-second CI smoke recordings of beeps. They stayed untitled here because the preview has no model; see the open risk in the PR.</figcaption></figure>
 
   <h2>4. Library uploads</h2>
   <div class="pair">
     <figure><img src="upload-before.png" alt="Library card IMG_4821"><figcaption><b>Before</b>Uploaded as <code>IMG_4821.mp4</code>, so the card reads IMG_4821.</figcaption></figure>
-    <figure><img src="upload-after.png" alt="Library card Clarity onboarding walkthrough for new customers"><figcaption><b>After</b>"Clarity onboarding walkthrough for new customers". Uploads get a title, never a trim.</figcaption></figure>
+    <figure><img src="rename-after.png" alt="Library card Clarity onboarding walkthrough for new customers"><figcaption><b>After</b>"Clarity onboarding walkthrough for new customers". Uploads get a title, never a trim.</figcaption></figure>
   </div>
 
   <h2>5. Spike: how precise are Mux captions?</h2>
