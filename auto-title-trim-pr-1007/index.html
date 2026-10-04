@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-title and auto-trim on PR #1007</title>
+<style>
+  :root { --ink: #0f172a; --muted: #64748b; --line: #e2e8f0; --cut: rgba(220, 38, 38, 0.14); --cutline: #dc2626; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: #f8fafc; }
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  h2 { font-size: 21px; margin: 48px 0 8px; }
+  p, li { max-width: 72ch; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+  figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  figure img { width: 100%; height: auto; border-radius: 8px; display: block; }
+  figcaption { font-size: 14px; margin-top: 8px; }
+  figcaption b { display: block; font-size: 15px; }
+  .track { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 12px 28px; margin-top: 12px; overflow-x: auto; }
+  .wave { position: relative; width: 100%; min-width: 600px; }
+  .wave img { display: block; width: 100%; height: 110px; }
+  .cut { position: absolute; top: 0; bottom: 0; background: var(--cut); border-left: 2px solid var(--cutline); border-right: 2px solid var(--cutline); }
+  .label { position: absolute; bottom: -22px; font-size: 12px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+  table { border-collapse: collapse; margin-top: 12px; background: #fff; font-size: 15px; }
+  td, th { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f1f5f9; }
+  code { font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Auto-title and auto-trim, PR #1007 preview</h1>
+  <p class="muted">Recorded on the PR preview (pr-1007) on 2026-10-04 with a synthetic voice and Chrome's fake camera. No customer content. Previews have no OpenAI key, so the title and the setup-talk judgment came from gpt-6.1-sol answering the production prompt through Codex, passed in through a preview-only tick. Everything after that judgment ran on the preview's real code, database and Mux.</p>
+
+  <h2>1. The share page title</h2>
+  <p>The take finished as "Untitled Video", so its share page had no headline. One sweep later the page reads the video's new title live. No page write happens, and the share link stays the same.</p>
+  <div class="pair">
+    <figure><img src="share-before.png" alt="Share page before: no headline above the video"><figcaption><b>Before</b>Browser tab and og:title "Untitled Video", no headline, video 45.3 s.</figcaption></figure>
+    <figure><img src="share-after.png" alt="Share page after: headline Business mastery program pricing"><figcaption><b>After</b>Tab, og:title and headline "Business mastery program pricing", video 31.5 s. Same URL.</figcaption></figure>
+  </div>
+
+  <h2>2. The trim</h2>
+  <p>Mux's captions gave 9 cues. The first, "is this recording? Okay, yes, I think it's going.", runs from 0 to 8.0 s and swallowed 3 s of dead air. The last, "Okay, how do I stop this thing?", starts at 39.0 s. The model called both setup talk. The cut keeps 7.75 s to 39.25 s.</p>
+  <div class="track">
+    <div class="muted">Original, 45.3 s. Red bands are cut.</div>
+    <div class="wave">
+      <img src="wave-original.png" alt="Waveform of the original recording">
+      <div class="cut" style="left:0; width:17.11%"></div>
+      <div class="cut" style="left:86.67%; width:13.33%"></div>
+      <span class="label" style="left:17.11%">7.75 s</span>
+      <span class="label" style="left:86.67%">39.25 s</span>
+    </div>
+  </div>
+  <div class="track">
+    <div class="muted">Clip that now plays, 31.5 s, on the same time scale.</div>
+    <div class="wave" style="width:69.5%"><img src="wave-clip.png" alt="Waveform of the trimmed clip"></div>
+  </div>
+  <div class="pair">
+    <figure><img src="first-original.jpg" alt="First frame of the original, camera clock 00:17.150"><figcaption><b>First frame before</b>Camera clock 00:17.150, three seconds of silence ahead.</figcaption></figure>
+    <figure><img src="first-clip.jpg" alt="First frame of the clip, camera clock 00:24.900"><figcaption><b>First frame after</b>Camera clock 00:24.900, 7.75 s later, just before "Hi Sam".</figcaption></figure>
+  </div>
+  <p class="muted">A first run on this preview cut at 39.75 s and kept the first syllable of "Okay, how do I stop this". The pad after the last kept cue was meant for the true end of speech. Mux puts the boundary between two cues in the pause, so a dropped closing cue now gets the same 0.25 s pad as the head. That fix is in the PR and this run used it.</p>
+
+  <h2>3. A user edit always wins</h2>
+  <p>On the first take I renamed the video to "Pricing for Sam" through the real Library rename, then forced the automatic pass to run again with the same judgment. It reported the title as the user's and left it alone. The share page showed "Pricing for Sam" within a minute, the edge cache's limit. The test suite covers the other orders: a rename or trim before, during or after the pass, and the recorder retrying its trim after losing a race.</p>
+  <figure style="margin-top:16px"><img src="library-after.png" alt="Library with Pricing for Sam and other takes"><figcaption><b>Library after</b>"Pricing for Sam" is the renamed take, 0:32. The "Untitled Video" cards are CI smoke recordings with no speech, which the pass leaves alone.</figcaption></figure>
+
+  <h2>4. Library uploads</h2>
+  <div class="pair">
+    <figure><img src="upload-before.png" alt="Library card IMG_4821"><figcaption><b>Before</b>Uploaded as <code>IMG_4821.mp4</code>, so the card reads IMG_4821.</figcaption></figure>
+    <figure><img src="upload-after.png" alt="Library card Clarity onboarding walkthrough for new customers"><figcaption><b>After</b>"Clarity onboarding walkthrough for new customers". Uploads get a title, never a trim.</figcaption></figure>
+  </div>
+
+  <h2>5. Spike: how precise are Mux captions?</h2>
+  <p>Read-only, on 60 recent production videos. Caption tracks came from the public playback stream. Speech timing came from ffmpeg silence detection on 38 of them. Only aggregate numbers are shown here.</p>
+  <table>
+    <tr><th>Question</th><th>Measured</th><th>Consequence</th></tr>
+    <tr><td>Timing granularity</td><td>Cue level, median 3 to 5 s and about 8 words. No word timings.</td><td>Cuts land on cue boundaries.</td></tr>
+    <tr><td>Do captions exist?</td><td>52 of 55 videos had a track. The 3 without were short.</td><td>Takes without a track are left alone after 30 minutes.</td></tr>
+    <tr><td>Where does the first cue start?</td><td>At exactly 0.000 in 51 of 52. Cues have no gaps.</td><td>Leading silence is invisible. The head is cut only where the model calls a whole cue setup talk.</td></tr>
+    <tr><td>Where does the last cue end?</td><td>Within 1 s of the audio's end in 34 of 38. The worst was 5.5 s early, and that tail was Stop-reach noise.</td><td>The tail is cut 0.75 s after the last cue.</td></tr>
+    <tr><td>How much dead air is there?</td><td>Head: median 0.55 s, max 2.9 s. Tail: median 0.6 s, 15 of 38 over 1.2 s.</td><td>Below 1.5 s saved, no clip is made.</td></tr>
+  </table>
+</main>
+</body>
+</html>
