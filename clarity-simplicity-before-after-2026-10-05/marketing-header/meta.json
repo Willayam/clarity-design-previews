@@ -1,0 +1,15 @@
+{
+  "slug": "marketing-header",
+  "title": "One door on the marketing header",
+  "change": "The header has one Continue button instead of Sign in plus Get started. The analytics consent card no longer covers the hero video.",
+  "evidence": "Sign in and Get started open the same login screen.",
+  "before": [
+    "../before/01-marketing-home-desktop.png",
+    "../before/01-marketing-home-mobile.png"
+  ],
+  "after": [
+    "after-desktop.png",
+    "after-mobile.png"
+  ],
+  "notes": "Rendered from the real marketing route on current main. The hero poster is the site's own marketing image, kept so the flip shows only the header and the card; swap in a neutral poster if the mock-data rule should cover it. The mock stops after the hero. Where consent is asked instead (signup or Profile) is William's call; the audit recommends signup. The mobile shot is 390x844 at 2x pixel density, like the before."
+}

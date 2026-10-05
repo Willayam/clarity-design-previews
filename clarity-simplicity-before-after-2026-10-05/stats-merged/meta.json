@@ -1,0 +1,15 @@
+{
+  "slug": "stats-merged",
+  "title": "One statistics view, with its numbers on the card",
+  "change": "Statistics on a video card opens the page statistics for the page that video sits on, and the separate video statistics modal goes away. Page cards show the same three numbers as the modal: visits, watched and clicks.",
+  "evidence": "The video statistics modal showed a placeholder chart and “Share this video” for a video whose page had been watched (walkthrough friction point 15). The page modal already shows plays, retention and location per video.",
+  "before": [
+    "../before/04-video-stats-modal-desktop.png",
+    "../before/12-page-stats-after-visits-desktop.png"
+  ],
+  "after": [
+    "after-desktop.png",
+    "after-cards-desktop.png"
+  ],
+  "notes": "The modal is the real page statistics component with mock numbers. The location is a mock city, Portland, which the app renders as Portland, United States."
+}

@@ -1,0 +1,9 @@
+{
+  "slug": "prospect-lead-form",
+  "title": "Lead form: one field, confirmed in place",
+  "change": "The form asks for an email and an optional message, with real labels, no Cancel, no mobile number and one plain sentence of consent. Send is the only button. After sending, Thanks Dana. Alex will be in touch. replaces the form under the video instead of a blank page. The empty Pricing heading no longer renders.",
+  "evidence": "The form asked four placeholder-labelled fields and a consent box about orders to say I'm interested, and the required mobile number accepted letters. Submit replaced the whole page with Form submitted successfully and no way back. Only 2 new customer pages in 30 days carried a form.",
+  "before": ["../before/07-prospect-audit-desktop-form.png", "../before/07-prospect-audit-desktop-form-submitted.png"],
+  "after": ["after-desktop.png", "after-submitted-desktop.png"],
+  "notes": "Open after.html#sent for the confirmation state. The page title is mock copy; the before was an audit fixture. The form heading Get Started is the author's default and is unchanged. The confirmation's green is not a theme token yet. Both screenshots are scrolled to the before's position, with the video's bottom edge at the top."
+}

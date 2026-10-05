@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finish your video</title>
+<link rel="stylesheet" href="../shared/app.css">
+<style>
+/* Mock-only helpers. Everything else is the app's own stylesheet. */
+.quiet-link { color: var(--muted-foreground); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent); text-underline-offset: 4px; transition: color 120ms; }
+.quiet-link:hover { color: var(--foreground); text-decoration-color: currentColor; }
+.poster { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.live-thumb { display: block; width: 8.5rem; height: 5.25rem; overflow: hidden; border-radius: 0.5rem; background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / 0.08), 0 0 0 1px var(--border); flex: none; }
+.live-thumb > .jp-theme { width: 760px; transform: scale(0.179); transform-origin: 0 0; pointer-events: none; }
+.jp-theme {
+  --jp-page-max-width: 760px;
+  --jp-page-x-padding: clamp(16px, 2vw, 20px);
+  --jp-section-background: var(--jp-background);
+  --jp-section-plain-background: #ffffff;
+  --jp-section-plain-foreground: #0f172a;
+  --jp-section-plain-muted: #64748b;
+  --jp-section-plain-border: #e2e8f0;
+  --jp-section-plain-card: #ffffff;
+  /* Type + spacing scale: one shared token ladder (1.5/2/2.5/3/4.5rem).
+     S is the default; presets and overrides step it via data attributes. */
+  --jp-h1-size: 2rem;
+  --jp-h2-size: 1.5rem;
+  --jp-price-size: 2rem;
+  --jp-section-pad: 2rem;
+  background: var(--jp-section-plain-background);
+  color: var(--jp-foreground);
+  font-family: var(--jp-font-body);
+  font-size: 1.125rem;
+  line-height: 1.5;
+  overflow: hidden;
+}
+.jp-theme[data-scale="m"] { --jp-h1-size: 3rem; --jp-h2-size: 2rem; --jp-price-size: 2.5rem; }
+.jp-theme[data-scale="l"] { --jp-h1-size: 4.5rem; --jp-h2-size: 2.5rem; --jp-price-size: 3rem; }
+.jp-theme[data-spacing="m"] { --jp-section-pad: 3rem; }
+.jp-theme[data-spacing="l"] { --jp-section-pad: 4rem; }
+/* Shadow steps: neutral elevation recipes; presets pick a step and may
+   restyle the flavor (glow, hard offset) in personality CSS. */
+.jp-theme { --jp-shadow-media: none; --jp-shadow-card: 0 16px 48px rgba(15, 23, 42, 0.04); --jp-shadow-button: none; }
+.jp-theme[data-shadows="none"] { --jp-shadow-card: none; }
+.jp-theme[data-shadows="soft"] {
+  --jp-shadow-media: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(2, 6, 23, 0.05), 0 10px 28px rgba(2, 6, 23, 0.07);
+  --jp-shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 1px 2px rgba(2, 6, 23, 0.04), 0 8px 22px rgba(2, 6, 23, 0.05);
+  --jp-shadow-button: 0 1px 2px rgba(2, 6, 23, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.jp-theme[data-shadows="strong"] {
+  --jp-shadow-media: 0 1px 2px rgba(2, 6, 23, 0.08), 0 24px 64px rgba(2, 6, 23, 0.16);
+  --jp-shadow-card: 0 1px 2px rgba(2, 6, 23, 0.06), 0 18px 48px rgba(2, 6, 23, 0.12);
+  --jp-shadow-button: 0 2px 4px rgba(2, 6, 23, 0.2), 0 10px 28px rgba(2, 6, 23, 0.16);
+}
+.jp-theme *,
+.jp-theme *::before,
+.jp-theme *::after { box-sizing: border-box; }
+.jp-theme h1,
+.jp-theme h2,
+.jp-theme h3,
+.jp-theme p,
+.jp-theme li,
+.jp-theme summary,
+.jp-theme [data-journey-content-copy],
+.jp-theme [data-journey-content-copy] *,
+.jp-theme .rich-text,
+.jp-theme .rich-text *,
+.jp-theme [data-journey-cta-row] a,
+.jp-theme [data-journey-cta-row] button,
+.jp-theme [data-journey-cta-row] span,
+.jp-theme a.button,
+.jp-theme button.button,
+.jp-theme span.button,
+.jp-theme [data-journey-contact-list] a,
+.jp-theme [data-journey-pricing-card],
+.jp-theme [data-journey-faq-answer] {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.jp-theme [data-module-kind] {
+  background: var(--jp-section-background);
+  box-shadow: 0 0 0 100vmax var(--jp-section-background);
+  box-sizing: border-box;
+  clip-path: inset(0 -100vmax);
+  /* Sections re-apply color so alternating sections that swap --jp-foreground
+     recolor body text too; inherited color is a computed value, so without
+     this a dark brand leaves root-colored text on light plain sections. */
+  color: var(--jp-foreground);
+  margin: 0 auto;
+  max-width: var(--jp-page-max-width);
+  padding: var(--jp-section-pad) var(--jp-page-x-padding);
+}
+.jp-theme [data-module-kind]:nth-of-type(even) {
+  --jp-background: var(--jp-section-plain-background);
+  --jp-foreground: var(--jp-section-plain-foreground);
+  /* Derived from the plain-section tokens rather than pinned as literals, so a
+     preset that restyles the plain sections carries --jp-muted/--jp-input along
+     instead of leaving a foreign slate slab on its own palette.
+     These approximate, but do not equal, the literals they replace: on a
+     default page --jp-muted was #f8fafc and now computes to #f8f8f9, --jp-input was
+     the blue-tinted #cbd5e1 and now computes to the neutral #cfd1d4. The 3%
+     keeps even sections one shade lighter than the root --jp-muted (#f1f5f9),
+     which is the distinction the old literal encoded. */
+  --jp-muted: color-mix(in srgb, var(--jp-section-plain-foreground) 3%, var(--jp-section-plain-background));
+  --jp-muted-foreground: var(--jp-section-plain-muted);
+  --jp-card: var(--jp-section-plain-card);
+  --jp-card-foreground: var(--jp-section-plain-foreground);
+  --jp-border: var(--jp-section-plain-border);
+  --jp-input: color-mix(in srgb, var(--jp-section-plain-foreground) 20%, var(--jp-section-plain-background));
+  --jp-section-background: var(--jp-section-plain-background);
+}
+.jp-theme [data-module-kind="hero"] { padding-top: 24px; }
+.jp-theme h1,
+.jp-theme h2,
+.jp-theme h3 {
+  color: var(--jp-foreground);
+  font-family: var(--jp-font-heading);
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+/* em margins so heading rhythm rides the scale steps automatically. */
+.jp-theme h1 { font-size: clamp(1.5rem, 7vw, var(--jp-h1-size)); font-weight: 700; margin-bottom: 0.375em; }
+.jp-theme h2 { font-size: var(--jp-h2-size); font-weight: 700; letter-spacing: 0; line-height: 1.25; margin-bottom: 0.4em; }
+.jp-theme h3 { font-weight: 600; line-height: 1.3; margin-bottom: 8px; }
+.jp-theme p { margin: 0 0 0.5em; }
+.jp-theme .rich-text > p:last-child,
+.jp-theme [data-journey-content-copy] > p:last-child,
+.jp-theme p:last-child { margin-bottom: 0; }
+.jp-theme a { color: var(--jp-primary); }
+/* Authored rich-text lists. Stated explicitly rather than left to the UA
+   default, because this sheet also renders inside the editor, where Tailwind's
+   preflight resets ul/ol to list-style:none + padding:0 — that reset is why
+   bullets and numbers showed on the published page but vanished in the
+   editor. Pinning both surfaces here keeps them identical. */
+.jp-theme .rich-text ul,
+.jp-theme .rich-text ol {
+  margin: 0 0 0.5em;
+  padding-left: 1.25em;
+}
+.jp-theme .rich-text ul { list-style: disc; }
+.jp-theme .rich-text ol { list-style: decimal; }
+.jp-theme .rich-text li { margin: 0 0 0.15em; }
+/* Tiptap wraps each item's text in a paragraph; that must not add block
+   spacing inside a list item. */
+.jp-theme .rich-text li > p { margin: 0; }
+.jp-theme .rich-text ul:last-child,
+.jp-theme .rich-text ol:last-child { margin-bottom: 0; }
+.jp-theme .error { color: #b91c1c; font-weight: 700; }
+
+.jp-theme [data-journey-brand-logo] {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0 0 16px;
+}
+.jp-theme [data-journey-brand-logo][data-logo-align="center"] { justify-content: center; }
+.jp-theme [data-journey-brand-logo][data-logo-align="right"] { justify-content: flex-end; }
+.jp-theme [data-journey-brand-logo] img,
+.jp-theme img.company-logo {
+  display: block;
+  height: auto;
+  max-height: 80px;
+  max-width: 240px;
+  object-fit: contain;
+}
+
+.jp-theme [data-title-align="center"] > h1,
+.jp-theme [data-title-align="center"] > h2,
+.jp-theme [data-title-align="center"] > h3,
+.jp-theme [data-title-align="center"] > p { text-align: center; }
+.jp-theme [data-title-align="right"] > h1,
+.jp-theme [data-title-align="right"] > h2,
+.jp-theme [data-title-align="right"] > h3,
+.jp-theme [data-title-align="right"] > p { text-align: right; }
+.jp-theme [data-title-align="center"] [data-journey-cta-row] { justify-content: center; }
+.jp-theme [data-title-align="right"] [data-journey-cta-row] { justify-content: flex-end; }
+
+.jp-theme [data-module-kind="content"] [data-journey-content-layout] {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+}
+.jp-theme [data-module-kind="content"][data-media-side="right"] [data-journey-content-layout] { flex-direction: row; }
+.jp-theme [data-module-kind="content"][data-media-side="left"] [data-journey-content-layout] { flex-direction: row-reverse; }
+.jp-theme [data-module-kind="content"] [data-journey-content-copy] { flex: 3 1 0; min-width: 0; }
+/* The media column's share of the row is user-adjustable; copy reflows to fill
+   the rest. --media-size is set per-section by the editor/renderer; absent =>
+   ASSET_SIZE_DEFAULT (the current default), so existing pages are unchanged.
+   Applies to image and video alike. */
+.jp-theme [data-module-kind="content"] [data-journey-content-media] { flex: 0 0 var(--media-size, 40%); min-width: 0; }
+.jp-theme [data-module-kind="content"] [data-journey-content-media] [data-journey-media-frame] { margin: 0; }
+.jp-theme [data-module-kind="content"] [data-journey-content-copy] > *:first-child { margin-top: 0; }
+.jp-theme [data-module-kind="content"] [data-journey-content-copy] > *:last-child { margin-bottom: 0; }
+/* Wrap (mediaWrap): the media column floats on its side inside the copy flow,
+   so text runs beside it and continues underneath — no dead space when the
+   copy outruns the visual. Orthogonal to data-media-side; the media column
+   must precede the copy in DOM order for line boxes to shorten around it. */
+.jp-theme [data-module-kind="content"][data-media-wrap="true"] [data-journey-content-layout] { display: block; }
+.jp-theme [data-module-kind="content"][data-media-wrap="true"] [data-journey-content-layout]::after { content: ""; display: block; clear: both; }
+.jp-theme [data-module-kind="content"][data-media-wrap="true"] [data-journey-content-media] {
+  float: right;
+  margin: 4px 0 16px 24px;
+  /* Later copy blocks' boxes overlap the float; keep the media (and, in the
+     editor, its hover toolbar) above them so it stays interactive. */
+  position: relative;
+  width: var(--media-size, 40%);
+  z-index: 1;
+}
+.jp-theme [data-module-kind="content"][data-media-side="left"][data-media-wrap="true"] [data-journey-content-media] {
+  float: left;
+  margin: 4px 24px 16px 0;
+}
+/* A fused client-logo row rendered inside the copy must not squeeze beside
+   the float when the body copy is shorter than the media. */
+.jp-theme [data-module-kind="content"][data-media-wrap="true"] [data-journey-client-logos] { clear: both; }
+
+.jp-theme [data-journey-cta-row] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  /* The editor's empty media slot sets a tighter rhythm. */
+  margin-top: var(--jp-cta-row-margin-top, 24px);
+  justify-content: center;
+}
+.jp-theme [data-journey-cta-row] a,
+.jp-theme [data-journey-cta-row] button,
+.jp-theme [data-journey-cta-row] span,
+.jp-theme a.button,
+.jp-theme button.button,
+.jp-theme span.button {
+  background: var(--jp-primary);
+  /* INVARIANT: the shared rule owns border width; variants set border-color
+     only. Auto-sized buttons turn a width difference into a size difference.
+     Enforced by the preset-registry test. */
+  border: 1px solid transparent;
+  border-radius: var(--jp-radius-button);
+  box-shadow: var(--jp-shadow-button);
+  color: var(--jp-primary-foreground);
+  cursor: pointer;
+  /* inline-block, NOT flex: text-box trimming is inert on flex containers
+     (measured), and the trim below is what centers descender-heavy faces. */
+  display: inline-block;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 100%;
+  min-width: 0;
+  /* 16px vertical: the text-box trim below removes the line-box leading, so
+     the padding carries the button's full height on its own. */
+  padding: 16px 24px;
+  text-align: center;
+  text-decoration: none;
+  /* Optical centering: trim the line box to cap-height and baseline so
+     descender-heavy faces (serifs measured ~5px high at 18px) center on
+     their visual mass. Older browsers ignore the trim. */
+  text-box: trim-both cap alphabetic;
+  transition: filter 120ms ease;
+  white-space: normal;
+}
+.jp-theme .button:hover { filter: brightness(0.95); }
+/* Secondary buttons are mostly transparent, so brightness alone is invisible
+   on them — hover fills lightly instead. Presets restyle the fill flavor. */
+.jp-theme .button[data-cta-style="secondary"]:hover,
+.jp-theme .button-secondary:hover { background: color-mix(in srgb, var(--jp-primary) 10%, transparent); }
+.jp-theme [data-journey-cta-row] .button[data-cta-style="secondary"],
+.jp-theme .button-secondary {
+  background: transparent;
+  border-color: var(--jp-primary);
+  color: var(--jp-primary);
+}
+/* Keyboard focus: every actionable CTA gets a visible ring. A backing ring
+   in --jp-primary-foreground sits under the primary outline: wherever the
+   section background swallows one layer (Bold's hero remaps --jp-background to
+   primary, featured pricing tints it), the other contrasts by definition.
+   The !important is deliberate and load-bearing: focus indication is an
+   accessibility invariant, and preset decoration (Bold's 0,5,0 offset-shadow
+   selectors) must not out-cascade it while a CTA is focused. */
+.jp-theme :is(a.button, button.button, [data-journey-cta-row] :is(a, button), [data-module-kind="lead-form"] button[type="submit"]):focus-visible {
+  outline: 2px solid var(--jp-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--jp-primary-foreground) !important;
+}
+
+.jp-theme [data-journey-media-frame] {
+  --media-aspect-ratio: 16 / 9;
+  --media-max-height: min(56vh, 640px);
+  --media-ratio-number: 1.7777778;
+  border-radius: var(--jp-radius);
+  box-shadow: var(--jp-shadow-media);
+  margin: 24px 0;
+  /* The editor lets a frame holding its media toolbar overflow. */
+  overflow: var(--jp-media-frame-overflow, hidden);
+}
+@media (max-width: 560px) {
+  .jp-theme [data-journey-media-frame] {
+    --media-max-height: min(75svh, 640px);
+  }
+}
+.jp-theme [data-journey-media-frame] img,
+.jp-theme [data-journey-media-frame] video,
+.jp-theme [data-journey-media-frame] iframe,
+.jp-theme [data-journey-media-frame] mux-player {
+  background: var(--jp-muted);
+  border: 0;
+  border-radius: var(--jp-radius);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+.jp-theme [data-journey-media-frame] img { max-height: 540px; object-fit: contain; }
+.jp-theme [data-journey-media-frame] video,
+.jp-theme [data-journey-media-frame] mux-player,
+.jp-theme [data-journey-media-frame] iframe[data-journey-video-embed] {
+  aspect-ratio: var(--media-aspect-ratio);
+}
+.jp-theme [data-journey-video-frame] video,
+.jp-theme [data-journey-video-frame] mux-player,
+.jp-theme [data-journey-video-frame] iframe[data-journey-video-embed],
+.jp-theme [data-journey-video-frame] .lp-video-container,
+.jp-theme [data-journey-video-frame] .lp-asset-video {
+  aspect-ratio: var(--media-aspect-ratio);
+  margin-inline: auto;
+  max-height: var(--media-max-height);
+  max-width: 100%;
+  width: min(100%, calc(var(--media-max-height) * var(--media-ratio-number)));
+}
+/* Editor chrome (14-library.css) hardcodes 0.5rem on these classes for the
+   media library; inside the themed surface the video must follow --jp-radius so
+   the preview matches the public renderer (incl. the Corners lever). */
+.jp-theme .lp-video-container,
+.jp-theme .lp-asset-video {
+  border-radius: var(--jp-radius);
+}
+.jp-theme [data-journey-media-frame] video,
+.jp-theme [data-journey-media-frame] mux-player {
+  --media-accent-color: var(--jp-primary);
+  --media-object-fit: contain;
+  --media-object-position: center;
+  background: #020617;
+  object-fit: contain;
+}
+/* Mux Player's controls, on the journey theme (levers verified in
+   ./mux-player.ts). The chrome floats over the viewer's video, which no theme
+   token is guaranteed to contrast with, so its ink and its backdrop stay the
+   white and the slate the click-to-play trigger paints and only the accent
+   above follows the theme. Picture-in-picture, AirPlay and Cast are hidden:
+   each hands playback to a surface that is not this page. */
+.jp-theme [data-journey-media-frame] mux-player {
+  --airplay-button: none;
+  --cast-button: none;
+  --controls-backdrop-color: rgba(15, 23, 42, 0.45);
+  --media-primary-color: #ffffff;
+  --pip-button: none;
+}
+.jp-theme [data-journey-video-frame] .lp-video-poster {
+  background: #020617;
+  object-fit: contain;
+}
+/* The shell paints the mat behind the player, so it has to be the player's
+   width: left at 100% a portrait video would sit in black bars again, drawn by
+   the shell instead of the frame. Landscape is unchanged, the width resolving
+   to 100% at every column width. */
+.jp-theme [data-journey-video-preview-shell] {
+  background: #020617;
+  margin-inline: auto;
+  max-width: 100%;
+  position: relative;
+  width: min(100%, calc(var(--media-max-height) * var(--media-ratio-number)));
+}
+.jp-theme [data-journey-video-placeholder-frame] {
+  aspect-ratio: var(--media-aspect-ratio);
+  background: #020617;
+  margin-inline: auto;
+  max-height: var(--media-max-height);
+  max-width: 100%;
+  position: relative;
+  width: min(100%, calc(var(--media-max-height) * var(--media-ratio-number)));
+}
+.jp-theme [data-journey-video-placeholder] {
+  align-items: center;
+  background: #020617;
+  border-radius: var(--jp-radius);
+  color: #ffffff;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  position: absolute;
+}
+.jp-theme [data-journey-video-placeholder] .upload-progress-card-thumb-base {
+  background-color: #1e293b;
+  background-image: radial-gradient(ellipse 130% 95% at 28% 22%, #475569 0%, #334155 42%, #0f172a 92%);
+  inset: 0;
+  position: absolute;
+}
+.jp-theme [data-journey-video-placeholder] .upload-progress-card-tint {
+  background: rgba(15, 23, 42, 0.45);
+  inset: 0;
+  position: absolute;
+}
+.jp-theme [data-journey-video-placeholder] .upload-progress-card-content {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  padding: 0 0.75rem;
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+.jp-theme [data-journey-video-placeholder] .upload-progress-card-ring {
+  display: block;
+  height: 4.5rem;
+  overflow: visible;
+  width: 4.5rem;
+}
+.jp-theme [data-journey-video-placeholder] .ring-track {
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 4;
+}
+.jp-theme [data-journey-video-placeholder] .ring-fill {
+  animation: journey-processing-ring 1.6s linear infinite;
+  stroke: rgba(255, 255, 255, 0.64);
+  stroke-linecap: round;
+  stroke-width: 4;
+  transform-origin: 50% 50%;
+}
+.jp-theme [data-journey-video-placeholder] .upload-progress-card-caption {
+  color: rgba(255, 255, 255, 0.72);
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.4);
+  white-space: nowrap;
+}
+.jp-theme [data-journey-video-placeholder="unavailable"] .upload-progress-card-caption {
+  color: #ffffff;
+  font-size: 1rem;
+}
+.jp-theme [data-journey-video-placeholder] .upload-progress-card-content p {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.875rem;
+  margin: 0;
+}
+@keyframes journey-processing-ring {
+  to { transform: rotate(360deg); }
+}
+.jp-theme [data-journey-video-preview-shell] [hidden] {
+  display: none !important;
+}
+/* A player whose still is still up stays out of the page until the tap. On a
+   touch device it waits inside the frame instead, out of flow and invisible, so
+   mobile browsers decode its first frame before the tap (display:none decodes
+   nothing there). Desktop Chromium decodes a display:none player anyway, and
+   an invisible one there only becomes the page's LCP candidate. */
+.jp-theme [data-journey-video-preview-trigger]:not([hidden]) + [data-journey-video-player] {
+  display: none;
+}
+@media (pointer: coarse) {
+  .jp-theme [data-journey-video-preview-trigger]:not([hidden]) + [data-journey-video-player] {
+    display: block;
+    inset: 0;
+    position: absolute;
+    visibility: hidden;
+  }
+}
+.jp-theme [data-journey-video-preview-trigger] {
+  align-items: center;
+  aspect-ratio: var(--media-aspect-ratio);
+  background: #020617;
+  border: 0;
+  border-radius: var(--jp-radius);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  margin-inline: auto;
+  max-height: var(--media-max-height);
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  width: min(100%, calc(var(--media-max-height) * var(--media-ratio-number)));
+}
+.jp-theme [data-journey-video-preview-trigger] .lp-video-poster {
+  display: block;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+  width: 100%;
+}
+.jp-theme [data-journey-video-preview-trigger] .lp-video-overlay {
+  background: linear-gradient(rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.1));
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+.jp-theme [data-journey-video-preview-trigger] .lp-play-button {
+  align-items: center;
+  background: color-mix(in srgb, var(--jp-primary) 72%, transparent);
+  border-radius: 999px;
+  display: flex;
+  height: 56px;
+  justify-content: center;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  z-index: 2;
+}
+.jp-theme [data-journey-document-frame] {
+  background: var(--jp-muted);
+  border: 0;
+  border-radius: var(--jp-radius);
+  display: block;
+  min-height: 520px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.jp-theme [data-journey-client-logos] {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+/* Logo muting: automatic on themed pages, per-section overridable via
+   data-logos-color (muted | full); presets restyle only the flavor. */
+.jp-theme[data-theme-preset] [data-journey-client-logos]:not([data-logos-color="full"]) img,
+.jp-theme [data-journey-client-logos][data-logos-color="muted"] img {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+.jp-theme [data-journey-client-logos] .client-logo-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.jp-theme [data-journey-client-logos] img {
+  height: auto;
+  max-height: 96px;
+  max-width: 180px;
+  object-fit: contain;
+}
+.jp-theme [data-journey-client-logos][data-logos-variant="rolling"] {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.jp-theme [data-logos-variant="rolling"] .client-logo-track {
+  align-items: center;
+  animation: jp-logos-roll 30s linear infinite;
+  display: flex;
+  gap: 20px;
+  width: max-content;
+}
+@keyframes jp-logos-roll {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - 10px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jp-theme [data-logos-variant="rolling"] .client-logo-track {
+    animation: none;
+  }
+}
+
+.jp-theme [data-module-kind="hero"] [data-journey-contact-list] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  justify-content: center;
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.jp-theme [data-module-kind="hero"] [data-journey-contact-list] [data-contact-label] {
+  color: var(--jp-foreground);
+  font-weight: 700;
+  min-width: 0;
+}
+.jp-theme [data-module-kind="hero"] [data-journey-contact-list] a {
+  align-items: baseline;
+  color: var(--jp-primary);
+  display: inline-flex;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.jp-theme [data-module-kind="faq"] h2 { margin-bottom: 16px; }
+.jp-theme [data-module-kind="faq"] [data-journey-faq-list] {
+  border-bottom: 1px solid var(--jp-border);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+.jp-theme [data-module-kind="faq"] [data-journey-faq-item] {
+  border-top: 1px solid var(--jp-border);
+  overflow: hidden;
+}
+.jp-theme [data-module-kind="faq"] details { overflow: hidden; }
+.jp-theme [data-module-kind="faq"] summary {
+  align-items: center;
+  color: var(--jp-foreground);
+  cursor: pointer;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 600;
+  gap: 16px;
+  justify-content: space-between;
+  line-height: 1.35;
+  list-style: none;
+  padding: 16px 4px 16px 0;
+  transition: color 160ms ease;
+}
+.jp-theme [data-module-kind="faq"] summary:hover { color: var(--jp-primary); }
+.jp-theme [data-module-kind="faq"] summary::-webkit-details-marker { display: none; }
+.jp-theme [data-module-kind="faq"] summary::after {
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  content: "";
+  flex: 0 0 auto;
+  height: 8px;
+  opacity: 0.82;
+  transform: rotate(-135deg);
+  transition: transform 160ms ease;
+  width: 8px;
+}
+.jp-theme [data-module-kind="faq"] details[open] summary { color: var(--jp-primary); }
+.jp-theme [data-module-kind="faq"] details[open] summary::after { transform: rotate(45deg); }
+.jp-theme [data-module-kind="faq"] [data-journey-faq-answer] {
+  color: var(--jp-muted-foreground);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0 0 16px;
+  max-width: 72ch;
+}
+
+/* Summary: a receipt-style recap table. Muted labels left, emphasized values
+   right; every color and border rides the theme tokens so presets restyle it
+   for free. */
+.jp-theme [data-module-kind="summary"] h2 { margin-bottom: 16px; }
+.jp-theme [data-journey-summary-table] {
+  border-collapse: collapse;
+  width: 100%;
+}
+.jp-theme [data-journey-summary-table] th,
+.jp-theme [data-journey-summary-table] td {
+  border-top: 1px solid var(--jp-border);
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  padding: 12px 4px 12px 0;
+  vertical-align: top;
+  word-break: break-word;
+}
+.jp-theme [data-journey-summary-table] tr:last-child th,
+.jp-theme [data-journey-summary-table] tr:last-child td {
+  border-bottom: 1px solid var(--jp-border);
+}
+.jp-theme [data-journey-summary-table] th {
+  color: var(--jp-muted-foreground);
+  font-weight: 500;
+  padding-right: 16px;
+  text-align: left;
+  /* Mirrors .ste-label in the editor sheet; the :has() rule below releases it
+     once the table grows a middle column. */
+  width: 40%;
+}
+.jp-theme [data-journey-summary-table] td {
+  color: var(--jp-foreground);
+  font-weight: 600;
+  text-align: right;
+}
+/* Middle columns (3+ column tables): plain body cells; emphasis stays
+   anchored to the ends — muted label first, bold value last. The 40% label
+   only makes sense while the table is two columns. */
+.jp-theme [data-journey-summary-table] td:not(:last-child) {
+  font-weight: 400;
+  padding-right: 16px;
+  text-align: left;
+}
+.jp-theme [data-journey-summary-table]:has(td:not(:last-child)) th {
+  min-width: 110px;
+  width: auto;
+}
+
+/* Gallery: an image grid whose only layout knob is the column count the
+   editor writes onto [data-columns]. Any image count reflows into it. */
+.jp-theme [data-module-kind="gallery"] h2 { margin-bottom: 16px; }
+.jp-theme [data-journey-gallery] {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.jp-theme [data-journey-gallery][data-columns="1"] { grid-template-columns: minmax(0, 1fr); }
+.jp-theme [data-journey-gallery][data-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.jp-theme [data-journey-gallery][data-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.jp-theme [data-journey-gallery][data-columns="5"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.jp-theme [data-journey-gallery] img {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--jp-radius);
+  box-shadow: var(--jp-shadow-media);
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+/* Phones: three or more tracks stop reading as images, so they cap at two.
+   One- and two-column galleries keep the author's choice. */
+@media (max-width: 560px) {
+  .jp-theme [data-journey-gallery][data-columns="3"],
+  .jp-theme [data-journey-gallery][data-columns="4"],
+  .jp-theme [data-journey-gallery][data-columns="5"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.jp-theme [data-module-kind="pricing"] [data-journey-pricing-grid] {
+  display: grid;
+  gap: 24px;
+  /* 3 cards must fit the 760px page: (760 - 2*20 padding - 2*24 gap) / 3 = 224px.
+     min() keeps it from overflowing containers narrower than the track. */
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* Orphan guards: auto-fit alone leaves a lone card on a second row. Exactly
+   four plans pair up 2+2 instead of 3+1; exactly three stack rather than sit
+   2+1 below 710px, the narrowest viewport where three tracks still fit. */
+@media (min-width: 561px) {
+  .jp-theme [data-module-kind="pricing"] [data-journey-pricing-grid]:has(> :nth-child(4):last-child) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 709px) {
+  .jp-theme [data-module-kind="pricing"] [data-journey-pricing-grid]:has(> :nth-child(3):last-child) {
+    grid-template-columns: 1fr;
+  }
+}
+.jp-theme [data-journey-pricing-card] {
+  background: var(--jp-card);
+  color: var(--jp-card-foreground);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius);
+  box-shadow: var(--jp-shadow-card);
+  padding: 24px;
+}
+.jp-theme [data-journey-pricing-card] [data-journey-pricing-title] {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+.jp-theme [data-journey-pricing-card] [data-journey-pricing-price] {
+  color: var(--jp-card-foreground);
+  font-size: var(--jp-price-size);
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 12px;
+}
+.jp-theme [data-journey-pricing-card] [data-plan-features] {
+  color: var(--jp-muted-foreground);
+  line-height: 1.8;
+  list-style: disc;
+  margin: 16px 0 0;
+  padding-left: 20px;
+}
+.jp-theme [data-journey-pricing-card] [data-journey-pricing-cta] { margin-top: 20px; }
+.jp-theme [data-journey-pricing-card] [data-journey-pricing-cta] [data-journey-cta-row] { margin-top: 0; }
+
+.jp-theme [data-module-kind="contact"] [data-journey-contact-list] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.jp-theme [data-module-kind="contact"] [data-journey-contact-list] a {
+  align-items: baseline;
+  color: var(--jp-primary);
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  text-decoration: none;
+}
+.jp-theme [data-module-kind="contact"] [data-journey-contact-list] a:hover { text-decoration: underline; }
+.jp-theme [data-module-kind="contact"] [data-contact-label] {
+  color: var(--jp-muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.jp-theme [data-module-kind="lead-form"] {
+  max-width: 720px;
+}
+.jp-theme [data-module-kind="lead-form"] > .rich-text,
+.jp-theme [data-module-kind="lead-form"] > p {
+  color: var(--jp-muted-foreground);
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 65ch;
+}
+.jp-theme [data-module-kind="lead-form"] form {
+  display: grid;
+  gap: 16px 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+  width: 100%;
+}
+.jp-theme [data-module-kind="lead-form"] form > label {
+  color: var(--jp-foreground);
+  display: grid;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 6px;
+  grid-column: 1 / -1;
+  line-height: 1.25;
+}
+.jp-theme [data-module-kind="lead-form"] form[data-journey-has-name-row="true"] > label[data-journey-field-width="half"] {
+  grid-column: span 1;
+}
+.jp-theme [data-module-kind="lead-form"] input:not([type="checkbox"]) {
+  background: var(--jp-background);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-input, 6px);
+  color: var(--jp-foreground);
+  font: inherit;
+  min-height: 44px;
+  padding: 8px 12px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  width: 100%;
+}
+.jp-theme [data-module-kind="lead-form"] input:focus {
+  border-color: var(--jp-primary);
+  outline: 2px solid color-mix(in srgb, var(--jp-primary) 25%, transparent);
+  outline-offset: 0;
+}
+.jp-theme [data-module-kind="lead-form"] [data-journey-honeypot] {
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  height: 0;
+  width: 0;
+}
+.jp-theme [data-module-kind="lead-form"] [data-journey-consent] {
+  align-items: flex-start;
+  color: var(--jp-muted-foreground);
+  display: flex;
+  flex-direction: row;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  gap: 12px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+.jp-theme [data-module-kind="lead-form"] [data-journey-consent] input {
+  margin-top: 3px;
+  padding: 0;
+}
+.jp-theme [data-journey-form-actions] button {
+  background: var(--jp-primary);
+  border: 1px solid transparent;
+  border-radius: var(--jp-radius-button);
+  color: var(--jp-primary-foreground);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  min-height: 44px;
+  min-width: 112px;
+  padding: 8px 16px;
+  transition: filter 120ms ease;
+}
+.jp-theme [data-module-kind="lead-form"] button[type="reset"] {
+  background: transparent;
+  border-color: var(--jp-primary);
+  color: var(--jp-primary);
+}
+.jp-theme [data-module-kind="lead-form"] button[type="submit"]:hover { filter: brightness(0.95); }
+.jp-theme [data-module-kind="lead-form"] [data-journey-form-actions] {
+  display: flex;
+  gap: 12px;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 760px) {
+  .jp-theme [data-module-kind="content"] [data-journey-content-layout],
+  .jp-theme [data-module-kind="content"][data-media-side="right"] [data-journey-content-layout],
+  .jp-theme [data-module-kind="content"][data-media-side="left"] [data-journey-content-layout] {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .jp-theme [data-module-kind="content"] [data-journey-content-copy],
+  .jp-theme [data-module-kind="content"] [data-journey-content-media] {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+  .jp-theme [data-module-kind="content"][data-media-wrap="true"] [data-journey-content-media],
+  .jp-theme [data-module-kind="content"][data-media-side="left"][data-media-wrap="true"] [data-journey-content-media] {
+    float: none;
+    margin: 0 0 16px;
+    width: 100%;
+  }
+}
+@media (max-width: 560px) {
+  /* The narrow track that lets three plans share a row on desktop would leave
+     two cramped columns on a phone; stack instead. */
+  .jp-theme [data-module-kind="pricing"] [data-journey-pricing-grid] {
+    grid-template-columns: 1fr;
+  }
+  .jp-theme [data-module-kind="lead-form"] form {
+    grid-template-columns: 1fr;
+  }
+  .jp-theme [data-module-kind="lead-form"] form[data-journey-has-name-row="true"] > label[data-journey-field-width="half"] {
+    grid-column: 1 / -1;
+  }
+  .jp-theme [data-module-kind="lead-form"] [data-journey-form-actions] {
+    flex-direction: column-reverse;
+  }
+  .jp-theme [data-module-kind="lead-form"] [data-journey-form-actions] button {
+    width: 100%;
+  }
+}
+
+.jp-theme [data-journey-sender] { align-items: center; display: flex; gap: 12px; margin: 0 0 4px; }
+.jp-theme [data-journey-sender] img { border-radius: 999px; display: block; flex: none; height: 40px; object-fit: cover; width: 40px; }
+.jp-theme [data-journey-sender] p { color: var(--jp-muted-foreground); font-size: 1rem; line-height: 1.35; margin: 0; }
+.jp-theme [data-journey-sender] strong { color: var(--jp-foreground); display: block; font-weight: 600; }
+.jp-theme [data-journey-sent-with] { color: #94a3b8; font-size: 0.8125rem; margin: 0 auto; max-width: var(--jp-page-max-width); padding: 4px var(--jp-page-x-padding) 40px; text-align: center; }
+.jp-theme [data-journey-sent-with] a { align-items: center; color: inherit; display: inline-flex; gap: 6px; text-decoration: none; }
+.jp-theme [data-journey-sent-with] a:hover { color: var(--jp-muted-foreground); }
+
+</style>
+</head>
+<body>
+<div data-slot="sidebar-wrapper" data-testid="react-editor-shell" class="group/sidebar-wrapper flex min-h-svh w-full bg-(image:--shell-frame)" style="--sidebar-width:17rem;--sidebar-width-icon:4rem">
+<div class="group peer hidden text-sidebar-foreground md:block" data-collapsible="" data-side="left" data-slot="sidebar" data-state="expanded" data-variant="sidebar">
+  <div data-slot="sidebar-gap" class="relative w-(--sidebar-width) bg-transparent"></div>
+  <div data-side="left" data-slot="sidebar-container" class="fixed inset-y-0 left-0 z-30 hidden h-svh w-(--sidebar-width) md:flex">
+    <div data-slot="sidebar-inner" class="flex size-full flex-col overflow-hidden border-r border-sidebar-border/80 bg-sidebar">
+      <div data-slot="sidebar-header" class="relative flex flex-row items-center justify-between gap-3 px-5 pt-6 pb-4">
+        <a class="inline-flex w-fit items-center" href="#"><img alt="Clarity" class="block h-8 w-auto" src="data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D%22115%22%20height%3D%2235%22%20viewBox%3D%220%200%20115%2035%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20d%3D%22M17.5233%201.13672C25.3611%201.13672%2031.9004%206.69914%2033.4127%2014.0936L33.5218%2014.808H28.0609L27.888%2014.1351C26.514%209.71513%2022.3933%206.50588%2017.5236%206.50588C11.53%206.50588%206.67143%2011.367%206.67143%2017.3638C6.67143%2023.3603%2011.53%2028.2217%2017.5236%2028.2217C22.3933%2028.2217%2026.5138%2025.0125%2027.888%2020.5925L28.0787%2019.8506H33.5322L33.4127%2020.634C31.9004%2028.0285%2025.3611%2033.591%2017.5233%2033.591C8.56594%2033.591%201.30469%2026.3257%201.30469%2017.3638C1.30469%208.40191%208.56594%201.13672%2017.5233%201.13672Z%22%20fill%3D%22%232563EB%22%20stroke%3D%22%232563EB%22%20stroke-miterlimit%3D%228%22%2F%3E%0A%3Cpath%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20d%3D%22M13.6348%2010.0469L26.9345%2017.441L13.6348%2024.6496V10.0469Z%22%20fill%3D%22%232563EB%22%20stroke%3D%22%232563EB%22%20stroke-miterlimit%3D%228%22%2F%3E%0A%3Cpath%20d%3D%22M55.6324%2014.5723H52.2096C52.147%2014.1296%2052.0195%2013.7363%2051.8267%2013.3926C51.6338%2013.0436%2051.3866%2012.7467%2051.0843%2012.502C50.7823%2012.2571%2050.433%2012.0697%2050.0372%2011.9395C49.6466%2011.8092%2049.2218%2011.7441%2048.7633%2011.7441C47.9351%2011.7441%2047.2135%2011.9499%2046.5989%2012.3613C45.9842%2012.7676%2045.5075%2013.3613%2045.1688%2014.1426C44.8302%2014.9186%2044.6609%2015.8613%2044.6609%2016.9707C44.6609%2018.1113%2044.8302%2019.0697%2045.1688%2019.8457C45.5127%2020.6217%2045.9919%2021.2077%2046.6068%2021.6035C47.2214%2021.9994%2047.9326%2022.1973%2048.7401%2022.1973C49.1934%2022.1973%2049.6127%2022.1374%2049.9981%2022.0176C50.389%2021.8978%2050.7353%2021.7233%2051.0375%2021.4941C51.3395%2021.2598%2051.5898%2020.9759%2051.7875%2020.6426C51.9908%2020.3092%2052.1314%2019.929%2052.2096%2019.502L55.6324%2019.5176C55.5437%2020.2519%2055.3225%2020.9603%2054.9682%2021.6426C54.6192%2022.3197%2054.1476%2022.9264%2053.5538%2023.4629C52.9651%2023.9941%2052.2616%2024.416%2051.4437%2024.7285C50.631%2025.0358%2049.7117%2025.1894%2048.6854%2025.1894C47.2578%2025.1894%2045.9815%2024.8665%2044.8562%2024.2207C43.7363%2023.5749%2042.8506%2022.64%2042.1993%2021.416C41.5535%2020.1921%2041.2305%2018.7103%2041.2305%2016.9707C41.2305%2015.2259%2041.5587%2013.7415%2042.2149%2012.5176C42.8714%2011.2936%2043.7623%2010.3613%2044.8876%209.7207C46.0127%209.07487%2047.2786%208.75196%2048.6854%208.75196C49.6127%208.75196%2050.4721%208.88216%2051.264%209.14259C52.0611%209.40298%2052.7671%209.78321%2053.3817%2010.2832C53.9966%2010.778%2054.4966%2011.3848%2054.882%2012.1035C55.2729%2012.8223%2055.523%2013.6452%2055.6324%2014.5723ZM61.325%208.97071V24.9707H57.9961V8.97071H61.325ZM67.4144%2025.1973C66.6488%2025.1973%2065.9663%2025.0644%2065.367%2024.7988C64.768%2024.528%2064.2939%2024.1296%2063.9449%2023.6035C63.6011%2023.0723%2063.429%2022.4108%2063.429%2021.6191C63.429%2020.9525%2063.5515%2020.3926%2063.7964%2019.9395C64.0412%2019.4863%2064.3746%2019.1218%2064.7967%2018.8457C65.2188%2018.5696%2065.698%2018.3613%2066.2344%2018.2207C66.7763%2018.0801%2067.3441%2017.9811%2067.938%2017.9238C68.636%2017.8509%2069.1987%2017.7832%2069.6259%2017.7207C70.0532%2017.653%2070.3631%2017.554%2070.556%2017.4238C70.7485%2017.2936%2070.8451%2017.1009%2070.8451%2016.8457V16.7988C70.8451%2016.304%2070.6886%2015.9212%2070.3763%2015.6504C70.0688%2015.3796%2069.6311%2015.2441%2069.0633%2015.2441C68.4642%2015.2441%2067.9875%2015.377%2067.6332%2015.6426C67.279%2015.903%2067.0446%2016.2311%2066.93%2016.627L63.8511%2016.3769C64.0075%2015.6478%2064.3147%2015.0176%2064.7731%2014.4863C65.2316%2013.9499%2065.823%2013.5384%2066.547%2013.2519C67.2766%2012.9603%2068.1204%2012.8144%2069.0789%2012.8144C69.7457%2012.8144%2070.3839%2012.8926%2070.9933%2013.0488C71.6083%2013.2051%2072.1526%2013.4473%2072.6266%2013.7754C73.1058%2014.1035%2073.4836%2014.5254%2073.7599%2015.041C74.0359%2015.5514%2074.174%2016.1634%2074.174%2016.877V24.9707H71.0169V23.3066H70.923C70.7305%2023.6816%2070.4725%2024.0124%2070.1495%2024.2988C69.8264%2024.5801%2069.4383%2024.8014%2068.985%2024.9629C68.5321%2025.1191%2068.0082%2025.1973%2067.4144%2025.1973ZM68.368%2022.9004C68.8576%2022.9004%2069.2901%2022.804%2069.6651%2022.6113C70.0401%2022.4134%2070.3344%2022.1478%2070.548%2021.8145C70.7617%2021.4811%2070.8683%2021.1035%2070.8683%2020.6816V19.4082C70.7641%2019.4759%2070.6211%2019.5384%2070.4386%2019.5957C70.2617%2019.6478%2070.0609%2019.6973%2069.8368%2019.7441C69.6128%2019.7858%2069.3888%2019.8249%2069.1651%2019.8613C68.941%2019.8926%2068.7378%2019.9212%2068.5553%2019.9473C68.1647%2020.0046%2067.8233%2020.0957%2067.5318%2020.2207C67.2399%2020.3457%2067.0134%2020.515%2066.8517%2020.7285C66.6904%2020.9368%2066.6097%2021.1973%2066.6097%2021.5098C66.6097%2021.9629%2066.7738%2022.3092%2067.1021%2022.5488C67.4352%2022.7832%2067.8573%2022.9004%2068.368%2022.9004ZM76.7566%2024.9707V12.9707H79.9841V15.0644H80.1091C80.3279%2014.3196%2080.6949%2013.7571%2081.2108%2013.3769C81.7264%2012.9915%2082.3206%2012.7988%2082.9924%2012.7988C83.1592%2012.7988%2083.339%2012.8093%2083.5318%2012.8301C83.7243%2012.8509%2083.8937%2012.8796%2084.0398%2012.916V15.8691C83.8833%2015.8223%2083.6672%2015.7806%2083.3909%2015.7441C83.1149%2015.7077%2082.8622%2015.6894%2082.6329%2015.6894C82.1433%2015.6894%2081.7057%2015.7962%2081.3203%2016.0098C80.9401%2016.2181%2080.6378%2016.5098%2080.4138%2016.8848C80.1949%2017.2598%2080.0855%2017.6921%2080.0855%2018.1816V24.9707H76.7566ZM85.7608%2024.9707V12.9707H89.0897V24.9707H85.7608ZM87.4332%2011.4238C86.9381%2011.4238%2086.5135%2011.2597%2086.1593%2010.9316C85.8103%2010.5983%2085.6358%2010.1999%2085.6358%209.73631C85.6358%209.27798%2085.8103%208.88476%2086.1593%208.55662C86.5135%208.22329%2086.9381%208.05664%2087.4332%208.05664C87.928%208.05664%2088.3501%208.22329%2088.6991%208.55662C89.0533%208.88476%2089.2303%209.27798%2089.2303%209.73631C89.2303%2010.1999%2089.0533%2010.5983%2088.6991%2010.9316C88.3501%2011.2597%2087.928%2011.4238%2087.4332%2011.4238ZM98.1406%2012.9707V15.4707H90.9125V12.9707H98.1406ZM92.5534%2010.0957H95.8823V21.2832C95.8823%2021.5905%2095.9294%2021.8301%2096.0229%2022.002C96.1167%2022.1686%2096.2469%2022.2858%2096.4138%2022.3535C96.5856%2022.4212%2096.7836%2022.4551%2097.0076%2022.4551C97.1638%2022.4551%2097.3203%2022.442%2097.4765%2022.416C97.6327%2022.3848%2097.7525%2022.3613%2097.8359%2022.3457L98.3594%2024.8223C98.1929%2024.8744%2097.9585%2024.9342%2097.6562%2025.002C97.3539%2025.0749%2096.9869%2025.1191%2096.5544%2025.1348C95.7521%2025.166%2095.0489%2025.0592%2094.4446%2024.8144C93.8453%2024.5697%2093.3792%2024.1895%2093.0458%2023.6738C92.7123%2023.1582%2092.5482%2022.5072%2092.5534%2021.7207V10.0957ZM102.364%2029.4707C101.942%2029.4707%20101.547%2029.4369%20101.177%2029.3691C100.812%2029.3066%20100.51%2029.2259%20100.27%2029.127L101.02%2026.6426C101.411%2026.7624%20101.763%2026.8275%20102.075%2026.8379C102.393%2026.8483%20102.667%2026.7754%20102.896%2026.6191C103.13%2026.4629%20103.32%2026.1973%20103.466%2025.8223L103.662%2025.3144L99.3558%2012.9707H102.857L105.342%2021.7832H105.467L107.975%2012.9707H111.499L106.834%2026.2676C106.61%2026.9134%20106.306%2027.4759%20105.92%2027.9551C105.54%2028.4395%20105.058%2028.8118%20104.474%2029.0723C103.891%2029.3379%20103.187%2029.4707%20102.364%2029.4707Z%22%20fill%3D%22%232563EB%22%2F%3E%0A%3C%2Fsvg%3E"></a>
+        <button type="button" data-slot="button" data-button-variant="outline" data-button-size="icon-sm" data-variant="outline" data-size="icon-sm" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid border-(--glass-border) border-t-(--glass-highlight) bg-(--glass-bg) bg-clip-border text-foreground shadow-(--btn-glass-shadow) backdrop-blur-md backdrop-saturate-140 hover:bg-(--glass-bg-elevated) hover:shadow-(--btn-glass-shadow-lift) no-backdrop-filter:bg-card size-7 rounded-[min(var(--radius-md),12px)] shrink-0" data-slot="sidebar-trigger" aria-label="Toggle navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left size-4" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></button>
+      </div>
+      <div data-slot="sidebar-content" class="no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-x-hidden overflow-y-auto py-2">
+        <div data-slot="sidebar-group" class="relative flex w-full min-w-0 flex-col px-4 py-3">
+          <div data-slot="sidebar-group-content" class="w-full text-sm">
+            <ul data-slot="sidebar-menu" class="flex w-full min-w-0 flex-col gap-1">
+              <li data-slot="sidebar-menu-item" class="group/menu-item relative grid gap-0.5"><a href="#" data-slot="sidebar-menu-button" data-active="true" aria-current="page" class="peer/menu-button relative flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-hidden transition-[width,height,padding,background-color,color] hover:bg-sidebar-primary/8 hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[active=true]:bg-sidebar-primary/12 data-[active=true]:text-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>span:last-child]:truncate min-h-11 text-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house size-4" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></a></li>
+              <li data-slot="sidebar-menu-item" class="group/menu-item relative grid gap-0.5"><a href="#" data-slot="sidebar-menu-button" data-active="false" class="peer/menu-button relative flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-hidden transition-[width,height,padding,background-color,color] hover:bg-sidebar-primary/8 hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[active=true]:bg-sidebar-primary/12 data-[active=true]:text-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>span:last-child]:truncate min-h-11 text-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users size-4" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>Contacts</span></a></li>
+              <li data-slot="sidebar-menu-item" class="group/menu-item relative grid gap-0.5"><a href="#" data-slot="sidebar-menu-button" data-active="false" class="peer/menu-button relative flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-hidden transition-[width,height,padding,background-color,color] hover:bg-sidebar-primary/8 hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[active=true]:bg-sidebar-primary/12 data-[active=true]:text-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>span:last-child]:truncate min-h-11 text-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings size-4" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div data-slot="sidebar-footer" class="flex flex-col gap-2 px-4 pt-3 pb-4"><button type="button" aria-label="Account menu for Alex Morgan" title="Account menu for Alex Morgan" data-slot="sidebar-menu-button" class="peer/menu-button relative flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-hidden transition-[width,height,padding,background-color,color] hover:bg-sidebar-primary/8 hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[active=true]:bg-sidebar-primary/12 data-[active=true]:text-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>span:last-child]:truncate min-h-11 text-sm"><div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/10 text-foreground"><span class="text-sm font-semibold">A</span></div><p class="min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground">Alex Morgan</p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-up-down ml-auto size-4 shrink-0 text-sidebar-foreground/40" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></button></div>
+    </div>
+  </div>
+</div>
+<main data-slot="sidebar-inset" tabindex="-1" class="relative flex min-h-svh w-full min-w-0 flex-1 flex-col outline-none">
+<header class="relative mx-auto w-full max-w-324 px-6 pt-3 pb-2.5">
+  <div class="flex items-center justify-between gap-4">
+    <div class="flex min-w-0 flex-auto items-center gap-3">
+      <button type="button" data-slot="button" data-button-variant="outline" data-button-size="icon" data-variant="outline" data-size="icon" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid border-(--glass-border) border-t-(--glass-highlight) bg-(--glass-bg) bg-clip-border text-foreground shadow-(--btn-glass-shadow) backdrop-blur-md backdrop-saturate-140 hover:bg-(--glass-bg-elevated) hover:shadow-(--btn-glass-shadow-lift) no-backdrop-filter:bg-card size-8 " aria-label="Back to Library"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left size-4" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></button>
+      <div class="grid w-full min-w-0 gap-1"><h1 data-slot="page-title" class="min-w-0 text-base leading-snug font-medium text-foreground">Finish your video</h1></div>
+    </div>
+  </div>
+</header>
+<main class="@container/recorder overflow-auto px-6 pt-6 pb-12">
+  <div class="mx-auto w-full max-w-312">
+    <section class="flex max-w-208 min-w-0 flex-col gap-2.5">
+      <div class="relative overflow-hidden rounded-2xl bg-(--player) shadow-lg"><div class="block aspect-video w-full bg-(--player)"><img class="poster" src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%20900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233b4a63%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230f172a%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22key%22%20cx%3D%220.62%22%20cy%3D%220.3%22%20r%3D%220.55%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%2394a3b8%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230f172a%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22body%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23a5b4c9%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2355657f%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url(%23bg)%22%2F%3E%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url(%23key)%22%2F%3E%3Crect%20x%3D%22742%22%20y%3D%22540%22%20width%3D%22116%22%20height%3D%22120%22%20rx%3D%2248%22%20fill%3D%22%236b7a94%22%2F%3E%3Cpath%20d%3D%22M420%20900c0-190%20150-290%20380-290s380%20100%20380%20290z%22%20fill%3D%22url(%23body)%22%2F%3E%3Ccircle%20cx%3D%22800%22%20cy%3D%22425%22%20r%3D%22152%22%20fill%3D%22url(%23body)%22%2F%3E%3C%2Fsvg%3E" alt=""></div></div>
+      <div class="flex flex-col gap-3" data-slot="video-timeline">
+  <div data-surface="media" class="glass glass-media flex flex-wrap items-center gap-3.5 rounded-xl py-2.5 pr-3 pl-2.5">
+    <div class="flex min-w-0 flex-1 items-center gap-3.5">
+      <button type="button" data-slot="button" data-button-variant="ghost" data-button-size="icon" data-variant="ghost" data-size="icon" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid h-8 min-w-8 border-0 border-none border-current bg-transparent bg-clip-border text-(--cg-ink) pointer-coarse:h-11 pointer-coarse:min-w-11 hover:bg-(--cg-btn-hover) size-8 rounded-full" aria-label="Pause preview"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause size-4" aria-hidden="true"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></svg></button>
+      <div class="flex min-w-0 flex-1 items-center gap-2.5">
+        <span class="text-xs leading-none whitespace-nowrap text-(--cg-ink-dim) tabular-nums">0:00</span>
+        <div class="group/progress relative h-6 min-w-32 flex-1 cursor-pointer touch-none rounded-full select-none before:absolute before:inset-x-0 before:top-1/2 before:h-1.5 before:-translate-y-1/2 before:rounded-full before:bg-(--cg-ink)/18" style="--progress:0%" role="slider" aria-label="Video playback position" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" tabindex="0">
+          <span class="pointer-events-none absolute top-1/2 left-0 h-1.5 w-(--progress) -translate-y-1/2 rounded-full bg-(--cg-ink)"></span>
+          <span class="pointer-events-none absolute top-1/2 left-(--progress) size-3.5 -translate-1/2 rounded-full bg-(--cg-ink) shadow-sm"></span>
+        </div>
+        <span class="text-xs leading-none whitespace-nowrap text-(--cg-ink-dim) tabular-nums">0:06</span>
+      </div>
+    </div>
+    <div class="flex min-w-0 gap-0.5" data-slot="video-timeline-summary-actions">
+      <button type="button" data-slot="button" data-button-variant="ghost" data-button-size="sm" data-variant="ghost" data-size="sm" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid h-8 min-w-8 border-0 border-none border-current bg-transparent bg-clip-border text-(--cg-ink) pointer-coarse:h-11 pointer-coarse:min-w-11 hover:bg-(--cg-btn-hover) h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5 "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-scissors size-4" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Trim</button>
+      <button type="button" data-slot="button" data-button-variant="ghost" data-button-size="sm" data-variant="ghost" data-size="sm" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid h-8 min-w-8 border-0 border-none border-current bg-transparent bg-clip-border text-(--cg-ink) pointer-coarse:h-11 pointer-coarse:min-w-11 hover:bg-(--cg-btn-hover) h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5 "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-film size-4" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></svg>Edit Preview</button>
+    </div>
+  </div>
+</div>
+      <div class="mt-2 flex items-center gap-4">
+        <a class="live-thumb" href="#" aria-label="Open the page Dana will see" title="What Dana will see"><div class="page jp-theme" style="--jp-background: #ffffff; --jp-foreground: #0f172a; --jp-muted: #f1f5f9; --jp-muted-foreground: #64748b; --jp-card: #ffffff; --jp-card-foreground: #0f172a; --jp-border: #e2e8f0; --jp-input: #cbd5e1; --jp-primary: #2563eb; --jp-primary-foreground: #ffffff; --jp-accent: #2563eb; --jp-accent-foreground: #ffffff; --jp-radius: 12px; --jp-radius-button: 8px; --jp-font-heading: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; --jp-font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif" aria-hidden="true"><section class="hero" data-module-kind="hero" data-section-id="hero" data-section-kind="hero" data-logo-align="left" data-surface-block="hero" data-title-align="left">
+      <div class="company-logo-wrap" data-journey-brand-logo data-logo-align="left"><svg class="company-logo" width="150" height="28" viewBox="0 0 150 28" role="img" aria-label="Northwind Logistics"><rect width="28" height="28" rx="7" fill="#0f172a"/><path d="M8.5 20.5V7.5l11 9V7.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><text x="37" y="19.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="17.5" font-weight="700" letter-spacing="-0.4" fill="#0f172a">Northwind</text></svg></div>
+      <h1 style="text-align: left">Dana, a quick video for Acme Freight</h1>
+      <div data-journey-sender><img src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2096%2096%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23dbeafe%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2393c5fd%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2296%22%20height%3D%2296%22%20fill%3D%22url(%23g)%22%2F%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2238%22%20r%3D%2217%22%20fill%3D%22%231e3a5f%22%2F%3E%3Cpath%20d%3D%22M12%2096c3-22%2017-33%2036-33s33%2011%2036%2033z%22%20fill%3D%22%231e3a5f%22%2F%3E%3C%2Fsvg%3E" alt="" width="40" height="40"><p><strong>Alex Morgan</strong>Northwind Logistics</p></div>
+      <div class="media-frame" data-journey-media-frame data-journey-video-frame style="--media-aspect-ratio: 1.7777778 / 1; --media-ratio-number: 1.7777778;" data-journey-video-preview-shell>
+        <button type="button" class="lp-video-preview-button" data-journey-video-preview-trigger aria-label="Play video">
+          <img class="lp-video-poster" data-journey-video-preview src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%20900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233b4a63%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230f172a%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22key%22%20cx%3D%220.62%22%20cy%3D%220.3%22%20r%3D%220.55%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%2394a3b8%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230f172a%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22body%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23a5b4c9%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2355657f%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url(%23bg)%22%2F%3E%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url(%23key)%22%2F%3E%3Crect%20x%3D%22742%22%20y%3D%22540%22%20width%3D%22116%22%20height%3D%22120%22%20rx%3D%2248%22%20fill%3D%22%236b7a94%22%2F%3E%3Cpath%20d%3D%22M420%20900c0-190%20150-290%20380-290s380%20100%20380%20290z%22%20fill%3D%22url(%23body)%22%2F%3E%3Ccircle%20cx%3D%22800%22%20cy%3D%22425%22%20r%3D%22152%22%20fill%3D%22url(%23body)%22%2F%3E%3C%2Fsvg%3E" alt="" decoding="async" loading="eager" fetchpriority="high">
+          <span class="lp-video-overlay" aria-hidden="true"></span>
+          <span class="lp-play-button" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"></path></svg>
+          </span>
+        </button>
+      </div>
+      <div class="cta-row" data-journey-cta-row><span class="button">Book a call</span></div>
+    </section></div></a>
+        <div class="grid min-w-0 flex-1 gap-1">
+          <p class="flex items-center gap-2 text-base font-medium text-foreground"><span class="size-2 shrink-0 rounded-full bg-success" aria-hidden="true"></span>Your page for Dana is live</p>
+          <p class="truncate text-sm text-muted-foreground tabular-nums">clarity.video/page/7kq2m3</p>
+        </div>
+        <div class="flex shrink-0 items-center gap-3">
+          <button type="button" data-slot="button" data-button-variant="ghost" data-button-size="sm" data-variant="ghost" data-size="sm" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none border-transparent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 hover:bg-primary/10 hover:text-foreground h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5 "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw size-3.5" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Re-record</button>
+          <button type="button" data-slot="button" data-button-variant="outline" data-button-size="lg" data-variant="outline" data-size="lg" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid border-(--glass-border) border-t-(--glass-highlight) bg-(--glass-bg) bg-clip-border text-foreground shadow-(--btn-glass-shadow) backdrop-blur-md backdrop-saturate-140 hover:bg-(--glass-bg-elevated) hover:shadow-(--btn-glass-shadow-lift) no-backdrop-filter:bg-card h-10 gap-1.5 px-4 min-w-30" data-action="open-page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen size-4" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>Open page</button>
+          <button type="button" data-slot="button" data-button-variant="default" data-button-size="lg" data-variant="default" data-size="lg" class="group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid border-(--btn-edge) bg-(image:--btn-gradient) bg-clip-border hover:bg-(image:--btn-gradient-lift) shadow-(--btn-shadow) hover:shadow-(--btn-shadow-lift) h-10 gap-1.5 px-4 min-w-30" data-action="copy-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Copy link</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+</main>
+</div>
+</body>
+</html>

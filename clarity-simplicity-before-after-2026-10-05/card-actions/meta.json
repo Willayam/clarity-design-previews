@@ -1,0 +1,15 @@
+{
+  "slug": "card-actions",
+  "title": "Cards get one primary action, one secondary and one menu",
+  "change": "Open is the card’s one primary action and shows on hover. Copy link replaces the Share icon as the one secondary action. The menu loses Edit and Share, which repeated the card’s own buttons.",
+  "evidence": "Up to 10 actions per card, three of them duplicates (walkthrough, section 7).",
+  "before": [
+    "../before/04-library-menu-page-desktop.png",
+    "../before/04-library-menu-video-desktop.png"
+  ],
+  "after": [
+    "after-desktop.png",
+    "after-video-desktop.png"
+  ],
+  "notes": "The page menu keeps Statistics, Rename, Duplicate, Move and Delete. The audit also questions Duplicate; it stays here because the brief only cut Edit and Share. On the video card Play stays the hover primary, Edit leaves the menu and Download stays. Current main also lists Form submissions on the page menu; it is left out because Leads covers it."
+}

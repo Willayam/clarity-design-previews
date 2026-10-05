@@ -1,0 +1,17 @@
+{
+  "slug": "editor-panel",
+  "title": "A calmer editor panel",
+  "change": "No title has an alignment switch. Client logos lose Variant and Colors, and the form keeps a title, an email field and an optional message. Empty sections carry a \"Hidden until filled\" mark in the panel and on the canvas, and stay off the public page.",
+  "evidence": "With every block added the editor shows 154 controls, and the form alone adds 25.",
+  "before": [
+    "../before/06-editor-all-blocks-desktop-full.png",
+    "../before/06-editor-block-logos-desktop.png",
+    "../before/06-editor-block-form-desktop.png"
+  ],
+  "after": [
+    "after-desktop.png",
+    "after-desktop-logos.png",
+    "after-desktop-form.png"
+  ],
+  "notes": "Rendered from the real editor on current main with mocked API data, then edited in the DOM. The three shots pair with the three befores at the same panel scroll. The before full page is the fixed app shell, so the full-page after is also 1440x900. The canvas form preview keeps today's labels (\"* Enter Email\"); only the panel changed. Summary and Gallery stay in the panel because existing pages keep them. The hidden-section pill styles are hand-written."
+}

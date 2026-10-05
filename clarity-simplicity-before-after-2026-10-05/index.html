@@ -1,0 +1,130 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clarity simplicity audit: before and after</title><style>
+body{margin:0;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#0f172a;background:#f8fafc}
+main{max-width:1500px;margin:0 auto;padding:32px 20px 80px} h1{font-size:1.8rem;margin:0 0 6px}
+.intro{max-width:760px;color:#334155} .toc{columns:3 240px;margin:20px 0 8px;font-size:.92rem} .toc a{display:block;color:#1d4ed8;text-decoration:none;padding:2px 0}
+h2.group{margin:56px 0 0;font-size:1.3rem;border-top:1px solid #e2e8f0;padding-top:20px}
+.change{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:20px 0} .change h3{margin:0 0 6px;font-size:1.1rem}
+.what{margin:0 0 4px} .ev{margin:0 0 12px;color:#64748b;font-size:.9rem}
+.seg{display:inline-flex;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:12px} .seg button{border:0;background:#fff;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer} .seg button.on{background:#1d4ed8;color:#fff}
+.pair{display:grid;gap:16px} .pair.split{grid-template-columns:1fr 1fr} .pair.before .a,.pair.after .b{display:none}
+figure{margin:0} figcaption{font-size:.8rem;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+figure img{display:block;width:100%;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;background:#fff} figure img.m{max-width:300px;display:inline-block;margin-right:10px;vertical-align:top}
+.live{font-size:.85rem;color:#1d4ed8}
+@media (max-width:800px){.pair.split{grid-template-columns:1fr}}
+</style></head><body><main>
+<h1>Clarity, ten times simpler: before and after</h1>
+<p class="intro">Each change from the <a href="../clarity-simplicity-audit-2026-10-03/">simplicity audit</a>, shown on the screen it touches. The before is a real staging screenshot from 3 October. The after is a throwaway HTML mock built with the app's own CSS from current main. It keeps today's visual style so you only see the simplification, not a redesign. All names and data in the afters are made up. Each after applies only its own change, so Learn still shows in some sidebars. Its removal is shown on the first two Home screens.</p>
+<nav class="toc"><a href="#first-run-home">1. First run: one way to start</a><a href="#recorder-who-for">2. Recorder: who is this for?</a><a href="#recorder-recording">3. Recorder: nothing to change mid-take</a><a href="#recorder-finish">4. Finish: the page is live</a><a href="#prospect-fast-page">5. The fast-path page carries the rep</a><a href="#prospect-lead-form">6. Lead form: one field, confirmed in place</a><a href="#home-activity">7. Home lists sent pages by prospect and last activity</a><a href="#card-actions">8. Cards get one primary action, one secondary and one menu</a><a href="#share-one-meaning">9. Share on a video gives the link to its page</a><a href="#stats-merged">10. One statistics view, with its numbers on the card</a><a href="#leads">11. Contacts becomes Leads</a><a href="#mobile-two-tabs">12. Two tabs on a phone: Record and Pages</a><a href="#editor-panel">13. A calmer editor panel</a><a href="#add-section">14. Add section offers six blocks</a><a href="#style-presets">15. Page style is the six presets</a><a href="#settings-you">16. One You page</a><a href="#not-found">17. A not-found page with a way home</a><a href="#marketing-header">18. One door on the marketing header</a></nav>
+<h2 class="group">Record</h2><section class="change" id="first-run-home">
+<h3>1. First run: one way to start</h3>
+<p class="what">The empty Home keeps one call to action, Record a video, with upload and a blank page as text links under it. Search, filter, sort, New folder, the duplicate header buttons and the consent card are gone, and Learn leaves the sidebar. On a phone the bar has two tabs, Pages and Record, and the account sits behind the avatar in the header.</p>
+<p class="ev">Evidence: A new user saw three ways to start, shown twice, plus tools for zero items: 22 controls on desktop. Learn had 0 training video plays in 90 days.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/02-first-run-home-desktop.png" alt=""><img loading="lazy" class="m" src="before/02-first-run-home-mobile.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="first-run-home/after-desktop.png" alt=""><img loading="lazy" class="m" src="first-run-home/after-mobile.png" alt=""><a class="live" href="first-run-home/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="recorder-who-for">
+<h3>2. Recorder: who is this for?</h3>
+<p class="what">One field above the preview asks who the video is for. The answer names the video, the page and the link. Camera and microphone become one devices control, with the level meter inside it.</p>
+<p class="ev">Evidence: Nothing on the core path asks who the video is for: three takes and their pages were all Untitled Video. The ready screen had 16 controls.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/05-recorder-ready-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="recorder-who-for/after-desktop.png" alt=""><a class="live" href="recorder-who-for/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="recorder-recording">
+<h3>3. Recorder: nothing to change mid-take</h3>
+<p class="what">While recording, the layout tiles and the devices control are hidden. Only Stop with the timer and Pause remain, in the place the record button had. The answer to Who is this for? stays above the preview as the on-screen prompt.</p>
+<p class="ev">Evidence: 19 controls stayed clickable mid-take, including four layouts and two device pickers. A take has one layout.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/05-recorder-recording-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="recorder-recording/after-desktop.png" alt=""><a class="live" href="recorder-recording/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="recorder-finish">
+<h3>4. Finish: the page is live</h3>
+<p class="what">Under the dock, the finish screen says Your page for Dana is live, shows a thumbnail of what Dana will see and the link, and keeps Copy link as the primary action beside Re-record and Open page. The player, Trim and Edit Preview are unchanged.</p>
+<p class="ev">Evidence: Copy link was enabled 81 ms after Stop, but the screen never said the page was live, and what the link opened was a bare video titled Untitled Video.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/05-recorder-finish-ready-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="recorder-finish/after-desktop.png" alt=""><a class="live" href="recorder-finish/after.html">Open the live mock</a></figure></div>
+</section><h2 class="group">What the prospect sees</h2><section class="change" id="prospect-fast-page">
+<h3>5. The fast-path page carries the rep</h3>
+<p class="what">The page the recorder sends now shows Northwind&#x27;s logo, the headline Dana, a quick video for Acme Freight, Alex Morgan&#x27;s name and photo, the video, one Book a call button and a quiet Sent with Clarity line. All of it comes from the profile and the recorder&#x27;s one question, with no visit to the editor.</p>
+<p class="ev">Evidence: Today the six-click path sends a bare video titled Untitled Video with no name, face, button or footer. 70% of new customer pages in the last 30 days are only a video.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/07-prospect-recorder-desktop.png" alt=""><img loading="lazy" class="m" src="before/07-prospect-recorder-mobile.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="prospect-fast-page/after-desktop.png" alt=""><img loading="lazy" class="m" src="prospect-fast-page/after-mobile.png" alt=""><a class="live" href="prospect-fast-page/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="prospect-lead-form">
+<h3>6. Lead form: one field, confirmed in place</h3>
+<p class="what">The form asks for an email and an optional message, with real labels, no Cancel, no mobile number and one plain sentence of consent. Send is the only button. After sending, Thanks Dana. Alex will be in touch. replaces the form under the video instead of a blank page. The empty Pricing heading no longer renders.</p>
+<p class="ev">Evidence: The form asked four placeholder-labelled fields and a consent box about orders to say I&#x27;m interested, and the required mobile number accepted letters. Submit replaced the whole page with Form submitted successfully and no way back. Only 2 new customer pages in 30 days carried a form.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/07-prospect-audit-desktop-form.png" alt=""><img loading="lazy" class="d" src="before/07-prospect-audit-desktop-form-submitted.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="prospect-lead-form/after-desktop.png" alt=""><img loading="lazy" class="d" src="prospect-lead-form/after-submitted-desktop.png" alt=""><a class="live" href="prospect-lead-form/after.html">Open the live mock</a></figure></div>
+</section><h2 class="group">Know</h2><section class="change" id="home-activity">
+<h3>7. Home lists sent pages by prospect and last activity</h3>
+<p class="what">Home leads with the pages the rep has sent, one card per prospect, newest activity first. Each card says who the page is for, what they last did and how many views it has. Videos, images and documents move to one quiet Files shelf, and Learn leaves the sidebar.</p>
+<p class="ev">Evidence: 97 of 139 new customer pages in the last 30 days were made from one recorded video. The page sent to a person is the unit of work, not the file.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/03-home-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="home-activity/after-desktop.png" alt=""><a class="live" href="home-activity/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="card-actions">
+<h3>8. Cards get one primary action, one secondary and one menu</h3>
+<p class="what">Open is the card’s one primary action and shows on hover. Copy link replaces the Share icon as the one secondary action. The menu loses Edit and Share, which repeated the card’s own buttons.</p>
+<p class="ev">Evidence: Up to 10 actions per card, three of them duplicates (walkthrough, section 7).</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/04-library-menu-page-desktop.png" alt=""><img loading="lazy" class="d" src="before/04-library-menu-video-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="card-actions/after-desktop.png" alt=""><img loading="lazy" class="d" src="card-actions/after-video-desktop.png" alt=""><a class="live" href="card-actions/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="share-one-meaning">
+<h3>9. Share on a video gives the link to its page</h3>
+<p class="what">Share on a video card opens the same Share dialog a page card opens, with the link to the page that video sits on. It no longer creates a new page and drops the rep in the editor.</p>
+<p class="ev">Evidence: Share meant three things, and on a video card it created a new Journey Page and opened the editor (walkthrough friction point 6, rated high).</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/04-video-card-share-dialog-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="share-one-meaning/after-desktop.png" alt=""><a class="live" href="share-one-meaning/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="stats-merged">
+<h3>10. One statistics view, with its numbers on the card</h3>
+<p class="what">Statistics on a video card opens the page statistics for the page that video sits on, and the separate video statistics modal goes away. Page cards show the same three numbers as the modal: visits, watched and clicks.</p>
+<p class="ev">Evidence: The video statistics modal showed a placeholder chart and “Share this video” for a video whose page had been watched (walkthrough friction point 15). The page modal already shows plays, retention and location per video.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/04-video-stats-modal-desktop.png" alt=""><img loading="lazy" class="d" src="before/12-page-stats-after-visits-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="stats-merged/after-desktop.png" alt=""><img loading="lazy" class="d" src="stats-merged/after-cards-desktop.png" alt=""><a class="live" href="stats-merged/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="leads">
+<h3>11. Contacts becomes Leads</h3>
+<p class="what">Contacts becomes Leads. Each row is a person who sent a form or watched a page, with that page, how much of the video they watched and what they asked. Import CSV, Add Contact and the CRM columns go; Export stays.</p>
+<p class="ev">Evidence: 1 contact added by hand in 30 days, and no CSV imports since March 2025.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/08-contacts-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="leads/after-desktop.png" alt=""><a class="live" href="leads/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="mobile-two-tabs">
+<h3>12. Two tabs on a phone: Record and Pages</h3>
+<p class="what">The phone tab bar has two tabs, Record and Pages, and the More drawer goes. Profile, Settings and Sign out sit behind the avatar at the top of the page.</p>
+<p class="ev">Evidence: Three of the More drawer’s four items were already in the tab bar.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="m" src="before/03-home-mobile.png" alt=""><img loading="lazy" class="m" src="before/03-nav-more-mobile.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="m" src="mobile-two-tabs/after-mobile.png" alt=""><img loading="lazy" class="m" src="mobile-two-tabs/after-menu-mobile.png" alt=""><a class="live" href="mobile-two-tabs/after.html">Open the live mock</a></figure></div>
+</section><h2 class="group">Page editor</h2><section class="change" id="editor-panel">
+<h3>13. A calmer editor panel</h3>
+<p class="what">No title has an alignment switch. Client logos lose Variant and Colors, and the form keeps a title, an email field and an optional message. Empty sections carry a &quot;Hidden until filled&quot; mark in the panel and on the canvas, and stay off the public page.</p>
+<p class="ev">Evidence: With every block added the editor shows 154 controls, and the form alone adds 25.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/06-editor-all-blocks-desktop-full.png" alt=""><img loading="lazy" class="d" src="before/06-editor-block-logos-desktop.png" alt=""><img loading="lazy" class="d" src="before/06-editor-block-form-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="editor-panel/after-desktop.png" alt=""><img loading="lazy" class="d" src="editor-panel/after-desktop-logos.png" alt=""><img loading="lazy" class="d" src="editor-panel/after-desktop-form.png" alt=""><a class="live" href="editor-panel/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="add-section">
+<h3>14. Add section offers six blocks</h3>
+<p class="what">The Add section picker drops Summary and Gallery. Six tiles remain: Story, Client logos, Form, Document, FAQ and Pricing.</p>
+<p class="ev">Evidence: Summary is on 9 customer pages ever and Gallery on 16.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/06-editor-add-section-menu-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="add-section/after-desktop.png" alt=""><a class="live" href="add-section/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="style-presets">
+<h3>15. Page style is the six presets</h3>
+<p class="what">Page style shows the six presets as small previews of the rep&#x27;s own page, plus the logo. The Color, Background, Fonts, Size and Corners rows are gone.</p>
+<p class="ev">Evidence: Font, size, corner or background overrides appear on 10 customer pages from 5 owners.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/06-editor-style-panel-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="style-presets/after-desktop.png" alt=""><a class="live" href="style-presets/after.html">Open the live mock</a></figure></div>
+</section><h2 class="group">Account and edges</h2><section class="change" id="settings-you">
+<h3>16. One You page</h3>
+<p class="what">Profile, Branding, Password and Billing become one page: the four fields a page uses (name, photo, company, calendar link), the logo and brand color, one subscription line with Manage billing, and a Change password link. Phone numbers, address and timezone are gone. Settings leaves the sidebar because the avatar menu opens You.</p>
+<p class="ev">Evidence: Profile asks for 15 fields, and none of them appear on a page.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/08-profile-desktop-full.png" alt=""><img loading="lazy" class="d" src="before/08-settings-branding-desktop.png" alt=""><img loading="lazy" class="d" src="before/08-settings-billing-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="settings-you/after-desktop.png" alt=""><a class="live" href="settings-you/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="not-found">
+<h3>17. A not-found page with a way home</h3>
+<p class="what">Unknown and retired links open one page inside the app shell. It says the page is not here, offers Go to Home, and gently offers Record a video.</p>
+<p class="ev">Evidence: /deal_board, /messages and every unknown path answer bare monospace text with no way out.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/08-not-found-desktop.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="not-found/after-desktop.png" alt=""><a class="live" href="not-found/after.html">Open the live mock</a></figure></div>
+</section><section class="change" id="marketing-header">
+<h3>18. One door on the marketing header</h3>
+<p class="what">The header has one Continue button instead of Sign in plus Get started. The analytics consent card no longer covers the hero video.</p>
+<p class="ev">Evidence: Sign in and Get started open the same login screen.</p>
+<div class="seg" role="tablist"><button data-v="split" class="on">Side by side</button><button data-v="before">Before</button><button data-v="after">After</button></div>
+<div class="pair split"><figure class="b"><figcaption>Before, staging 3 Oct</figcaption><img loading="lazy" class="d" src="before/01-marketing-home-desktop.png" alt=""><img loading="lazy" class="m" src="before/01-marketing-home-mobile.png" alt=""></figure><figure class="a"><figcaption>After, mock</figcaption><img loading="lazy" class="d" src="marketing-header/after-desktop.png" alt=""><img loading="lazy" class="m" src="marketing-header/after-mobile.png" alt=""><a class="live" href="marketing-header/after.html">Open the live mock</a></figure></div>
+</section>
+</main><script>
+document.querySelectorAll('.change').forEach(c=>c.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{c.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));c.querySelector('.pair').className='pair '+b.dataset.v;}));
+</script></body></html>

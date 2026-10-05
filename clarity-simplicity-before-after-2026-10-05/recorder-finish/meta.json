@@ -1,0 +1,9 @@
+{
+  "slug": "recorder-finish",
+  "title": "Finish: the page is live",
+  "change": "Under the dock, the finish screen says Your page for Dana is live, shows a thumbnail of what Dana will see and the link, and keeps Copy link as the primary action beside Re-record and Open page. The player, Trim and Edit Preview are unchanged.",
+  "evidence": "Copy link was enabled 81 ms after Stop, but the screen never said the page was live, and what the link opened was a bare video titled Untitled Video.",
+  "before": ["../before/05-recorder-finish-ready-desktop.png"],
+  "after": ["after-desktop.png"],
+  "notes": "The thumbnail is the real public page markup scaled down, so it matches prospect-fast-page. The share URL is mock data. The preview is a neutral poster instead of the green test pattern."
+}

@@ -1,0 +1,15 @@
+{
+  "slug": "settings-you",
+  "title": "One You page",
+  "change": "Profile, Branding, Password and Billing become one page: the four fields a page uses (name, photo, company, calendar link), the logo and brand color, one subscription line with Manage billing, and a Change password link. Phone numbers, address and timezone are gone. Settings leaves the sidebar because the avatar menu opens You.",
+  "evidence": "Profile asks for 15 fields, and none of them appear on a page.",
+  "before": [
+    "../before/08-profile-desktop-full.png",
+    "../before/08-settings-branding-desktop.png",
+    "../before/08-settings-billing-desktop.png"
+  ],
+  "after": [
+    "after-desktop.png"
+  ],
+  "notes": "Built from the real Profile and Branding screens with mocked data, full page like the Profile before. The plan line shows a paying Pro account at $49 a month (the price in SubscriptionRoute) so Manage billing has something to open. The camera badge on the avatar is the photo control. The Privacy card is unchanged. Dropping Settings from the desktop sidebar is my reading; the audit only says so for mobile."
+}
