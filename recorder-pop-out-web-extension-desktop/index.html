@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recorder pop-out: web app, extension, or desktop app</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1a1a1a; --muted: #666; --bg: #fff; --line: #e4e4e4; --yes: #1f7a3d; --no: #b42318; --part: #9a6700; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #eee; --muted: #9a9a9a; --bg: #121212; --line: #2c2c2c; --yes: #4ac26b; --no: #ff7b72; --part: #d29922; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 8px; }
+  h2 { font-size: 1.15rem; margin: 36px 0 8px; }
+  p, li { max-width: 68ch; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+  table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: .92rem; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; }
+  td:first-child { font-weight: 600; width: 22%; }
+  .yes { color: var(--yes); font-weight: 600; }
+  .no { color: var(--no); font-weight: 600; }
+  .part { color: var(--part); font-weight: 600; }
+  a { color: inherit; }
+  ol li, ul li { margin-bottom: 6px; }
+  .shots { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
+  figure { margin: 0; max-width: 360px; }
+  figure img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  figcaption { color: var(--muted); font-size: .85rem; margin-top: 6px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Recorder pop-out: what the web app can do, and what needs an extension or a desktop app</h1>
+<p class="muted">Researched 5 October 2026 against Chrome stable (about version 154). Sources are listed at the end.</p>
+
+<p>Ship the pop-out in the web app now. It covers the main need, which is seeing the recording and your face while you work in another tab or app. A Chrome extension adds little for this problem. Only a desktop app can keep its own controls and camera bubble out of a whole-screen recording, so that is the reason to build one later.</p>
+
+<h2>What the web pop-out looks like</h2>
+<p>These are screenshots from real Chrome, recording with a fake camera and a fake screen share. The pop-out is 360 by 260 pixels and shows exactly the frames being recorded, with the same Stop and Pause buttons as the page.</p>
+<div class="shots">
+<figure><img src="pip-camera.png" alt="Pop-out showing the camera preview, a red Stop button with the timer, and a Pause button"><figcaption>Camera only. The preview is mirrored, like the page.</figcaption></figure>
+<figure><img src="pip-window-share-dark.png" alt="Pop-out in dark mode showing a shared window, Stop with timer, and Pause"><figcaption>Sharing one window, in dark mode.</figcaption></figure>
+<figure><img src="pip-whole-screen.png" alt="Pop-out with the text Preview off while you share your entire screen, above Stop and Pause"><figcaption>Sharing the whole screen. The preview is off so the recording does not show a screen inside a screen.</figcaption></figure>
+</div>
+
+<h2>What each option can do</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Capability</th><th>Web app in Chrome</th><th>Chrome extension</th><th>Desktop app</th></tr></thead>
+<tbody>
+<tr><td>Floating preview while you use another tab</td>
+<td><span class="yes">Yes.</span> Document Picture-in-Picture. Chrome opens it automatically when you switch tabs during a recording, because the recorder already uses the camera and mic.</td>
+<td><span class="yes">Yes.</span> Same API, or a bubble injected into each tab.</td>
+<td><span class="yes">Yes.</span></td></tr>
+<tr><td>Floating preview while you use another app</td>
+<td><span class="part">Yes, after one click.</span> The window stays on top of every app, but Chrome only auto-opens it on a tab switch. Before switching apps you press Pop out.</td>
+<td><span class="part">Same as the web app.</span> An injected bubble only exists inside Chrome tabs.</td>
+<td><span class="yes">Yes, always.</span></td></tr>
+<tr><td>Keep our own window out of a whole-screen recording</td>
+<td><span class="no">No.</span> Anything on screen is recorded, including the pop-out. A W3C proposal to exclude it (issue 330) is open and not shipped. The pop-out hides its preview in this case, so the recording does not show a screen inside a screen.</td>
+<td><span class="no">No.</span> The extension capture API cannot exclude windows.</td>
+<td><span class="yes">Yes.</span> ScreenCaptureKit filters on macOS, <code>WDA_EXCLUDEFROMCAPTURE</code> on Windows.</td></tr>
+<tr><td>Loom-style camera bubble in screen recordings</td>
+<td><span class="part">Possible.</span> The pop-out could become the bubble, with the camera left out of the composited frame. It only reaches the video when you share the whole screen.</td>
+<td><span class="part">Inside Chrome tabs only.</span> Loom's own extension does not show its bubble over other apps.</td>
+<td><span class="yes">Yes, over any app.</span></td></tr>
+<tr><td>Recording survives closing the Clarity tab</td>
+<td><span class="no">No.</span> Closing the tab closes the pop-out and ends the recording.</td>
+<td><span class="yes">Yes.</span> An offscreen document keeps recording without any Clarity tab.</td>
+<td><span class="yes">Yes.</span></td></tr>
+<tr><td>System audio</td>
+<td><span class="part">Partly.</span> Tab audio everywhere. Screen and window audio on macOS from Chrome 141 with macOS 14.2 or later. The browser treats the request as a hint.</td>
+<td><span class="part">Same as the web app.</span></td>
+<td><span class="yes">Yes, from any app.</span></td></tr>
+<tr><td>Keyboard shortcut to stop or pause from anywhere</td>
+<td><span class="part">Inside the pop-out only.</span></td>
+<td><span class="part">Up to four,</span> and global ones are limited to Ctrl+Shift+0 to 9.</td>
+<td><span class="yes">Any global hotkey.</span></td></tr>
+<tr><td>Click highlighting and cursor zoom</td>
+<td><span class="no">No.</span> A web page cannot see the cursor outside its own tab.</td>
+<td><span class="part">Inside Chrome tabs only.</span></td>
+<td><span class="yes">Yes.</span></td></tr>
+<tr><td>What the customer has to do</td>
+<td>Nothing. Chrome asks once whether the site may open the pop-out automatically.</td>
+<td>Install from the Chrome Web Store and accept permission warnings. Store review takes days to weeks, and any new permission warning disables the extension until the user accepts it again.</td>
+<td>Download, install, and grant macOS screen-recording permission. We would also own code signing and auto-update.</td></tr>
+<tr><td>Cost to build</td>
+<td>Small. This PR.</td>
+<td>Medium. A separate codebase that is built, reviewed, and released on its own track.</td>
+<td>Large. A native capture pipeline per OS, signing, updates, and support.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Recommendation</h2>
+<ol>
+<li><strong>Now.</strong> Ship the web pop-out. It shows exactly what is being recorded, with the timer, Pause, and Stop. A Pop out button opens it before you switch apps. Chrome can also open it by itself when you switch tabs; that path only runs on https, so it gets checked on the PR preview. When you share the whole screen it shows only the controls, and it does not open by itself, so a tab switch never drops a control bar into the recording.</li>
+<li><strong>Next, still in the web app.</strong> Set the screen-share options the recorder passes to Chrome today with defaults only: hide the Clarity tab from the picker, allow switching the shared tab, ask for system audio, and choose whether Chrome jumps to the shared tab after the picker. Then measure the frame rate of the recording with the Clarity tab hidden, with and without the pop-out open.</li>
+<li><strong>Your call.</strong> For whole-screen recordings, the pop-out could become a Loom-style camera bubble, with the camera taken out of the composited frame. You would get your face in the recording from a bubble you can drag around. The cost is a second compositing path for one case.</li>
+<li><strong>Skip the extension</strong> unless recording after the Clarity tab closes, or one-click tab capture without the picker, becomes a customer need. It does not solve the whole-screen problem.</li>
+<li><strong>Build a desktop app</strong> when clean whole-screen recordings, system audio from any app, global hotkeys, or click highlighting matter to customers. That is the line where Loom also needs its desktop app.</li>
+</ol>
+
+<h2>Sources</h2>
+<ul class="muted">
+<li><a href="https://developer.chrome.com/docs/web-platform/document-picture-in-picture">Chrome: Document Picture-in-Picture</a></li>
+<li><a href="https://developer.chrome.com/blog/automatic-picture-in-picture">Chrome: automatic picture-in-picture for web apps</a></li>
+<li><a href="https://github.com/w3c/mediacapture-screen-share/issues/330">W3C mediacapture-screen-share issue 330: exclude PiP windows from capture</a></li>
+<li><a href="https://developer.chrome.com/docs/web-platform/screen-sharing-controls">Chrome: screen sharing controls</a></li>
+<li><a href="https://developer.chrome.com/docs/web-platform/conditional-focus">Chrome: conditional focus</a></li>
+<li><a href="https://blog.addpipe.com/getdisplaymedia-allows-capturing-the-screen-with-system-sounds-on-chrome-on-macos/">addpipe: system audio capture on Chrome for macOS</a></li>
+<li><a href="https://developer.chrome.com/blog/timer-throttling-in-chrome-88">Chrome: timer throttling</a></li>
+<li><a href="https://developer.chrome.com/docs/extensions/reference/api/desktopCapture">Chrome extensions: desktopCapture</a></li>
+<li><a href="https://developer.chrome.com/docs/extensions/reference/api/offscreen">Chrome extensions: offscreen documents</a></li>
+<li><a href="https://developer.chrome.com/docs/extensions/reference/api/commands">Chrome extensions: commands</a></li>
+<li><a href="https://developer.chrome.com/docs/webstore/review-process">Chrome Web Store review process</a></li>
+<li><a href="https://support.atlassian.com/loom/docs/the-loom-recording-platforms">Loom: recording platforms</a></li>
+<li><a href="https://developer.apple.com/videos/play/wwdc2022/10156/">Apple WWDC22: ScreenCaptureKit</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity">Microsoft: SetWindowDisplayAffinity</a></li>
+<li><a href="https://www.electronjs.org/docs/latest/api/browser-window">Electron: BrowserWindow</a></li>
+</ul>
+</main>
+</body>
+</html>
