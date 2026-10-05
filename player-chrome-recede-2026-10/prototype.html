@@ -89,9 +89,9 @@ const BASE = `
   media-controller[mediaended] .glyph svg + svg { display: block; }
   .stack { display: grid; place-items: center; color: #fff; }
   .stack > * { grid-area: 1 / 1; }
-  media-controller { --center: 64px; --pill-h: 52px; --pill-fs: 15px; }
-  media-controller:not([breakpointmd]) { --center: 52px; --pill-h: 44px; --pill-fs: 14px; }
-  media-controller:not([breakpointsm]) { --center: 44px; --pill-h: 38px; --pill-fs: 13px; }
+  media-controller { --center: 64px; }
+  media-controller:not([breakpointmd]) { --center: 52px; }
+  media-controller:not([breakpointsm]) { --center: 44px; }
   media-loading-indicator { --media-loading-indicator-icon-height: 44px; --media-loading-icon-color: rgba(255,255,255,.9); }
   .prePlay { transition: opacity .25s ease, transform .25s cubic-bezier(.2,.8,.2,1); }
   media-controller[mediahasplayed] .prePlay { opacity: 0; transform: scale(.94); pointer-events: none; }
@@ -122,28 +122,16 @@ const VERSIONS = {
   },
   hairline: {
     label: '1 · Hairline',
-    note: 'Before play there is one frosted pill: a brand-colored play disc, the word Play, and the length. On phones it shrinks to disc and length. While playing, the chrome leaves entirely except a 2px brand line along the bottom edge, so the viewer always knows how far in they are. On hover, a soft eased scrim rises only behind the controls.',
+    note: 'Before play there is one brand-colored play circle with the length in small type beneath it. While playing, the chrome leaves entirely except a 2px brand line along the bottom edge, so the viewer always knows how far in they are. On hover, a soft eased scrim rises only behind the controls.',
     tpl: shell(`
-      .pill { display: grid; }
-      .pill > * { grid-area: 1 / 1; }
-      .prePlay { place-self: stretch; height: auto; padding: 0; border-radius: 999px; background: rgba(12,12,16,.55);
-        backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 12px 32px -12px rgba(0,0,0,.55); }
-      .prePlay:hover { background: rgba(12,12,16,.64); }
-      .prePlay .glyph { visibility: hidden; }
-      .prePlayLabel { position: relative; z-index: 2; display: flex; align-items: center; gap: calc(var(--pill-h) * .22);
-        height: var(--pill-h); padding: 0 calc(var(--pill-h) * .46) 0 calc(var(--pill-h) * .12); pointer-events: none;
-        font-size: var(--pill-fs); font-weight: 600; letter-spacing: -.005em; line-height: 1; }
-      .disc { display: grid; place-items: center; width: calc(var(--pill-h) * .76); height: calc(var(--pill-h) * .76); border-radius: 999px;
-        background: var(--media-accent-color); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 2px 8px -2px rgba(0,0,0,.4);
-        transition: transform .2s cubic-bezier(.2,.8,.2,1); }
-      .prePlay:hover + .prePlayLabel .disc { transform: scale(1.06); }
-      .disc svg { width: 46%; height: 46%; }
-      .prePlayLabel .sep { width: 3px; height: 3px; border-radius: 999px; background: rgba(255,255,255,.45); }
-      .prePlayLabel media-duration-display { padding: 0; font-size: var(--pill-fs); font-weight: 500; color: rgba(255,255,255,.82); --media-text-color: rgba(255,255,255,.82); --media-text-content-height: 1em; }
-      media-controller[mediahasplayed] .pill { display: none; }
-      media-controller:not([breakpointsm]) .prePlayLabel > span:not(.disc) { display: none; }
-      media-controller:not([breakpointsm]) .prePlayLabel { gap: calc(var(--pill-h) * .26); }
+      .pre { position: relative; display: grid; place-items: center; transition: opacity .25s ease; }
+      media-controller[mediahasplayed] .pre { opacity: 0; pointer-events: none; }
+      .prePlay { width: calc(var(--center) * 1.1); height: calc(var(--center) * 1.1); padding: 0; border-radius: 999px;
+        background: var(--media-accent-color); box-shadow: 0 10px 28px -10px rgba(0,0,0,.55); }
+      .prePlay:hover { transform: scale(1.04); }
+      .prePlay svg { width: calc(var(--center) * .44); height: calc(var(--center) * .44); }
+      .prePlayMeta { position: absolute; top: calc(100% + 10px); font-size: 13px; font-weight: 500; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+      .prePlayMeta media-duration-display { padding: 0; --media-text-content-height: 16px; }
       media-controller:not([mediahasplayed]) .scrim { opacity: 0; }
       .scrim { position: absolute; inset: auto 0 0 0; height: clamp(96px, 34%, 190px); pointer-events: none;
         background: linear-gradient(to top, rgba(0,0,0,.56) 0%, rgba(0,0,0,.49) 12%, rgba(0,0,0,.4) 25%, rgba(0,0,0,.3) 38%, rgba(0,0,0,.2) 52%, rgba(0,0,0,.11) 67%, rgba(0,0,0,.05) 82%, transparent 100%); }
@@ -159,9 +147,9 @@ const VERSIONS = {
       media-controller[userinactive]:not([mediapaused]) .ambient { opacity: .9; }
     `, `
       ${stack(`
-        <div class="pill">
+        <div class="pre">
           ${centerBtn('prePlay')}
-          <span class="prePlayLabel"><span class="disc">${svg('play')}</span><span>Play</span><span class="sep"></span><media-duration-display></media-duration-display></span>
+          <span class="prePlayMeta"><media-duration-display></media-duration-display></span>
         </div>
         ${centerBtn('resume')}`)}
       <div class="scrim"></div>
