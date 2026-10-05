@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portrait video: before and after</title>
+<style>
+@font-face { font-family: "Geist"; src: url(./assets/geist.woff2) format("woff2"); font-weight: 100 900; }
+:root { --ink: #0f172a; --ink-2: #334155; --muted: #64748b; --line: #e2e8f0; font-family: "Geist", -apple-system, system-ui, sans-serif; color: var(--ink); background: #eef2f7; }
+body { margin: 0; padding: 28px 16px 64px; }
+.doc { max-width: 1040px; margin: 0 auto; }
+h1 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
+h2 { font-size: 19px; margin: 40px 0 4px; }
+p { color: var(--ink-2); line-height: 1.55; max-width: 760px; margin: 0 0 10px; }
+.facts { font-size: 13px; color: var(--muted); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; align-items: start; }
+.pair.narrow { max-width: 640px; }
+figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+figure img { width: 100%; height: auto; display: block; border-radius: 8px; }
+figcaption { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 8px; }
+.before figcaption { color: #b91c1c; }
+.after figcaption { color: #15803d; }
+.wide { grid-template-columns: 1fr; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: #e2e8f0; padding: 1px 5px; border-radius: 5px; }
+a { color: #2563eb; }
+.note { font-size: 13px; color: var(--muted); margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Portrait video: before and after</h1>
+  <p>Same test camera, same clip, same steps, run twice on 5 October. <b>Before</b> is today's production code (staging, main <code>a9275262</code>). <b>After</b> is #982, #983 and #984 together on one preview (<code>84ae951a</code>). The "camera" is a drawn stand-in, not a person. The numbers under each pair come from the pages and recorded files themselves.</p>
+
+  <h2>1. An upright phone take, as the recorder shows it</h2>
+  <p>Before, the phone's portrait camera is squeezed into a landscape frame on blue. After, the monitor is the camera itself, in its own shape.</p>
+  <div class="pair narrow">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-p1-recorder-idle.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-p1-recorder-idle.jpg" alt=""></figure>
+  </div>
+
+  <h2>2. While recording</h2>
+  <p>After, the three screen layouts dim and ignore taps for a camera take, and the camera switcher locks, because the recording is the camera's own feed.</p>
+  <div class="pair narrow">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-p2-recording.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-p2-recording.jpg" alt=""></figure>
+  </div>
+
+  <h2>3. The recorded video file</h2>
+  <p>This is the fix to the original problem. Before, the file is 1920x1080 with the person in a strip and blue baked into the pixels. After, the file is the camera's own 640x1080 portrait frame.</p>
+  <p class="facts">Before: 1920x1080, edge pixel rgb(34,82,201) blue. After: 640x1080, edge pixel is camera content.</p>
+  <div class="pair">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-p3-recorded-frame.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-p3-recorded-frame.jpg" alt=""></figure>
+  </div>
+
+  <h2>4. What the prospect sees on the share link</h2>
+  <p class="facts">Before: frame ratio 16:9. After: frame ratio 0.59 (640/1080), portrait poster.</p>
+  <div class="pair narrow">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-p4-share-page.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-p4-share-page.jpg" alt=""></figure>
+  </div>
+
+  <h2>5. That take's card in the Library (your original screenshot)</h2>
+  <p>Before is exactly what you saw: a strip on blue. After, the whole portrait frame sits over a blurred copy of itself, and the grid keeps its shape.</p>
+  <p class="facts">Before: still <code>400x250 smartcrop</code> of a frame that has blue in it. After: still <code>400x500 preserve</code>, drawn twice.</p>
+  <div class="pair narrow">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-p5-library-card.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-p5-library-card.jpg" alt=""></figure>
+  </div>
+
+  <h2>6. A desktop take with a 4:3 webcam</h2>
+  <p>Desktop takes still combine camera and screen at record time for now. After, the space around a camera that doesn't fill the frame is the dark player background instead of blue.</p>
+  <p class="facts">Edge pixel before rgb(34,82,201), after rgb(2,5,23).</p>
+  <div class="pair">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-d1-composite-4x3.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-d1-composite-4x3.jpg" alt=""></figure>
+  </div>
+
+  <h2>7. Camera inset over a shared screen</h2>
+  <p>The square camera box becomes a round bubble. The green pattern is Chrome's fake screen share.</p>
+  <div class="pair">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-d2-camera-inset.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-d2-camera-inset.jpg" alt=""></figure>
+  </div>
+
+  <h2>8. A portrait clip uploaded to the Library</h2>
+  <p>For uploads that were already portrait, the card used to crop the frame to fill a landscape box. After, it shows the whole frame.</p>
+  <div class="pair narrow">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-l1-upload-card.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-l1-upload-card.jpg" alt=""></figure>
+  </div>
+
+  <h2>9. Playing it inline in the Library</h2>
+  <p class="facts">Before: <code>cover</code>, the top and bottom are cut off. After: <code>contain</code> over its own blur. Both playing at 540x960.</p>
+  <div class="pair narrow">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-l2-upload-inline.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-l2-upload-inline.jpg" alt=""></figure>
+  </div>
+
+  <h2>10. The trim filmstrip</h2>
+  <p>Before, every portrait frame was squashed sideways into a wide tile, so faces look like flat ovals. After, each frame is cropped to fill the tile at its real proportions.</p>
+  <div class="pair wide">
+    <figure class="before"><figcaption>Before</figcaption><img src="img/before-l3-trim-strip.jpg" alt=""></figure>
+    <figure class="after"><figcaption>After</figcaption><img src="img/after-l3-trim-strip.jpg" alt=""></figure>
+  </div>
+
+  <p class="note">The after side ran on a throwaway preview (#1013) that combines the three PRs; the changes themselves merge through <a href="https://github.com/Clarity-Video-HQ/clarity/pull/982">#982</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/983">#983</a> and <a href="https://github.com/Clarity-Video-HQ/clarity/pull/984">#984</a>. Next step after these: record camera and screen as separate sources and bake the layout afterwards (<a href="https://willayam.github.io/clarity-design-previews/multitrack-design-2026-10/">design</a>).</p>
+</div>
+</body>
+</html>
