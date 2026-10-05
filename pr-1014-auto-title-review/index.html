@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #1014 auto-title, adversarial design review</title>
+<style>
+  :root { color-scheme: light dark; --ink: #1d1d1f; --muted: #6e6e73; --line: #d2d2d7; --bg: #fff; --tint: #f5f5f7; --act: #b42318; --consider: #b54708; --ok: #067647; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #f5f5f7; --muted: #a1a1a6; --line: #3a3a3c; --bg: #111113; --tint: #1c1c1e; --act: #f97066; --consider: #fdb022; --ok: #47cd89; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 6px; }
+  h2 { font-size: 1.2rem; margin: 40px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1rem; margin: 22px 0 6px; }
+  p, li { margin: 6px 0; }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .verdict { background: var(--tint); border-radius: 12px; padding: 16px 18px; margin: 20px 0; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; margin-right: 6px; vertical-align: 1px; }
+  .act { color: var(--act); } .consider { color: var(--consider); } .ok { color: var(--ok); } .noted { color: var(--muted); }
+  code { font: .88em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--tint); padding: 1px 4px; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 10px 0; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  .finding { margin: 18px 0; }
+  .finding p { margin: 4px 0; }
+  .who { color: var(--muted); font-size: .88rem; }
+</style>
+</head>
+<body>
+<main>
+<h1>PR #1014 auto-title: is this the cleanest start?</h1>
+<p class="meta">Adversarial design review, 5 October 2026. Branch <code>t3code/video-auto-title</code>, reviewed at <code>bae89bb0c</code>, one fix pushed as <code>e4dc1c302</code>. <a href="https://github.com/Clarity-Video-HQ/clarity/pull/1014">PR #1014</a>.</p>
+
+<div class="verdict">
+<p><strong>Verdict.</strong> No. The feature works and its tests pass, but it is not the cleanest start. All three reviewers, working independently, proposed the same smaller shape. It reuses the existing <code>jobs</code> table, keeps the transcript at Mux, and makes the share page follow the video field by field. I recommend that shape. Nothing below is built. You choose.</p>
+<p>The strongest single reason is a product path, not code style. At finish the recorder hands the rep straight into the page editor (<code>RecordVideoRoute.tsx</code>, "Naming, copy, and CTAs live on the take's page"). The title lands at least a minute later, because the job is due 60 seconds after finish and then waits for Mux's captions. Any save in that window stores the page at revision 2 with an empty hero title and the name "Untitled Video", and the live-copy rule stops applying for good. That is the main flow, not an edge case.</p>
+</div>
+
+<h2>Seats that ran</h2>
+<table>
+<tr><th>Seat</th><th>Model</th><th>How it ran</th><th>Result</th></tr>
+<tr><td>A</td><td>fable (Fable 5.1)</td><td>Claude subagent</td><td>13 findings plus nits</td></tr>
+<tr><td>B</td><td>gpt-6-astra</td><td>Codex CLI, read-only sandbox, high effort, run straight from the lead's shell</td><td>8 findings plus a failure table. It ran in-memory SQLite checks against the real source.</td></tr>
+<tr><td>C</td><td>opus (Opus 5.5)</td><td>Claude subagent</td><td>16 findings</td></tr>
+</table>
+<p>No seat needed a fallback. Codex was not rate-capped and did not hang. Every seat got the same prompt, which told it to attack the premise as well as the code.</p>
+
+<h2>The shape I would ship</h2>
+<ol>
+<li><strong>A <code>video_title</code> kind in <code>jobs</code>.</strong> <code>jobInsert</code> enqueues it in the finish batch for recordings and uploads, and a runner shaped like <code>mux-discard-jobs.ts</code> runs it. A discarded take's job gives up when it runs, as <code>mux_clip</code> does. A Mux <code>video.asset.track.ready</code> webhook can wake it sooner later on, but the cron stays the recovery path.</li>
+<li><strong>No transcript in D1.</strong> The runner fetches the VTT from Mux on each attempt. The payload holds the default title and the result holds the outcome. Add a store when trim or search has a reader for it.</li>
+<li><strong>Explicit eligibility.</strong> Auto may write only while the name is the server's own default (<code>UNTITLED_VIDEO</code>, or a filename stem that looks machine-made). It must not be "whatever finish wrote". The guarded write moves into <code>video-row.ts</code> beside <code>nodeIntent</code>.</li>
+<li><strong>The page follows the video field by field.</strong> On a page made from a video, an empty hero title means "use the video's title" at render. The editor shows the live title as a placeholder and stores an empty string unless the rep types one. The data already has this marker: a take's page is born with hero title <code>''</code>. This replaces the revision-1 rule, so saving a button colour no longer freezes the title.</li>
+<li><strong>Delete the preview suggestion override.</strong> Keep the bare preview tick, because previews have no cron.</li>
+</ol>
+<p><strong>What it deletes from #1014.</strong> The <code>video_autofill</code> table and <code>VideoAutofillRow</code>. The custom claim, lease, backoff and 24-hour horizon. The transcript and caption-track columns and their codec. The three <code>DELETE FROM video_autofill</code> statements, including the special case bolted onto <code>rowStatements</code>. The <code>unedited</code> parameter and the revision predicate in the live-copy SQL. The override plumbing in <code>preview-ticks.ts</code>. Most of <code>video-autofill-policy.ts</code>. It still needs one migration, the rebuild of the <code>jobs</code> kind CHECK, as 0034 did.</p>
+
+<h3>The alternatives you asked about</h3>
+<table>
+<tr><th>Option</th><th>Panel view</th></tr>
+<tr><td>Title at finish or settle</td><td>Not possible as a single step. Captions do not exist at finish, and the router does not handle the caption-ready webhook (<code>packages/mux/src/webhook.ts</code> handles only asset ready and errored). A durable pending row is still needed. That row should be a <code>jobs</code> row. 3 of 3.</td></tr>
+<tr><td>Title on read</td><td>Reject. It puts a model call and a Library write inside a public page view. 3 of 3.</td></tr>
+<tr><td>Transcript only as Mux's track</td><td>Yes. The only reader of the stored transcript is the same job run, or a rerun after a crash. 3 of 3.</td></tr>
+<tr><td>Page references the video</td><td>Yes, field by field. Fable and Codex would do it now. Opus agrees it is cleaner but would defer it. I side with doing it now because of the editor hand-off above.</td></tr>
+</table>
+
+<h2>Findings, ranked</h2>
+
+<div class="finding"><p><span class="tag act">Act on</span><strong>1. The first save freezes the page before the title arrives.</strong></p>
+<p>The editor GET bakes the live title into the document (<code>journey-pages-native.ts</code>). A save at base revision 1 stores it, and <code>journey-page-title.test.ts</code> asserts exactly that. The recorder opens the editor at finish, and the sweep writes the title at least a minute later. Any save in between stores <code>''</code> and "Untitled Video" at revision 2, where the live read no longer applies. I confirmed the hand-off in <code>RecordVideoRoute.tsx</code> lines 524 to 535.</p>
+<p class="who">Fable and Codex. Lead confirmed.</p></div>
+
+<div class="finding"><p><span class="tag act">Act on</span><strong>2. A second job system beside <code>jobs</code>, with weaker fencing.</strong></p>
+<p><code>video-autofill.ts</code> rebuilds the claim, lease, backoff, failure counter and terminal states that <code>jobs-store.ts</code> already provides, and it has no retention. Only the claim is fenced. Later writes key on <code>node_id</code> alone. Codex reproduced the consequence in SQLite. A runner whose 5-minute lease expired resumed after a newer runner took over. The result was two model calls, the newer runner's title, the older runner's saved suggestion, and an outcome of <code>user_owned</code> although autofill wrote the title. The lease is also computed from the sweep's start time, so slow early rows eat the lease of later ones.</p>
+<p class="who">All three seats. Codex reproduced the overwrite.</p></div>
+
+<div class="finding"><p><span class="tag act">Act on</span><strong>3. The stored transcript has no reader and no retention.</strong></p>
+<p>Only <code>runOne</code> reads <code>video_autofill.transcript</code>. Nothing reads <code>caption_track_id</code>. The transcript is fetched and stored before the check for a user-owned name, so takes the rep already renamed still copy their full speech into the auth database. Done rows keep it until the take is deleted. Main deleted <code>video_transcripts</code> in WIL-3418, and this brings a transcript store back for trim and search code that does not exist yet.</p>
+<p class="who">All three seats.</p></div>
+
+<div class="finding"><p><span class="tag act">Act on</span><strong>4. "Still has the name it finished with" is not "the user never chose a title".</strong></p>
+<p><code>enqueueAutofill</code> runs <code>INSERT ... SELECT name</code> after the <code>nodeIntent</code> statement in the same batch, so <code>default_title</code> is whatever title finish wrote. Recordings send "Untitled Video". Uploads send the file's display name. A human-named file such as "Pricing walkthrough for Acme" survives only if the model obeys "return it unchanged", and any paraphrase overwrites it. Codex ran both failure cases on the real code. A title supplied at finish was replaced, and a rename away from the default and back again was replaced. The rule is race-free for concurrent renames to a different value. All three seats traced that SQL and agree.</p>
+<p class="who">All three seats. Codex executed it.</p></div>
+
+<div class="finding"><p><span class="tag act">Act on</span><strong>5. "Unedited page" now has three predicates.</strong></p>
+<p>Retirement uses revision 1 plus <code>updated_at &lt;= created_at</code> (<code>UNEDITED_PAGE_SQL</code>). The editor's live read uses draft revision 1. The public live read uses publication revision 1. A comment in <code>video-share-page.ts</code> admits the difference, and a test locks it in. Opus traced the consequence. A rep sets a password on a take's page and later deletes the video. Retirement treats the page as edited and keeps it published. The live read then finds no video, so the title falls back to the stored empty value. This is the "one rule, several statements" bug class the August panel named. The field-level page reference in the recommended shape removes the need for the live-read predicate.</p>
+<p class="who">All three seats.</p></div>
+
+<div class="finding"><p><span class="tag consider">Consider</span><strong>6. Private Library renames now reach prospects.</strong></p>
+<p>Before #1014, a rename after finish never touched the page. Now any Library rename changes the public title, <code>og:title</code> and heading of every unedited share page. A label such as "Acme, lost deal" becomes what the prospect sees. The test "reads a Library rename without a page write" asserts this. It is a product decision wider than auto-title, so make it on purpose.</p>
+<p class="who">Opus.</p></div>
+
+<div class="finding"><p><span class="tag consider">Consider</span><strong>7. An unreviewed model title goes public, and non-English speech yields confident nonsense.</strong></p>
+<p>Main asks Mux for English captions on every asset (<code>packages/mux/src/client.ts</code>, <code>generated_subtitles</code> with <code>en</code>). Mux transcribes in the language it is given and does not detect. A Swedish take gives English-shaped nonsense with state <code>ready</code>, and only a prompt line guards it. The title lands on a page that may already be shared, with no review step. Sales calls name people and competitors, and the prompt admits names may be misspelled. Options are a code-side language or confidence gate before the call, or writing the title to the video only until the rep has seen it. Prompt injection is bounded to one string of at most 80 characters, so it is a copy-integrity risk, not a code-execution one.</p>
+<p class="who">All three seats.</p></div>
+
+<div class="finding"><p><span class="tag consider">Consider</span><strong>8. The data boundary is a policy call for you.</strong></p>
+<p>This is Clarity's first flow that sends a customer's speech to OpenAI without a user action. That includes prospects' voices when they are on the recording. The mechanics are sound. The transcript is marked untrusted, the schema is a single string, gateway payload logging is off, and provider bodies never leave the module. The question is the subprocessor and retention position, not the code.</p>
+<p class="who">All three seats.</p></div>
+
+<div class="finding"><p><span class="tag consider">Consider</span><strong>9. A missing key is recorded as a finished decision.</strong></p>
+<p>Without a model, the row stores <code>{"unavailable":"no_model"}</code> and becomes <code>done</code>. Adding the key later does not resume it. A revoked key (<code>provider_401</code>), truncation and refusal all collapse into the same <code>no_model</code> label and a <code>console.log</code>, so a 100% failure rate would be invisible. In the jobs shape a missing key should leave the job pending, and permanent provider failures other than refusal should reach Sentry.</p>
+<p class="who">Codex and Opus.</p></div>
+
+<div class="finding"><p><span class="tag consider">Consider</span><strong>10. The preview suggestion override is dead once previews have a key.</strong></p>
+<p><code>deps.suggestTitle</code> wins over <code>options.suggestion</code>, and the test "uses the preview override only when no model is configured" shows an injected title being ignored. Delete <code>parseSuggestion</code>, <code>TickInputError</code>, the body parsing and <code>AutofillOptions.suggestion</code>. Keep the bare tick and its <code>?node=</code> filter.</p>
+<p class="who">All three seats.</p></div>
+
+<div class="finding"><p><span class="tag consider">Consider</span><strong>11. <code>withLiveVideoCopy</code> restates the page builder.</strong></p>
+<p>The hero title, the hero-detail insert and remove, and the page-name fallback are written twice, and the two copies already differ. The builder falls back to <code>video.name</code> then <code>video.filename</code>. The live path gets <code>''</code> when <code>metadata.title</code> is an empty string, because <code>COALESCE</code> does not skip empty strings.</p>
+<p class="who">Opus.</p></div>
+
+<h3>Noted</h3>
+<ul>
+<li><span class="tag noted">Noted</span>Throughput is 5 rows per one-minute tick, run one after another, with no fairness across workspaces. That is about 300 attempts an hour. Rows waiting on captions share those slots. Fine at today's volume. All three seats.</li>
+<li><span class="tag noted">Noted</span>The title is read from the Original, so words the rep trimmed out of the Clip can still shape the public title. Codex.</li>
+<li><span class="tag noted">Noted, unverified</span><code>maxOutputTokens: 256</code> would truncate every call if <code>gpt-5.4-mini</code> spends reasoning tokens. My inference is that it does not, because production page generation sends <code>temperature: 0.3</code> to the same model and works. Settle it with one real call on a preview once the key lands. Opus.</li>
+<li><span class="tag noted">Noted</span>The sweep writes video name and <code>metadata.title</code> outside <code>video-row.ts</code>, the file that otherwise states how video intent is written. Opus.</li>
+<li><span class="tag noted">Noted</span>The editor GET inlines <code>SELECT page.*</code> instead of using <code>findStoredJourneyPage</code> in the content store. Fable and Opus.</li>
+<li><span class="tag noted">Noted</span>A row that keeps throwing retries every 5 minutes for 24 hours, about 288 Sentry events. Opus.</li>
+<li><span class="tag noted">Noted</span>Small things. <code>cleanTitle</code> caps at 80 characters while the prompt says 60. The Mux client import sits above its header comment. The VTT GET bypasses the Mux client's error contract. <code>journey-page-model.ts</code> copy and logs still name page generation only.</li>
+</ul>
+
+<h3>Dismissed</h3>
+<ul>
+<li>Fable's "name-only rename leaves the auto title on the page". The Library rename sends both <code>name</code> and <code>metadataPatch.title</code> (<code>HomeTreeRoute.tsx</code> line 638), so the UI cannot produce that state. Only a direct API caller could.</li>
+<li>Fable's "critical" labels on findings 2 and 3. The code works and its tests pass. These are design debt worth acting on before merge, not breakage.</li>
+<li>Reviving the August spec-table-plus-reconciler design for this. All three seats agree it does not apply as a mechanism, since main deleted the derivation pipeline and Mux now holds the declared asset. Its surviving principle, one statement per rule, is what findings 3, 5 and 11 apply.</li>
+</ul>
+
+<h2>Your six questions, short answers</h2>
+<ol>
+<li><strong>Cleanest start?</strong> No. See the recommended shape above.</li>
+<li><strong>Does the transcript store earn its place?</strong> No. It is speculative for trim and search. Finding 3.</li>
+<li><strong>Is the default-name rule right and race-free?</strong> It is race-free against concurrent renames. It is the wrong rule for titles set at finish and for human-named upload files. Finding 4.</li>
+<li><strong>Data boundary and the preview route?</strong> The data boundary is a policy call (finding 8). The override should go once the key ships (finding 10).</li>
+<li><strong>Failure modes?</strong> No speech used to call the model anyway, which is now fixed. No captions are abandoned 30 minutes after ready. Non-English speech and unreviewed titles are findings 7 and 9. Cost is one small call per take with model retries capped at 3.</li>
+<li><strong>House fit?</strong> The guards in <code>docs/agents/guards.md</code> hold. The one-rule-one-statement principle breaks three times (findings 3, 5, 11). CONTEXT.md gains a "Transcript" entry that describes a storage location. An "Automatic title" entry would describe the domain.</li>
+</ol>
+
+<h2>What I fixed</h2>
+<p><code>e4dc1c302</code>, pushed to #1014. Both changes are in <code>video-title-suggester.ts</code>, which survives any of the redesigns.</p>
+<ul>
+<li><strong>The request bound was not a bound.</strong> The 12,000-character check elided only transcripts with more than 50 cues, so 50 long cues went whole. Codex measured 50,993 characters. Each cue is now capped at 200 characters, so the 50-cue window bounds the request.</li>
+<li><strong>A silent take called the model.</strong> Empty cues now return no title without a call.</li>
+</ul>
+<p>Two new tests fail against the old code and pass against the fix. The router suite (182 tests), the workspace-tree suite (522), the touched editor tests (75), ESLint and the test-type budget (207 of 250) all pass. A real model call is unverified, because previews have no key yet.</p>
+
+<h2>Preview-key wiring</h2>
+<p>The uncommitted change maps the GitHub secret <code>PREVIEW_OPENAI_API_KEY</code> to the preview router's <code>OPENAI_API_KEY</code> through a <code>replace</code> decision in <code>preview-config-decisions.mjs</code>. The deploy workflow passes it through, and <code>deploy-config.test.sh</code> asserts that production's key never reaches a preview. All three seats read it as correct. I left it uncommitted.</p>
+<ul>
+<li>Ship it as its own small PR before #1014. Then #1014 can delete the override (finding 10).</li>
+<li>The comment "titles no video" overstates it. Previews have no cron, so a preview titles nothing until someone runs the tick, key or not.</li>
+<li>Put the key in an OpenAI project with a hard budget. <code>wrangler secret put</code> cannot delete, so old <code>pr-N</code> Workers keep the key after a rotation.</li>
+</ul>
+
+<h2>Agreement map</h2>
+<p>Every seat independently landed on <code>jobs</code> reuse, no stored transcript, deleting the override, and the "unedited" duplication. That consensus is high-signal. They split on timing for the page reference. Fable and Codex would do it now, and Opus would defer it. The editor hand-off decides it for me. Codex added the strongest executed evidence (the lease overwrite and the eligibility failures), Opus the widest product read (Library renames reaching prospects), and Fable the sharpest path trace (the first-save freeze).</p>
+</main>
+</body>
+</html>
