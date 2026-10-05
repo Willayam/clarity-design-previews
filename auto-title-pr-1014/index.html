@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-title on PR #1014</title>
+<style>
+  body { margin: 0; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: #0f172a; background: #f8fafc; }
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 6px; } h2 { font-size: 21px; margin: 44px 0 8px; }
+  p { max-width: 72ch; } .muted { color: #64748b; font-size: 14px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+  figure { margin: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
+  figure img { width: 100%; height: auto; border-radius: 8px; display: block; }
+  figcaption { font-size: 14px; margin-top: 8px; } figcaption b { display: block; font-size: 15px; }
+  code { font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Auto-title, PR #1014 preview</h1>
+  <p class="muted">Recorded on the PR preview (pr-1014) on 2026-10-05 with a synthetic voice and Chrome's fake camera. No customer content. Previews have no OpenAI key, so each title came from gpt-6.1-sol answering the production title prompt through Codex, passed in through a preview-only tick for one take. Everything after that ran on the preview's real code, database and Mux. This PR adds no trim: the video below still plays the full 44.5 s recording.</p>
+
+  <h2>1. A recording gets a title, and its share page follows</h2>
+  <p>The take finished as "Untitled Video", so its share page had no headline. After one pass the page shows the new title on the same link, with no page write.</p>
+  <div class="pair">
+    <figure><img src="share-before.png" alt="Share page before, no headline"><figcaption><b>Before</b>No headline. The HTML title and og:title read "Untitled Video".</figcaption></figure>
+    <figure><img src="share-after.png" alt="Share page after, headline Business mastery program pricing plans"><figcaption><b>After</b>Headline, HTML title and og:title read "Business mastery program pricing plans". Same URL, same 44.5 s video.</figcaption></figure>
+  </div>
+
+  <h2>2. A Library upload gets a title</h2>
+  <div class="pair">
+    <figure><img src="library-before.png" alt="Library with an IMG_4821 card"><figcaption><b>Before</b>Uploaded as <code>IMG_4821.mp4</code>, so the card reads IMG_4821. The recording beside it reads "Untitled Video".</figcaption></figure>
+    <figure><img src="library-after.png" alt="Library with Clarity onboarding walkthrough and Business mastery program pricing plans"><figcaption><b>After</b>"Clarity onboarding walkthrough" and "Business mastery program pricing plans". The other "Untitled Video" cards are CI smoke recordings with no row run on this preview.</figcaption></figure>
+  </div>
+
+  <h2>3. A user rename wins</h2>
+  <p>I renamed the recording to "Pricing for Sam" through the real Library rename. The share page showed the new name within 20 seconds, inside the edge cache's 60-second limit. Then I forced the automatic pass to run again with the model's title. It saw that the user owns the title, skipped the model, and changed nothing. The test suite covers the other orders: a rename before the pass, during the model call, and after it with a stale read.</p>
+  <div class="pair">
+    <figure><img src="share-renamed.png" alt="Share page with headline Pricing for Sam"><figcaption><b>Share page after the rename and the rerun</b>"Pricing for Sam" in the headline, HTML title and og:title.</figcaption></figure>
+    <figure><img src="library-renamed.png" alt="Library with the Pricing for Sam card"><figcaption><b>Library after the rerun</b>The recording keeps the user's name.</figcaption></figure>
+  </div>
+</main>
+</body>
+</html>
