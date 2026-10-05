@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Record screen on phones, round 2</title>
+<style>
+:root{color-scheme:light dark}
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:24px 16px 60px;color:#0f172a;background:#f1f5f9;line-height:1.5}
+@media (prefers-color-scheme:dark){body{background:#020617;color:#e2e8f0}a{color:#93c5fd}.note{color:#94a3b8}}
+.doc{max-width:1100px;margin:0 auto}
+h1{font-size:26px;margin:0 0 8px}h2{margin:40px 0 4px;font-size:20px}
+p{max-width:720px;margin:6px 0}.note{color:#64748b;font-size:14px}
+.row{display:flex;gap:14px;overflow-x:auto;padding:12px 0 6px;scroll-snap-type:x mandatory}
+figure{margin:0;flex:0 0 auto;scroll-snap-align:start;text-align:center;font-size:13px}
+figure img{height:520px;width:auto;border-radius:18px;display:block;border:1px solid rgba(100,116,139,.35)}
+figcaption{margin-top:6px}
+.wide img{height:auto;width:min(100%,900px)}
+</style></head><body><div class=doc>
+<h1>Record screen on phones, round 2</h1>
+<p>Try them on your phone: <a href="https://pr-1019.clarity-video.workers.dev/record?variant=d">pr-1019.clarity-video.workers.dev/record?variant=d</a>. Change the letter or use the pill under the header.</p>
+<p>Each layout records, uploads and finishes for real. These shots come from the preview at build 8bb0feb71, 402x874 in dark mode unless the caption says otherwise. The camera is a synthetic test pattern and the shared screen is a drawn phone home screen. Swipe each row sideways.</p>
+<h2>D. One hand</h2>
+<p>The frame stays whole and as wide as the control deck, and the deck's edges line up with the frame's. The finished screen is one dock plus one row, with Share link on the thumb side, and Open page moves to the header. The countdown now works in every layout.</p>
+<div class=row>
+<figure><img loading=lazy src="img/d-idle-402x874.png" alt="Idle"><figcaption>Idle</figcaption></figure>
+<figure><img loading=lazy src="img/d-countdown-402x874.png" alt="Countdown"><figcaption>Countdown</figcaption></figure>
+<figure><img loading=lazy src="img/d-recording-402x874.png" alt="Recording"><figcaption>Recording</figcaption></figure>
+<figure><img loading=lazy src="img/d-finished-402x874.png" alt="Finished, link ready"><figcaption>Finished, link ready</figcaption></figure>
+<figure><img loading=lazy src="img/d-screen-idle-402x874.png" alt="Screen"><figcaption>Screen</figcaption></figure>
+<figure><img loading=lazy src="img/d-screen-recording-402x874.png" alt="Screen, recording"><figcaption>Screen, recording</figcaption></figure>
+<figure><img loading=lazy src="img/d-screen-finished-402x874.png" alt="Screen, finished"><figcaption>Screen, finished</figcaption></figure>
+<figure><img loading=lazy src="img/d-split-idle-402x874.png" alt="Split"><figcaption>Split</figcaption></figure>
+<figure><img loading=lazy src="img/d-split-recording-402x874.png" alt="Split, recording"><figcaption>Split, recording</figcaption></figure>
+<figure><img loading=lazy src="img/d-split-finished-402x874.png" alt="Split, finished"><figcaption>Split, finished</figcaption></figure>
+<figure><img loading=lazy src="img/d-inset-idle-402x874.png" alt="Inset"><figcaption>Inset</figcaption></figure>
+<figure><img loading=lazy src="img/d-idle-360x780.png" alt="Small phone, 360x780"><figcaption>Small phone, 360x780</figcaption></figure>
+<figure><img loading=lazy src="img/d-recording-360x780.png" alt="Small phone, recording"><figcaption>Small phone, recording</figcaption></figure>
+</div>
+<h2>B. Framed</h2>
+<p>Your two fixes. The controls row now spans exactly the Record button's width, and the preview takes the shape of what will be recorded, at the largest size that fits.</p>
+<div class=row>
+<figure><img loading=lazy src="img/b-idle-402x874.png" alt="Idle"><figcaption>Idle</figcaption></figure>
+<figure><img loading=lazy src="img/b-recording-402x874.png" alt="Recording"><figcaption>Recording</figcaption></figure>
+<figure><img loading=lazy src="img/b-finished-402x874.png" alt="Finished"><figcaption>Finished</figcaption></figure>
+<figure><img loading=lazy src="img/b-screen-idle-402x874.png" alt="Screen"><figcaption>Screen</figcaption></figure>
+<figure><img loading=lazy src="img/b-split-idle-402x874.png" alt="Split"><figcaption>Split</figcaption></figure>
+<figure><img loading=lazy src="img/b-inset-idle-402x874.png" alt="Inset"><figcaption>Inset</figcaption></figure>
+<figure><img loading=lazy src="img/b-idle-360x780.png" alt="Small phone, 360x780"><figcaption>Small phone, 360x780</figcaption></figure>
+<figure><img loading=lazy src="img/b-light-idle-402x874.png" alt="Light mode"><figcaption>Light mode</figcaption></figure>
+<figure><img loading=lazy src="img/b-light-finished-402x874.png" alt="Light mode, finished"><figcaption>Light mode, finished</figcaption></figure>
+</div>
+<h2>A. Camera app</h2>
+<p>The live camera still fills the screen. Screen, Split and Inset now show the whole upright picture, because filling would hide the inset bubble.</p>
+<div class=row>
+<figure><img loading=lazy src="img/a-idle-402x874.png" alt="Idle"><figcaption>Idle</figcaption></figure>
+<figure><img loading=lazy src="img/a-recording-402x874.png" alt="Recording"><figcaption>Recording</figcaption></figure>
+<figure><img loading=lazy src="img/a-finished-402x874.png" alt="Finished (local run, link pending)"><figcaption>Finished (local run, link pending)</figcaption></figure>
+<figure><img loading=lazy src="img/a-screen-idle-402x874.png" alt="Screen"><figcaption>Screen</figcaption></figure>
+<figure><img loading=lazy src="img/a-split-idle-402x874.png" alt="Split"><figcaption>Split</figcaption></figure>
+<figure><img loading=lazy src="img/a-inset-idle-402x874.png" alt="Inset"><figcaption>Inset</figcaption></figure>
+</div>
+<h2>C. Sheet</h2>
+<div class=row>
+<figure><img loading=lazy src="img/c-idle-402x874.png" alt="Idle"><figcaption>Idle</figcaption></figure>
+<figure><img loading=lazy src="img/c-settings-open-402x874.png" alt="Settings open"><figcaption>Settings open</figcaption></figure>
+<figure><img loading=lazy src="img/c-recording-402x874.png" alt="Recording"><figcaption>Recording</figcaption></figure>
+<figure><img loading=lazy src="img/c-finished-402x874.png" alt="Finished (local run, link pending)"><figcaption>Finished (local run, link pending)</figcaption></figure>
+<figure><img loading=lazy src="img/c-screen-idle-402x874.png" alt="Screen"><figcaption>Screen</figcaption></figure>
+<figure><img loading=lazy src="img/c-split-idle-402x874.png" alt="Split"><figcaption>Split</figcaption></figure>
+<figure><img loading=lazy src="img/c-inset-idle-402x874.png" alt="Inset"><figcaption>Inset</figcaption></figure>
+</div>
+<h2>Desktop is unchanged</h2>
+<p>Above 768px wide, or with a phone in landscape, every variant falls back to today's screen. A desktop split take still records 1920x1080.</p>
+<div class="row wide">
+<figure><img loading=lazy src="img/desktop-split-finished-1440x900.png" alt="Desktop split take, finished"><figcaption>Desktop split take, finished</figcaption></figure>
+</div>
+<p class=note>Prototype for WIL-3519, 6 October 2026. Throwaway code on draft PR #1019.</p></div></body></html>
