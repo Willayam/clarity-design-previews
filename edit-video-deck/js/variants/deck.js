@@ -20,8 +20,8 @@ const MIN_CUT = 0.05
 
 /** Prototype switches, in the URL as ?zoom= and ?status= so a link carries them. */
 const ZOOM_STYLES = ["grow", "flat"]
-const STATUS_KEYS = "abcdefghijklmnop".split("")
-const STATUS_NAMES = { a: "line", b: "chip", c: "ends", d: "switch", e: "silent", f: "autobtn", g: "modes", h: "dropdown", i: "moddot", j: "compare", k: "suggest", l: "perend", m: "quiet", n: "cycle", o: "inverse", p: "chippop" }
+const STATUS_KEYS = "abcdefghijklmnopqrst".split("")
+const STATUS_NAMES = { a: "line", b: "chip", c: "ends", d: "switch", e: "silent", f: "autobtn", g: "modes", h: "dropdown", i: "moddot", j: "compare", k: "suggest", l: "perend", m: "quiet", n: "cycle", o: "inverse", p: "chippop", q: "threeway", r: "dropdown3", s: "chip3", t: "threeicons" }
 
 /**
  * Deck console, round 4. No header and no title: the modal is the picture

@@ -703,3 +703,8 @@ html.light .proto-bar { border-color: rgba(0,0,0,0.35); background: rgba(240, 24
 .trim-pop .pop-btn { width: auto; flex: none; justify-content: center; background: color-mix(in oklab, var(--foreground) 9%, transparent); border-radius: 8px; color: var(--foreground); }
 .trim-pop .pop-btn:hover { background: color-mix(in oklab, var(--foreground) 15%, transparent); }
 .trim-pop { max-width: 400px; } .trim-pop .pop-actions { flex-wrap: nowrap; } .trim-pop .pop-btn { white-space: nowrap; }
+/* Q to T: Auto | Custom | None */
+.segmented.three-way button:disabled { opacity: 0.38; cursor: default; }
+.segmented.three-way.icons button[aria-pressed="true"][data-value="auto"] svg { color: var(--warning); }
+.sugg-chip.chip3[data-state="custom"] { background: color-mix(in oklab, var(--foreground) 10%, transparent); border-color: var(--border); color: var(--foreground); }
+.sugg-chip.chip3[data-state="none"] { color: var(--muted-foreground); }

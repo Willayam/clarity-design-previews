@@ -329,6 +329,106 @@ export function createStatusVariants(api) {
     }
   }
 
+  /* Q to T: three named states, Auto, Custom and None, always present. Dragging a handle selects
+     Custom by itself; Custom remembers the rep's last hand trim so switching away and back loses nothing. */
+  const memo = { custom: null }
+  const remember = (t) => {
+    if (t.kind === "hand") memo.custom = { start: t.start, end: t.end }
+  }
+  const applyCustom = () => {
+    const c = memo.custom
+    if (!c) return
+    const cur = trimState()
+    const order = c.start < cur.end ? ["start", "end"] : ["end", "start"]
+    for (const side of order) store.setHandle(side, c[side], { preview: false })
+    repaint()
+  }
+  const pick = (v) => (v === "auto" ? applyAuto() : v === "custom" ? applyCustom() : removeTrim())
+  const stateOf = (t) => (t.kind === "hand" ? "custom" : t.kind === "full" ? "none" : "auto")
+  const threeWay = (withIcons) => {
+    const seg = segmented(
+      [
+        { v: "auto", label: "Auto", icon: withIcons ? "sparkles" : null },
+        { v: "custom", label: "Custom", icon: withIcons ? "scissors" : null },
+        { v: "none", label: "None" },
+      ],
+      "auto",
+      pick,
+      { className: withIcons ? "three-way icons" : "three-way" },
+    )
+    const customBtn = seg.el.querySelector('[data-value="custom"]')
+    return {
+      center: seg.el,
+      paint(t) {
+        remember(t)
+        seg.set(stateOf(t), { silent: true })
+        customBtn.disabled = !memo.custom
+        return true
+      },
+    }
+  }
+  variants.q = threeWay(false)
+  variants.t = threeWay(true)
+
+  /* R: the same three states in a dropdown, "Trim: Auto". */
+  {
+    const value = h("span.dd-value")
+    const btn = h("button.dd-btn", { type: "button", "aria-haspopup": "menu", "aria-expanded": "false", "data-action": "trim-menu-3" }, h("span.dd-label", "Trim"), value, icon("chevronDown"))
+    const wrap = h("div.dd-wrap", btn)
+    const menu = createMenu(wrap)
+    offs.push(on(btn, "click", () => {
+      menu.toggle()
+      btn.setAttribute("aria-expanded", String(menu.isOpen()))
+    }))
+    variants.r = {
+      center: wrap,
+      paint(t) {
+        remember(t)
+        const st = stateOf(t)
+        value.textContent = st === "auto" ? "Auto" : st === "custom" ? "Custom" : "None"
+        const items = [
+          { label: "Auto", sub: `cuts ${fmtSpan(autoSilence())} of silence`, checked: st === "auto", onPick: applyAuto },
+        ]
+        if (memo.custom) items.push({ label: "Custom", checked: st === "custom", onPick: applyCustom })
+        items.push({ label: "None", sub: "full video", checked: st === "none", onPick: removeTrim })
+        menu.setItems(items)
+        return true
+      },
+    }
+  }
+
+  /* S: K's chip with clearer copy; tapping it opens the three states. */
+  {
+    const sIcon = h("span.status-icon")
+    const sText = h("span")
+    const chip = h("button.sugg-chip.chip3", { type: "button", "aria-haspopup": "menu", "aria-expanded": "false", "data-action": "trim-chip-3" }, sIcon, sText)
+    const wrap = h("div.dd-wrap", chip)
+    const menu = createMenu(wrap)
+    offs.push(on(chip, "click", () => {
+      menu.toggle()
+      chip.setAttribute("aria-expanded", String(menu.isOpen()))
+    }))
+    variants.s = {
+      center: wrap,
+      paint(t) {
+        remember(t)
+        const st = stateOf(t)
+        chip.dataset.state = st
+        chip.setAttribute("aria-pressed", String(st === "auto"))
+        if (st === "none") sIcon.replaceChildren()
+        else sIcon.replaceChildren(icon(st === "auto" ? "sparkles" : "scissors"))
+        sText.textContent = st === "auto" ? "Auto-trimmed" : st === "custom" ? "Custom trim" : "No trim"
+        const items = [
+          { label: "Auto", sub: `cuts ${fmtSpan(autoSilence())} of silence`, checked: st === "auto", onPick: applyAuto },
+        ]
+        if (memo.custom) items.push({ label: "Custom", checked: st === "custom", onPick: applyCustom })
+        items.push({ label: "None", sub: "full video", checked: st === "none", onPick: removeTrim })
+        menu.setItems(items)
+        return true
+      },
+    }
+  }
+
   /* P: the research pick. A chip names the cut; its popover explains it and names both ways out. */
   {
     const pIcon = h("span.status-icon")
