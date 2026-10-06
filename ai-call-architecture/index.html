@@ -1,0 +1,205 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How Clarity calls AI models</title>
+<style>body{font:16px/1.6 -apple-system,system-ui,sans-serif;max-width:860px;margin:2rem auto;padding:0 1.2rem;color:#0f172a}h1,h2{line-height:1.25}h2{margin-top:2.2rem;border-top:1px solid #e2e8f0;padding-top:1.2rem}code{background:#f1f5f9;padding:.1em .3em;border-radius:4px;font-size:.9em}pre{background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:8px;overflow:auto}pre code{background:none;color:inherit;padding:0}table{border-collapse:collapse;width:100%;font-size:.92em;display:block;overflow:auto}th,td{border:1px solid #e2e8f0;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f8fafc}</style></head><body>
+<h1>How Clarity calls AI models</h1>
+<p>Synthesized design, 2026-10-06. Two independent designs (Claude Opus and GPT-6 Astra) were compared, a third model judged them, and this page combines them. A third runner (Fable) dropped out on a usage limit.</p>
+<h2>The problem</h2>
+<p>Clarity makes one model call today: page generation, a raw <code>fetch</code> to OpenAI in <code>workers/frontend-router/src/journey-page-model.ts</code>, with the model as a constant. William wants four more things from every AI feature:</p>
+<ul>
+<li>swap models often, and only after evals pass</li>
+<li>see cost, latency, tokens and failures for every call</li>
+<li>fall back to a different provider family when one fails</li>
+<li>one shared path that every future feature uses (page from recording, edit by asking, prospect from a URL, AI themes, word timestamps for auto-trim)</li>
+</ul>
+<p>What we found while grounding:</p>
+<ul>
+<li>The Cloudflare account had no AI Gateways. The code names three, and the <code>AI_GATEWAY_TOKEN</code> secret never existed, so 100% of calls in the last 30 days went straight to OpenAI. Nothing recorded the model, the tokens or the cost.</li>
+<li>AI Gateway&#39;s own Evaluations feature is deprecated for new accounts. Evals have to be ours.</li>
+<li>Gateway dynamic routes (fallback chains and A/B splits configured in Cloudflare) accept only the OpenAI request shape. Nobody has confirmed that Cloudflare&#39;s cross-provider translation keeps structured output intact.</li>
+<li>An AI Gateway Run token covers every gateway in the account. It can&#39;t be scoped to one.</li>
+</ul>
+<h2>What a feature author writes</h2>
+<p>Every model call is a <strong>task</strong>. A task is a spec plus a route plus an eval.</p>
+<pre><code class="language-ts">// packages/journey-page-domain/src/page-generation-task.ts. The domain owns prompt, schema and conversion.
+export const pageGenerationSpec = defineTask({
+  output: json(&#39;journey_page_blocks&#39;, blockGenerationJsonSchema()),   // the existing schema, unchanged
+  prompt: ({ base, request }) =&gt; ({ system: SYSTEM_PROMPT, user: [text(buildGenerationPrompt(base, request))] }),
+  // Runs after the reply passed the schema. Production and evals both get this value.
+  complete: ({ base, request }, page) =&gt;
+    placeMediaAttachments(applyGeneratedBlocks(page, base, { userPrompt: request.message }), request.attachments ?? []),
+});
+</code></pre>
+<pre><code class="language-ts">// packages/ai-tasks/src/index.ts. Every production model choice, in one file.
+export const AI_TASKS = defineAiTasks({
+  &#39;journey-page-generation&#39;: task({
+    spec: pageGenerationSpec,
+    latency: &#39;interactive&#39;,
+    route: [
+      { model: &#39;openai/gpt-6-luna&#39;, reasoning: &#39;low&#39;, maxOutputTokens: 16_384, timeoutMs: 60_000 },
+      { model: &#39;anthropic/&lt;model chosen by eval&gt;&#39;, maxOutputTokens: 16_384, timeoutMs: 45_000 },
+    ],
+  }),
+});
+</code></pre>
+<pre><code class="language-ts">// workers/frontend-router/src/journey-page-generation.ts. The call site.
+const answer = await runTask(AI_TASKS[&#39;journey-page-generation&#39;], { base, request }, {
+  env, workspaceId: job.workspace_id, timeoutMs: GENERATION_TIMEOUT_MS,
+});
+const landed = await landGeneratedDraft(db, job, base, answer.output);   // a JourneyPageDocument
+</code></pre>
+<p>Callers pass only domain input, the workspace and a time budget. They never pick a model, a provider, a retry policy or a logging option, so a swap never touches a call site.</p>
+<h2>How a model swap works</h2>
+<ol>
+<li>Try the candidate: <code>node scripts/ai.mjs eval journey-page-generation --model &lt;ref&gt; --publish</code>. This runs every eval case through the same code production runs and prints checks, judge scores, cost and p95 next to the current model. <code>--publish</code> gives William a page that compares the two case by case.</li>
+<li>Edit one line in <code>packages/ai-tasks/src/index.ts</code>, plus a catalog row in <code>packages/ai/src/catalog.ts</code> if the model is new.</li>
+<li>Re-run <code>node scripts/ai.mjs eval journey-page-generation</code> to rewrite <code>evals/ai/journey-page-generation/receipts.json</code>.</li>
+<li>Open a PR. CI recomputes each step&#39;s fingerprint without calling a model, and fails with the command to run if a receipt is missing or stale.</li>
+<li>After deploy: <code>node scripts/ai.mjs usage --env production --task journey-page-generation</code>.</li>
+</ol>
+<h2>Load-bearing decisions</h2>
+<p><strong>1. Model choice lives in code, not in gateway dynamic routes.</strong> Both designs reached this on their own. A swap often changes request knobs as well as the model (PR #1015 dropped temperature and added <code>reasoning_effort</code>). Dynamic routes take only the OpenAI shape, sit outside review, skip the eval gate, and break &quot;this release means this model&quot;. The cost is a deploy per swap, which at our volume is nothing.</p>
+<p><strong>2. Every call goes through the gateway on the provider&#39;s native path.</strong> That&#39;s <code>/openai/chat/completions</code>, <code>/anthropic/v1/messages</code> and <code>/google-ai-studio/...:generateContent</code>. The gateway passes native bodies through, so structured output never depends on Cloudflare translating it. There is no direct-to-provider bypass: a missing gateway id is <code>not_configured</code>. That bypass is how 30 days of calls went unrecorded.</p>
+<p><strong>3. Our executor owns fallback, and every reply is validated in our code.</strong> Each provider adapter encodes the schema in its strongest native mode: OpenAI strict <code>json_schema</code>, Anthropic a forced tool, Google <code>responseJsonSchema</code>. Then <code>conform()</code> checks every reply against the same schema, whichever provider answered. A reply that fails the check moves to the next model. Every route step must pass the eval bar on its own, so a fallback can&#39;t serve worse pages than the bar allows. Gateway retries stay off, so every attempt is counted.</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Same model again</th>
+<th>Next model</th>
+<th>Job retries the call later</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>network, 429, 5xx</td>
+<td>once, if it failed within 5 s</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>this model&#39;s timeout</td>
+<td>no</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>other 4xx</td>
+<td>no</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>refusal, truncated, empty, invalid output</td>
+<td>no</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>no key for this provider here</td>
+<td>skipped and recorded</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>call deadline or caller cancelled</td>
+<td>stop</td>
+<td>stop</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<p><strong>4. Keep the existing schema, and validate a strict subset of it.</strong> <code>blockGenerationJsonSchema()</code> stays the single source for the wire schema and for validation. A small <code>conform()</code> validates the subset that all three providers&#39; strict modes accept: objects with every property required, arrays, strings, enums, numbers, booleans. A test fails if a task&#39;s schema leaves that subset. The judge talked us out of a bespoke schema builder: it was migration work with no payoff.</p>
+<p><strong>5. Evals grade the value production gets, and CI checks them without calling a model.</strong> The spec&#39;s <code>complete()</code> runs inside the executor, so eval checks see the same <code>JourneyPageDocument</code> production lands, attachments included. Each route step has a committed receipt. Its fingerprint is a sha256 over the exact wire requests for every case (from the pure <code>encode()</code>, no key and no network), plus the <code>packages/ai</code> source, the eval files and the judge panel. Edit a prompt, a block description, a model, a knob, a check or the executor, and the receipt goes stale. CI then fails and prints the command to run.</p>
+<p><strong>6. Telemetry is one Analytics Engine point per attempt, with prices from one catalog.</strong> <code>runTask</code> writes an <code>ai_call</code> point to the RUM dataset per attempt. The point records task, model, provider, release, outcome, step, served, latency, tokens, cost and the gateway log id. Unknown tokens or cost are written as -1, never 0. The same prices go to the gateway as <code>cf-aig-custom-cost</code>, so the dashboard agrees with our points. Gateway metadata carries <code>task</code>, <code>release</code>, <code>call</code> and <code>purpose</code>, but no workspace or prospect data. <code>ai_generate</code> stays as the page feature&#39;s outcome point and gains the call id.</p>
+<p><strong>7. Gateways are set up by a rerunnable script.</strong> <code>node scripts/ai-gateway.mjs plan|apply</code> creates the three gateways and pulls their settings back in line. Gateway ids come from <code>wrangler.jsonc</code> and <code>PREVIEW_AI_GATEWAY_ID</code>. The dashboard is read-only for the settings the script manages. All three gateways:</p>
+<ul>
+<li>log requests but not request or response bodies</li>
+<li>don&#39;t cache</li>
+<li>don&#39;t retry</li>
+<li>set <code>byok_only</code>, so a call without a provider key fails instead of quietly billing Cloudflare credits</li>
+</ul>
+<p><strong>8. Provider keys are Worker secrets per environment, and previews hold no Cloudflare token.</strong> The Run token covers every gateway in the account, so it never reaches branch code. Production and staging use an authenticated gateway. Previews call an unauthenticated <code>clarity-preview</code> gateway with preview-only provider keys, and no gateway stores a provider key. A stranger who finds the preview gateway can only spend their own key. A deploy fails when a key that a route needs is missing, instead of today&#39;s &quot;put it if the GitHub secret exists&quot;.</p>
+<h2>What it deliberately doesn&#39;t do</h2>
+<ul>
+<li>no dynamic routes, compat endpoint, BYOK, cache or gateway retries</li>
+<li>no D1 call ledger, reconciler or daily rollups (Astra&#39;s design had these; we can add them if Analytics Engine sampling or retention ever bites)</li>
+<li>no live A/B split in production: at 2 generations a month it would take years to read</li>
+<li>no prompts or outputs in Analytics Engine, Sentry or gateway logs, except eval-judge calls on synthetic data</li>
+<li>no fetching inside the AI layer: features hand it bytes and text, so each feature keeps its own SSRF policy</li>
+</ul>
+<h2>Module map</h2>
+<pre><code>packages/ai/src/            runtime, imports no other repo package
+  index.ts                  the only importable entry (lint-enforced)
+  task.ts                   defineTask, task, defineAiTasks, text(), image()
+  schema.ts                 json(), conform(), the strict-subset check
+  catalog.ts                MODELS: provider, wire id, price, operation, accepted inputs, knob style
+  run.ts                    runTask, aiReady, execute: deadline, retries, fallback, recording
+  gateway.ts                the only module that names a model host
+  telemetry.ts              the ai_call point layout
+  providers/openai.ts       chat completions json_schema; transcription later
+  providers/anthropic.ts    messages with a forced tool
+  providers/google.ts       generateContent with responseJsonSchema
+  evaluate.ts               defineEval, evaluate, fingerprint, judge panel
+packages/ai-tasks/src/index.ts      AI_TASKS, the production registry
+evals/ai/&lt;task&gt;/{cases.ts, eval.ts, receipts.json}
+scripts/ai-gateway.mjs      gateway plan | apply
+scripts/ai.mjs              eval | usage | secrets
+scripts/check-ai.mjs        CI guard: receipts, registry and eval directories, key wiring
+DELETED in PR 2: journey-page-model.ts and its test
+</code></pre>
+<h2>Delivery</h2>
+<table>
+<thead>
+<tr>
+<th>PR</th>
+<th>What lands</th>
+<th>Proof</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>scripts/ai-gateway.mjs</code> creates the three gateways and keeps them in line; the Run token becomes the <code>AI_GATEWAY_TOKEN</code> secret</td>
+<td>a second <code>apply</code> reports in sync; a staging generate shows <code>openai_gateway</code> and a gateway log with tokens, cost and metadata but no payload</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>packages/ai</code> with the OpenAI adapter, page generation on <code>runTask</code>, page evals with receipts, and the <code>check-ai</code> gate, all in one change, with the old path deleted</td>
+<td>root <code>pnpm test</code>; passing receipts; a one-word prompt edit fails the gate; generate on preview and staging; <code>ai_call</code> rows with tokens and cost</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Anthropic and Google adapters, catalog rows and keys; candidate evals decide which join the route</td>
+<td>a forced primary failure lands a schema-checked page from step 2 on a preview</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>scripts/ai.mjs usage</code> with reconciliation against gateway totals</td>
+<td>matches gateway totals for staging over 7 days</td>
+</tr>
+<tr>
+<td>5+</td>
+<td>one PR per feature: page from recording, edit by asking, prospect from URL, AI theme, speech words</td>
+<td>each adds a spec, a registry entry and evals</td>
+</tr>
+</tbody></table>
+<p>The judge flagged that both original sequences shipped the production cutover before the eval gate. PR 2 now lands both together.</p>
+<h2>Synthesis record</h2>
+<ul>
+<li><strong>Base:</strong> the Opus design (task registry, Analytics Engine telemetry, committed receipts with request fingerprints, token-free previews).</li>
+<li><strong>Cross-judge (GPT-6 Astra):</strong> preferred the Astra design for its stronger guarantees, and scored the Opus design higher on laziness and preview security. We took Opus as the base, because the Astra design&#39;s D1 ledger written before every paid call, reconciler, R2 report archive, CI attestations and repeated bootstrap comparisons are far more machinery than 2 to 50 calls a month needs.</li>
+<li><strong>Grafted from Astra:</strong><ul>
+<li>the spec&#39;s <code>complete()</code>, so evals grade the domain value production lands</li>
+<li>unknown usage and cost recorded as unknown, never zero</li>
+<li>keep the existing schema rather than writing a new builder</li>
+<li>fingerprints that also cover the runtime source, not only wire requests</li>
+<li>eval gate and cutover in the same PR</li>
+<li>weekly drift evals for model aliases a provider can change under us (later, once evals can run headless with keys)</li>
+</ul>
+</li>
+<li><strong>Rejected from Astra:</strong> the D1 call ledger, the gateway observations table and reconciler, R2 report retention, CI-run live evals with attestations, and 40 cases × 3 repetitions with bootstrap intervals.</li>
+</ul>
+<h2>Open questions for William</h2>
+<ol>
+<li><strong>Fallback providers:</strong> which do you want to pay for? Anthropic and Google mean two more API accounts and keys. Their models get picked by evals, not by hand.</li>
+<li><strong>Budgets:</strong> daily spend limits per environment (gateway spend rules, added once we confirm they apply to our own provider keys).</li>
+<li><strong>Real data in evals:</strong> may eval cases ever come from real generations? This design assumes synthetic cases only, because the job payloads carry prospect data.</li>
+<li><strong>Who runs evals:</strong> headless agent lanes need network access and the preview keys to run evals. Without that, a prompt change needs you or a Claude lane before CI goes green.</li>
+</ol>
+</body></html>
