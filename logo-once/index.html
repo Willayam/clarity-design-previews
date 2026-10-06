@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add your logo once</title>
+<style>
+  body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0f172a; background: #f8fafc; margin: 0; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 40px 0 8px; }
+  p, li { color: #334155; }
+  .meta { font-size: 14px; color: #64748b; }
+  figure { margin: 24px 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { padding: 12px 16px; font-size: 15px; }
+  figcaption b { color: #0f172a; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  code { font-size: 13px; background: #e2e8f0; padding: 1px 4px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Add your logo once</h1>
+<p class="meta">PR #1033 preview, commit ef3275803. Test account with mock logos. Screenshots taken by a scripted browser on 2026-10-06.</p>
+<p>Clarity already had a default logo for new pages, but only Settings could set it. Reps add their logo inside the page editor, so the default stayed empty and every new page started without a logo. Now the first logo a rep adds to any page becomes the default. New pages start with it. A different logo on one page stays on that page unless the rep clicks "Use as default for new pages".</p>
+
+<h2>1. First page, no default yet</h2>
+<figure><img src="shots/01-first-page-no-logo.png" alt="Editor style panel with an Add logo button"><figcaption><b>A brand new account.</b> The page has no logo. The rep opens Page style and clicks "+ Add logo".</figcaption></figure>
+<figure><img src="shots/upload-northwind-logo-selected.png" alt="Image picker uploading northwind-logo"><figcaption><b>The rep uploads their logo</b> in the normal image picker and clicks "Set logo".</figcaption></figure>
+<figure><img src="shots/03-first-page-logo-is-default.png" alt="Style panel shows the logo with the caption Default logo for new pages"><figcaption><b>The page gets the logo, and it is now the default.</b> The caption under the logo says so. The server answered <code>PUT /api/tree/brand {"kind":"adopt-logo"}</code> with <code>brandLogoPreference: "selected"</code>.</figcaption></figure>
+
+<h2>2. Next new page</h2>
+<figure><img src="shots/04-new-page-already-has-logo.png" alt="A second new page already showing the Northwind logo"><figcaption><b>The second page starts with the logo.</b> The rep did nothing. The saved page stores the same logo asset id.</figcaption></figure>
+
+<h2>3. One page needs a different logo</h2>
+<figure><img src="shots/05-other-logo-offers-make-default.png" alt="Second page with an Acme logo and a Use as default for new pages link"><figcaption><b>A one-off logo stays on its page.</b> The rep swaps in a partner logo. The default does not move. The panel offers "Use as default for new pages".</figcaption></figure>
+<figure><img src="shots/06-made-default.png" alt="After clicking, the caption reads Default logo for new pages"><figcaption><b>One click makes it the default.</b> From now on new pages start with this logo.</figcaption></figure>
+<figure><img src="shots/07-first-page-unchanged.png" alt="First page still shows the Northwind logo"><figcaption><b>Existing pages keep their logo.</b> The first page still shows Northwind after the default changed. It now offers to make Northwind the default again.</figcaption></figure>
+
+<h2>4. Settings</h2>
+<figure><img src="shots/08-settings-branding.png" alt="Settings branding page showing the default logo"><figcaption><b>Settings shows the same default</b> and explains the rule. A logo chosen or cleared here always wins over a page logo.</figcaption></figure>
+
+<h2>Open questions for William</h2>
+<table>
+<tr><th>Question</th><th>What the PR does now</th><th>Other option</th></tr>
+<tr><td>Should changing the default update existing pages?</td><td>No. A page copies the default when it is created. Published pages never change behind the rep's back.</td><td>Pages that use the default follow it live. Needs a "use account logo" marker on the page and a migration.</td></tr>
+<tr><td>Should a new page logo replace the default every time?</td><td>No. Only the first logo is adopted automatically. After that, one click.</td><td>Last logo wins. Fewer clicks, but one co-branded page silently changes every later page.</td></tr>
+<tr><td>Should the logo live on the team instead of the person?</td><td>No. It is per rep, like the rest of the workspace.</td><td>A Customer Organization logo that members inherit. Waits on organization sharing.</td></tr>
+<tr><td>Video share pages</td><td>They also start with the default, as before. Adopting a page logo now fills it for reps who never opened Settings.</td><td>Keep share pages logo-free unless set in Settings.</td></tr>
+</table>
+</main>
+</body>
+</html>
