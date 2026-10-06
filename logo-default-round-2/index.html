@@ -61,7 +61,7 @@ code { background:#f1f5f9; padding:1px 4px; border-radius:4px; }
 <h2>2. Old-app logos</h2>
 <p>Settings showed a logo uploaded in the old app as the default. New pages never got it, because a page logo must be a Library image and the old logo is only a URL on the account. Settings now shows only the default that new pages copy. Bringing the old logos into the Library is a one-time backfill that needs a production write, so it is a question for you below.</p>
 <div class="grid two"><div><h4>Before</h4><figure><a href="img/before-legacy-01-settings-branding.png"><img src="img/before-legacy-01-settings-branding.png" loading="lazy" alt="Settings claims new pages start with the old Acme logo."></a><figcaption>Settings claims new pages start with the old Acme logo.</figcaption></figure><figure><a href="img/before-legacy-02-new-page.png"><img src="img/before-legacy-02-new-page.png" loading="lazy" alt="A new page from the same account has no logo."></a><figcaption>A new page from the same account has no logo.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-legacy-01-settings-branding.png"><img src="img/after-legacy-01-settings-branding.png" loading="lazy" alt="Same account. Settings says new pages start without a logo, which is true."></a><figcaption>Same account. Settings says new pages start without a logo, which is true.</figcaption></figure><figure><a href="img/after-legacy-02-new-page.png"><img src="img/after-legacy-02-new-page.png" loading="lazy" alt="The new page matches what Settings says."></a><figcaption>The new page matches what Settings says.</figcaption></figure></div></div>
-<p>After the rep adds a logo to a page, Settings and new pages agree on it.</p>
+<p>Same account again, after it adds its first page logo with the box ticked. Settings and new pages agree on it.</p>
 <div class="grid two">
 <figure><a href="img/after-first-logo-03-settings-shows-first-logo.png"><img src="img/after-first-logo-03-settings-shows-first-logo.png" loading="lazy" alt="Settings after the first page logo."></a><figcaption>Settings after the first page logo.</figcaption></figure>
 <figure><a href="img/after-first-logo-04-next-new-page-has-it.png"><img src="img/after-first-logo-04-next-new-page-has-it.png" loading="lazy" alt="The next new page."></a><figcaption>The next new page.</figcaption></figure>
@@ -76,19 +76,19 @@ code { background:#f1f5f9; padding:1px 4px; border-radius:4px; }
 
 <section id="delete">
 <h2>4. Deleting the default logo image</h2>
-<p>The delete failed and sent the rep to Settings. Now the image is deleted and the workspace has no default. The next logo the rep adds to a page starts with the box ticked, so it becomes the default. Deleting a folder that holds the default does the same.</p>
+<p>The delete failed and sent the rep to Settings. Now the image is deleted and the workspace has no default. With no default left, the picker's box starts ticked again for the next logo, as in section 1. A unit test covers deleting a folder that holds the default; this run deletes the image itself.</p>
 <div class="grid two"><div><h4>Before</h4><figure><a href="img/before-delete-02-after-delete.png"><img src="img/before-delete-02-after-delete.png" loading="lazy" alt="Before. The delete is refused."></a><figcaption>Before. The delete is refused.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-delete-02-after-delete.png"><img src="img/after-delete-02-after-delete.png" loading="lazy" alt="After. The image is gone."></a><figcaption>After. The image is gone.</figcaption></figure><figure><a href="img/after-delete-03-settings-after-delete.png"><img src="img/after-delete-03-settings-after-delete.png" loading="lazy" alt="Settings after the delete."></a><figcaption>Settings after the delete.</figcaption></figure></div></div>
 </section>
 
 <section id="failure">
 <h2>5. "Use as default" failing</h2>
-<p>A failed save only reached the console. Both default-logo saves now show the editor's error toast. The failure here is a simulated 500 from the browser driver.</p>
+<p>A failed save only reached the console. The link and the picker box save through the same handler, which now shows the editor's error toast. This run fails the link with a simulated 500 from the browser driver.</p>
 <div class="grid two"><div><h4>Before</h4><figure><a href="img/before-failure-01-make-default-failed.png"><img src="img/before-failure-01-make-default-failed.png" loading="lazy" alt="Before. Nothing on screen."></a><figcaption>Before. Nothing on screen.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-failure-01-make-default-failed.png"><img src="img/after-failure-01-make-default-failed.png" loading="lazy" alt="After. The error toast."></a><figcaption>After. The error toast.</figcaption></figure></div></div>
 </section>
 
 <section id="race">
 <h2>6. Two tabs adding a first logo at once</h2>
-<p>Both tabs read "no default yet", then both wrote, so the second won. The write now lands only on the row its read saw, as one conditional upsert in D1. The loser re-reads and finds the first logo chosen. Output of the new test against the old and new store:</p>
+<p>Both tabs read "no default yet", then both wrote, so the second won. The write now lands only on the row its read saw, as one conditional upsert in D1. The loser re-reads and finds the first logo chosen. Output of the new test, run once with the store from the previous PR head and once with the new one:</p>
 <div class="grid two"><div><h4>Before</h4><pre>FAIL  tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps the first logo when two tabs adopt at the same moment
 AssertionError: expected &#x27;image-2&#x27; to be &#x27;image-1&#x27; // Object.is equality</pre></div><div><h4>After</h4><pre>✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; selects the first page logo when there is no settings row 22ms
  ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps an explicitly selected logo 22ms
