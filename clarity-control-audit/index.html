@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segmented controls in the Clarity app: audit for the Edit Video prototype</title>
+<style>
+  :root { --ink: #0f172a; --dim: #475569; --line: #e2e8f0; --page: #f6f7f9; --card: #fff; --accent: #2563eb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font-size: 21px; margin: 56px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 16px; margin: 0; }
+  p, li { max-width: 78ch; }
+  .meta { color: var(--dim); margin: 0 0 24px; }
+  code { font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: #eef2f7; padding: 1px 5px; border-radius: 4px; }
+  .answer { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 18px 22px; }
+  .answer p { margin: 0 0 10px; } .answer p:last-child { margin: 0; }
+  .pair { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+  .tile { position: relative; border-radius: 10px; padding: 26px 14px 14px; display: inline-flex; align-items: center; justify-content: center; max-width: 100%; }
+  .tile.dark { background: #070b16; } .tile.light { background: #eef1f6; }
+  .tile img { max-width: 100%; height: auto; display: block; }
+  .scheme { position: absolute; top: 6px; left: 10px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tile.dark .scheme { color: #94a3b8; } .tile.light .scheme { color: #64748b; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin: 16px 0; }
+  .card header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: #eef2f7; color: #334155; }
+  .badge.top { background: #dcfce7; color: #166534; } .badge.hand { background: #fef3c7; color: #92400e; } .badge.dead { background: #fee2e2; color: #991b1b; } .badge.rec { background: #dbeafe; color: #1e40af; }
+  dl { display: grid; grid-template-columns: 120px 1fr; gap: 4px 14px; margin: 12px 0 6px; font-size: 14px; }
+  dt { color: var(--dim); } dd { margin: 0; }
+  .look { color: #334155; font-size: 14px; margin: 6px 0 0; }
+  .option { margin: 18px 0 6px; font-weight: 600; } .option span { font-weight: 400; color: var(--dim); }
+  table { border-collapse: collapse; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-top: 1px solid var(--line); }
+  th { background: #f1f5f9; border-top: 0; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .note { color: var(--dim); font-size: 13.5px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; margin: 0 0 8px; padding: 0; list-style: none; }
+  a { color: var(--accent); }
+  ol.issues li, ul.plain li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main>
+<h1>Segmented controls in the Clarity app</h1>
+<p class="meta">An audit for the Edit Video prototype. Code read on <code>origin/main</code> at 41bfc02ed. Live crops from the PR #1016 preview (auto-trim), signed in as the QA account, 6 October 2026. The app follows the OS color scheme and has no in-app switch, so every crop was taken twice, once per scheme.</p>
+<ul class="toc">
+  <li><a href="#answer">Short answer</a></li>
+  <li><a href="#compare">Side by side</a></li>
+  <li><a href="#recommend">Recommendation per control</a></li>
+  <li><a href="#styles">Every style in the app</a></li>
+  <li><a href="#issues">Inconsistencies</a></li>
+  <li><a href="#buttons">Buttons</a></li>
+  <li><a href="#design-md">What DESIGN.md says</a></li>
+  <li><a href="#method">Method</a></li>
+</ul>
+
+<h2 id="answer">Short answer</h2>
+<div class="answer">
+<p>The app has one shared segmented component, <code>SegmentedControl</code>. It is the most used segmented style (12 placements from 7 call sites), and every one of those placements is in the journey page editor: the side panel and the Style pop-down. So it is the standard segmented control for property panels.</p>
+<p>The real Edit Video modal uses a different control for the same job. Still Preview and Moving Preview are two ghost Buttons with <code>aria-pressed</code> on the dark media glass of the video dock. The floating text toolbar and the media toolbar on the page canvas use the same pressed ghost buttons. The prototype took the panel control into the video dock, which is likely what feels off.</p>
+<p>The prototype also draws a blue Done inside the dock. The real Button cannot do that: inside a media surface every Button variant paints transparent (<code>button.tsx:189-199</code>). The real dock's Done and Cancel are both ghost, and the modal's blue Done sits in the footer, off the glass.</p>
+<p>Recommendation: build all three toggles as pressed ghost groups, copying the markup of the real Preview type group, with a <code>ChromeSeparator</code> between groups. Make Cancel, Done, Undo and Restore ghost sm, as the real dock does. If Done closes the whole modal, move Cancel and Done off the glass and use the app's dialog pair, an outline Cancel and a default Done.</p>
+</div>
+
+<h2 id="compare">Side by side</h2>
+<p>The prototype's console in both modes, then three ways to build it from real components. Rows A to C were rendered inside the live Edit Video modal. A script cloned elements the app had already rendered (a SegmentedControl from the page editor, plus the Preview type group and buttons from this modal) into the dock, then took the crop. Nothing was saved.</p>
+
+<p class="option">Prototype today <span>(edit-video-deck, round 7)</span></p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/proto-trim-dark.png" width="1282" height="52" alt="Prototype console in trim mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/proto-trim-light.png" width="1282" height="52" alt="Prototype console in trim mode, light mode" loading="lazy"></div></div>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/proto-preview-dark.png" width="1282" height="52" alt="Prototype console in preview mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/proto-preview-light.png" width="1282" height="52" alt="Prototype console in preview mode, light mode" loading="lazy"></div></div>
+
+<p class="option">A. Pressed ghost groups on media glass, ghost Cancel and Done <span>(recommended; the real modal's own pattern)</span></p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cand-pressed-media-trim-dark.png" width="746" height="66" alt="Pressed ghost groups, trim mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cand-pressed-media-trim-light.png" width="746" height="66" alt="Pressed ghost groups, trim mode, light mode" loading="lazy"></div></div>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cand-pressed-media-preview-dark.png" width="746" height="66" alt="Pressed ghost groups, preview mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cand-pressed-media-preview-light.png" width="746" height="66" alt="Pressed ghost groups, preview mode, light mode" loading="lazy"></div></div>
+
+<p class="option">B. SegmentedControl on the dialog background, outline Cancel and default Done <span>(the panel standard, moved off the glass)</span></p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cand-seg-dialog-trim-dark.png" width="746" height="64" alt="SegmentedControl on the dialog background, trim mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cand-seg-dialog-trim-light.png" width="746" height="64" alt="SegmentedControl on the dialog background, trim mode, light mode" loading="lazy"></div></div>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cand-seg-dialog-preview-dark.png" width="746" height="64" alt="SegmentedControl on the dialog background, preview mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cand-seg-dialog-preview-light.png" width="746" height="64" alt="SegmentedControl on the dialog background, preview mode, light mode" loading="lazy"></div></div>
+
+<p class="option">C. SegmentedControl on media glass <span>(the current restyle placed on the real dock)</span></p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cand-seg-media-trim-dark.png" width="746" height="66" alt="SegmentedControl on media glass, trim mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cand-seg-media-trim-light.png" width="746" height="66" alt="SegmentedControl on media glass, trim mode, light mode" loading="lazy"></div></div>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cand-seg-media-preview-dark.png" width="746" height="66" alt="SegmentedControl on media glass, preview mode, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cand-seg-media-preview-light.png" width="746" height="66" alt="SegmentedControl on media glass, preview mode, light mode" loading="lazy"></div></div>
+<p class="note">SegmentedControl reads the page tokens (<code>bg-muted</code>, <code>bg-background</code>), not the chrome tokens, so in light mode it draws a light well on the dark dock. Pressed ghost Buttons read the surface they sit on, so they match the dock in both schemes.</p>
+
+<p class="option">The real dock as it ships on #1016</p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/dock-summary-full-dark.png" width="746" height="66" alt="Real Edit Video dock, summary state, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/dock-summary-full-light.png" width="746" height="66" alt="Real Edit Video dock, summary state, light mode" loading="lazy"></div></div>
+<p class="note">The real dock is dark media glass in light mode too (<code>Surface surface="media"</code>, <code>VideoTimelineDock.tsx:379</code> and <code>:436</code>). The prototype's console turns light in light mode, which matches option B's surface rather than the real dock's.</p>
+
+<h2 id="recommend">Recommendation per control</h2>
+<table>
+<thead><tr><th>Prototype control</th><th>Use</th><th>Real precedent</th></tr></thead>
+<tbody>
+<tr><td>Trim | Preview</td><td>Pressed ghost pair: a <code>div role="group"</code> holding <code>Button variant="ghost" size="sm" aria-pressed</code>, each with a <code>size-3.5</code> icon.</td><td>The Preview type group, <code>VideoPreviewPicker.tsx:459-480</code>. Today the dock opens these as modes with two plain ghost sm buttons, Trim and Edit Preview (<code>VideoTimelineDock.tsx:425</code>, <code>:429</code>).</td></tr>
+<tr><td>Auto | Custom | None</td><td>The same pressed ghost group with three buttons, and a <code>ChromeSeparator</code> between it and Trim | Preview. If you take option B instead, use <code>SegmentedControl</code> at the default size.</td><td><code>ChromeSeparator</code>, <code>surface.tsx:90</code>, between the media toolbar's groups (MediaPicker.tsx:328, :345, :362). The closest value picker with an Auto option is the Logos block's Colors control (Auto | Muted | Full), a SegmentedControl, <code>block-editors.tsx:333</code>.</td></tr>
+<tr><td>Moving | Still</td><td>The real Preview type group as it is.</td><td><code>VideoPreviewPicker.tsx:459-480</code>. The real order is Still Preview, then Moving Preview. The prototype flips the order and shortens the labels.</td></tr>
+<tr><td>Cancel and Done in the console</td><td>Ghost sm while they sit on the glass. If Done closes the modal, move the pair off the glass and use an outline Cancel on the left and a default Done on the right, both at the default size.</td><td>Dock: <code>VideoTimelineDock.tsx:485-511</code>. Dialog pairs: <code>CreateAccountDialog.tsx:182</code>, <code>account-panel-dialogs.tsx:118</code>, <code>ContactsIndexRoute.tsx:928</code>. The modal footer: Share outline, Done default, <code>VideoEditModal.tsx:603-614</code>.</td></tr>
+<tr><td>Undo, Reset to auto, Restore</td><td>Ghost sm text buttons, not blue links.</td><td>Restore, <code>VideoTimelineDock.tsx:474</code>. Undo on #1016, <code>VideoTimelineDock.tsx:439</code> on <code>feat/auto-trim</code>. <code>variant="link"</code> has 3 uses, all outside the editor (public home, sign-in, an admin dialog). Next to a panel label, the app's reset is a ghost icon-xs with a reset glyph, <code>ThemeStylePanel.tsx:166</code>.</td></tr>
+<tr><td>Play</td><td><code>Button variant="ghost" size="icon"</code>. Icon sizes are round on media glass.</td><td><code>VideoTimelineDock.tsx:382</code>.</td></tr>
+<tr><td>Duration stepper (minus, 3 s, plus)</td><td>Ghost icon-sm minus and plus buttons around a bold count.</td><td>No shared stepper exists. The nearest is the gallery column stepper, round 28px buttons on chrome ink with a bold count, <code>GalleryEditor.tsx:122-141</code>. It was not captured, because the QA page has no gallery block.</td></tr>
+</tbody>
+</table>
+<p class="note">Why A over B: A is what the real Edit Video modal already uses for Moving and Still. Its look comes from the Surface the controls sit on, with no per-call styling. It keeps the dock the same in both schemes and avoids the SegmentedControl look you said you dislike. It has two costs. A group has no container, so a ChromeSeparator and spacing mark where one group ends. And it uses toggle buttons, so arrow keys do not move the choice the way they do in SegmentedControl's radio group. The real Preview type group has the same two limits today.</p>
+
+<h2 id="styles">Every style in the app</h2>
+<p>Every control in <code>editor/src</code> that picks one of a few values, plus the near neighbours a reader might confuse with one. Counts are call sites in the code. A placement is where a call site renders more than once, as with the TitleField helper.</p>
+
+<article class="card" id="segmented-control">
+  <header><h3>SegmentedControl</h3><span class="badge top">Most used, shared component</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/seg-logo-colors-row-dark.png" width="359" height="48" alt="SegmentedControl, Logos Colors, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/seg-logo-colors-row-light.png" width="359" height="48" alt="SegmentedControl, Logos Colors, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/seg-title-align-row-dark.png" width="359" height="60" alt="SegmentedControl with glyphs beside a title field, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/seg-title-align-row-light.png" width="359" height="60" alt="SegmentedControl with glyphs beside a title field, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/seg-size-lg-row-dark.png" width="356" height="52" alt="SegmentedControl, lg size, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/seg-size-lg-row-light.png" width="356" height="52" alt="SegmentedControl, lg size, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Component</dt><dd><code>editor/src/components/ui/segmented-control.tsx:49</code></dd>
+    <dt>Call sites</dt><dd>7 in 3 files, 12 placements. The TitleField helper (FormFields.tsx:201) renders one beside a section title and has 6 call sites in block-editors.tsx.</dd>
+    <dt>Where</dt><dd>Journey page editor only. Side panel: title alignment, media alignment (block-editors.tsx:267), Logos Variant and Colors (block-editors.tsx:325, :333). Style pop-down: logo alignment, Size and Corners at lg (ThemeStylePanel.tsx:89, :143, :152).</dd>
+    <dt>Semantics</dt><dd>A radio group. Arrow keys move the choice.</dd>
+  </dl>
+  <p class="look">A muted well with rounded-lg corners and a 3px inset. The chosen segment is raised on the page background with a small shadow. In dark mode it gets an input-colored border and a 30% input fill instead. 32px tall, 40px at lg.</p>
+</article>
+
+<article class="card" id="pressed-ghost">
+  <header><h3>Pressed ghost buttons</h3><span class="badge rec">State from Button, grouping by hand</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/dock-preview-type-dark.png" width="252" height="48" alt="Edit Video Preview type toggle, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/dock-preview-type-light.png" width="252" height="48" alt="Edit Video Preview type toggle, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/chromebar-align-dark.png" width="126" height="58" alt="Canvas text toolbar alignment, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/chromebar-align-light.png" width="126" height="58" alt="Canvas text toolbar alignment, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/media-toolbar-dark.png" width="307" height="58" alt="Canvas media toolbar, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/media-toolbar-light.png" width="307" height="58" alt="Canvas media toolbar, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Component</dt><dd><code>Button variant="ghost"</code> with <code>aria-pressed</code>. The pressed paint lives in <code>button.tsx:173</code> (page and panel) and <code>button.tsx:198</code> (bar and media).</dd>
+    <dt>Call sites</dt><dd>3 groups that pick one value: Edit Video Preview type (VideoPreviewPicker.tsx:459), canvas text toolbar alignment (EditableText.tsx:205), media toolbar alignment (MediaPicker.tsx:316). The same face is used on single toggles: Wrap text (MediaPicker.tsx:333), rich text marks (RichTextField.tsx:48), Required (block-editors.tsx:375).</dd>
+    <dt>Where</dt><dd>Chrome that floats over content or sits on video: the Edit Video dock, the canvas text and media toolbars.</dd>
+    <dt>Semantics</dt><dd>Toggle buttons in a role="group". No arrow-key movement.</dd>
+  </dl>
+  <p class="look">No container. Buttons are transparent, and the pressed one gets a grey tint: 16% white on media glass, 11% ink on app glass. Icon buttons are round on a bar. On a page or panel the same ghost Button turns blue-tinted when pressed.</p>
+</article>
+
+<article class="card" id="chrome-segmented">
+  <header><h3>ChromeSegmented (sliding thumb)</h3><span class="badge neutral">Shared component, one call site</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/chrome-segmented-dark.png" width="102" height="44" alt="ChromeSegmented S, M, L, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/chrome-segmented-light.png" width="102" height="44" alt="ChromeSegmented S, M, L, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Component</dt><dd><code>editor/src/components/ui/surface.tsx:135</code></dd>
+    <dt>Call sites</dt><dd>1: media size S, M, L in the canvas media toolbar (MediaPicker.tsx:350).</dd>
+    <dt>Where</dt><dd>In the same toolbar as the pressed ghost alignment buttons (see the media toolbar crop above).</dd>
+  </dl>
+  <p class="look">A round grey thumb that slides between options, with bold 12px letters in the chrome font.</p>
+</article>
+
+<article class="card" id="section-nav">
+  <header><h3>SectionNav (underline tabs)</h3><span class="badge neutral">Shared component</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/sectionnav-settings-dark.png" width="458" height="60" alt="Settings section nav, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/sectionnav-settings-light.png" width="458" height="60" alt="Settings section nav, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/sectionnav-learn-dark.png" width="435" height="60" alt="Learn section nav, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/sectionnav-learn-light.png" width="435" height="60" alt="Learn section nav, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Component</dt><dd><code>editor/src/components/SectionNav.tsx:18</code></dd>
+    <dt>Call sites</dt><dd>3: SettingsLayout.tsx:13, LearnIndexRoute.tsx:159, AdminSectionNav.tsx:10 (which 2 admin routes use).</dd>
+    <dt>Where</dt><dd>Sub-pages under a page title: Settings, Learn, Admin.</dd>
+    <dt>Semantics</dt><dd>Links, not ARIA tabs. Each entry is its own URL.</dd>
+  </dl>
+  <p class="look">Text links at 60% ink. The current page gets full ink and a 2px blue underline on the page divider.</p>
+</article>
+
+<article class="card" id="tabs">
+  <header><h3>Tabs, default and line variants</h3><span class="badge dead">No call sites</span></header>
+  
+  <dl>
+    <dt>Component</dt><dd><code>editor/src/components/ui/tabs.tsx</code></dd>
+    <dt>Call sites</dt><dd>0. Commit 5041aebf4 (2 October 2026) moved Settings and Learn from the line variant to SectionNav and removed the last use.</dd>
+  </dl>
+  <p class="look">Not captured live, because nothing renders it. From the code, the default variant is the same muted well as SegmentedControl, and the line variant is text with a blue underline, like SectionNav.</p>
+</article>
+
+<article class="card" id="tiles">
+  <header><h3>Choice tiles</h3><span class="badge hand">Hand-rolled, 3 chosen styles</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/tiles-preset-dark.png" width="356" height="170" alt="Theme preset tiles, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/tiles-preset-light.png" width="356" height="170" alt="Theme preset tiles, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/tiles-font-dark.png" width="233" height="108" alt="Font pair tiles, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/tiles-font-light.png" width="233" height="108" alt="Font pair tiles, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/recorder-layout-tiles-dark.png" width="336" height="210" alt="Recorder layout tiles, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/recorder-layout-tiles-light.png" width="336" height="210" alt="Recorder layout tiles, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Call sites</dt><dd>3: PresetGallery (FormFields.tsx:240, radio), FontPairControl (FormFields.tsx:575, radio), RecorderLayoutPicker (RecorderLayoutPicker.tsx:93, aria-pressed).</dd>
+    <dt>Where</dt><dd>Style pop-down, and the recorder.</dd>
+  </dl>
+  <p class="look">Each draws the chosen tile differently. Presets get a 2px ring outline (from the code; no preset is chosen on the QA page). Font pairs get a ring-colored border plus an inset ring. Recorder layouts get a blue border, a 10% blue fill and a blue label.</p>
+</article>
+
+<article class="card" id="swatches">
+  <header><h3>Swatch dots</h3><span class="badge hand">Hand-rolled</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/swatch-accent-dark.png" width="233" height="34" alt="Accent color dots, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/swatch-accent-light.png" width="233" height="34" alt="Accent color dots, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/swatch-background-dark.png" width="98" height="34" alt="Background tone dots, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/swatch-background-light.png" width="98" height="34" alt="Background tone dots, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Call sites</dt><dd>2: AccentDots (FormFields.tsx:620) and BackgroundDots (FormFields.tsx:672), both radio groups. The trailing custom-color dot is an aria-pressed button (FormFields.tsx:433).</dd>
+    <dt>Where</dt><dd>Style pop-down.</dd>
+  </dl>
+  <p class="look">Round color dots. The chosen dot gets a ring.</p>
+</article>
+
+<article class="card" id="menu">
+  <header><h3>Single-choice menu</h3><span class="badge neutral">Shared component</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/home-toolbar-dark.png" width="228" height="56" alt="Library toolbar, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/home-toolbar-light.png" width="228" height="56" alt="Library toolbar, light mode" loading="lazy"></div></div><div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/home-filter-menu-dark.png" width="180" height="232" alt="Filter menu open, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/home-filter-menu-light.png" width="180" height="232" alt="Filter menu open, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Component</dt><dd>ToolbarMenu in <code>editor/src/components/LibraryToolbar.tsx:33</code>, a DropdownMenuRadioGroup.</dd>
+    <dt>Call sites</dt><dd>2 menus (filter, sort) in LibraryToolbar, which Home (HomeTreeRoute.tsx:1690) and the media picker (LibraryGrid.tsx:373) use.</dd>
+  </dl>
+  <p class="look">An outline icon button that turns blue-tinted when the filter is not All, opening a menu with a check on the chosen row.</p>
+</article>
+
+<article class="card" id="switch">
+  <header><h3>Switch</h3><span class="badge neutral">Shared, plus one hand-rolled copy</span></header>
+  <div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/cta-switch-dark.png" width="110" height="48" alt="CTA Primary switch, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/cta-switch-light.png" width="110" height="48" alt="CTA Primary switch, light mode" loading="lazy"></div></div>
+  <dl>
+    <dt>Component</dt><dd><code>editor/src/components/ui/switch.tsx</code>, 4 call sites. CtaPrimarySwitch (CtaRowEditor.tsx:68) re-draws a switch by hand and has 2 call sites.</dd>
+  </dl>
+  <p class="look">On and off, not one of several, so not a segmented control. It is listed so nobody reaches for it as one. The crop is the hand-rolled copy.</p>
+</article>
+
+<article class="card" id="radio">
+  <header><h3>Classic radio list</h3><span class="badge neutral">Shared component</span></header>
+  
+  <dl>
+    <dt>Component</dt><dd><code>editor/src/components/ui/radio-group.tsx</code></dd>
+    <dt>Call sites</dt><dd>2 groups, both in the cancel-subscription dialog (SubscriptionRoute.tsx:485, :507).</dd>
+  </dl>
+  <p class="look">Not captured, because it sits inside the cancel-subscription flow. Round radio dots with labels.</p>
+</article>
+
+<h2 id="issues">Inconsistencies</h2>
+<p>In the real app:</p>
+<ol class="issues">
+  <li>Three looks pick one value out of a few: the SegmentedControl well in panels, pressed ghost buttons on chrome and the video dock, and the ChromeSegmented sliding thumb. The thumb has one use, and it sits in the same media toolbar as pressed ghost alignment buttons.</li>
+  <li>Text alignment is the same field in two places with two looks. The side panel uses SegmentedControl beside the title input. The canvas toolbar uses pressed ghost icons. <code>surface.tsx</code> says the container decides a control's look, which explains the split, but SegmentedControl does not read the surface at all.</li>
+  <li>The chosen state changes color by place. Pressed ghost is blue-tinted on a page or panel (<code>--btn-tint</code>) and grey on chrome (<code>--cg-active</code>). SegmentedControl raises a neutral segment. Recorder tiles go blue.</li>
+  <li>The three choice tile groups draw the chosen tile three different ways (ring outline, ring border plus inset ring, blue border plus fill).</li>
+  <li><code>ui/tabs.tsx</code> has no call sites. Its line look was rebuilt by hand in SectionNav, so the underline tab now exists in two implementations, one of them unused.</li>
+  <li>Cancel and Done differ between the dock and the dialogs. Dialogs put an outline Cancel left of a default primary. The video dock stacks Done above Cancel, both ghost sm. The media picker uses lg, the other dialogs the default size. DeleteConfirmationDialog overrides its outline Cancel with hand-written classes and paints its delete button <code>bg-red-500</code> by hand (DeleteConfirmationDialog.tsx:112-129).</li>
+  <li>Two switch implementations: <code>ui/switch.tsx</code> and the hand-rolled CtaPrimarySwitch.</li>
+</ol>
+<p>Between the prototype and the real modal:</p>
+<ol class="issues">
+  <li>The prototype restyled its toggles to look like SegmentedControl, while the real modal uses pressed ghost buttons for Moving and Still.</li>
+  <li>The prototype's segmented buttons are aria-pressed buttons dressed as SegmentedControl. The real SegmentedControl is a radio group.</li>
+  <li>The prototype's Done is blue inside the console. Inside the real dock, every Button variant is transparent.</li>
+  <li>The prototype's Undo is a blue link. The real Undo on #1016 is a ghost sm button in white.</li>
+  <li>The prototype's console turns light in light mode. The real dock stays dark media glass in both schemes.</li>
+  <li>Labels and order: the real modal says Trim and Edit Preview, and Still Preview before Moving Preview. The prototype says Trim, Preview, Moving, Still.</li>
+</ol>
+
+<h2 id="buttons">Buttons</h2>
+<p><code>editor/src/components/ui/button.tsx</code> names the roles in its header comment: default is primary, outline is secondary, ghost is tertiary, destructive is danger, link is inline, dashed is the add row in a panel, and plain is an icon inside a field. Gold and ink are marketing faces. <code>secondary</code> is defined but unused, because on the near-white card it looks the same as outline. The surface decides the face: on a hero surface default is a gradient and outline is frosted glass, a panel keeps them flat, and on a bar or media surface every variant turns transparent.</p>
+
+<table>
+<thead><tr><th>Variant / size</th><th class="num">Uses</th><th>Typical job</th></tr></thead>
+<tbody>
+<tr><td>default / default</td><td class="num">36</td><td>Primary action in a dialog or form (the Edit Video Done)</td></tr>
+<tr><td>ghost / sm</td><td class="num">20</td><td>Quiet actions in docks and panels (Trim, Edit Preview, Restore, Done, Cancel, Still and Moving Preview)</td></tr>
+<tr><td>outline / default</td><td class="num">19</td><td>Secondary action, dialog Cancel (the Edit Video Share)</td></tr>
+<tr><td>ghost / icon</td><td class="num">13</td><td>Icon actions in toolbars, play and pause</td></tr>
+<tr><td>default / lg</td><td class="num">12</td><td>Headline actions (New Journey Page)</td></tr>
+<tr><td>outline / lg</td><td class="num">9</td><td>Headline secondary (Upload, Record video), media picker Cancel</td></tr>
+<tr><td>outline / sm</td><td class="num">8</td><td>Small secondary actions</td></tr>
+<tr><td>link / any</td><td class="num">3</td><td>Inline text actions on the public home, sign-in and one admin dialog. None in the editor.</td></tr>
+</tbody>
+</table>
+<p class="note">Counts come from a regex scan of <code>&lt;Button …&gt;…&lt;/Button&gt;</code> outside <code>components/ui</code> on 41bfc02ed: 168 matches, plus 12 self-closing Buttons the table leaves out. Treat them as close, not exact.</p>
+
+<p class="option">The Edit Video modal's buttons today</p>
+<table>
+<thead><tr><th>Button</th><th>Variant / size</th><th>Where</th></tr></thead>
+<tbody>
+<tr><td>Done (modal)</td><td>default / default</td><td>VideoEditModal.tsx:610, off the glass</td></tr>
+<tr><td>Share, Copy email GIF</td><td>outline / default</td><td>VideoEditModal.tsx:603, :595</td></tr>
+<tr><td>Trim, Edit Preview</td><td>ghost / sm, with icon</td><td>VideoTimelineDock.tsx:425, :429</td></tr>
+<tr><td>Restore, Done, Cancel (trim mode)</td><td>ghost / sm</td><td>VideoTimelineDock.tsx:474, :485, :488</td></tr>
+<tr><td>Done, Cancel (preview mode)</td><td>ghost / sm</td><td>VideoTimelineDock.tsx:494, :503</td></tr>
+<tr><td>Still Preview, Moving Preview</td><td>ghost / sm, aria-pressed</td><td>VideoPreviewPicker.tsx:460, :470</td></tr>
+<tr><td>Play / Pause</td><td>ghost / icon</td><td>VideoTimelineDock.tsx:382</td></tr>
+<tr><td>Undo (auto-trim line, #1016)</td><td>ghost / sm</td><td>VideoTimelineDock.tsx:439 on feat/auto-trim</td></tr>
+</tbody>
+</table>
+<p class="note">The dock's actions in its three states: summary (with the #1016 auto-trim line), trim mode, preview mode.</p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/dock-summary-actions-dark.png" width="380" height="48" alt="Dock summary actions with the auto-trim Undo, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/dock-summary-actions-light.png" width="380" height="48" alt="Dock summary actions with the auto-trim Undo, light mode" loading="lazy"></div></div>
+<div class="pair">
+  <div class="tile dark"><span class="scheme">dark, trim mode</span><img src="shots/dock-trim-actions-dark.png" width="92" height="116" alt="Dock trim mode actions, dark mode" loading="lazy"></div>
+  <div class="tile light"><span class="scheme">light, trim mode</span><img src="shots/dock-trim-actions-light.png" width="92" height="116" alt="Dock trim mode actions, light mode" loading="lazy"></div>
+  <div class="tile dark"><span class="scheme">dark, preview mode</span><img src="shots/dock-preview-actions-dark.png" width="92" height="82" alt="Dock preview mode actions, dark mode" loading="lazy"></div>
+  <div class="tile light"><span class="scheme">light, preview mode</span><img src="shots/dock-preview-actions-light.png" width="92" height="82" alt="Dock preview mode actions, light mode" loading="lazy"></div>
+</div>
+<p class="option">Footers and headline actions <span>(the Edit Video footer; the media picker's Cancel and Select at lg; Home's headline row)</span></p>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/modal-footer-dark.png" width="148" height="52" alt="Edit Video footer, Share and Done, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/modal-footer-light.png" width="148" height="52" alt="Edit Video footer, Share and Done, light mode" loading="lazy"></div></div>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/dialog-footer-mediapicker-dark.png" width="183" height="60" alt="Media picker footer, Cancel and Select at lg, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/dialog-footer-mediapicker-light.png" width="183" height="60" alt="Media picker footer, Cancel and Select at lg, light mode" loading="lazy"></div></div>
+<div class="pair"><div class="tile dark"><span class="scheme">dark</span><img src="shots/home-headline-dark.png" width="455" height="60" alt="Home headline actions, dark mode" loading="lazy"></div><div class="tile light"><span class="scheme">light</span><img src="shots/home-headline-light.png" width="455" height="60" alt="Home headline actions, light mode" loading="lazy"></div></div>
+
+<h2 id="design-md">What DESIGN.md says</h2>
+<p>Nothing about segmented controls, tabs, toggles or button hierarchy. It covers glass (chrome over content only), type, color, spacing, layout, radius and motion. The rules for these controls live in code comments:</p>
+<ul class="plain">
+  <li><code>ui/segmented-control.tsx</code>: one value out of a few, a radio group that wears the Tabs list's track, and not Tabs, "which would announce panels that do not exist".</li>
+  <li><code>ui/surface.tsx</code>: "Appearance is decided by the container, never by the call site." A panel is flat. A bar or media surface makes controls transparent with a tint on hover and when pressed.</li>
+  <li><code>ui/button.tsx</code>: the variant roles listed above, and <code>secondary</code> unused.</li>
+  <li><code>SectionNav.tsx</code>: "Links, not ARIA tabs: each entry is its own URL."</li>
+</ul>
+<p><code>docs/agents/guards.md</code> has one related lint: a raw <code>&lt;button&gt;</code> fails CI, and the message says to use Button or ButtonBase and to treat a missing variant as a change to the primitive. No lint or guard says which segmented control to use.</p>
+
+<h2 id="method">Method</h2>
+<ul class="plain">
+  <li>Inventory: <code>git grep</code> over <code>editor/src</code> on origin/main 41bfc02ed for SegmentedControl, Tabs, RadioGroup, ToggleGroup (none exist), aria-pressed, aria-checked, data-active, role="group", ChromeSegmented and SectionNav, then read each hit.</li>
+  <li>Live crops: the PR #1016 preview (<code>feat/auto-trim</code>, which adds the auto-trim Undo line to the dock), the QA account, Chromium at 2x, OS color scheme dark and then light.</li>
+  <li>Rows A to C were rendered in the live modal by cloning real rendered app elements into the dock. Nothing was clicked that saves: Trim and Edit Preview were opened and left with Cancel, and the modal was never closed, so its close-time save never ran.</li>
+  <li>Not captured live: Tabs (no call sites), the classic radio list (inside the cancel-subscription dialog), <code>ui/switch.tsx</code>, the gallery column stepper (no gallery block on the QA page). Video frames and filmstrips are kept out of the crops.</li>
+</ul>
+</main>
+</body>
+</html>
