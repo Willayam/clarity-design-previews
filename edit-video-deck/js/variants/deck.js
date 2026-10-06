@@ -1,7 +1,7 @@
 import { clamp, fmtSpan, h, on, rafCoalesce, startDrag, tween } from "../util.js"
 import { icon } from "../icons.js"
 import { createStrip, createTrimOverlay } from "../strip.js"
-import { createHoldZoom } from "../hold-zoom.js"
+import { createHoldZoom, HOLD_MS } from "../hold-zoom.js"
 import { createSpeechMap } from "../speech.js"
 import { createClock, seekOnTrack } from "../transport.js"
 import { createPreviewOverlay, previewLengthStepper, previewModeToggle } from "../preview-ui.js"
@@ -158,6 +158,36 @@ export const deck = {
       },
     })
 
+    /* Preview zooms like Trim: hold still on the strip and it closes in on the range; letting go zooms back out. */
+    let pvHold = null
+    let pvZoomed = false
+    strip.el.addEventListener("pointerdown", (e) => {
+      if (mode !== "preview" || e.button !== 0) return
+      const x0 = e.clientX
+      const y0 = e.clientY
+      clearTimeout(pvHold)
+      pvHold = setTimeout(() => {
+        pvZoomed = true
+        fitPreview()
+      }, HOLD_MS)
+      const move = (ev) => {
+        if (!pvZoomed && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 5) clearTimeout(pvHold)
+      }
+      const up = () => {
+        clearTimeout(pvHold)
+        window.removeEventListener("pointermove", move)
+        window.removeEventListener("pointerup", up)
+        window.removeEventListener("pointercancel", up)
+        if (pvZoomed) {
+          pvZoomed = false
+          animateWindow({ s: 0, e: ctx.duration }, FIT_MS)
+        }
+      }
+      window.addEventListener("pointermove", move)
+      window.addEventListener("pointerup", up)
+      window.addEventListener("pointercancel", up)
+    }, { capture: true })
+
     const ovTrim = h("i.ov-trim")
     const ovWin = h("i.ov-win")
     const overview = h("div.overview", { "data-slot": "overview", "aria-hidden": "true" }, ovTrim, ovWin)
@@ -307,8 +337,8 @@ export const deck = {
       "trim",
       (v) => setMode(v),
     )
-    const pvToggle = previewModeToggle(ctx, segmented, { onChange: () => fitPreview() })
-    const pvLen = previewLengthStepper(ctx, { onChange: () => fitPreview() })
+    const pvToggle = previewModeToggle(ctx, segmented, { onChange: () => {} })
+    const pvLen = previewLengthStepper(ctx, { onChange: () => {} })
     const pvTools = h("div.plane-tools.hidden", pvToggle.el, pvLen.el)
     // Labels only: no hover explainers and no icons on the preview controls.
     for (const n of pvTools.querySelectorAll("[title]")) n.removeAttribute("title")
@@ -422,7 +452,7 @@ export const deck = {
         preview.show()
         const p = session.state.preview
         ctx.seekPlayhead(p.mode === "moving" ? p.start : p.still)
-        fitPreview()
+        animateWindow({ s: 0, e: ctx.duration }, FIT_MS)
       } else {
         preview.hide()
         ctx.player.pause()
@@ -488,8 +518,6 @@ export const deck = {
       offWin,
       offOverview,
       offProto,
-      on(strip.el, "pointerup", () => { if (mode === "preview") showRange() }),
-      on(strip.el, "pointercancel", () => { if (mode === "preview") showRange() }),
     ]
     const ro = new ResizeObserver(() => schedStatus())
     ro.observe(strip.el)

@@ -723,3 +723,7 @@ html.dark .segmented button[aria-pressed="true"] { border-color: var(--input); b
 .segmented.xs { height: 26px; }
 .segmented.xs button { padding: 0 8px; font-size: 12.5px; }
 .deck[data-mode="preview"].is-zoomed .console-transport { opacity: 1; }
+
+/* round 7: no overview hairline; Preview is the plain strip plus hold-to-zoom */
+.deck .overview { display: none !important; }
+.deck .ptag { display: inline-flex; }
