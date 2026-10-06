@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Default logo, round 2: before and after</title>
+<style>
+:root { color-scheme: light; --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --bg:#f8fafc; }
+* { box-sizing: border-box; }
+body { margin:0; font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink); background:var(--bg); }
+main { max-width: 1480px; margin: 0 auto; padding: 24px 20px 64px; }
+h1 { font-size: 26px; margin: 0 0 6px; }
+h2 { font-size: 21px; margin: 0 0 8px; }
+h3 { font-size: 16px; margin: 20px 0 8px; }
+h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+p { max-width: 80ch; color: #1e293b; }
+section { background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; margin:20px 0; }
+nav a { margin-right: 14px; color:#2563eb; text-decoration:none; }
+.grid { display:grid; gap:16px; align-items:start; }
+.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+@media (max-width: 820px) { .two, .three { grid-template-columns: 1fr; } }
+figure { margin:0 0 12px; }
+figure img { width:100%; height:auto; border:1px solid var(--line); border-radius:8px; display:block; background:#fff; }
+figcaption { font-size:13.5px; color:#334155; margin-top:6px; }
+.tag { display:inline-block; font-size:11px; font-weight:600; border-radius:999px; padding:1px 8px; margin-right:6px; vertical-align:1px; }
+.tag-shipped { background:#dcfce7; color:#166534; }
+.tag-rejected { background:#f1f5f9; color:#475569; }
+.tag-before { background:#fef3c7; color:#92400e; }
+pre { background:#0f172a; color:#e2e8f0; padding:12px; border-radius:8px; overflow:auto; font-size:12px; white-space:pre-wrap; }
+code { background:#f1f5f9; padding:1px 4px; border-radius:4px; }
+.questions li { margin-bottom:6px; }
+</style>
+<main>
+<h1>Default logo for new pages, round 2</h1>
+<p>Before shots come from the PR at its previous head. After shots come from the PR preview running the new head, driven in Chrome with test accounts and mock logos. Tap any image for full size.</p>
+<nav><a href="#prompt">Ask</a><a href="#legacy">Old-app logos</a><a href="#thumbnail">Thumbnail</a><a href="#delete">Delete</a><a href="#failure">Errors</a><a href="#race">Two tabs</a><a href="#publish">Publish script</a></nav>
+
+<section id="prompt">
+<h2>1. Ask when a rep adds a new logo</h2>
+<p>Today the rep picks a partner logo and gets a small link under the thumbnail. Nothing asks them anything.</p>
+<figure><a href="img/before-prompt-03-partner-logo-on-page.png"><img src="img/before-prompt-03-partner-logo-on-page.png" loading="lazy" alt="Before. A partner logo on one page. The only hint is the quiet link."></a><figcaption><span class="tag tag-before">before</span>Before. A partner logo on one page. The only hint is the quiet link.</figcaption></figure>
+<h3>Three ways to ask</h3>
+<p>All three are drawn in the real editor on the PR preview. A and C are mockups injected into the page. B is the shipped code.</p>
+<div class="grid three">
+<div><figure><a href="img/after-prompt-04-variant-a-toast-crop.png"><img src="img/after-prompt-04-variant-a-toast-crop.png" loading="lazy" alt="Close-up"></a><figcaption>Close-up</figcaption></figure><figure><a href="img/after-prompt-04-variant-a-toast.png"><img src="img/after-prompt-04-variant-a-toast.png" loading="lazy" alt="&lt;b&gt;A. Toast after the pick.&lt;/b&gt; Shows on every logo change and times out. An action inside a toast is easy to miss and hard to reach by keyboard."></a><figcaption><span class="tag tag-rejected">rejected</span><b>A. Toast after the pick.</b> Shows on every logo change and times out. An action inside a toast is easy to miss and hard to reach by keyboard.</figcaption></figure></div>
+<div><figure><a href="img/after-prompt-06-picker-rebrand-ticked-crop.png"><img src="img/after-prompt-06-picker-rebrand-ticked-crop.png" loading="lazy" alt="Close-up"></a><figcaption>Close-up</figcaption></figure><figure><a href="img/after-prompt-06-picker-rebrand-ticked.png"><img src="img/after-prompt-06-picker-rebrand-ticked.png" loading="lazy" alt="&lt;b&gt;B. A box in the picker footer.&lt;/b&gt; Asked once, inside the dialog the rep is already in. Leaving it as it is costs nothing."></a><figcaption><span class="tag tag-shipped">shipped</span><b>B. A box in the picker footer.</b> Asked once, inside the dialog the rep is already in. Leaving it as it is costs nothing.</figcaption></figure></div>
+<div><figure><a href="img/after-prompt-05-variant-c-inline-panel-crop.png"><img src="img/after-prompt-05-variant-c-inline-panel-crop.png" loading="lazy" alt="Close-up"></a><figcaption>Close-up</figcaption></figure><figure><a href="img/after-prompt-05-variant-c-inline-panel.png"><img src="img/after-prompt-05-variant-c-inline-panel.png" loading="lazy" alt="&lt;b&gt;C. A card in the style panel.&lt;/b&gt; Unseen when the logo was changed from the page canvas, because the panel is closed then. Two buttons to get past every time."></a><figcaption><span class="tag tag-rejected">rejected</span><b>C. A card in the style panel.</b> Unseen when the logo was changed from the page canvas, because the panel is closed then. Two buttons to get past every time.</figcaption></figure></div>
+</div>
+<h3>B in use</h3>
+<div class="grid two">
+<figure><a href="img/after-first-logo-01-picker-first-logo.png"><img src="img/after-first-logo-01-picker-first-logo.png" loading="lazy" alt="No default yet. The box starts ticked, so the first logo still becomes the default, and the rep can untick it."></a><figcaption>No default yet. The box starts ticked, so the first logo still becomes the default, and the rep can untick it.</figcaption></figure>
+<figure><a href="img/after-prompt-02-picker-partner-logo-selected.png"><img src="img/after-prompt-02-picker-partner-logo-selected.png" loading="lazy" alt="A default exists. The box starts unticked, so a partner logo stays on its page with no extra click."></a><figcaption>A default exists. The box starts unticked, so a partner logo stays on its page with no extra click.</figcaption></figure>
+<figure><a href="img/after-prompt-03-partner-logo-on-page.png"><img src="img/after-prompt-03-partner-logo-on-page.png" loading="lazy" alt="Dismissed by doing nothing. The panel still offers the action later, and the thumbnail shows the whole logo."></a><figcaption>Dismissed by doing nothing. The panel still offers the action later, and the thumbnail shows the whole logo.</figcaption></figure>
+<figure><a href="img/after-prompt-07-rebrand-logo-is-default.png"><img src="img/after-prompt-07-rebrand-logo-is-default.png" loading="lazy" alt="Ticked. The new logo is the default, and the panel says so."></a><figcaption>Ticked. The new logo is the default, and the panel says so.</figcaption></figure>
+<figure><a href="img/after-prompt-08-next-new-page-has-rebrand-logo.png"><img src="img/after-prompt-08-next-new-page-has-rebrand-logo.png" loading="lazy" alt="The next new page starts with it."></a><figcaption>The next new page starts with it.</figcaption></figure>
+<figure><a href="img/after-prompt-09-picker-on-default-logo.png"><img src="img/after-prompt-09-picker-on-default-logo.png" loading="lazy" alt="Picking the current default shows a note instead of the box."></a><figcaption>Picking the current default shows a note instead of the box.</figcaption></figure>
+</div>
+</section>
+
+<section id="legacy">
+<h2>2. Old-app logos</h2>
+<p>Settings showed a logo uploaded in the old app as the default. New pages never got it, because a page logo must be a Library image and the old logo is only a URL on the account. Settings now shows only the default that new pages copy. Bringing the old logos into the Library is a one-time backfill that needs a production write, so it is a question for you below.</p>
+<div class="grid two"><div><h4>Before</h4><figure><a href="img/before-legacy-01-settings-branding.png"><img src="img/before-legacy-01-settings-branding.png" loading="lazy" alt="Settings claims new pages start with the old Acme logo."></a><figcaption>Settings claims new pages start with the old Acme logo.</figcaption></figure><figure><a href="img/before-legacy-02-new-page.png"><img src="img/before-legacy-02-new-page.png" loading="lazy" alt="A new page from the same account has no logo."></a><figcaption>A new page from the same account has no logo.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-legacy-01-settings-branding.png"><img src="img/after-legacy-01-settings-branding.png" loading="lazy" alt="Same account. Settings says new pages start without a logo, which is true."></a><figcaption>Same account. Settings says new pages start without a logo, which is true.</figcaption></figure><figure><a href="img/after-legacy-02-new-page.png"><img src="img/after-legacy-02-new-page.png" loading="lazy" alt="The new page matches what Settings says."></a><figcaption>The new page matches what Settings says.</figcaption></figure></div></div>
+<p>After the rep adds a logo to a page, Settings and new pages agree on it.</p>
+<div class="grid two">
+<figure><a href="img/after-first-logo-03-settings-shows-first-logo.png"><img src="img/after-first-logo-03-settings-shows-first-logo.png" loading="lazy" alt="Settings after the first page logo."></a><figcaption>Settings after the first page logo.</figcaption></figure>
+<figure><a href="img/after-first-logo-04-next-new-page-has-it.png"><img src="img/after-first-logo-04-next-new-page-has-it.png" loading="lazy" alt="The next new page."></a><figcaption>The next new page.</figcaption></figure>
+</div>
+</section>
+
+<section id="thumbnail">
+<h2>3. Wide logos in the style panel</h2>
+<p>The thumbnail was a square crop, so "Northwind" read as "rth". It now sizes to the logo and shows all of it.</p>
+<div class="grid two"><div><h4>Before</h4><figure><a href="img/before-prompt-03-partner-logo-on-page-crop.png"><img src="img/before-prompt-03-partner-logo-on-page-crop.png" loading="lazy" alt="Before."></a><figcaption>Before.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-prompt-03-partner-logo-on-page-crop.png"><img src="img/after-prompt-03-partner-logo-on-page-crop.png" loading="lazy" alt="After."></a><figcaption>After.</figcaption></figure></div></div>
+</section>
+
+<section id="delete">
+<h2>4. Deleting the default logo image</h2>
+<p>The delete failed and sent the rep to Settings. Now the image is deleted and the workspace has no default. The next logo the rep adds to a page starts with the box ticked, so it becomes the default. Deleting a folder that holds the default does the same.</p>
+<div class="grid two"><div><h4>Before</h4><figure><a href="img/before-delete-02-after-delete.png"><img src="img/before-delete-02-after-delete.png" loading="lazy" alt="Before. The delete is refused."></a><figcaption>Before. The delete is refused.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-delete-02-after-delete.png"><img src="img/after-delete-02-after-delete.png" loading="lazy" alt="After. The image is gone."></a><figcaption>After. The image is gone.</figcaption></figure><figure><a href="img/after-delete-03-settings-after-delete.png"><img src="img/after-delete-03-settings-after-delete.png" loading="lazy" alt="Settings after the delete."></a><figcaption>Settings after the delete.</figcaption></figure></div></div>
+</section>
+
+<section id="failure">
+<h2>5. "Use as default" failing</h2>
+<p>A failed save only reached the console. Both default-logo saves now show the editor's error toast. The failure here is a simulated 500 from the browser driver.</p>
+<div class="grid two"><div><h4>Before</h4><figure><a href="img/before-failure-01-make-default-failed.png"><img src="img/before-failure-01-make-default-failed.png" loading="lazy" alt="Before. Nothing on screen."></a><figcaption>Before. Nothing on screen.</figcaption></figure></div><div><h4>After</h4><figure><a href="img/after-failure-01-make-default-failed.png"><img src="img/after-failure-01-make-default-failed.png" loading="lazy" alt="After. The error toast."></a><figcaption>After. The error toast.</figcaption></figure></div></div>
+</section>
+
+<section id="race">
+<h2>6. Two tabs adding a first logo at once</h2>
+<p>Both tabs read "no default yet", then both wrote, so the second won. The write now lands only on the row its read saw, as one conditional upsert in D1. The loser re-reads and finds the first logo chosen. Output of the new test against the old and new store:</p>
+<div class="grid two"><div><h4>Before</h4><pre>FAIL  tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps the first logo when two tabs adopt at the same moment
+AssertionError: expected &#x27;image-2&#x27; to be &#x27;image-1&#x27; // Object.is equality</pre></div><div><h4>After</h4><pre>✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; selects the first page logo when there is no settings row 22ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps an explicitly selected logo 22ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps an explicit clear 22ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps the first of two adopted logos 19ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; keeps the first logo when two tabs adopt at the same moment 19ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; adopts when a brand color save lands between its read and its write 20ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; rejects a non-image and another workspace asset 19ms
+ ✓ tests/workspace-brand-adopt.test.ts &gt; adoptBrandLogo &gt; accepts adopt-logo through the browser API 45ms
+      Tests  8 passed (8)</pre></div></div>
+</section>
+
+<section id="publish">
+<h2>7. The publish script</h2>
+<p>No screenshot for this one.</p>
+<div class="grid two"><div><h4>Before</h4><p>Every run reused one clone in <code>/tmp/clarity-design-previews</code>. That clone lost its <code>HEAD</code>, and every publish after failed with <code>fatal: not a git repository</code> until someone deleted it by hand. Large artifacts also needed a bigger git upload buffer.</p><pre>$ bash scripts/publish-artifact.sh /tmp/pa-before-demo before-demo-should-not-publish &quot;x&quot;
+fatal: not a git repository (or any of the parent directories): .git
+fatal: not a git repository (or any of the parent directories): .git
+exit=128
+
+$ ls -a /tmp/clarity-design-previews/.git
+.
+..
+COMMIT_EDITMSG
+FETCH_HEAD
+ORIG_HEAD
+hooks
+index
+info
+logs
+objects
+refs</pre></div><div><h4>After</h4><p>Each run clones into its own temp directory and deletes it on exit, so there is no shared clone left to break. The clone is shallow and sparse: it fetches only the root files and this artifact. The push uses a 500 MB buffer and retries on a fresh tip if another publish landed first. This page was published by the new script while the broken <code>/tmp</code> clone was still on disk.</p></div></div>
+</section>
+
+<section>
+<h2>Questions for you</h2>
+<ul class="questions">
+<li><b>Backfill the old-app logos?</b> In an old export of the old app, 187 of 1,847 accounts had a company logo. A one-time script could turn each into a Library image and make it the default, so those reps get their logo on new pages with no click. It writes to production, so it waits for your yes.</li>
+<li><b>Warn before deleting the default?</b> The delete now just works and clears the default. The confirm dialog could also say "This is your default logo for new pages." I left it out to keep the change small.</li>
+</ul>
+</section>
+</main>
+</html>
