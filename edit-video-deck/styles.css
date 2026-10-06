@@ -727,3 +727,13 @@ html.dark .segmented button[aria-pressed="true"] { border-color: var(--input); b
 /* round 7: no overview hairline; Preview is the plain strip plus hold-to-zoom */
 .deck .overview { display: none !important; }
 .deck .ptag { display: inline-flex; }
+/* round 8: the dock's choices use the app's pressed ghost buttons (Button variant="ghost" size="sm" aria-pressed on the
+   media surface, as VideoPreviewPicker's Preview type group does): no track, the chosen one filled with --cg-active. */
+.segmented, html.dark .segmented { height: auto; gap: 2px; padding: 0; border-radius: 0; background: transparent; }
+.segmented button, html.dark .segmented button { height: 32px; gap: 6px; padding: 0 10px; border: 0; border-radius: min(var(--radius-md), 12px); background: transparent; box-shadow: none; font-size: 14px; font-weight: 500; color: var(--cg-ink-dim); }
+.segmented button:hover, html.dark .segmented button:hover { background: var(--cg-btn-hover); color: var(--cg-ink); }
+.segmented button[aria-pressed="true"], html.dark .segmented button[aria-pressed="true"] { background: var(--cg-active); border: 0; color: var(--cg-ink); box-shadow: none; }
+.segmented button svg { width: 16px; height: 16px; }
+.segmented button:disabled { opacity: 0.38; background: transparent; }
+.segmented.xs button { height: 26px; padding: 0 8px; font-size: 12.5px; }
+.stepper { background: transparent; }
