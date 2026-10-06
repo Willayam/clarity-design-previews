@@ -1,0 +1,442 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Why the editor has two surfaces</title><style>body{font:16px/1.6 -apple-system,system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1.2rem;color:#0f172a}h1,h2,h3,h4{line-height:1.25}h1{font-size:1.9rem}h2{margin-top:2.4rem;border-top:1px solid #e2e8f0;padding-top:1.2rem}h3{margin-top:1.8rem}code{background:#f1f5f9;padding:.1em .3em;border-radius:4px;font-size:.88em}pre{background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:8px;overflow:auto;font-size:.85em}pre code{background:none;color:inherit;padding:0}table{border-collapse:collapse;width:100%;font-size:.88em;display:block;overflow:auto}th,td{border:1px solid #e2e8f0;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f8fafc}.mermaid{background:#fff;margin:1rem 0}hr{border:0;border-top:2px solid #cbd5e1;margin:2.5rem 0}nav{font-size:.9em;margin-bottom:1rem}@media (prefers-color-scheme:dark){body{background:#0b1120;color:#e2e8f0}code{background:#1e293b}th{background:#111827}th,td{border-color:#334155}h2{border-color:#334155}a{color:#93c5fd}.mermaid{background:#f8fafc;border-radius:8px}}</style></head><body><nav><a href="index.html">Assessment and design</a> · Why it looks like this</nav><h1>Why the editor has two editing surfaces</h1>
+<p>History synthesis, 2026-10-06, from three investigators over git history, Linear and the design site. Confidence tiers follow the pstack epistemics framework.</p>
+<h3>The question</h3>
+<p>Why does the Journey Page editor have two editing surfaces, the right-side panel and the on-page canvas, and why has removing the panel not moved since the 2026-09-08 design doc? Which recorded decisions and constraints already bind inline text, block reorder, add and remove, media, settings with nothing to click on the page, and edits by the built-in AI or a future MCP server? William wants to delete the panel one control at a time and make each editing operation consistent for people and agents.</p>
+<h3>The code in question</h3>
+<p>Paths are relative to /Users/williamlarsten/.t3/worktrees/clarity/t3code-7d957146.</p>
+<ul>
+<li><strong>The panel.</strong> The panel is the <code>editor-panel</code> aside and its <code>editor-form</code> at <code>editor/src/routes/EditorWorkspace.tsx:239-330</code>. It renders one <code>Accordion</code> per block with <code>BlockEditor</code> from <code>block-editors.tsx</code>. Each row has a grip driven by <code>useBlockReorder</code>, focus-revealed move buttons and a delete X. The panel also holds &quot;+ Add section&quot; and stores its open state under <code>clarity-editor-panel-open</code>.</li>
+<li><strong>The canvas.</strong> The canvas is <code>LivePreview.tsx</code> with <code>EditableText</code>, <code>InlineText</code>, <code>InlineRichText</code>, <code>CtaRowEditor</code>, <code>CanvasReorder</code>, <code>CanvasAddSection</code> and <code>FaqListEditor</code>. <code>FaqListEditor</code> also defines <code>useListReorder</code>.</li>
+<li><strong>The shared write path.</strong> Both write through <code>use-editor-page.ts</code> and <code>journey-page-document-store.ts</code>. Those call the domain package&#39;s <code>BLOCK_REGISTRY</code>, <code>moveBlock</code>, <code>removeBlock</code> and <code>mergeDrafts</code>.</li>
+<li><strong>The MCP registry.</strong> The registry at <code>workers/frontend-router/src/agent/registry.ts:64</code> holds only <code>whoami</code>.</li>
+</ul>
+<h3>What we found</h3>
+<h4>Why the editor has two editing surfaces</h4>
+<ul>
+<li><p><strong>[Direct]</strong> The form panel and the editable preview arrived together in the commit that created the React page builder. Source: commit <code>96c2643c2</code>, Willayam, 2026-04-09. It created <code>EditorRoute.tsx</code>, <code>LivePreview.tsx</code>, <code>EditableText.tsx</code> and <code>FormFields.tsx</code> for a builder with TipTap rich text and a live preview. Two days earlier, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/18">#18</a> aimed the React editor &quot;closer to Angular behavior with richer form editing&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> In March the plan was a fully inline editor built on Puck. It was never built, and no record says why it was dropped. Source: <code>docs/streaming-ai-editor-design.md</code> in commit <code>536280a83</code>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/12">#12</a>, 2026-03-22, chose &quot;Inline editing via Puck&#39;s contentEditable&quot;. <a href="https://github.com/Clarity-Video-HQ/clarity/pull/24">#24</a> closed unmerged on 2026-06-10, and #291 deleted the doc on 2026-06-18.</p>
+</li>
+<li><p><strong>[Direct]</strong> The July block model kept the accordion as the structure editor. It postponed on-page manipulation without rejecting it. Source: <a href="https://linear.app/cocco/issue/WIL-3163">WIL-3163</a>, done 2026-07-07, says &quot;The form column becomes a dynamic accordion list driven by <code>blocks[]</code>&quot; with add, remove and up/down move. Its out-of-scope list calls &quot;Drag-and-drop reordering and preview-canvas direct manipulation&quot; &quot;UX layering on the same model&quot;. User story 12 asks that &quot;inline click-to-edit in the preview&quot; keep working. Commit <code>96bea4d2f</code> built this, with the preview &quot;wired to per-block patches&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The decision to keep two renderers per block kind is about the preview versus the published page, not about the panel. Source: WIL-3163 and ADR 0006 at <code>7f3cd4cf7^:docs/adr/0006-journey-page-block-document.md:9</code>. Both rejected &quot;One shared renderer for public page and editor preview&quot; because &quot;the preview is an interactive editing surface&quot;. The comment at <code>editor/tests/block-rendering-parity.test.ts:27</code> keeps the rule.</p>
+</li>
+<li><p><strong>[Direct]</strong> The stated reason to remove the panel is fewer controls and less to learn. Source: <a href="https://linear.app/cocco/issue/WIL-3195">WIL-3195</a>, created 2026-07-09 and now a trashed duplicate. It asks for &quot;direct manipulation on the page itself (WYSIWYG) instead of control panels, so people can edit properly with less UI to learn&quot;, and says &quot;knowing which editor controls are actually used should drive what gets cut&quot;. On <a href="https://linear.app/cocco/issue/WIL-3264">WIL-3264</a>, 2026-07-21, William wrote &quot;I want every part to be wysiswyg and not have the side panel at all basically&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The panel is still here because the chosen method keeps it, collapsible, until every control has another home. Source: the <a href="https://linear.app/cocco/issue/WIL-3277">WIL-3277</a> comment of 2026-07-23 08:27. William rejected all three editor-wide grammars: hover chrome, click-to-select and a structure rail. The direction became to &quot;chip the side panel away control-by-control&quot;, &quot;with the panel collapsible in the meantime&quot;. The design doc mocked nine editor-wide idioms. It concluded &quot;to decide one section at a time and reuse chrome the canvas already has&quot;, and &quot;the panel stays until the last one&quot; (<code>7f3cd4cf7^:docs/design-docs/inline-editor.md:33</code>, <code>:43</code>). <a href="https://github.com/Clarity-Video-HQ/clarity/pull/530">#530</a> calls &quot;when the panel dies&quot; &quot;the map&#39;s unspecified rollout question&quot;. <a href="https://linear.app/cocco/issue/WIL-3276">WIL-3276</a> still lists the rollout as not yet specified.</p>
+</li>
+<li><p><strong>[Direct]</strong> On 2026-09-04 a triage pass restated the direction. Controls sit beside the content, and page-wide actions go in a slim top bar. Source: the AI-generated triage comment on WIL-3276, headed &quot;Product direction confirmed&quot;. It says &quot;Editing controls appear beside the selected content on the page&quot; and &quot;Keep a slim top bar for page-wide actions such as theme, preview, share, undo, and publish.&quot; The same day <a href="https://github.com/Clarity-Video-HQ/clarity/pull/575">#575</a> closed with &quot;The current product direction is the single-page, direct-editing editor tracked by WIL-3276.&quot;</p>
+</li>
+</ul>
+<h4>Why removal stalled</h4>
+<ul>
+<li><p><strong>[Supported]</strong> Code work on the program stopped on 2026-08-13, four weeks before the design doc, so the stall predates the doc. None of the doc&#39;s five steps has started. Evidence:</p>
+<ul>
+<li>The program&#39;s PRs all merged between 2026-07-26 and 2026-08-13: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/516">#516</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/528">#528</a>, #530, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/536">#536</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/546">#546</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/554">#554</a>, <a href="https://github.com/Clarity-Video-HQ/clarity/pull/568">#568</a> and <a href="https://github.com/Clarity-Video-HQ/clarity/pull/572">#572</a>.</li>
+<li>#575 opened on 2026-08-14 and closed unmerged on 2026-09-04.</li>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/649">#649</a>, merged 2026-09-10, &quot;records design only; it does not finish WIL-3276 or implement the inline form&quot;. Its branch is 0 commits ahead of main.</li>
+<li>The source-control investigator found no code for any step in the 331 PRs merged since 2026-09-10, or on any branch or stash.</li>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/782">#782</a>, 2026-09-23, changed how the canvas drags folded logos. It left &quot;Title, variant, colour and images&quot; in the sidebar.</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> The design doc ends on a concrete next step, and no branch holds that work. Source: <code>inline-editor.md:79</code> says &quot;Build the on-page form editor beside <code>FaqListEditor</code>, using <code>useListReorder</code>, <code>InlineText</code>, the CTA card on Submit, and the bar above&quot;. It keeps the panel&#39;s form editor &quot;until the canvas version is proven in the real editor&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The Linear trail ends on 2026-07-28, and the design doc has no Linear record. Source: the last WIL-3277 comment is the FAQ production smoke of 2026-07-28, which ends &quot;One thing left: autosave in the authed editor.&quot; The last WIL-3276 comment is the 2026-09-04 triage. No Linear ticket has an attachment for #546, #554, #568, #572, #575, #649, #724 or #916.</p>
+</li>
+<li><p><strong>[Direct]</strong> A dated review named the stall but gave no cause. Source: the <a href="https://willayam.github.io/clarity-design-previews/architecture-review-2026-09-21/">architecture review of 2026-09-21</a> lists WIL-3277 as &quot;Doing but stalled&quot; at 55 days. Fifty-five days before 2026-09-21 is 2026-07-28, the date of the last WIL-3277 comment.</p>
+</li>
+<li><p><strong>[Direct]</strong> The overnight triage kept the map and the prototype ticket out of unattended work. Source: /Users/williamlarsten/Development/clarity-overnight/triage-linear.md, 2026-09-24, rows 132 and 133. It marks WIL-3276 &quot;EXCLUDE&quot; as a &quot;product map&quot; and WIL-3277 &quot;EXCLUDE&quot; as a &quot;product prototype&quot;, &quot;In progress, taste-driven.&quot; EXCLUDE covered 58 of 134 open tickets, and the file does not define it.</p>
+</li>
+<li><p><strong>[Direct]</strong> The map&#39;s exit conditions were never met. Source: WIL-3276 is done when &quot;interaction grammar settled per control, undo scoped, Aug-15 slice chosen&quot;. Its decisions section still reads &quot;(none yet)&quot;. The overnight cleanup closed <a href="https://linear.app/cocco/issue/WIL-3279">WIL-3279</a>, the Aug-15 slice, as Won&#39;t fix on 2026-09-24. It called the close &quot;cancellation of an expired planning question, not a claim that its product work shipped&quot;. <a href="https://linear.app/cocco/issue/WIL-3278">WIL-3278</a>, the undo question, has no comments.</p>
+</li>
+<li><p><strong>[Direct]</strong> On 2026-09-25 the repo lost the detailed plan and kept a one-line direction. Source: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/818">#818</a>, commit <code>7f3cd4cf7</code>, deleted <code>docs/design-docs/</code> with &quot;the inline-editor HTML mocks&quot;. It cut <code>docs/QUALITY.md</code> to its rubric. That removed the High-severity row on pricing and form <code>seq_no</code> ordering at <code>7f3cd4cf7^:docs/QUALITY.md:72</code>. The same commit replaced the WIL-3195 roadmap line with &quot;On-page editing replaces the side panel, control by control&quot;. That line still sits at <code>docs/ROADMAP.md:124</code> and links the trashed WIL-3277.</p>
+</li>
+<li><p><strong>[Direct]</strong> The whole map family went to the Linear trash on 2026-10-01, and no reason is recorded. That was the day the workspace hit Linear&#39;s free-plan issue limit. Source: Linear shows WIL-3276 archived at 2026-10-01T16:52:30Z, with WIL-3277, still in Doing, and WIL-3278 in the same batch. The Linear investigator counted 82 tickets trashed that day in two batches, at 15:55 and 16:52, across billing, CRM, SSO, roadmap epics and the editor map. The memory note /Users/williamlarsten/.claude/projects/-Users-williamlarsten-Development-clarity/memory/linear-api-helper-quirks.md records the limit that day and that &quot;William freed room&quot;, with the limit lifted &quot;about 16:30Z&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The newest restatement keeps removal but ranks it last. Source: the <a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit-2026-10-03/">simplicity audit of 2026-10-03</a> says &quot;merge Canvas and side panel editing&quot; because &quot;Every field exists twice&quot; and &quot;Finishing it halves the editor&quot;. Its order of work puts the editor fourth, after &quot;Subtract first&quot;, as &quot;Finish canvas editing and remove the side-panel fields one control at a time.&quot; Its figures cover customer accounts only, for the 30 days to 2 October:</p>
+<ul>
+<li>70% of new customer pages are a hero block alone.</li>
+<li>&quot;Customers use one block.&quot;</li>
+<li>AI generation ran &quot;17 runs in 30 days, all edits, 0 new pages&quot;.</li>
+</ul>
+<p>The page names no author.</p>
+</li>
+<li><p><strong>[Direct]</strong> The panel got new work after the decision to delete it. Source: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/724">#724</a>, 2026-09-17 to 09-21, rebuilt the panel&#39;s controls &quot;as shared controls on the ui primitives&quot;. Its blast radius names &quot;The editor&#39;s property panel for every block kind&quot;. <code>block-editors.tsx</code> and <code>FormFields.tsx</code> changed 629 and 676 lines after #649 merged. #782 says &quot;The sidebar still moves blocks one at a time.&quot; The open draft <a href="https://github.com/Clarity-Video-HQ/clarity/pull/944">#944</a>, which the source-control investigator attributes to a Cursor agent, argues on 2026-10-02 that &quot;The sidebar panel already offers media pickers for both hero and story media, making the canvas slots duplicative.&quot;</p>
+</li>
+<li><p><strong>[Supported]</strong> Other programs took the time, though nothing says the panel work was paused for them. Evidence:</p>
+<ul>
+<li>From 2026-08-14 to 2026-09-08, merges went to video playback under WIL-3334 in #636 to #644, security hardening in #580 to #583, the recorder handoff in #640 and Convex generation in #620.</li>
+<li>After 2026-09-10, work went to the CSS migration (#704 to #727), Publish (#871, #875) and router generation and save merging (#873, #874).</li>
+<li>It also went to the document store in <a href="https://github.com/Clarity-Video-HQ/clarity/pull/916">#916</a>, lint guards (#995 to #1011), agent access in <a href="https://github.com/Clarity-Video-HQ/clarity/pull/1012">#1012</a> and <a href="https://github.com/Clarity-Video-HQ/clarity/pull/1024">#1024</a>, and portrait video (#982 to #984).</li>
+<li>The <a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-02-fable/">Fable-lead audit of 2026-10-02</a> names recording from inside the editor and the late-August customer replies as the next product work. It does not mention WIL-3276 or WIL-3277.</li>
+</ul>
+</li>
+</ul>
+<h4>Text editing</h4>
+<ul>
+<li><p><strong>[Direct]</strong> Visible text is edited where it is published, and the caret is the only affordance. Source: WIL-3277, 2026-07-27, list-grammar rule 1, &quot;Every visible string edits where it is published; nothing the page can show goes in a card&quot;, and &quot;the caret is the affordance, as in the CTA labels&quot;. William&#39;s decision that day reads &quot;page-carries-the-text wins; the card mode is killed.&quot;</p>
+</li>
+<li><p><strong>[Direct]</strong> The commit rules for inline labels are settled. Source: WIL-3277, 2026-07-26 15:05. A CTA label uses &quot;contentEditable, commit on blur, Esc/Enter blurs, empty snaps back, no focus ring&quot;. Edit locks keep &quot;at most one card ever open&quot; as &quot;pure derived state&quot;, with &quot;no timers, no imperative blur&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The recorded intent is one plain-text engine, and the fold has not happened. Source: the comment at <code>InlineText.tsx:4-5</code> says <code>EditableText</code> is this component plus an align toolbar. It asks the next person to fold it in and not &quot;grow another copy&quot;. The AI-generated triage comment of 2026-09-04 on WIL-3276 asks for &quot;One text-editing engine&quot; that owns &quot;blur commit, Escape, paste cleanup, IME handling, length limits, placeholders, and an optional alignment toolbar&quot;. Commit <code>7d89ae087</code> on #575 did the fold, and #575 was never merged. The two engines still differ. <code>InlineText</code> snaps an empty value back (<code>InlineText.tsx:50</code>), and <code>EditableText</code> commits it.</p>
+</li>
+<li><p><strong>[Direct]</strong> Rich text stays on one Tiptap configuration because React 19 breaks a React-owned contenteditable that holds HTML. Source: #536, 2026-07-28. React 19 &quot;compares that prop by object identity&quot;, so each keystroke rewrote the HTML and killed the caret. Tiptap now owns the canvas field, &quot;sharing one editor config with the sidebar field&quot;, so the HTML both produce &quot;cannot drift&quot;. <code>EditableText.tsx:19-21</code> repeats the constraint. <code>docs/SECURITY.md:8</code> sends both public rendering and previews through <code>sanitizeRichText</code>.</p>
+</li>
+<li><p><strong>[Direct]</strong> No outside write may remount a block while a rep types in it. Source: commit <code>e2288ec38</code>, 2026-08-13, found that &quot;a contentEditable draft lives in the DOM, not in state&quot;. An autosave echo therefore made typed text vanish &quot;with no blur to commit it&quot;. #530 found that a contentEditable moved in the DOM &quot;loses focus without firing blur&quot;, which it called &quot;silent data loss&quot;. #916 keeps the rule that &quot;a server echo never remounts blocks mid-typing&quot;. For the same reason, <code>beginPointerDrag</code> blurs the focused element before every drag (<code>editor/src/lib/reorder.ts:141-145</code>).</p>
+</li>
+<li><p><strong>[Direct]</strong> A known CTA blur hazard has no recorded fix. Source: <a href="https://linear.app/cocco/issue/WIL-3295">WIL-3295</a>, 2026-08-13. It says the blur cleanup sends a blank label to removal, which also blanks the primary CTA&#39;s link, and that &quot;the fix belongs in the blur path&quot;. <code>CtaRowEditor.tsx:258</code> still calls <code>removeCta</code> for a blank, unpinned label. For the primary CTA, <code>removeCta</code> writes an empty label, link and style (<code>:129-133</code>).</p>
+</li>
+</ul>
+<h4>Block identity and reorder</h4>
+<ul>
+<li><p><strong>[Direct]</strong> Block ids are durable because engagement analytics key on them, and every draft write refuses duplicates. Source: WIL-3163 says &quot;<code>section_id</code> = block id, durable across rename and reorder&quot;. ADR 0006, <code>CONTEXT.md:175</code> and the WIL-3276 notes repeat it. Commit <code>12e1341cc</code>, in <a href="https://github.com/Clarity-Video-HQ/clarity/pull/968">#968</a> for <a href="https://linear.app/cocco/issue/WIL-3514">WIL-3514</a>, merged 2026-10-02. It moved the duplicate check into <code>serializeJourneyPageDocument</code> because AI generation and recorder share pages skipped the route gate.</p>
+</li>
+<li><p><strong>[Direct]</strong> Reorder is a drag with a keyboard equivalent. Per-row up/down buttons were rejected as a pointer control. Source: WIL-3277 rule 4, 2026-07-27, and #530. The buttons were &quot;built and removed&quot; because &quot;the item slides out from under a stationary pointer, so a second click silently acted on its neighbour.&quot;</p>
+</li>
+<li><p><strong>[Direct]</strong> Only the panel offers keyboard and screen-reader reorder. Source: #572, 2026-08-13, added arrow keys on a focused grip and focus-revealed &quot;Move X up/down&quot; buttons. Its reason was that &quot;screen readers in browse mode consume arrow keys, so the arrow route alone would have been a regression&quot;. The canvas grip is <code>aria-hidden</code> with <code>tabIndex={-1}</code> (<code>CanvasReorder.tsx:177-178</code>). The design doc makes this step 4 and says the canvas grip &quot;must take those over before the panel goes&quot; (<code>inline-editor.md:20</code>).</p>
+</li>
+<li><p><strong>[Direct]</strong> The editor hook enforces hero-first on purpose, so domain writers do not. Source: #572 says &quot;The hero-first invariant stays an authority at <code>moveBlockTo</code> rather than moving into the domain&#39;s <code>moveBlock</code>, which would silently change behaviour for callers this brief fenced off.&quot; Today:</p>
+<ul>
+<li>The domain&#39;s <code>moveBlock</code> and <code>removeBlock</code> have no hero rule (<code>blocks.ts:706-726</code>).</li>
+<li><code>validateJourneyPageDocument</code> checks only that ids exist and are unique (<code>blocks.ts:820-843</code>), and that is the only content check the draft write path runs besides Library references.</li>
+<li><code>mergeDrafts</code> puts the hero first (<code>merge-drafts.ts:63</code>).</li>
+<li>The panel renders its delete X for every block, the hero included (<code>EditorWorkspace.tsx:306-316</code>).</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> Reordering a list must renumber <code>seq_no</code>, because the public renderer sorts on it. Source: #530 and WIL-3277, 2026-07-28. FAQ reorder &quot;never reached the published page&quot; until <code>questions.ts</code> renumbered rows. The same note warns &quot;pricing and form fields sort by <code>compareSeqNo</code> too (<code>render-blocks.ts:576</code>, <code>:660</code>) and will hit the identical two-part bug the moment they get reorder.&quot; The FAQ rule survives at <code>questions.ts:5-15</code>. The pricing and form warning lived only in <code>QUALITY.md</code> until #818 deleted it, and no comment on main carries it now. The design doc adds &quot;Commit label edits keyed by the row id, never its index&quot; (<code>inline-editor.md:62</code>).</p>
+</li>
+<li><p><strong>[Direct]</strong> Canvas drops resolve by block id, and the panel&#39;s drag depends on all rows having the same height. Source: the comment at <code>reorder.ts:52-57</code> says drops are &quot;Resolved by id, never by rendered position&quot;, because blocks that render nothing are absent from the DOM. <code>24-block-reorder.css:1-4</code> calls its row fold &quot;load-bearing&quot;. <code>scripts/check-css-budget.mjs:49</code> keeps that file unlayered because layering &quot;lets Accordion.css keep panels open during a drag, breaking the equal-row reorder maths&quot;. The CSS slice that covers it has sat on an unmerged branch since 2026-09-21 (commit <code>279fcc446</code>).</p>
+</li>
+<li><p><strong>[Direct]</strong> Each drag moves to the shared drag mechanism when its control moves to the canvas, not in a separate rewrite. Source: the WIL-3276 comment of 2026-09-04, &quot;Port each interaction when its page control moves, not as a separate rewrite.&quot; Gallery, summary columns and media resize still bind their own pointer listeners (<code>GalleryEditor.tsx:54-55</code>, <code>SummaryTableEditor.tsx:175-176</code>, <code>JourneyMediaResizer.tsx:72-73</code>). <a href="https://linear.app/cocco/issue/WIL-3331">WIL-3331</a> and #810, 2026-09-29, found that the pointer must be captured on the grid, not on the moving cell.</p>
+</li>
+</ul>
+<h4>Add, remove and undo</h4>
+<ul>
+<li><p><strong>[Direct]</strong> Hide/show is gone, and removing a section deletes it. Source: commit <code>e20c377b7</code>, 2026-07-27, &quot;The hide toggle duplicated deletion in the header and confused more than it helped&quot;, and &quot;adding sections is solely the add-block menu&quot;. WIL-3163 story 3 asked to &quot;remove a block entirely rather than just hide it&quot;. That settled the hidden-sections question WIL-3277 raised on 2026-07-22.</p>
+</li>
+<li><p><strong>[Direct]</strong> Delete works only from the panel, and add on the canvas works only with a mouse. Source: <code>removeBlockById</code> has one caller, the panel X at <code>EditorWorkspace.tsx:311</code>. #546 left keyboard and touch access to the canvas add trigger out of scope because the trigger is hover-only. It adds that &quot;the sidebar bar covers those users&quot;. <code>CanvasAddSection</code> shows its insertion point only on page mousemove (<code>AddSection.tsx:89</code>).</p>
+</li>
+<li><p><strong>[Direct]</strong> Adding a row and typing into it is one gesture. Source: WIL-3277, 2026-07-27. The FAQ ghost row &quot;adds a question and takes the caret&quot;. The design doc reuses that ghost row for form fields.</p>
+</li>
+<li><p><strong>[Direct]</strong> The editor has no undo, and the undo question was never answered. Source: WIL-3278 asks what undo &quot;the panel-free editor&quot; needs, because &quot;Direct manipulation plus ~1s autosave with no history makes accidental edits permanent&quot;. It has no comments. A search of <code>editor/src</code> finds no undo implementation. The WIL-3276 direction of 2026-09-04 lists &quot;undo&quot; among the top-bar actions. The repo has a precedent in <a href="https://linear.app/cocco/issue/WIL-3184">WIL-3184</a>, &quot;auto-trim auto-applies, with a visible undo&quot;, where &quot;Suggest-only was rejected as friction.&quot;</p>
+</li>
+</ul>
+<h4>Media and settings with no pixel</h4>
+<ul>
+<li><p><strong>[Direct]</strong> One block-media rule was asked for and is not built. Source: the WIL-3276 comment of 2026-09-04 asks for &quot;one shared answer for which media it owns, whether that media is an image or video, and which fields removal clears&quot;. Commit <code>de2958cf8</code> on #575 built it, and #575 was never merged. Two copies of <code>preferredStoryMediaId</code> remain (<code>LivePreview.tsx:950</code>, <code>block-editors.tsx:651</code>), beside inline clear-media literals (<code>EditorWorkspace.tsx:125-132</code>). The shared rule that exists is <code>assignBlockMedia</code>, which generation and the media picker both use (<code>media-placement.ts:26-29</code>). <a href="https://linear.app/cocco/issue/WIL-3192">WIL-3192</a> adds that &quot;<code>applyGeneratedBlocks</code> never invents media&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The panel is the only home for a named list of controls. Source: the design doc names the populated form as the largest gap. Pricing plans, logos variant and colour mode, and changing or removing a PDF follow. Section delete, keyboard parity, and settings such as redirect URLs and link targets complete the list (<code>inline-editor.md:15-21</code>). Code comments mark the same split:</p>
+<ul>
+<li><code>block-editors.tsx:525-527</code> says &quot;the sidebar carries only what the canvas has no control surface for&quot;.</li>
+<li><code>LivePreview.tsx:838</code> says &quot;Plans are edited in the panel&quot;.</li>
+<li><code>LivePreview.tsx:917</code> renders the published form as inert.</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> The CTA hover card is the agreed home for settings with no pixel, and page-wide style lives in the top bar. Source: the design doc says the hover-card pattern &quot;needs applying consistently&quot;. It puts Submit&#39;s label and redirect in &quot;The CTA hover card on Submit&quot; (<code>inline-editor.md:21</code>, <code>:51</code>). William&#39;s decision on WIL-3277, 2026-07-23, moved theme and styling to the top bar, and #516 shipped it.</p>
+</li>
+<li><p><strong>[Direct]</strong> Edit mode must look like the live site. Source: <a href="https://linear.app/cocco/issue/WIL-3311">WIL-3311</a>, 2026-08-26, cites &quot;the standing rule that edit mode is the live site and chrome adds only minimal, edge-mounted UI&quot;. #572 draws nothing at rest, &quot;so the preview still reads as the published page&quot;. The <a href="https://willayam.github.io/clarity-design-previews/clarity-styling-audit/">styling audit</a> found that every pressable control on the canvas is a <code>ButtonBase</code> with zero theme-token utilities. It notes the rule is &quot;held entirely by convention&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The space beside the page was measured with the panel open, and it is tight. Source: WIL-3277, 2026-07-27. It found &quot;an overlay outside the row is not available&quot;: at a 1440 display the pane is 788px wide against a 760px page, leaving &quot;34px of slack&quot;. It adds &quot;A left rail fits only if it is under ~30px wide.&quot;</p>
+</li>
+<li><p><strong>[Direct]</strong> A newer proposal cuts some of these settings instead of moving them. Source: the simplicity audit&#39;s cut table removes the form redirect URL, per-field Required toggles, the Logos rolling variant and colour modes, and every title alignment switch. The <a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-before-after-2026-10-05/">before-and-after page of 2026-10-05</a> mocks &quot;A calmer editor panel&quot; without them. None of it has shipped. The panel still renders the logos Variant control and the Required toggle (<code>block-editors.tsx:324-329</code>, <code>:373</code>).</p>
+</li>
+</ul>
+<h4>AI, agent and MCP edits</h4>
+<ul>
+<li><p><strong>[Direct]</strong> Every writer saves against a revision and merges field by field on conflict. Source:</p>
+<ul>
+<li>Commit <code>9659a417d</code>, 2026-10-01: &quot;PUT /api/journey-pages/:id saves only over base_revision. A stale base answers 409 stale_revision with the current draft and its revision, and changes nothing.&quot;</li>
+<li>Commit <code>c162137cc</code> merges &quot;field by field, into nested objects; lists stay one unit.&quot;</li>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/998">#998</a>, for <a href="https://linear.app/cocco/issue/WIL-3535">WIL-3535</a>, 2026-10-04, makes the revision required at compile time.</li>
+<li><a href="https://github.com/Clarity-Video-HQ/clarity/pull/874">#874</a> says that when two writers change the same field or list, &quot;the one saving second keeps its version of it.&quot;</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> AI regeneration follows one document-level rule, with no per-block pinning. Source: WIL-3192, resolved 2026-07-20 with &quot;William blessed&quot;. The automatic generation pass runs only while the document is machine-authored, and any human save turns it off for good. The editor chat lane&#39;s edit mode, which &quot;preserves untouched blocks&quot; with a human in the loop, is &quot;the pinning mechanism&quot;. Per-block provenance is the deferred upgrade.</p>
+</li>
+<li><p><strong>[Direct]</strong> The MCP door has one operation, and the next PR adds only reads. Source: <code>registry.ts:64</code> holds <code>[whoami]</code>, from #1012. The open #1024, for <a href="https://linear.app/cocco/issue/WIL-3544">WIL-3544</a>, adds &quot;the read operations an agent needs before any write ships&quot;. It returns <code>pages_get</code> &quot;with the document marked untrusted&quot; and refuses impersonated sessions on every write. WIL-3544 requires &quot;a record, a replay rule and a revocation rule before the first write ships.&quot; On <a href="https://linear.app/cocco/issue/WIL-3543">WIL-3543</a>, William&#39;s approval covers the WorkOS spike and PR 1, and the ticket adds &quot;That is not approval of the whole design.&quot;</p>
+</li>
+<li><p><strong>[Direct]</strong> The agent design awaiting sign-off writes whole documents and leaves block operations out on purpose. Source: <a href="https://willayam.github.io/clarity-design-previews/agent-access-build-design/">agent-access-build-design</a>, 2026-10-02, &quot;design for sign-off, nothing built&quot;. Its main points:</p>
+<ul>
+<li><code>pages_update</code> takes <code>{ pageId, baseRevision, document }</code> and answers <code>{ revision }</code> or <code>stale_revision</code>.</li>
+<li>&quot;Block-level edit ops&quot; and &quot;Server-side merge of agent edits&quot; are &quot;Deliberately absent&quot;, and its synthesis rejected <code>pages_edit_blocks</code>.</li>
+<li>Editing a draft page needs no approval. An edit to a video that a live page plays does.</li>
+<li>It warns that &quot;An agent that writes its old document after pages_generate landed erases the generation&quot;.</li>
+<li>Its section 12 defaults are &quot;awaiting William&quot;.</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> The earlier agent design wanted the editor and agents to share one set of typed operations. Source: <a href="https://willayam.github.io/clarity-design-previews/agent-access-design/">agent-access-design</a>, 2026-09-30. Its main points:</p>
+<ul>
+<li>It proposed &quot;pages.edit_blocks edits by durable Block id&quot;.</li>
+<li>It called &quot;one registry of typed actions that the UI and every agent surface call&quot; the core of the design, and planned that &quot;The editor moves onto the same operations&quot;.</li>
+<li>It promised &quot;Each agent write keeps the previous document&quot;.</li>
+<li>It rejected having an agent drive the editor UI because &quot;every UI change breaks it&quot;.</li>
+</ul>
+<p>The <a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-02-ownership/">ownership audit of 2026-10-02</a> recommends &quot;block-kind-correlated edit commands&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> A June spike of a shared action layer was dropped as plumbing. Source: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/304">#304</a>, 2026-06-22, ported BuilderIO&#39;s agent-native <code>defineAction</code> and found &quot;it was platform plumbing&quot;. It kept the pattern as &quot;not a commitment to that abstraction&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> The block registry holds no editing information. Source: <code>BlockDefinition</code> at <code>blocks.ts:240-248</code> has defaults, a generation prompt, kind, label, normalization and a skeleton. #575 had deferred an editor-side registry, and WIL-3276 lists &quot;registry-driven AI generation&quot; as &quot;Explicitly dropped&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> Panel usage can be measured, but this run did not measure it. Source: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/658">#658</a>, 2026-09-09, added <code>feature_used</code> events for panel controls. <code>EditorWorkspace.tsx:294-311</code> emits <code>editor_move_block_up</code>, <code>editor_move_block_down</code> and <code>editor_remove_block</code>. <a href="https://linear.app/cocco/issue/WIL-3196">WIL-3196</a> still has a &quot;blocks&quot; relation on WIL-3276, though it was narrowed to a record-to-share metric.</p>
+</li>
+<li><p><strong>[Direct]</strong> Tests and docs still assume the panel. Source: <code>tests/e2e/staging-critical-flow.spec.ts:468</code> defines <code>ensureAccordionOpen</code>, and lines 612 and 642 drive <code>[data-slot=&quot;editor-form&quot;]</code>. The verify-loop feature map tells agents to reuse its &quot;Accordion helper&quot; (<code>.agents/skills/verify-loop/features/journey-page-editor.md:40-57</code>). <code>DESIGN.md:122</code> still describes a three-panel editor with &quot;right settings 230px&quot;.</p>
+</li>
+</ul>
+<h4>Contradictions the plan has to resolve</h4>
+<ul>
+<li><p><strong>[Direct]</strong> The record holds three different rules for tab order and keyboard reorder. Source:</p>
+<ul>
+<li>WIL-3277 rule 5, 2026-07-27, forbids <code>visibility: hidden</code> because it &quot;would drop the grip out of the tab order&quot;.</li>
+<li>The next day the same ticket deleted &quot;the dead grip keyboard path&quot; in favour of Alt with the arrow keys on the question. #530 took the FAQ row buttons out of the tab order.</li>
+<li>The design doc&#39;s form bar says &quot;Hide it with <code>visibility</code>, so its controls leave the tab order&quot; (<code>inline-editor.md:60</code>).</li>
+<li>WIL-3277 rejects per-row up/down buttons as a pointer control. #572 keeps them as focus-revealed buttons for screen readers.</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> The 2026-09-04 direction speaks of a selection, and the July verdict killed click-to-select. Source: the AI-generated WIL-3276 comment puts controls &quot;beside the selected content&quot;. William&#39;s 2026-07-23 verdict rejected click-to-select. The record does not say whether &quot;selected&quot; means a selection model or only focus and hover.</p>
+</li>
+<li><p><strong>[Direct]</strong> Newer artifacts calm the panel instead of removing it. Source: the roadmap line, the simplicity audit and William&#39;s 2026-10-06 request all say remove it. Against them:</p>
+<ul>
+<li>The before-and-after page mocks &quot;A calmer editor panel&quot; with &quot;Hidden until filled&quot; marks &quot;in the panel and on the canvas&quot;. That is a new hidden state, two months after hide/show was removed.</li>
+<li>All four <a href="https://willayam.github.io/clarity-design-previews/design-system-directions-2026-10/">design directions</a>, V2 to V5, keep a right-hand inspector. V5 rejects &quot;Floating property popovers on the canvas&quot;, which is the idiom the design doc picked for Submit.</li>
+<li><a href="https://linear.app/cocco/issue/WIL-3540">WIL-3540</a> tried V2 with &quot;the familiar accordion editor&quot;. It closed as Won&#39;t fix on 2026-10-05 with no reason recorded.</li>
+</ul>
+</li>
+<li><p><strong>[Direct]</strong> The agent designs disagree on whole-document writes versus block operations. Source: the 2026-09-30 design and the ownership audit want typed block commands. The 2026-10-02 build design rejects <code>pages_edit_blocks</code>. #304 kept a shared action layer as a reference only.</p>
+</li>
+<li><p><strong>[Direct]</strong> The audits disagree on one renderer versus two. Source: the <a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-09-30/">2026-09-30 audit</a> says on-page editing &quot;makes the React canvas the product&quot;. It lists &quot;One React block renderer for editor and public page&quot; in what a rebuild from scratch would look like. The <a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-01/">2026-10-01 audit</a> dismisses &quot;Renderer unification&quot;, and the styling audit says &quot;Do not merge the renderers&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> Registry-driven generation is both promised and dropped. Source: WIL-3163 story 30 wants the AI schema derived from the registry, and the header at <code>generate-blocks.ts:1-3</code> still claims it is. Line 39 of the same file keeps a hand-written <code>SINGLETON_KINDS</code>, and WIL-3276 lists registry-driven generation as dropped.</p>
+</li>
+<li><p><strong>[Direct]</strong> The delete rule as written is broader than what the code does. Source: <a href="https://linear.app/cocco/issue/WIL-3477">WIL-3477</a> says &quot;an edit in one tab beats a delete in another (nothing typed is lost, but the delete can be undone)&quot;. In <code>mergeDrafts</code>, a delete by the writer doing the merge wins over an edit already in the stored draft (<code>merge-drafts.ts:23-26</code>). A test pins this as &quot;never revives a block the rep deleted&quot; (<code>editor/tests/merge-drafts.test.ts:109</code>). The outcome depends on which writer saves second, which matches #874&#39;s wording, &quot;what <code>local</code> changed since <code>base</code> wins&quot;.</p>
+</li>
+<li><p><strong>[Direct]</strong> One design promises undo for agent writes and its successor drops it. Source: the 2026-09-30 agent design promised &quot;Each agent write keeps the previous document&quot;. The 2026-10-02 build design has no undo rule, and WIL-3278 is unanswered.</p>
+</li>
+<li><p><strong>[Direct]</strong> The map says no decisions were made, while its prototype ticket records several. Source: WIL-3276 reads &quot;Decisions so far (none yet)&quot;. WIL-3277 records William&#39;s calls on theme placement on 2026-07-23, the CTA grammar on 2026-07-26 and the end of card mode on 2026-07-27.</p>
+</li>
+</ul>
+<h3>What we can reasonably infer</h3>
+<ul>
+<li><p><strong>[Inferred]</strong> The two surfaces look like what a migration left behind, not a design goal. Reasoning: the React editor began as a form plus a preview aimed at Angular parity (<code>96c2643c2</code>, #18). The block model kept the form as the structure editor and called canvas manipulation &quot;UX layering on the same model&quot; (WIL-3163). Every later slice added a canvas control and kept or realigned the panel&#39;s copy (#528, #530, #546). No record argues for keeping both. The one decision against merging concerns the renderers.</p>
+</li>
+<li><p><strong>[Inferred]</strong> Wiring every field twice appears to have cost repeated fixes. Reasoning: WIL-3295 notes that &quot;Both editing surfaces gate the primary slot&quot; on the same condition. WIL-3296&#39;s fix in #809 had to change &quot;each preview section and sidebar card&quot;. The customer reports in WIL-3302 and <a href="https://linear.app/cocco/issue/WIL-3326">WIL-3326</a> concern the panel-only form. These could also be ordinary bugs that a single surface would have had too.</p>
+</li>
+<li><p><strong>[Inferred]</strong> The stall appears to come from nobody driving the work, not from a technical blocker. Reasoning:</p>
+<ul>
+<li>The program moved in two bursts, 2026-07-22 to 2026-08-13 and 2026-09-04 to 2026-09-10. The first began with William&#39;s reaction rounds.</li>
+<li>Unattended runs did much of the late-September work: about two dozen audit-fix PRs by 2026-10-02, per the memory index.</li>
+<li>The 2026-09-24 triage behind the overnight cleanup marked WIL-3277 &quot;EXCLUDE&quot; as &quot;taste-driven&quot;.</li>
+<li>The design doc settled the lead form and named a buildable next step. No record names a technical obstacle.</li>
+</ul>
+<p>Taken together, it seems nobody picked up step 1.</p>
+</li>
+<li><p><strong>[Inferred]</strong> The 2026-10-01 trash most likely freed issue room, and by itself it does not signal a change of direction. Reasoning:</p>
+<ul>
+<li>It happened on the day the free-plan limit blocked new issues and William &quot;freed room&quot;.</li>
+<li>It took 82 tickets across unrelated areas, including WIL-3165, whose work shipped that morning.</li>
+<li>The roadmap line still states the direction, and William restated it on 2026-10-06.</li>
+<li><a href="https://linear.app/cocco/issue/WIL-3245">WIL-3245</a> came back from the trash on 2026-10-05.</li>
+</ul>
+<p>Against this, the map batch landed about 20 minutes after the memory note says the limit lifted, and nothing records why these tickets were chosen.</p>
+</li>
+<li><p><strong>[Inferred]</strong> Losing the written plan probably let later agent work drift toward the panel. Reasoning: after #818 removed the design doc and the <code>seq_no</code> row, and after the tickets went to the trash, the agent-written draft #944 argued that the canvas media slots are redundant because the panel has pickers. <code>DESIGN.md:122</code> still describes a right settings column. #944 is a single data point.</p>
+</li>
+<li><p><strong>[Inferred]</strong> The &quot;34px of slack&quot; limit will likely loosen once the panel goes. Reasoning: WIL-3277 measured the pane with the panel open, and the panel takes its own grid column (<code>EditorWorkspace.tsx:228</code>). Re-measure the width before ruling chrome outside the row in or out.</p>
+</li>
+<li><p><strong>[Inferred]</strong> The usage figures may explain why the newest audit ranks the editor last. Reasoning: the simplicity audit pairs 70% hero-only pages with &quot;The page builder is not the product. The video link is.&quot; That audit appeared on 2026-10-02, seven weeks after the code work stopped, so it cannot explain the start of the stall.</p>
+</li>
+</ul>
+<h3>Competing hypotheses</h3>
+<p>These are not exclusive, and several may be partly true.</p>
+<ul>
+<li><p><strong>Hypothesis:</strong> Other priorities pushed the panel work aside.</p>
+</li>
+<li><p><strong>Evidence for:</strong> the merges listed above went to playback, security, Publish, the save protocol, CSS, agent access and portrait video. The simplicity audit ranks the editor fourth, and the Fable-lead audit&#39;s next product work leaves the map out.</p>
+</li>
+<li><p><strong>Evidence against or missing:</strong> no record pauses the work, and the direction was restated on 2026-09-04, 2026-09-25 and 2026-10-06.</p>
+</li>
+<li><p><strong>Hypothesis:</strong> The work needed William&#39;s taste calls, and it stopped when his reaction rounds stopped.</p>
+</li>
+<li><p><strong>Evidence for:</strong> every grammar decision in WIL-3277 came from William&#39;s reactions. The Linear trail ends on 2026-07-28, and the 2026-09-21 review counts the stall from that day. The triage excludes the ticket as &quot;taste-driven&quot;.</p>
+</li>
+<li><p><strong>Evidence against or missing:</strong> the design doc made the lead-form call and named a next step that needed no further taste call, and even that was not built.</p>
+</li>
+<li><p><strong>Hypothesis:</strong> Open design questions blocked the later steps.</p>
+</li>
+<li><p><strong>Evidence for:</strong> undo, the rollout and canvas keyboard reorder are all still open. So is the anchor for the pricing grid&#39;s cards, which WIL-3277 recorded as &quot;not decided&quot; on 2026-07-27.</p>
+</li>
+<li><p><strong>Evidence against or missing:</strong> steps 1 to 3 did not depend on undo or the rollout, and they did not start either.</p>
+</li>
+<li><p><strong>Hypothesis:</strong> The direction is drifting toward a calmer panel or an inspector.</p>
+</li>
+<li><p><strong>Evidence for:</strong> the 2026-10-05 calmer-panel mock, the inspectors in V2 to V5, V5&#39;s rejection of property popovers on the canvas, WIL-3540&#39;s accordion, #724&#39;s restyle and #944.</p>
+</li>
+<li><p><strong>Evidence against or missing:</strong> the 2026-10-03 audit still says merge, and the roadmap line stands. WIL-3540 closed as Won&#39;t fix, no direction was chosen, and William&#39;s request of 2026-10-06 says delete.</p>
+</li>
+<li><p><strong>Hypothesis:</strong> Losing the written record kept agents from picking the work up.</p>
+</li>
+<li><p><strong>Evidence for:</strong> #818 deleted the design doc on 2026-09-25, the tickets went to the trash on 2026-10-01, and #944 argues for the panel.</p>
+</li>
+<li><p><strong>Evidence against or missing:</strong> code work stopped on 2026-08-13, before both deletions, so they cannot explain the start.</p>
+</li>
+</ul>
+<h3>What we don&#39;t know</h3>
+<ul>
+<li><strong>Why none of the five steps started after 2026-09-10.</strong> The source-control investigator searched all 959 PR bodies for panel terms and the doc&#39;s step names and found no stated pause. The only later comment on #649 is a production note. Linear has no comment on WIL-3277 after 2026-07-28, or on WIL-3276 after 2026-09-04. On the design site, the only items are &quot;Doing but stalled&quot; and the triage&#39;s &quot;taste-driven&quot;.</li>
+<li><strong>Why the map family was among the tickets trashed on 2026-10-01.</strong> Linear searches for free plan, issue limit, trash, cleanup and stale tickets found nothing. The memory note records the limit but not how William chose what to trash.</li>
+<li><strong>Whether anyone uses the accordion as a page outline.</strong> We also don&#39;t know how often reps use panel controls compared with canvas controls. PostHog project 599642 has the #658 events and a <a href="https://us.posthog.com/project/599642/dashboard/2076915">dashboard</a>, but this run had no PostHog access, and the events are consent-gated.</li>
+<li><strong>Why Puck was dropped in March.</strong> No commit or PR says.</li>
+<li><strong>Whether the panel&#39;s delete X on the hero is intended.</strong> No record discusses it. We also don&#39;t know what the public renderer does with a page that has no hero. The renderer path was not traced.</li>
+<li><strong>William&#39;s answers to the section 12 defaults of the agent build design.</strong> These include whole-document writes, server-side merge for agent edits, and whether block-level operations come later.</li>
+<li><strong>Whether William accepts the simplicity audit&#39;s cuts and the calmer-panel mock, and who wrote the audit.</strong> These decide which settings with no pixel need a canvas home at all.</li>
+<li><strong>Whether any design direction was chosen.</strong> WIL-3540 closed with no reason. The last feedback before it closed called V2 and V3 &quot;too bland&quot;, which is about styling, not the accordion.</li>
+<li><strong>What undo should be.</strong> WIL-3278 has no answer and no successor on depth, granularity, scope or persistence.</li>
+<li><strong>How canvas keyboard and screen-reader reorder, add and delete should work.</strong> No design exists. The docs investigator&#39;s search for keyboard reorder, Alt, live region and announce found only design-direction mocks.</li>
+<li><strong>Whether the WIL-3295 blur-path fix was ever made.</strong> The code suggests it was not.</li>
+<li><strong>Whether &quot;(waiting on detail)&quot; in the 2026-09-21 review covers WIL-3277 or only WIL-3358.</strong></li>
+<li><strong>Evidence nobody read.</strong><ul>
+<li>The gitignored <code>.context/ship-2026-09-10/pr-649/</code> and <code>.context/reorder-prototypes/</code>.</li>
+<li>The review-loop reports cited by #530 and #572.</li>
+<li><code>~/.claude/orchestrate/agent-friendly-arch/</code>, with its five &quot;editor-block-ui&quot; items.</li>
+<li>The clarity-audit-1002 lane outputs.</li>
+</ul>
+</li>
+<li><strong>Sources that could not be searched.</strong> Team chat had no MCP, and Sentry was not connected.</li>
+<li><strong>Who could answer.</strong> William made every recorded product call in this history. He is the only person who can answer the stall and trash questions.</li>
+</ul>
+<h3>Sources consulted</h3>
+<ul>
+<li><strong>Source control history</strong>:<ul>
+<li>The investigator read 13 anchor PRs in full (#516, #528, #530, #536, #546, #554, #568, #572, #575, #649, #724, #916 and #1012) and followed 28 more.</li>
+<li>It searched all 959 PR bodies.</li>
+<li>It inspected the WYSIWYG, prototype, consolidation, S12 and agent branches, and ran <code>git log --follow</code>, <code>-S</code> and <code>-G</code> over the target files.</li>
+<li>It read blame and every <code>ponytail</code>, <code>TODO</code>, <code>GOTCHA</code> and <code>INVARIANT</code> note.</li>
+<li>It recovered ADR 0006, ADR 0007, <code>QUALITY.md</code> and <code>ROADMAP.md</code> from <code>7f3cd4cf7^</code>.</li>
+<li>GitHub holds zero review threads on 11 key PRs.</li>
+<li>The synthesizer re-read the quoted passages of #18, #304, #530, #536, #546, #565, #572, #575, #649, #782, #818, #874, #916, #944 and #1024. It also re-read eight commit messages and about thirty file and line citations at origin/main <code>a75f9e6af</code>, which matches the worktree for every target file.</li>
+</ul>
+</li>
+<li><strong>Issue / ticket tracker</strong>:<ul>
+<li>Linear team WIL, project Clarity, read-only.</li>
+<li>The investigator fetched about 80 tickets with their comments, relations and history.</li>
+<li>It ran about 110 keyword searches and 23 comment searches, and checked attachments for 19 PRs.</li>
+<li>It listed all 409 issues created since 2026-05-01. Keyword search does not index trashed issues, so it fetched those by id.</li>
+<li>The synthesizer re-fetched WIL-3163, 3184, 3192, 3195, 3196, 3245, 3264, 3276, 3277, 3278, 3279, 3295, 3311, 3326, 3477, 3540, 3543 and 3544.</li>
+<li>The Clarity project has no Linear documents.</li>
+</ul>
+</li>
+<li><strong>Long-form documents</strong>:<ul>
+<li>The investigator read the GitHub Pages design site (419 text files across 219 commits), the reports and repo snapshots in /Users/williamlarsten/Development/clarity-overnight, and two memory files.</li>
+<li>The synthesizer re-read the simplicity audit, the before-and-after page, the 2026-09-21 review, the 2026-09-30, 2026-10-01 and ownership audits, and both agent-access designs. It also re-read the overnight triage, <code>MORNING.md</code> and the memory note <code>linear-api-helper-quirks.md</code>.</li>
+<li>The Fable-lead audit page did not load for the synthesizer, so its quotes rest on the investigator.</li>
+<li>The site has no page on the inline editor. The design doc survives only at <code>7f3cd4cf7^:docs/design-docs/inline-editor.md</code>, which is byte-identical to the seed copy.</li>
+</ul>
+</li>
+<li><strong>Real-time team chat</strong>: Not searched. No matching MCP available in this environment.</li>
+<li><strong>Infrastructure observability</strong>: Not searched. The target is editor interaction design and its write path, and no infrastructure signal shaped it.</li>
+<li><strong>Error / exception tracking</strong>: Not searched. No Sentry MCP is connected in this session. That leaves a gap, though the target is not defensive code.</li>
+<li><strong>Product analytics warehouse</strong>: Not searched. No PostHog MCP is connected, and no reporting key exists on this host, so the #658 <code>feature_used</code> events in project 599642 went unqueried. The simplicity audit&#39;s D1-derived customer figures stand in for them.</li>
+</ul>
+<h3>Confidence summary</h3>
+<p>Direct ticket, PR, commit and code evidence supports why there are two surfaces, the one-control-at-a-time method, and the constraints on text identity, block ids, list ordering and saves. The stall is real, but it began on 2026-08-13, before the design doc. No record says why, so every cause offered here is an inference. The agent edit shape, undo, the rollout and what happens to settings with no pixel are open decisions for William, and chat, error tracking and PostHog could not be searched.</p>
+<h3>Constraint set for removing the panel</h3>
+<h4>Preserve</h4>
+<ul>
+<li><p><strong>Durable block ids.</strong> Every add, move and delete keeps block ids, and <code>serializeJourneyPageDocument</code> refuses duplicates. Every new operation, for people and agents alike, should address blocks and list rows by id. Sources: WIL-3163, <code>CONTEXT.md:175</code>, <code>12e1341cc</code>.</p>
+</li>
+<li><p><strong>One hero, always first.</strong> Today only <code>moveBlockTo</code>, <code>mergeDrafts</code> and generation hold this rule (#572, <code>merge-drafts.ts:63</code>).</p>
+</li>
+<li><p><strong>The typing rules.</strong></p>
+<ul>
+<li>Commit any edit in progress before the DOM moves.</li>
+<li>Never remount a block on an identical server echo.</li>
+<li>Key commits by row id, never by index.</li>
+</ul>
+<p>Sources: <code>e2288ec38</code>, #530, #916, <code>reorder.ts:141-145</code>, <code>inline-editor.md:62</code>.</p>
+</li>
+<li><p><strong>Rich text.</strong> Keep one Tiptap configuration, and keep <code>sanitizeRichText</code> on both renderers (#536, <code>docs/SECURITY.md:8</code>).</p>
+</li>
+<li><p><strong>List order.</strong> Every list that reorders renumbers <code>seq_no</code> and keeps identity in an id, as <code>questions.ts</code> does for FAQ (#530).</p>
+</li>
+<li><p><strong>The save protocol.</strong> Every write carries a revision, a stale write gets a 409 with the current draft, and the merge goes field by field with lists as one unit (<code>9659a417d</code>, <code>c162137cc</code>, #998).</p>
+</li>
+<li><p><strong>Two renderers.</strong> The parity test holds them together, edit mode keeps the published skeleton, and the SSR renderer does not change (ADR 0006, <code>block-rendering-parity.test.ts:27</code>, WIL-3276 out of scope).</p>
+</li>
+<li><p><strong>The chrome rule.</strong> Nothing is drawn at rest, chrome stays minimal and edge-mounted, and pressable controls are <code>ButtonBase</code> with no theme tokens (WIL-3311, #572, styling audit).</p>
+</li>
+<li><p><strong>The settled list grammar.</strong></p>
+<ul>
+<li>Text edits where it is published, and the caret is the affordance.</li>
+<li>Edit locks keep at most one card open.</li>
+<li>Row controls sit in the row&#39;s own layout.</li>
+<li>A ghost row adds an item and takes the caret.</li>
+<li>The hover card holds settings with no pixel.</li>
+</ul>
+<p>Sources: WIL-3277 of 2026-07-26 and 2026-07-27, and the design doc.</p>
+</li>
+<li><p><strong>Keyboard and screen-reader reach at least equal to the panel&#39;s today.</strong> That means grip arrows, focus-revealed move buttons and live-region announcements, plus keyboard paths for add and delete (#572, #546, <code>inline-editor.md:20</code>).</p>
+</li>
+<li><p><strong>Delete, the top bar, desktop-first.</strong> Delete means delete, with no hide toggle. Theme and other page-wide actions stay in a slim top bar, and editing stays desktop-first (<code>e20c377b7</code>, WIL-3277 of 2026-07-23, WIL-3276).</p>
+</li>
+<li><p><strong>The agent write rules.</strong></p>
+<ul>
+<li>Record, replay and revocation exist before any write.</li>
+<li>Page documents returned to agents are marked untrusted.</li>
+<li>Impersonated sessions cannot write.</li>
+<li>Edits to a video that a live page plays need approval.</li>
+</ul>
+<p>Sources: WIL-3544, #1024, the build design.</p>
+</li>
+<li><p><strong>The regeneration rule.</strong> Each document carries one machine-authored bit. Edit mode preserves untouched blocks, and generation never invents media (WIL-3192).</p>
+</li>
+</ul>
+<h4>Change</h4>
+<ul>
+<li><strong>One slice per control.</strong> Give each remaining panel-only control a canvas home in its own slice, and keep the panel&#39;s version until the canvas one is proven. The design doc&#39;s order is:<ol>
+<li>The populated form.</li>
+<li>The PDF overlay, logos chrome and canvas delete.</li>
+<li>Pricing.</li>
+<li>Canvas keyboard reorder and announcements.</li>
+<li>The panel itself.</li>
+</ol>
+</li>
+<li><strong>One plain-text engine.</strong> Fold <code>EditableText</code> into <code>InlineText</code>, and settle one rule for empty text along the way (<code>InlineText.tsx:4-5</code>, WIL-3276).</li>
+<li><strong>The <code>seq_no</code> warning.</strong> Put it back beside the pricing and form <code>compareSeqNo</code> sorts as a comment or test before those rows get reorder. #818 left it nowhere, and AGENTS.md wants decisions recorded &quot;as a comment, lint rule or test at the code it constrains&quot;.</li>
+<li><strong>Hero-first.</strong> Decide where it lives so that server and agent writes enforce it. #572 kept it in the hook to protect existing callers, and agent writes will add new callers.</li>
+<li><strong>Media.</strong> Build one block-media rule. Delete the duplicate <code>preferredStoryMediaId</code> and the clear-media literals as each media control moves (WIL-3276, <code>de2958cf8</code>).</li>
+<li><strong>Drags.</strong> Port the gallery, summary-column and resize drags to <code>beginPointerDrag</code> as each one is touched (WIL-3276).</li>
+<li><strong>Tab order.</strong> Settle the rule for each control before building it, given the three rules in the record.</li>
+<li><strong>Canvas width.</strong> Re-measure it once the panel goes, before ruling chrome outside the row in or out.</li>
+<li><strong>Undo.</strong> Answer WIL-3278 before the panel&#39;s delete goes, or record that delete ships without undo.</li>
+<li><strong>Rollout.</strong> Decide between a flag and a single cut, and how long both editors coexist. The rollout has been unspecified since 2026-07-22.</li>
+<li><strong>Agent edit shape.</strong> Settle it with William: whole-document <code>pages_update</code> under the revision check, or typed block operations that the editor also calls.</li>
+<li><strong>Usage data.</strong> Query the #658 events before the last step to answer the page-outline question in <code>inline-editor.md:29</code>. Then clear or keep the WIL-3196 blocking relation.</li>
+<li><strong>A Linear home.</strong> WIL-3276, WIL-3277 and WIL-3278 are in the trash, and <code>ROADMAP.md:124</code> links a trashed ticket.</li>
+<li><strong>Panel dependencies.</strong> Rewrite the e2e and verify-loop helpers that open accordions, and update <code>DESIGN.md:122</code>. Drop the unlayered CSS exceptions for <code>24-block-reorder.css</code> and <code>Accordion.css</code> along with the panel.</li>
+</ul>
+<h4>Avoid</h4>
+<ul>
+<li>Reviving #575 as a broad refactor (WIL-3276 comment of 2026-09-04).</li>
+<li>A new editor-wide selection grammar, hover grammar or structure rail. William rejected all three on 2026-07-23.</li>
+<li>Per-row up/down buttons as the pointer path for reorder. Focus-revealed buttons for screen readers are a separate case (WIL-3277 rule 4, #572).</li>
+<li>Hover-only controls with no keyboard or touch path, once the panel no longer covers those users (#546).</li>
+<li>Index-keyed commits, and React keys built from <code>seq_no</code> plus index, in any list that reorders (<code>LivePreview.tsx:834</code>, <code>:923</code>).</li>
+<li>Moving hero-first into the domain&#39;s <code>moveBlock</code> without auditing its callers (#572).</li>
+<li>Letting an agent drive the editor UI (the 2026-09-30 agent design).</li>
+<li>Shipping any page write operation before record, replay and revocation exist (WIL-3544).</li>
+<li>Merging the two renderers as part of this work (the 2026-10-01 audit, the styling audit).</li>
+<li>Building canvas homes for settings the simplicity audit would cut before William rules on those cuts.</li>
+</ul>
+<h4>Risk</h4>
+<ul>
+<li><strong>Lost typing.</strong> A write from the AI, an agent or a second tab that replaces block objects can remount a contentEditable and drop text the rep has not committed (<code>e2288ec38</code>, #916).</li>
+<li><strong>List conflicts.</strong> Lists merge as one unit. An agent&#39;s edit to one FAQ row and a rep&#39;s edit to another row in the same block collide, and the second saver&#39;s list wins (<code>merge-drafts.ts:76-78</code>, #874).</li>
+<li><strong>Delete versus edit.</strong> The outcome depends on save order, and the rule written in WIL-3477 does not match the code. Canvas and agent deletes inherit this (<code>merge-drafts.ts:23-26</code>, <code>merge-drafts.test.ts:109</code>).</li>
+<li><strong>Hero deletion.</strong> The panel can delete the hero today, and nothing on the server refuses a page without one. A canvas delete or agent write that copies the panel&#39;s behavior carries this over (<code>EditorWorkspace.tsx:306-316</code>, <code>blocks.ts:721-726</code>, <code>:820-843</code>).</li>
+<li><strong>No-op reorder.</strong> A pricing or form reorder that only moves array items will look right in the editor and change nothing on the live page (#530, <code>render-blocks.ts:576</code>, <code>:660</code>).</li>
+<li><strong>Accessibility.</strong> Keyboard, screen-reader and touch users lose reorder, delete and add if the panel goes before the canvas covers them (<code>CanvasReorder.tsx:177-178</code>, <code>AddSection.tsx:89</code>, #546).</li>
+<li><strong>The CTA blur path.</strong> It still clears the primary link when the label is emptied. A shared text engine could copy that pattern into every field (WIL-3295, <code>CtaRowEditor.tsx:129-133</code>, <code>:258</code>).</li>
+<li><strong>A panel coming back.</strong> The calmer-panel mock and the inspectors in V2 to V5 could bring a panel back after this work deletes one, since no direction has been chosen.</li>
+<li><strong>Large agent writes.</strong> Whole-document agent writes are large and carry untrusted text. <code>pages_get</code> with the full document may exceed Claude Code&#39;s 25,000-token result cap (build design, #1024).</li>
+<li><strong>Telemetry.</strong> Deleting the panel deletes its telemetry before anyone has read it (#658, <code>EditorWorkspace.tsx:294-311</code>).</li>
+</ul>
+<script type="module">import m from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';document.querySelectorAll('pre > code.language-mermaid').forEach((c)=>{const d=document.createElement('div');d.className='mermaid';d.textContent=c.textContent;c.parentElement.replaceWith(d)});m.initialize({startOnLoad:false,theme:'default'});m.run();</script></body></html>

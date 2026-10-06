@@ -1,0 +1,808 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Removing the editor panel, and the edits underneath it</title><style>body{font:16px/1.6 -apple-system,system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1.2rem;color:#0f172a}h1,h2,h3,h4{line-height:1.25}h1{font-size:1.9rem}h2{margin-top:2.4rem;border-top:1px solid #e2e8f0;padding-top:1.2rem}h3{margin-top:1.8rem}code{background:#f1f5f9;padding:.1em .3em;border-radius:4px;font-size:.88em}pre{background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:8px;overflow:auto;font-size:.85em}pre code{background:none;color:inherit;padding:0}table{border-collapse:collapse;width:100%;font-size:.88em;display:block;overflow:auto}th,td{border:1px solid #e2e8f0;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f8fafc}.mermaid{background:#fff;margin:1rem 0}hr{border:0;border-top:2px solid #cbd5e1;margin:2.5rem 0}nav{font-size:.9em;margin-bottom:1rem}@media (prefers-color-scheme:dark){body{background:#0b1120;color:#e2e8f0}code{background:#1e293b}th{background:#111827}th,td{border-color:#334155}h2{border-color:#334155}a{color:#93c5fd}.mermaid{background:#f8fafc;border-radius:8px}}</style></head><body><nav>Assessment and design · <a href="history.html">Why it looks like this</a></nav><h1>Removing the editor panel, and the edits underneath it</h1>
+<p>Gap assessment and design, 2026-10-06. Read-only investigation at commit <code>41bfc02ed</code>. Nothing in the repo changed.</p>
+<p>Four GPT-6 Sol explorers traced the code. Three Opus investigators read git history, Linear and the design site. An Opus explainer and an Opus synthesizer combined them. Both synthesis lanes were meant to run on Fable and dropped out on a Fable usage limit, so Opus took over. The coordinator spot-checked the claims this summary leans on against the code. The history is on a second page, <a href="history.html">why it looks like this</a>.</p>
+<h2>The short version</h2>
+<p>The panel on the right is a second copy of the page. The canvas already edits every visible string except the lead form and the pricing plans. What only the panel can do today is short. It deletes a block, moves a block from the keyboard, edits the form and pricing plans, adds or removes logos once a row has some, and swaps an attached PDF.</p>
+<p>The prior plan from 2026-09-08 had five steps. None of them started. Code work on panel removal stopped on 2026-08-13, and no record says why. Since then the panel was restyled (#724) and gained panel-only settings (#782). The map ticket WIL-3276, the prototype ticket WIL-3277 and the undo question WIL-3278 have been in the Linear trash since the 2026-10-01 cleanup.</p>
+<p>The bigger gap sits under both surfaces. There is no shared, typed edit. Each control builds its own field patch, often by array position. The hero rule lives in three functions plus guards in five UI files. Only FAQ renumbers <code>seq_no</code>, and the public page orders lists by <code>seq_no</code>. Every save sends the whole document, and the merge treats each list as one value. If two writers edit different FAQ rows, one loses its row. The editor has no undo. An agent has nothing typed to call. Deleting the panel without fixing this moves the duplication onto the canvas.</p>
+<p>Text editing has two plain-text engines with different rules. <code>EditableText</code> does headings. Escape commits, empty text saves, rich paste goes straight in, and nothing guards IME composition. <code>InlineText</code> does CTA labels, FAQ rows and table cells. It pastes plain text, guards IME and snaps empty text back. Moving blocks has one shared drag helper, <code>beginPointerDrag</code>, which four of the seven drags in the editor use. The canvas grip is invisible to keyboards and screen readers. The only live region for move announcements sits inside the panel, and it goes silent when the panel is collapsed.</p>
+<h2>The recommendation in one paragraph</h2>
+<p>Give every list item a durable id. Make every change a typed <code>PageEdit</code> that names its target by id. Have one pure <code>applyEdits</code> in <code>packages/journey-page-domain</code> enforce every rule, and have it return the inverse edits, which gives undo. Add an edit spec to each <code>BLOCK_REGISTRY</code> entry with field names, limits and caps. The text field, the MCP input schema and the edit-by-asking prompt all read that spec. The editor, the built-in AI and an MCP <code>pages_edit</code> tool all call <code>applyEdits</code>. On top of that sit one plain-text field, one drag lifecycle, one handle-and-menu keyboard idiom, one row-controls grammar and one settings card. Each slice deletes its panel copy in the same PR. Part 3 below has the types, the alternatives table, the sequence with a check for each slice, and the calls only William can make.</p>
+<h2>Where the coordinator differs from Part 3</h2>
+<p>Slice 2 should stay small. Build <code>applyEdits</code> with only the edits the canvas uses today: block insert, move and remove, <code>set_field</code>, and FAQ items. Add each list&#39;s edits in the slice that builds its UI (pricing in 7, form in 8, summary and gallery in 9). Do not move the panel&#39;s pricing and form editors onto the new core. Those copies get deleted, so migrating them first is wasted work. They keep calling the <code>updateBlock</code> wrapper until their slice removes them.</p>
+<h2>Bugs found along the way</h2>
+<p>These are follow-ups. None were fixed, and none were reproduced in a browser.</p>
+<ol>
+<li><code>CanvasReorder.tsx:82</code> never stores its drag session, so the unmount cleanup at line 35 cancels nothing.</li>
+<li>The panel shows a delete button on the hero (<code>EditorWorkspace.tsx:307-316</code>). Nothing in the domain or the router refuses a page without a hero, and the add picker cannot bring one back.</li>
+<li>Emptying a primary CTA label wipes its link too (<code>CtaRowEditor.tsx:129-131</code>, <code>:258</code>). WIL-3295 put the fix in the blur path on 2026-08-13. The code still takes that path.</li>
+<li>&quot;+ Add field&quot; names a new field <code>custom_field${length + 1}</code> (<code>block-editors.tsx:435</code>). Remove one field and add two, and two inputs share a name.</li>
+<li>The move live region sits inside the <code>inert</code> panel (<code>EditorWorkspace.tsx:249</code>, <code>:258</code>), so canvas moves are probably silent to a screen reader when the panel is collapsed.</li>
+<li>The gallery drag writes on every crossed cell, so a cancelled drag can&#39;t roll back. The media resize commits on <code>pointercancel</code>.</li>
+<li>Committing one summary cell rebuilds its row object, and row keys come from object identity. Tabbing to the next cell in the row can land on a replaced node.</li>
+</ol>
+<hr>
+<p>This is read-only work on the worktree at /Users/williamlarsten/.t3/worktrees/clarity/t3code-7d957146, at commit 41bfc02ed, on 2026-10-06. Files are cited by basename and line, and the file map in Part 1 gives full paths. I read the code and every input and ran nothing in a browser, so claims about focus, IME and screen readers are labeled as inference. A separate synthesizer owns the history, so history appears here only where it constrains the design.</p>
+<h2>Part 1. How the editor works</h2>
+<h3>Overview</h3>
+<p>The editor shows one Journey Page document in two places. The right-hand panel is the <code>data-slot=&quot;editor-panel&quot;</code> element at EditorWorkspace.tsx:240-355, and it lists every block as an accordion of form controls. The canvas is <code>LivePreview</code>, which renders the page with the published markup and swaps in inline editors when it receives update callbacks (LivePreview.tsx:139-233). Both places call the same <code>useEditorPage</code> commands and write to the same document store, so they never disagree about content.</p>
+<p>The canvas already edits every visible string except those in the lead form and the pricing plans. It alone reorders FAQ rows and edits summary tables and galleries. The panel alone deletes a block, moves a block from the keyboard, edits the lead form and pricing plans, adds or removes logos once a row has some, and changes an attached PDF.</p>
+<p>The gap that matters most sits under both places. There is no shared, typed edit. Each control builds its own field patch, often addressing list rows by array position, and <code>useEditorPage.updateBlock</code> shallow-merges that patch into the block (use-editor-page.ts:207-216). Storage only ever receives whole documents. So each rule lives wherever a component needed it. The hero rule sits in three functions and in guards across five UI files, <code>seq_no</code> renumbering exists only for FAQ, and clearing media is four copied literals. Undo has nothing to record, and an agent has nothing typed to call. Deleting the panel without fixing this would move the duplication onto the canvas.</p>
+<h3>Key concepts</h3>
+<p><code>JourneyPageDocument</code> is one ordered <code>blocks</code> array plus <code>name</code>, <code>brand</code>, <code>meta</code>, <code>extras</code> and an optional <code>theme</code> (blocks.ts:184-206). A Block is <code>{ id, kind, fields }</code> with one of nine kinds (blocks.ts:32, 157-182). Block ids are durable because engagement analytics use them as <code>section_id</code>, and a Block keeps its id across rename and reorder (CONTEXT.md:175; WIL-3276 notes).</p>
+<p>Several kinds hold lists. FAQ questions have carried a row id since PR #530 (questions.ts:16-39). Pricing plans, plan features and form fields carry <code>seq_no</code> and at most an optional id. Summary rows are bare <code>{ cells }</code>. Gallery and logos images are <code>{ image_id }</code>, and the same image can appear twice (index.ts:209-256; blocks.ts:137-139; GalleryEditor.tsx:102-103). The public renderer orders questions, plans, features and form fields by <code>seq_no</code>, never by array position (render-blocks.ts:594, 620; render-values.ts:74-76; lead-form-fields.ts:62-66). An editor reorder that only permutes the array therefore changes nothing on the live page. The FAQ slice&#39;s review loop caught exactly that bug before it shipped (WIL-3277, 2026-07-28).</p>
+<p><code>BLOCK_REGISTRY</code> maps each kind to default fields, a normalizer, the published root skeleton, a label and a one-line generation prompt (blocks.ts:240-249, 632-642). It records nothing about which fields a person or an agent may edit, their length limits or list caps.</p>
+<p><code>useEditorPage</code> connects the document store to React and exposes the edit commands (use-editor-page.ts:53-308). <code>addBlockOfKind</code> mints a UUID and calls domain <code>addBlock</code>. <code>removeBlockById</code> calls <code>removeBlock</code>. <code>moveBlockTo</code> reads the live document, clamps the target around the hero and calls <code>moveBlock</code>. <code>updateBlock</code> shallow-merges a field patch, so callers rebuild nested arrays and objects themselves. <code>updateDocument</code> takes a whole document, and the Share dialog&#39;s link fixes use it (EditorWorkspace.tsx:194; JourneyPageShareDialog.tsx:198-202).</p>
+<p>The document store keeps the live document outside React, one store per editor mount (journey-page-document-store.ts:157-561). <code>edit</code> records a change by the rep, resets the save status and arms autosave, which fires 900 ms after the last change. <code>replace</code> applies a merge or a server echo without touching the save status (journey-page-document-store.ts:65, 240-257). One writer serializes saves. When a save&#39;s echo matches what was sent, the store keeps its own objects, because a contentEditable draft lives in the DOM and a remount would erase it (journey-page-document-store.ts:82-132; commit e2288ec38).</p>
+<p>The save protocol sends the whole document with the revision it was made from (journey-page-drafts.ts:53-81). The router normalizes it, refuses missing or duplicate block ids and bad Library references, and updates the D1 row only if the stored revision still matches (journey-pages-native.ts:369-399; journey-page-content-store.ts:71-86, 142-188). A stale save gets 409 <code>stale_revision</code> with the current draft. The client then merges and tries again, three attempts in all (journey-page-drafts.ts:16, 64-79).</p>
+<p><code>mergeDrafts</code> is that merge (merge-drafts.ts:8-74). The local side wins whatever it changed since the base. Blocks merge by id and then field by field into nested objects, but every array is one unit (merge-drafts.ts:76-88). Two writers that change different rows of one FAQ therefore conflict on the whole list, and the writer that merges second keeps its whole list. A block that one writer deleted and the other edited survives only when the editing writer merges second (merge-drafts.ts:23-26).</p>
+<p><code>LivePreview</code> renders each block with the published page&#39;s root tag and data attributes, and a table-driven test holds it to the SSR renderer (blocks.ts:208-221; block-rendering-parity.test.ts). It edits only when it receives <code>onUpdateBlock</code> and the media callbacks, and renders read-only markup otherwise (LivePreview.tsx:139-276). The panel renders <code>BlockEditor</code>, a switch from block kind to a per-kind form (block-editors.tsx:60-82). It sits inside the <code>editor-form</code> element, which also holds the editor&#39;s only live region for move announcements (EditorWorkspace.tsx:253-258).</p>
+<p>Canvas plain text uses two contentEditable components. <code>EditableText</code> edits headings and owns the alignment bar and the character count (EditableText.tsx:23-247). <code>InlineText</code> edits CTA labels, FAQ rows and summary cells (InlineText.tsx:12-78). Rich text uses one Tiptap configuration that the panel&#39;s <code>RichTextField</code> and the canvas&#39;s <code>InlineRichText</code> share (RichTextField.tsx:322-379, 490-512). A contract test keeps Tiptap&#39;s output inside what <code>sanitizeRichText</code> allows (rich-text-contract.test.ts). The panel&#39;s own inputs are native controlled inputs that write on every keystroke (FormFields.tsx:103-225).</p>
+<p><code>beginPointerDrag</code> owns one pointer gesture from press to settle (reorder.ts:131-229). It waits for 4 px of travel, captures the pointer, ignores other pointers, autoscrolls, allows one drag at a time, and settles exactly once on pointerup, pointercancel, lost capture, a competing drag or <code>cancel()</code>. It blurs the focused editor first. A contentEditable that React relocates loses focus without a blur event, and its typed text would never commit (reorder.ts:141-145; WIL-3277, 2026-07-28). The panel block drag, the canvas section drag and the FAQ and summary row drags use it. No other drag does.</p>
+<h3>How an edit travels</h3>
+<pre><code class="language-mermaid">flowchart TD
+  canvas[&quot;Canvas control in LivePreview&quot;] --&gt; hook[&quot;useEditorPage command&quot;]
+  panel[&quot;Panel control in BlockEditor&quot;] --&gt; hook
+  hook --&gt;|&quot;updateBlock shallow-merges a field patch&quot;| store[&quot;Document store edit&quot;]
+  hook --&gt;|&quot;add, remove and move call domain functions&quot;| store
+  store --&gt;|&quot;autosave after 900 ms&quot;| put[&quot;saveDraftMerging sends the whole document and base_revision&quot;]
+  put --&gt; router[&quot;Router normalizes, validates block ids, compares revision&quot;]
+  router --&gt;|&quot;revision matched&quot;| d1[(&quot;D1 journey_pages row&quot;)]
+  router --&gt;|&quot;409 stale_revision with the current draft&quot;| merge[&quot;mergeDrafts of base, local and remote&quot;]
+  merge --&gt;|&quot;retry, three attempts in all&quot;| put
+  gen[&quot;Generate in the topbar&quot;] --&gt;|&quot;flush first&quot;| put
+  gen --&gt; job[&quot;Router generation job&quot;]
+  job --&gt;|&quot;mergeDrafts of base, stored and generated, then compare revision&quot;| d1
+  job --&gt;|&quot;landed draft&quot;| adopt[&quot;store.adopt merges unsaved local edits over it&quot;]
+  adopt --&gt; store
+</code></pre>
+<h4>Typing a FAQ question on the canvas</h4>
+<p>The question is an <code>InlineText</code>, a <code>plaintext-only</code> contentEditable, so typed characters stay in the DOM and React state does not change (InlineText.tsx:35-46). On blur, <code>InlineText</code> trims the text, clamps it to 255 characters, puts the old value back if the result is empty, and otherwise calls <code>onCommit</code> (InlineText.tsx:47-52). <code>FaqListEditor</code> turns that into <code>update(index, { question })</code>, which rebuilds the whole <code>questions</code> array and calls <code>onUpdateBlock(faq.id, { questions })</code> (FaqListEditor.tsx:94-97, 189). <code>updateBlock</code> shallow-merges the new array into the block&#39;s fields and calls <code>store.edit</code> (use-editor-page.ts:207-216). The store recomputes the document&#39;s JSON signature, sets the save state to idle, notifies React and arms autosave (journey-page-document-store.ts:203-257). After 900 ms without another change, <code>save(&#39;auto&#39;)</code> snapshots the document, and <code>saveDraftMerging</code> PUTs it whole with <code>base_revision</code> (journey-page-document-store.ts:330-383; editor-api.ts:417-429). The router saves under the revision check and answers with the next revision. The store keeps its own objects and takes only the server ids and the revision (journey-page-document-store.ts:384-415).</p>
+<h4>Typing the same question in the panel</h4>
+<p>The panel shows it in an <code>AutoTextarea</code> whose <code>onChange</code> calls <code>updateQuestion(index, ...)</code> on every keystroke (block-editors.tsx:491-516). That reaches the same <code>updateBlock</code> and the same store. Only the rules differ. The panel writes each keystroke and accepts an empty question. The canvas writes on blur and puts an empty question back.</p>
+<h4>Dragging a block on the canvas</h4>
+<p>Hovering a rendered section shows the <code>CanvasReorder</code> grip, except on the first section, which the code assumes is the hero (CanvasReorder.tsx:43-50). Pointerdown starts <code>beginPointerDrag</code>, which blurs and so commits any text being typed. Sections then travel on inline transforms while React leaves the list alone (CanvasReorder.tsx:89-127). On drop the grip reports the dragged block id and the id of the block it should land before. <code>handleMoveSection</code> turns that into document moves with <code>canvasDropMoves</code>, which also carries an untitled logos block that renders inside the story above it (EditorWorkspace.tsx:86-91; reorder.ts:66-81; page-sections.ts:15-28). Each move goes through <code>moveBlockTo</code>, which clamps around the hero, and each becomes its own <code>store.edit</code> (use-editor-page.ts:177-205). The landing is announced in the live region inside the panel (EditorWorkspace.tsx:75-83, 258).</p>
+<h4>Moving a block in the panel</h4>
+<p><code>useBlockReorder</code> folds every accordion to its header so all rows share one height, then turns pointer travel into a slot (use-block-reorder.ts:7-18, 49-102). The grip also takes ArrowUp and ArrowDown. Two buttons that appear on focus offer Move up and Move down, because a screen reader in browse mode consumes arrow keys (EditorWorkspace.tsx:93-101, 284-304; PR #572). All three paths call <code>moveBlockTo</code>.</p>
+<h4>A generation landing</h4>
+<p>Generate first flushes the rep&#39;s document, so the router generates against what the rep sees (use-ai-generate.ts:257-272). A router job asks the model for blocks, builds a complete document with <code>applyGeneratedBlocks</code>, places attached media, and lands the result with <code>mergeDrafts({ base, local: current, remote: generated })</code> under the revision check, three tries in all (journey-page-generation.ts:73, 169-259). The stored human draft is <code>local</code>, so any block the rep changed during the run keeps the rep&#39;s version. The editor&#39;s watcher then calls <code>store.adopt</code>, which waits for any save in flight, accepts the landed revision, and merges the rep&#39;s unsaved edits over it (use-ai-generate.ts:149-188; journey-page-document-store.ts:302-314). Media dropped without a prompt skips the model and enters the document through <code>store.replace</code> (use-ai-generate.ts:237-243).</p>
+<h3>Where things live</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>editor/src/routes/EditorWorkspace.tsx</td>
+<td>Mounts the panel and the canvas, the media pickers, move announcements and <code>blockTitle</code></td>
+</tr>
+<tr>
+<td>editor/src/components/editor/LivePreview.tsx</td>
+<td>The canvas renderer and its switch into inline editors</td>
+</tr>
+<tr>
+<td>editor/src/components/editor/block-editors.tsx</td>
+<td>The panel&#39;s per-kind editors</td>
+</tr>
+<tr>
+<td>editor/src/components/editor/FormFields.tsx, DynamicList.tsx, editor/src/components/Accordion.tsx</td>
+<td>Panel controls. <code>FormFields</code> also serves the style pop-down</td>
+</tr>
+<tr>
+<td>editor/src/components/editor/EditableText.tsx, InlineText.tsx, editor/src/components/RichTextField.tsx</td>
+<td>The text engines</td>
+</tr>
+<tr>
+<td>editor/src/components/editor/CtaRowEditor.tsx, FaqListEditor.tsx, SummaryTableEditor.tsx, GalleryEditor.tsx, LogosSection.tsx, JourneyMediaResizer.tsx</td>
+<td>Canvas editors. <code>FaqListEditor</code> also exports <code>useListReorder</code></td>
+</tr>
+<tr>
+<td>editor/src/components/editor/AddSection.tsx, CanvasReorder.tsx</td>
+<td>Canvas add and canvas drag</td>
+</tr>
+<tr>
+<td>editor/src/components/editor/EditorTopbar.tsx, ThemeStylePanel.tsx</td>
+<td>The topbar, the page name input and the style pop-down</td>
+</tr>
+<tr>
+<td>editor/src/hooks/use-editor-page.ts, use-block-reorder.ts, use-ai-generate.ts</td>
+<td>Edit commands, panel drag, Generate</td>
+</tr>
+<tr>
+<td>editor/src/lib/reorder.ts</td>
+<td><code>beginPointerDrag</code>, drop maths, <code>canvasDropMoves</code></td>
+</tr>
+<tr>
+<td>editor/src/lib/journey-page-document-store.ts, journey-page-drafts.ts</td>
+<td>The session, autosave, save and merge retry</td>
+</tr>
+<tr>
+<td>editor/src/components/JourneyPageShareDialog.tsx, editor/src/lib/page-link-destinations.ts, editor/src/lib/editor-api.ts</td>
+<td>The Share dialog, its link fixes, and the client API calls</td>
+</tr>
+<tr>
+<td>packages/journey-page-domain/src/blocks.ts</td>
+<td>Types, registry, add, move, remove, normalize, validate, <code>assignBlockMedia</code></td>
+</tr>
+<tr>
+<td>packages/journey-page-domain/src/index.ts</td>
+<td>List record types, <code>LEGACY_TEXT_FIELD_MAX_LENGTH</code> and list normalizers</td>
+</tr>
+<tr>
+<td>packages/journey-page-domain/src/questions.ts, merge-drafts.ts, generate-blocks.ts, lead-form-fields.ts, page-sections.ts</td>
+<td>FAQ order, the merge, generation, form field order, section fusion</td>
+</tr>
+<tr>
+<td>workers/frontend-router/src/journey-pages-native.ts</td>
+<td>The PUT handler and <code>stale_revision</code></td>
+</tr>
+<tr>
+<td>workers/frontend-router/src/public-page-delivery/journey-page-content-store.ts</td>
+<td><code>saveDraft</code> revision check and write validation</td>
+</tr>
+<tr>
+<td>workers/frontend-router/src/public-page-delivery/render-blocks.ts, render-values.ts</td>
+<td>The public renderer</td>
+</tr>
+<tr>
+<td>workers/frontend-router/src/journey-page-generation.ts</td>
+<td>The generation job and its landing</td>
+</tr>
+<tr>
+<td>workers/frontend-router/src/agent/registry.ts, mcp.ts</td>
+<td>The MCP door, <code>whoami</code> only</td>
+</tr>
+<tr>
+<td>editor/src/index.css, editor/src/styles/24-block-reorder.css, scripts/check-css-budget.mjs</td>
+<td>Panel grid tokens, panel reorder CSS and the CSS budget</td>
+</tr>
+<tr>
+<td>editor/tests</td>
+<td>Every test cited by basename</td>
+</tr>
+<tr>
+<td>tests/e2e/staging-critical-flow.spec.ts, .agents/skills/verify-loop/features/journey-page-editor.md</td>
+<td>Checks that drive the panel</td>
+</tr>
+<tr>
+<td>CONTEXT.md, DESIGN.md, docs/SECURITY.md, .github/workflows/cloudflare-deploy.yml</td>
+<td>Glossary, design system, security invariants, deploy jobs</td>
+</tr>
+</tbody></table>
+<h3>Gotchas</h3>
+<ol>
+<li><code>CanvasReorder</code> never stores its drag session. <code>startDrag</code> assigns the result of <code>beginPointerDrag</code> to a local <code>started</code> at CanvasReorder.tsx:82 and never to <code>session.current</code>, so the unmount cleanup at line 35 cancels nothing. If the canvas unmounts mid-drag, the window listeners stay until pointerup, and <code>onSettle</code> can then still call <code>onMove</code> and commit a move. That last part is inference from reorder.ts:183-196, not reproduced.</li>
+<li>A rep can delete the hero and cannot add it back by hand. The panel draws its delete button on every accordion, the hero&#39;s included (EditorWorkspace.tsx:307-316). Domain <code>removeBlock</code> has no guard (blocks.ts:721-726), and the router validates block ids only (blocks.ts:820-844). The add picker never offers a hero (AddSection.tsx:12-14). The canvas grip, the canvas add seam and the panel drag all treat the first block as the immovable hero (CanvasReorder.tsx:46-49; AddSection.tsx:135-137; use-block-reorder.ts:51-52; EditorWorkspace.tsx:271). After the deletion the first story cannot be dragged, and nothing can be added above it on the canvas. Only a generation puts a hero back (generate-blocks.ts:287-298). This is inference from the code paths, not reproduced.</li>
+<li>Emptying a CTA label in its card deletes the link. When focus leaves a CTA slot whose label is empty, the blur handler calls <code>removeCta</code> (CtaRowEditor.tsx:252-259). For the primary CTA that writes <code>{ label: &#39;&#39;, link: &#39;&#39;, style: &#39;&#39; }</code> (CtaRowEditor.tsx:129-131). WIL-3295 placed the fix in that blur path on 2026-08-13, and the code still routes there.</li>
+<li>An emptied heading disagrees with the published page. <code>EditableText</code> commits an empty string (EditableText.tsx:137-141). FAQ, pricing, summary and gallery normalizers turn an empty title back into the default on the next load (blocks.ts:468, 504, 546, 626), and the public renderer prints that default (render-blocks.ts:602, 621, 652, 679). Until a reload, the canvas shows the placeholder &quot;FAQ title...&quot; where the live page shows &quot;Frequently Asked Questions&quot;. Hero and story titles stay empty. Logos titles are optional by design (blocks.ts:390-391).</li>
+<li>Long text from outside loses its tail on the rep&#39;s next keystroke. Normalization caps FAQ questions and pricing text at 255 characters (index.ts:546-553, 565-575) but not hero or story titles (blocks.ts:343, 378). <code>EditableText</code> clamps on every input event and moves the caret to the end (EditableText.tsx:124-135, 148-150). A 400-character title written by any other writer would render in full and then be cut on the rep&#39;s first keystroke. This is inference.</li>
+<li>Form field names can repeat. The panel&#39;s &quot;+ Add field&quot; names a new field <code>custom_field${formFields.length + 1}</code> (block-editors.tsx:435). Remove one field and add two, and two inputs post under the same name. I did not check how submissions handle the duplicate.</li>
+<li>Two drags commit when they should not. The gallery drag writes the document every time the pointer crosses a cell, so a cancelled drag cannot roll back (GalleryEditor.tsx:38-48). The media resize commits on <code>pointercancel</code> as well as <code>pointerup</code> (JourneyMediaResizer.tsx:61-74).</li>
+<li>Committing one summary cell remounts its whole row. <code>updateSummaryCell</code> builds a new row object (SummaryTableEditor.tsx:29-37), and row keys come from a WeakMap of row objects (SummaryTableEditor.tsx:83-96). By inference, tabbing from one cell to the next in the same row can land focus on a node React just replaced. The unit test checks only that other rows keep their identity (summary-table-editor.test.ts:18-23).</li>
+<li>A write from outside can erase a draft the rep is typing. <code>InlineText</code> keys its element on <code>value</code> (InlineText.tsx:36-38), and <code>useRichText</code> calls <code>setContent</code> whenever the outside value differs (RichTextField.tsx:366-379). The rep may keep typing while a generation runs (use-ai-generate.ts:257-259). If the landed draft changes the field being typed in, the node remounts or its content is replaced, and the uncommitted text is gone. This is inference, not reproduced.</li>
+<li>Canvas move announcements go silent when the panel is collapsed. The only live region sits inside the panel (EditorWorkspace.tsx:258), and the collapsed panel is <code>inert</code> (EditorWorkspace.tsx:249). Inert content leaves the accessibility tree, so a screen reader should hear nothing. This is inference from the <code>inert</code> rule, not tested with a screen reader.</li>
+<li>The canvas and the public page order pricing plans differently. The canvas renders plans in array order (LivePreview.tsx:832), and the public renderer sorts them by <code>seq_no</code> (render-blocks.ts:618-620). They agree today only because every add appends a newer timestamp. The QUALITY.md row that warned about this went out in #818, and no code comment replaced it.</li>
+<li>Domain rules live in UI files. The CTA add order <code>nextCtaToAdd</code> is exported from a component (CtaRowEditor.tsx:57-64) and imported by the panel. The rule that a preset clears the hero&#39;s <code>ctaColor</code> lives in the hook (use-editor-page.ts:245-253), and the agent build design copies it by line reference. <code>MAX_PLANS</code> (block-editors.tsx:543) and <code>SUMMARY_MAX_COLUMNS</code> (SummaryTableEditor.tsx:23) are UI constants. The Share dialog addresses pricing rows by position because &quot;the share dialog is modal&quot; (page-link-destinations.ts:16-19), and an agent writing at the same time would break that assumption.</li>
+</ol>
+<h3>Where the inputs and the code disagree</h3>
+<ul>
+<li>Explorer 2 says the built-in AI reaches the editor through <code>updateDocument</code>. The code says generation lands through <code>store.adopt</code>, and <code>updateDocument</code> serves the Share dialog (EditorWorkspace.tsx:194; JourneyPageShareDialog.tsx:198-202). Explorer 4&#39;s account holds.</li>
+<li>The ownership and Fable audits of 2026-10-02 say no write path calls <code>validateJourneyPageDocument</code>. Every PUT calls it now (journey-pages-native.ts:369; journey-page-content-store.ts:71-77, 427-433), after WIL-3514. The audits are stale on this point.</li>
+<li>The record says an edit beats a delete (PR #874; WIL-3477). The merge code says the writer that merges second wins either way, so a delete saved second also wins (merge-drafts.ts:23-26).</li>
+<li>The investigation brief counts the hero rule in three places. The code has it in three functions plus guards in five UI files (Part 2, consistency rank 8).</li>
+<li>WIL-3277 kept arrow keys on the grip on 2026-07-27 and deleted that path for FAQ on 2026-07-28. The code follows the later comment for FAQ (FaqListEditor.tsx:174-185, 207), keeps grip arrows for panel blocks (EditorWorkspace.tsx:93-101), and has nothing for canvas sections (CanvasReorder.tsx:177-178).</li>
+<li>WIL-3277 rule 5 keeps grips in the tab order, and the 2026-09-08 doc hides row bars with <code>visibility</code>. The code does neither. FAQ and summary row controls are <code>tabIndex={-1}</code> (FaqListEditor.tsx:207, 218; SummaryTableEditor.tsx:254, 268), as PR #530 chose.</li>
+<li>DESIGN.md:122 describes a 230 px right settings column. The panel is 380 px (index.css:359-363).</li>
+</ul>
+<h2>Part 2. Gap assessment</h2>
+<h3>Coverage</h3>
+<p>Each row below is something a rep can do only in the panel today. The audit column quotes the 2026-10-03 simplicity audit (<a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit-2026-10-03/">https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit-2026-10-03/</a>).</p>
+<table>
+<thead>
+<tr>
+<th>Panel-only control</th>
+<th>Panel code</th>
+<th>Simplicity audit</th>
+<th>On-page home needed</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Delete a block</td>
+<td>EditorWorkspace.tsx:307-316</td>
+<td>Not cut. The audit merges canvas and panel editing</td>
+<td>Yes, a block handle menu</td>
+</tr>
+<tr>
+<td>Move a block from the keyboard, with an announcement</td>
+<td>EditorWorkspace.tsx:93-101, 258, 271-306</td>
+<td>Not cut</td>
+<td>Yes, the handle, Alt+Up and Alt+Down, a canvas live region</td>
+</tr>
+<tr>
+<td>Add a block from the keyboard or on touch</td>
+<td>EditorWorkspace.tsx:335-351. The canvas seam follows mouse movement only (AddSection.tsx:145-163; PR #546)</td>
+<td>Not cut. Summary and Gallery leave the picker</td>
+<td>Yes, Add above and Add below in the handle menu</td>
+</tr>
+<tr>
+<td>Delete a FAQ question from the keyboard</td>
+<td>block-editors.tsx:506-511. The canvas trash is <code>tabIndex={-1}</code> (FaqListEditor.tsx:213-229; PR #530)</td>
+<td>Not cut</td>
+<td>Yes, the row handle menu</td>
+</tr>
+<tr>
+<td>Logos, add more or remove one once the row has logos</td>
+<td>block-editors.tsx:340-368. The populated canvas row has no controls (LogosSection.tsx:79-108)</td>
+<td>Not cut</td>
+<td>Yes, row controls on the logo row</td>
+</tr>
+<tr>
+<td>Logos, static or rolling, and color mode</td>
+<td>block-editors.tsx:324-339</td>
+<td>Cut, &quot;One static logo row&quot;</td>
+<td>None if accepted</td>
+</tr>
+<tr>
+<td>Logos heading while the block has no logos</td>
+<td>block-editors.tsx:316-323. The canvas heading needs images (LogosSection.tsx:30)</td>
+<td>Not addressed</td>
+<td>Small, show the heading slot on the empty row</td>
+</tr>
+<tr>
+<td>Form title, rich description, submit label</td>
+<td>block-editors.tsx:418-421. The canvas form is <code>inert</code> (LivePreview.tsx:909-918)</td>
+<td>Kept</td>
+<td>Yes, inline text, Tiptap, the label on the Submit button</td>
+</tr>
+<tr>
+<td>Form redirect URL</td>
+<td>block-editors.tsx:422-429</td>
+<td>Cut</td>
+<td>None if accepted, else the settings card on Submit</td>
+</tr>
+<tr>
+<td>Form fields, rename, add, remove</td>
+<td>block-editors.tsx:432-449</td>
+<td>Replaced by &quot;An email field and an optional message&quot;, and &quot;The lead form becomes one field&quot;</td>
+<td>None if accepted, else field rows with the 2026-09-08 bottom-edge bar</td>
+</tr>
+<tr>
+<td>Form Required per field</td>
+<td>block-editors.tsx:445</td>
+<td>Cut</td>
+<td>None if accepted</td>
+</tr>
+<tr>
+<td>Remove form</td>
+<td>block-editors.tsx:415</td>
+<td>Not mentioned</td>
+<td>Folds into block delete</td>
+</tr>
+<tr>
+<td>Document, change or remove the attached PDF</td>
+<td>block-editors.tsx:461-473. The canvas frame has no controls (LivePreview.tsx:775-791)</td>
+<td>Not cut</td>
+<td>Yes, the media overlay on the frame</td>
+</tr>
+<tr>
+<td>Pricing plan title, price, rich description, CTA label and link</td>
+<td>block-editors.tsx:592-607. Canvas plans are display only (LivePreview.tsx:838-873)</td>
+<td>Not cut. The audit recommends keeping Pricing in the picker and dropping it from new-page defaults</td>
+<td>Yes, inline text, Tiptap, the settings card on the plan button</td>
+</tr>
+<tr>
+<td>Pricing, add a second or third plan, duplicate, delete, and feature add, remove, edit</td>
+<td>block-editors.tsx:564-641</td>
+<td>Not cut</td>
+<td>Yes, row controls with nested feature rows</td>
+</tr>
+<tr>
+<td>Expand and collapse, and the panel toggle</td>
+<td>use-editor-page.ts:256-260; EditorWorkspace.tsx:48, 64-68</td>
+<td>Not applicable</td>
+<td>No, presentation state that leaves with the panel</td>
+</tr>
+</tbody></table>
+<p>The audit also cuts &quot;The alignment switch next to every title&quot;. That control exists in both places, as the <code>TitleField</code> position control in the panel and the bar at EditableText.tsx:204-234. Accepting the cut deletes code on both sides and removes the main difference between <code>EditableText</code> and <code>InlineText</code>. The audit keeps Summary reachable for AI (&quot;AI can still add a table if asked&quot;), so the edit set must still cover summary rows and columns even if the picker drops them. The canvas alone already handles FAQ reorder, summary cells, rows and columns, gallery images and columns, and story media size and wrap. Hidden sections are settled, since normalize drops blocks a legacy document stored as disabled (blocks.ts:789-791; commit e20c377b7).</p>
+<p>Deleting the panel removes the panel element and its form, the accordion rows and their collapse state, <code>panelOpen</code> and its one localStorage key <code>clarity-editor-panel-open</code>, the topbar toggle, the grip with its arrow keys and fallback buttons, the delete button, the panel add menu and <code>useBlockReorder</code> (EditorWorkspace.tsx:48, 64-68, 239-355; EditorTopbar.tsx:452-460). The files only the panel uses come to 1,115 lines by <code>wc -l</code>. They are block-editors.tsx with 667, Accordion.tsx with 143, Accordion.css with 94, DynamicList.tsx with 98 and use-block-reorder.ts with 113. The panel rules in 24-block-reorder.css and the grid tokens at index.css:359-363 go too. <code>blockTitle</code> stays for announcements (EditorWorkspace.tsx:438-448). <code>FormFields.tsx</code> stays in part, because <code>EditableText</code>, <code>RichTextField</code> and the style pop-down import from it (ThemeStylePanel.tsx:2).</p>
+<p>These still depend on panel code and must change in the slice that deletes what they touch.</p>
+<ul>
+<li>The staging critical-flow spec builds a whole page through the accordion, adds blocks through the panel&#39;s menu, and triggers the first save with <code>requestSubmit()</code> on the panel form (staging-critical-flow.spec.ts:468-475, 610-700). It runs on every PR preview and on staging (cloudflare-deploy.yml:370, 627).</li>
+<li>The verify-loop feature map teaches agents an accordion helper and panel selectors (journey-page-editor.md:40-57, 87).</li>
+<li>form-block-editor.test.ts mounts <code>BlockEditor</code>, and journey-page-theme.test.ts:380-391 allowlists panel selectors in 24-block-reorder.css.</li>
+<li>check-css-budget.mjs:49 keeps 24-block-reorder.css unlayered because of the accordion&#39;s reorder maths.</li>
+<li>The only live region for move announcements is in the panel form (EditorWorkspace.tsx:258).</li>
+<li>DESIGN.md:122 still describes a right settings column, which an agent reading the repo would build toward.</li>
+</ul>
+<h3>Consistency</h3>
+<p>Ranked by how much each hurts inline text and moving blocks, worst first.</p>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Interaction</th>
+<th>What differs</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Plain text</td>
+<td><code>EditableText</code> is an unrestricted contentEditable with no paste handler and no composition guard. It clamps on every input and jumps the caret to the end, leaves Enter to the browser, and commits empty text. <code>InlineText</code> is <code>plaintext-only</code>, pastes plain text, skips keys while composing, clamps on blur, blurs on Enter, puts empty text back and remounts on any outside change. Panel inputs write each keystroke and accept anything. Escape commits in both contentEditables, closes the CTA card and does nothing in the page name</td>
+<td>EditableText.tsx:124-169, 182; InlineText.tsx:36-73; FormFields.tsx:103-225; CtaRowEditor.tsx:236-241; EditorTopbar.tsx:250-254</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Empty values</td>
+<td>Emptied FAQ, pricing, summary and gallery titles show a placeholder on the canvas and a default on the live page. Hero and story titles stay empty. CTA labels and FAQ questions snap back</td>
+<td>blocks.ts:468, 504, 546, 626; render-blocks.ts:602; InlineText.tsx:50</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Which row a commit lands in</td>
+<td>FAQ and summary commits use array indexes. Panel form fields key and update by index, and pricing keys on <code>seq_no</code> plus index. Logos remove by image id, and FAQ rows key by id. This works today only because pointer drags blur first and each render rebinds the callbacks</td>
+<td>FaqListEditor.tsx:96-99; SummaryTableEditor.tsx:245; block-editors.tsx:360, 392-396, 438, 576, 646-648; reorder.ts:141-145</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Moving from the keyboard</td>
+<td>Panel blocks take arrows on the grip plus buttons that appear on focus and a live region. FAQ rows take Alt+Up and Alt+Down in the text, with the grip out of the tab order. Canvas sections, summary rows and columns and gallery images have no keyboard path</td>
+<td>EditorWorkspace.tsx:93-101, 271-306; FaqListEditor.tsx:174-185, 207; CanvasReorder.tsx:177-178; SummaryTableEditor.tsx:254, 360</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Drag lifecycle</td>
+<td>Three callers of <code>beginPointerDrag</code> commit once on drop. The gallery commits on every crossed cell. Summary columns run their own listeners. The media resize commits on cancel. No drag handles Escape, and <code>CanvasReorder</code> loses its session</td>
+<td>reorder.ts:131-229; GalleryEditor.tsx:36-68; SummaryTableEditor.tsx:151-193; JourneyMediaResizer.tsx:61-74; CanvasReorder.tsx:82</td>
+</tr>
+<tr>
+<td>6</td>
+<td>What one move moves</td>
+<td>The panel moves one stored block. The canvas moves a rendered section, which can be a story plus its untitled logos, as two store edits with one announcement</td>
+<td>EditorWorkspace.tsx:86-91; reorder.ts:66-81; page-sections.ts:15-28</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Row controls</td>
+<td>The FAQ bar removes on mousedown and sits out of the tab order. Summary handles sit out of the tab order. The gallery&#39;s remove button is in the tab order and acts on click. Panel rows use <code>DynamicList</code>. Each reveals and tabs by its own rule</td>
+<td>FaqListEditor.tsx:193-230; SummaryTableEditor.tsx:249-284; GalleryEditor.tsx:164-173; DynamicList.tsx</td>
+</tr>
+<tr>
+<td>8</td>
+<td>The hero rule</td>
+<td><code>moveBlockTo</code>, <code>mergeDrafts</code> and <code>applyGeneratedBlocks</code> enforce it, plus guards in five UI files. <code>addBlock</code>, <code>moveBlock</code>, <code>removeBlock</code>, normalize and the write validator do not</td>
+<td>use-editor-page.ts:189-198; merge-drafts.ts:54-63; generate-blocks.ts:287-298; AddSection.tsx:14, 135-137; CanvasReorder.tsx:46-49; use-block-reorder.ts:52; EditorWorkspace.tsx:271; reorder.ts:18-19; blocks.ts:694-726, 820-844</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Clearing media</td>
+<td>Four literal copies, and two copies of <code>preferredStoryMediaId</code></td>
+<td>EditorWorkspace.tsx:126, 131; block-editors.tsx:132, 263, 651-656; LivePreview.tsx:950-955</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Seeds and caps</td>
+<td>The plan seed differs between panel and canvas. Feature and form field seeds are inline. Caps live in UI files</td>
+<td>block-editors.tsx:435, 543, 569, 612-617; LivePreview.tsx:828, 832; SummaryTableEditor.tsx:23</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Dismissal</td>
+<td>The CTA card uses the Base UI popover. Three other pop-downs hand-roll outside click and Escape</td>
+<td>WIL-3293; CtaRowEditor.tsx:220-243</td>
+</tr>
+</tbody></table>
+<h3>Agent readiness</h3>
+<ul>
+<li>Every write is a whole document. The only page write is the PUT at journey-pages-native.ts:353-409. The 2026-10-02 build design keeps that shape in <code>pages_update</code>, and its own risk note says <code>pages_get</code> with the document may exceed Claude Code&#39;s 25,000-token result cap (<a href="https://willayam.github.io/clarity-design-previews/agent-access-build-design/">https://willayam.github.io/clarity-design-previews/agent-access-build-design/</a>).</li>
+<li>Lists merge as one unit (merge-drafts.ts:76-78). An agent edit to one FAQ row and a human edit to another row of the same block conflict on the whole list.</li>
+<li>There is no typed edit set. The MCP registry holds <code>whoami</code> alone (registry.ts:64). The hook commands are UI functions over a shallow merge.</li>
+<li><code>BLOCK_REGISTRY</code> has no edit metadata (blocks.ts:240-249). An agent cannot learn which fields exist, their limits or the list caps. The generation module&#39;s header claims it derives from the registry while it keeps a hand list (generate-blocks.ts:1-6, 39).</li>
+<li>Most list items have no durable id (index.ts:209-256; blocks.ts:137-139, 510-528; GalleryEditor.tsx:102-103), so an agent can only say &quot;the second plan&quot;.</li>
+<li>Rules run only in the editor. The hero clamp is in the hook (use-editor-page.ts:189-198), renumbering exists only in the FAQ helpers, and caps sit in UI files. The router checks block ids and Library references only (journey-page-content-store.ts:427-433). An agent&#39;s whole-document write could drop the hero or reorder plans without renumbering, and the router would accept it.</li>
+<li>There is no undo. The store keeps a baseline for merging and dirty checks, not a history (journey-page-document-store.ts:157-201). WIL-3278 asked the undo question and has no answer.</li>
+<li>Drafts live in the DOM (InlineText.tsx:36-38; RichTextField.tsx:366-379), and an open editor learns of an agent&#39;s write only at its next save conflict or a reload.</li>
+<li>The agent designs disagree. The 2026-09-30 design proposed &quot;pages.edit_blocks edits by durable Block id&quot; and moving the editor onto the same operations (<a href="https://willayam.github.io/clarity-design-previews/agent-access-design/">https://willayam.github.io/clarity-design-previews/agent-access-design/</a>). The 2026-10-02 build design made block-level edit ops &quot;Deliberately absent&quot;, rejected <code>pages_edit_blocks</code>, chose whole-document <code>pages_update</code> and deferred server-side merge. The 2026-10-02 ownership audit recommends &quot;block-kind-correlated edit commands&quot; (<a href="https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-02-ownership/">https://willayam.github.io/clarity-design-previews/architecture-audit-2026-10-02-ownership/</a>). No input records William&#39;s answer.</li>
+</ul>
+<h2>Part 3. Design recommendation</h2>
+<h3>The data shape</h3>
+<p>Every addressable thing on a page gets a durable id, and every change is a <code>PageEdit</code>. A <code>PageEdit</code> is a small typed value that names its target by id and states the end state it wants. One pure function in <code>packages/journey-page-domain</code> applies a batch of edits to a document, enforces every rule, and returns the new document with the inverse edits. The browser, the built-in AI and the MCP server all call that function. These are the primitives William asked for. The name avoids &quot;Operation&quot;, which the agent glossary already uses for an MCP tool (CONTEXT.md:87-88 on branch agent/connections-dispatcher).</p>
+<p>Blocks already have durable ids. List items get them as follows.</p>
+<ul>
+<li>FAQ questions keep the <code>id</code> they have had since PR #530 (questions.ts:20-35).</li>
+<li>Pricing plans, plan features and form fields get a stored <code>id</code> beside <code>seq_no</code>. <code>seq_no</code> keeps one job, published order, as the FAQ code already decided (questions.ts:20-23).</li>
+<li>Summary rows get an <code>id</code>, and the summary block gets <code>columnIds</code>, one per cell position, so a column has an id while cells stay stored as they are.</li>
+<li>Gallery and logos images become <code>{ id, image_id }</code>, because one image can appear twice.</li>
+<li>The four hero CTA slots keep their keys, <code>primaryCta</code>, <code>paymentCta</code>, <code>customCta</code> and <code>signCta</code>, as ids.</li>
+</ul>
+<p><code>normalizeJourneyPageDocument</code> fills a missing item id from the block id, the list name and the item&#39;s stored position. Two tabs that load the same stored draft derive the same ids, and the next save persists them, so no D1 backfill is needed. Two normalizers rebuild items from scratch and must keep <code>id</code>, <code>normalizeSummaryRows</code> (blocks.ts:510-528) and <code>normalizeClientImages</code> (index.ts:613-618). The router has to ship that change before any editor writes ids, the deploy order the store already states for schema changes (journey-page-document-store.ts:324-329).</p>
+<p>With ids in place, <code>mergeValue</code> merges an array whose items all carry <code>id</code> the way <code>mergeDrafts</code> already merges blocks. It goes item by item, and whichever side reordered decides the order (merge-drafts.ts:39-52). Arrays without ids stay one unit. That one change gives every whole-document writer per-row merges, the browser and generation included.</p>
+<h3>The edit set</h3>
+<p>The edits live in a new module, <code>packages/journey-page-domain/src/page-edits.ts</code>, exported from the package barrel.</p>
+<pre><code class="language-ts">import type { BlockKind, JourneyPageDocument } from &#39;./blocks&#39;;
+import type { JourneyPresetId } from &#39;./theme-presets&#39;;
+
+/** A Block&#39;s durable id. Analytics use it as section_id. */
+export type BlockId = string;
+/** A list item&#39;s durable id. Normalize fills it and nothing reuses it. */
+export type ItemId = string;
+/** Where a moved or inserted thing lands. Before this id, or last when null. Never an index. */
+export type Before&lt;Id&gt; = Id | null;
+
+/** The lists inside blocks. The spec says whether seq_no, array order or fixed slots decide order. */
+export type ListRef =
+  | { list: &#39;questions&#39; }                  // faq
+  | { list: &#39;plans&#39; }                      // pricing, at most 3
+  | { list: &#39;features&#39;; planId: ItemId }   // one pricing plan
+  | { list: &#39;formFields&#39; }                 // form
+  | { list: &#39;rows&#39; }                       // summary
+  | { list: &#39;columns&#39; }                    // summary, 2 to 4
+  | { list: &#39;images&#39; }                     // gallery up to 24, logos up to 6
+  | { list: &#39;ctas&#39; };                      // hero, four fixed slots in fixed order
+
+export type FieldValue = string | number | boolean;
+
+export type PageEdit =
+  // Text and settings on a block. `field` is a name the kind&#39;s edit spec declares.
+  | { op: &#39;set_field&#39;; blockId: BlockId; field: string; value: FieldValue; expect?: FieldValue }
+  // Block structure. The hero is never inserted, moved or removed.
+  | { op: &#39;insert_block&#39;; blockId: BlockId; kind: Exclude&lt;BlockKind, &#39;hero&#39;&gt;; before: Before&lt;BlockId&gt;; fields?: unknown }
+  | { op: &#39;move_block&#39;; blockId: BlockId; before: Before&lt;BlockId&gt; }
+  | { op: &#39;remove_block&#39;; blockId: BlockId }
+  // List items, addressed by block id plus item id.
+  | ({ op: &#39;insert_item&#39;; blockId: BlockId; itemId: ItemId; before: Before&lt;ItemId&gt;; value?: Record&lt;string, FieldValue&gt; } &amp; ListRef)
+  | ({ op: &#39;move_item&#39;; blockId: BlockId; itemId: ItemId; before: Before&lt;ItemId&gt; } &amp; ListRef)
+  | ({ op: &#39;remove_item&#39;; blockId: BlockId; itemId: ItemId } &amp; ListRef)
+  | ({ op: &#39;set_item_field&#39;; blockId: BlockId; itemId: ItemId; field: string; value: FieldValue; expect?: FieldValue } &amp; ListRef)
+  | { op: &#39;set_cell&#39;; blockId: BlockId; rowId: ItemId; columnId: ItemId; value: string; expect?: string }
+  // Media through one rule per kind, assignBlockMedia plus a new clearBlockMedia.
+  | { op: &#39;assign_media&#39;; blockId: BlockId; assetId: string; media: &#39;image&#39; | &#39;video&#39; }
+  | { op: &#39;clear_media&#39;; blockId: BlockId }
+  // Page-wide settings that belong to no block.
+  | { op: &#39;set_page&#39;; field: &#39;name&#39; | &#39;calendlyLink&#39; | &#39;logoId&#39; | &#39;logoPosition&#39;; value: string; expect?: string }
+  | { op: &#39;set_theme&#39;; preset: JourneyPresetId | null };
+
+export type EditRefusal =
+  | { code: &#39;not_found&#39;; id: string }
+  | { code: &#39;not_editable&#39;; field: string }
+  | { code: &#39;invalid&#39;; field: string; reason: &#39;too_long&#39; | &#39;empty&#39; | &#39;not_allowed&#39; | &#39;out_of_range&#39;; limit?: number }
+  | { code: &#39;fixed&#39;; id: string }        // the hero, or a move in a fixed-order list
+  | { code: &#39;full&#39;; limit: number }
+  | { code: &#39;id_taken&#39;; id: string }     // an insert whose id names a different thing
+  | { code: &#39;changed&#39;; current: FieldValue };
+
+export type EditOutcome =
+  | { ok: true; document: JourneyPageDocument; changed: boolean; inverse: PageEdit[] }
+  | { ok: false; at: number; refusal: EditRefusal };
+
+/** Pure. Applies the batch in order, all or nothing. Callers mint ids, and time comes from context. */
+export declare function applyEdits(
+  document: JourneyPageDocument,
+  edits: readonly PageEdit[],
+  context: { now: Date },
+): EditOutcome;
+
+/** The one parse step for untrusted batches, from agents and from model output. */
+export declare function parseEdits(raw: unknown): { ok: true; edits: PageEdit[] } | { ok: false; issues: string[] };
+</code></pre>
+<p>Field names come from a new <code>edit</code> member on each <code>BlockDefinition</code> in blocks.ts.</p>
+<pre><code class="language-ts">type FieldSpec =
+  | { type: &#39;text&#39;; path: readonly string[]; maxLength?: number; whenEmpty: &#39;keep&#39; | &#39;revert&#39; | &#39;default&#39;; multiline?: boolean }
+  | { type: &#39;rich&#39;; path: readonly string[] }      // sanitized on apply
+  | { type: &#39;link&#39;; path: readonly string[]; maxLength: number }
+  | { type: &#39;choice&#39;; path: readonly string[]; values: readonly string[] }
+  | { type: &#39;flag&#39;; path: readonly string[] }
+  | { type: &#39;count&#39;; path: readonly string[]; min: number; max: number };
+
+type ListSpec = {
+  path: readonly string[];
+  order: &#39;seq_no&#39; | &#39;array&#39; | &#39;fixed&#39;;
+  item: Record&lt;string, FieldSpec&gt;;
+  min?: number;
+  max?: number;
+  seed: () =&gt; Record&lt;string, unknown&gt;;
+};
+
+type EditSpec = {
+  fixed?: true;                                     // the hero
+  fields: Record&lt;string, FieldSpec&gt;;                // semantic names, so form `title` maps to [&#39;form&#39;, &#39;form_title&#39;]
+  lists?: Partial&lt;Record&lt;ListRef[&#39;list&#39;], ListSpec&gt;&gt;;
+  media?: &#39;hero&#39; | &#39;story&#39;;
+};
+
+// The FAQ entry, for example.
+const faqEdit = {
+  fields: { title: { type: &#39;text&#39;, path: [&#39;title&#39;], maxLength: 255, whenEmpty: &#39;default&#39; } },
+  lists: {
+    questions: {
+      path: [&#39;questions&#39;],
+      order: &#39;seq_no&#39;,
+      item: {
+        question: { type: &#39;text&#39;, path: [&#39;question&#39;], maxLength: 255, whenEmpty: &#39;revert&#39; },
+        answer: { type: &#39;text&#39;, path: [&#39;answer&#39;], whenEmpty: &#39;keep&#39;, multiline: true },
+      },
+      seed: () =&gt; ({ question: &#39;&#39;, answer: &#39;&#39; }),
+    },
+  },
+} satisfies EditSpec;
+</code></pre>
+<p>Three readers use the spec. <code>parseEdits</code> and <code>applyEdits</code> check targets, values and limits against it. The text field reads <code>maxLength</code>, <code>whenEmpty</code> and <code>multiline</code> from it, so the canvas and an agent hit the same limits. The MCP input schema and the edit-by-asking prompt are generated from it, which is the registry-derived AI schema that WIL-3163 asked for in user story 30. Semantic names keep storage names out of the agent contract. The form&#39;s field label, for example, is stored in <code>field_type</code> (block-editors.tsx:442-443), and no agent should need to know that. Declaring each entry with <code>satisfies EditSpec</code> lets the UI derive a per-kind field-name type, so a component cannot ask for a field its kind lacks. FAQ answers have no length cap today, and the spec should give them one before agents can write them.</p>
+<p>The CTA row is a list with fixed ids and fixed order. <code>insert_item</code> on <code>ctas</code> enables a slot with its default label, <code>remove_item</code> clears the primary or disables the others, and <code>move_item</code> is refused. That moves the add order and the remove meaning out of CtaRowEditor.tsx:57-64, 129-137 and block-editors.tsx:139, 148. <code>set_theme</code> takes a preset only, which assumes William accepts the audit&#39;s cut of the Fonts, Size, Corners and Background levers. If he keeps them, it gains those four fields.</p>
+<h3>Where each rule lives</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Where it is today</th>
+<th>Where it goes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Exactly one hero, first</td>
+<td><code>moveBlockTo</code>, <code>mergeDrafts</code>, <code>applyGeneratedBlocks</code> and guards in five UI files (consistency rank 8). Missing from <code>addBlock</code>, <code>moveBlock</code>, <code>removeBlock</code>, normalize and the validator</td>
+<td><code>fixed</code> on the hero&#39;s spec. <code>applyEdits</code> refuses to insert, move or remove the hero or to place anything before it. After a read-only D1 census of hero count and position, <code>validateJourneyPageDocument</code> refuses any write without exactly one hero at index 0. UI guards read the spec</td>
+</tr>
+<tr>
+<td>Unique block ids</td>
+<td>The router refuses duplicates on every write (journey-page-content-store.ts:71-86, 427-433)</td>
+<td>Unchanged. <code>applyEdits</code> refuses an insert whose id names a different block</td>
+</tr>
+<tr>
+<td>Unique item ids</td>
+<td>Nothing. FAQ mints a fresh id when two rows share a seed (questions.ts:30-32)</td>
+<td>Normalize fills missing ids. The validator refuses a duplicate within a list</td>
+</tr>
+<tr>
+<td><code>seq_no</code> follows array order</td>
+<td><code>moveQuestion</code> and <code>addQuestion</code> only (questions.ts:41-77)</td>
+<td><code>applyEdits</code> renumbers every <code>seq_no</code> list after an insert, move or remove, from <code>context.now</code>. An edit that changes nothing renumbers nothing</td>
+</tr>
+<tr>
+<td>Length limits</td>
+<td><code>maxLength</code> props in each component from <code>LEGACY_TEXT_FIELD_MAX_LENGTH</code> (index.ts:207). Normalize slices some list text and no titles (index.ts:659-661)</td>
+<td>The spec&#39;s <code>maxLength</code>. <code>applyEdits</code> refuses <code>too_long</code> so an agent can shorten its own text. The text field reads the same number. Normalize keeps slicing as the last line of defense</td>
+</tr>
+<tr>
+<td>Rich text sanitized</td>
+<td>At render, in both renderers (docs/SECURITY.md, invariant 2)</td>
+<td>Also in <code>applyEdits</code> for <code>rich</code> fields. Tiptap output already passes the sanitizer (rich-text-contract.test.ts), so the human path is unchanged</td>
+</tr>
+<tr>
+<td>List caps</td>
+<td><code>MAX_PLANS</code> (block-editors.tsx:543), <code>slice(0, 3)</code> (LivePreview.tsx:832), <code>remainingImageSlots</code> (blocks.ts:568-571), <code>SUMMARY_MAX_COLUMNS</code> and a 2-column floor (SummaryTableEditor.tsx:23, 367)</td>
+<td>The list spec&#39;s <code>min</code> and <code>max</code></td>
+</tr>
+<tr>
+<td>Clearing media</td>
+<td>Four literals (EditorWorkspace.tsx:126, 131; block-editors.tsx:132, 263)</td>
+<td><code>clearBlockMedia</code> beside <code>assignBlockMedia</code> (blocks.ts:665-681)</td>
+</tr>
+<tr>
+<td>A preset clears the hero&#39;s <code>ctaColor</code></td>
+<td>The hook (use-editor-page.ts:245-253)</td>
+<td><code>set_theme</code></td>
+</tr>
+</tbody></table>
+<h3>How the editor, the built-in AI and MCP call it</h3>
+<p>The editor hook gains one command, <code>apply(edits, { coalesce })</code>. It reads the live document from the store, calls <code>applyEdits</code>, and on success calls <code>store.edit</code> with the result and pushes the inverse onto the undo stack. On a refusal it changes nothing and returns the refusal. A canvas drop of a story with fused logos becomes one batch and one undo step.</p>
+<pre><code class="language-ts">editor.apply([
+  { op: &#39;move_block&#39;, blockId: story.id, before: target?.id ?? null },
+  { op: &#39;move_block&#39;, blockId: fusedLogos.id, before: target?.id ?? null },
+]);
+editor.apply([{ op: &#39;set_item_field&#39;, blockId: faq.id, list: &#39;questions&#39;, itemId: q.id, field: &#39;question&#39;, value: text }]);
+</code></pre>
+<p><code>addBlockOfKind</code>, <code>removeBlockById</code>, <code>moveBlockTo</code> and <code>updateBlock</code> become wrappers over <code>apply</code> while callers migrate, and each goes when its last caller does. The browser keeps the whole-document save and its revision check. The save protocol from #916 already handles revisions, retries and draft identity, and with item ids the merge no longer loses another writer&#39;s row, so the transport does not need to change.</p>
+<p>The built-in AI keeps whole-document generation in v1. It already lands under a revision check and keeps the rep&#39;s changes. Edit by asking, which the 2026-10-06 AI call architecture plans without a design yet (<a href="https://willayam.github.io/clarity-design-previews/ai-call-architecture/">https://willayam.github.io/clarity-design-previews/ai-call-architecture/</a>), uses edits. The router asks the model for a <code>PageEdit[]</code> whose JSON schema comes from the spec, runs <code>parseEdits</code>, and lands the batch through the same server function as MCP. The editor adopts the result the way it adopts a generation now. A later step can express generation&#39;s own landing as edits, which would give it per-row merges and one-step undo.</p>
+<p>MCP gets one operation in the shape PR #1024 defines.</p>
+<pre><code class="language-ts">export const pagesEdit = defineOperation({
+  name: &#39;pages_edit&#39;,
+  title: &#39;Edit a Journey Page draft&#39;,
+  description: &#39;Change a Journey Page draft with a short list of edits. Address blocks and list items by the ids pages_get returns, never by position. ...&#39;,
+  effect: &#39;write&#39;,
+  destructiveHint: true,
+  idempotentHint: true,
+  idempotency: { kind: &#39;natural&#39;, field: &#39;editId&#39; },
+  target: (input) =&gt; input.pageId,
+  input: z.object({ pageId: PAGE_ID, editId: z.string(), baseRevision: z.number(), edits: z.array(PAGE_EDIT) }),
+  run: (context, input) =&gt; applyEditsToDraft(context, input),
+});
+</code></pre>
+<p><code>PAGE_EDIT</code> is a zod schema in the router that mirrors <code>PageEdit</code>, with a compile-time check that its output type is assignable to <code>PageEdit</code>. Zod is a router dependency (workers/frontend-router/package.json:15), and packages/journey-page-domain has no manifest or dependencies of its own. Page edits land in the draft, and drafts cannot change what a public URL serves (WIL-3226), so the effect is <code>write</code> and publishing stays a separate approved step. <code>pages_get</code> already returns the document wrapped as untrusted (ops-pages.ts on branch agent/connections-dispatcher). After normalize, that document carries every block and item id an agent needs.</p>
+<h3>Revisions, retries and idempotency</h3>
+<p>A new router function, <code>applyEditsToDraft</code> in workers/frontend-router/src/journey-page-edits.ts, serves MCP and edit by asking. It reads the stored draft, applies the batch, and writes with <code>prepareDraftSave</code> under the revision it read. On a conflict it re-reads and re-applies, three tries, the loop <code>landGeneratedDraft</code> already uses (journey-page-generation.ts:228-259). It writes nothing when the batch changes nothing. It applies edits to the current draft, not to the agent&#39;s base, because edits name targets by id and carry intent. The multitrack design chose the same replay-on-head shape for video edits (<a href="https://willayam.github.io/clarity-design-previews/multitrack-design-2026-10/">https://willayam.github.io/clarity-design-previews/multitrack-design-2026-10/</a>). <code>baseRevision</code> tells the agent whether to re-read, and <code>expect</code> lets it guard a field it read. A target that no longer exists comes back as <code>not_found</code> with the current revision. The open editor meets the agent&#39;s write at its next save, merges it per item, and keeps its own changes.</p>
+<table>
+<thead>
+<tr>
+<th>Edit</th>
+<th>End state it asserts</th>
+<th>Applying it again</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>set_field</code>, <code>set_item_field</code>, <code>set_cell</code>, <code>set_page</code>, <code>set_theme</code></td>
+<td>The field holds <code>value</code></td>
+<td>Already true, so nothing changes</td>
+</tr>
+<tr>
+<td><code>insert_block</code>, <code>insert_item</code></td>
+<td>A thing with this caller-minted id exists</td>
+<td>Already exists, so nothing changes. Refused if the id names a different kind or list</td>
+</tr>
+<tr>
+<td><code>remove_block</code>, <code>remove_item</code></td>
+<td>Nothing has this id</td>
+<td>Already absent, so nothing changes</td>
+</tr>
+<tr>
+<td><code>move_block</code>, <code>move_item</code></td>
+<td>This id sits directly before <code>before</code>, or last</td>
+<td>Already there, so nothing changes</td>
+</tr>
+<tr>
+<td><code>assign_media</code>, <code>clear_media</code></td>
+<td>The block&#39;s media equals what the rule writes</td>
+<td>Already equal, so nothing changes</td>
+</tr>
+</tbody></table>
+<p><code>applyEdits</code> checks <code>expect</code> only when the field does not already hold <code>value</code>, so a replay of a guarded edit succeeds instead of failing its own guard. Callers mint ids, so <code>applyEdits</code> never calls <code>crypto.randomUUID</code> and stays pure, unlike <code>addQuestion</code> and <code>resequence</code> today (questions.ts:31, 71). Renumbering happens only when order changed. The server skips the write when nothing changed, so a replay does not bump the revision. That matters because every write reads as an unpublished change (journey-page-document-store.ts:439-441). For an answer lost on the network, the #1024 replay record keyed on <code>editId</code> returns the first result.</p>
+<h3>Undo</h3>
+<p><code>applyEdits</code> returns the inverse of each batch, computed from the document it changed. A <code>set_field</code> inverts to the prior value, with <code>expect</code> set to the new value. <code>insert_block</code> inverts to <code>remove_block</code>. <code>remove_block</code> inverts to <code>insert_block</code> with the removed block&#39;s full fields and its old successor as <code>before</code>, so the restored block keeps its id and its analytics history (CONTEXT.md:175). A move inverts to a move before the old successor. The store keeps a session stack of entries that each hold the edits and their inverse. Undo applies an entry&#39;s inverse through <code>apply</code>, so it autosaves and merges like any edit, and pushes the entry onto redo.</p>
+<p>The grain is one gesture. That means one committed text field, one drop including both blocks of a fused story, one add, one remove, one toggle or one preset change. Rich text records once per focus session, because consecutive body edits coalesce on a <code>blockId.body</code> key, and Tiptap&#39;s own history handles Cmd+Z while the body has focus. If a merged change from another writer altered a field since, the inverse&#39;s <code>expect</code> fails, and that undo step says so instead of overwriting the newer text. Generation landings and other writers&#39; changes stay off the stack. Agent writes keep their inverse in the MCP write record, which gives a later &quot;revert this agent change&quot; the rollback the 2026-09-30 design promised with whole previous documents.</p>
+<h3>Alternatives</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A. Whole documents, tidy UI only</th>
+<th>B. Typed edits in the domain, one pure apply</th>
+<th>C. JSON Patch paths</th>
+<th>D. A CRDT document</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Human UI</td>
+<td>The text engine and drag lifecycle can still be unified. Each list editor keeps rebuilding arrays and committing by index</td>
+<td>Components emit intent by id. Renumbering, caps, limits and the hero rule run once</td>
+<td>One generic writer, but paths such as <code>/blocks/3/fields/questions/2/question</code> are indexes, which the 2026-09-08 build rule forbids for commits</td>
+<td>Live per-keystroke merge, but the save protocol, D1 storage and the renderers&#39; inputs all change</td>
+</tr>
+<tr>
+<td>Built-in AI</td>
+<td>Generation is unchanged. Edit by asking must return a whole page or invent a patch format</td>
+<td>Edit by asking returns edits that <code>parseEdits</code> checks. The spec gives the model fields and limits, which the json-render assessment said targeted edits need</td>
+<td>Models know JSON Patch, but a patch made at revision 5 hits the wrong row at revision 7</td>
+<td>Needs a server-side CRDT client for the model&#39;s writes</td>
+</tr>
+<tr>
+<td>MCP server</td>
+<td><code>pages_update</code> round-trips the whole page, can drop fields the agent did not understand, and erases a generation if the agent writes a stale copy</td>
+<td><code>pages_edit</code> sends a few edits, gets typed refusals, and replays safely</td>
+<td>One generic tool that needs a path allowlist and value rules, which is B&#39;s spec under a worse name</td>
+<td>Same as the built-in AI</td>
+</tr>
+<tr>
+<td>Concurrency with the open editor</td>
+<td>The revision check stops silent overwrites. Rows of one list still conflict as a unit</td>
+<td>Agent edits apply to the current draft by id. The browser keeps its revision check, and lists merge per item</td>
+<td>Index paths do not rebase, and id-based paths are not JSON Patch</td>
+<td>The strongest of the four</td>
+</tr>
+<tr>
+<td>Undo</td>
+<td>Whole-document snapshots. Undoing &quot;my change&quot; after a merge has no target</td>
+<td>Inverse edits per gesture, guarded by <code>expect</code></td>
+<td>Inverse patches are easy, but renumbering side effects make them incomplete</td>
+<td>Built in per client</td>
+</tr>
+<tr>
+<td>Code added or deleted</td>
+<td>The least added. Deletes the panel, and the rules stay scattered</td>
+<td>Adds one domain module and one spec per kind. Deletes the panel, the hook&#39;s hero clamp, <code>landingIndex</code>, four media literals, and duplicated seeds and caps</td>
+<td>A small core, with rules spread back into whoever builds paths</td>
+<td>The largest addition and a new dependency, and it still needs B&#39;s rules</td>
+</tr>
+</tbody></table>
+<p>Pick B. It keeps what already works, the revision check, the merge and durable block ids, and adds the missing piece where the domain package already keeps pure transforms such as <code>addBlock</code>, <code>moveQuestion</code> and <code>assignBlockMedia</code>. It is the only option where the hero rule, renumbering and limits run in one place for all three callers, where agents send intent instead of documents, and where undo needs no snapshots. The 2026-09-30 agent design (&quot;one registry of typed actions that the UI and every agent surface call&quot;) and the ownership audit&#39;s &quot;block-kind-correlated edit commands&quot; both point here. The inputs record no reason for the 2026-10-02 build design dropping block-level edits, so the choice goes back to William below.</p>
+<h3>The UI components on top</h3>
+<h4>One plain-text field</h4>
+<p>The closest component is <code>InlineText</code>, whose own comment asks to fold <code>EditableText</code> into it (InlineText.tsx:4-5). It lacks the character count <code>EditableText</code> shows from 80 percent of the limit (EditableText.tsx:49-55, 235-241). Its paste can exceed the limit until blur (InlineText.tsx:47-52, 70-73). It has no empty rule from a spec, no protection for a draft against outside writes, and no target, since it calls <code>onCommit</code> with a bare string. FaqListEditor.tsx:127-138 and CtaRowEditor.tsx:164-177 each query the DOM to put the caret in a new item, so the field also needs a way to take focus after an insert.</p>
+<p>The field keeps the CTA grammar settled on 2026-07-26 after five reaction rounds, &quot;contentEditable, commit on blur, Esc/Enter blurs, empty snaps back, no focus ring&quot; (WIL-3277). It keeps &quot;the caret is the affordance&quot; from 2026-07-27 and list rule 1, &quot;Every visible string edits where it is published&quot;. It commits by id, as the 2026-09-08 build rules require. It ignores keys while composing and never clamps mid-composition. It pastes plain text and cuts a paste at the limit. Enter commits a single-line field and breaks the line in a multiline one. While it has focus, an outside change to the same field does not remount it, and its blur commit wins as the later save. <code>whenEmpty</code> decides what an emptied field shows, so the canvas shows what the live page will. Any tab-order helper reads the <code>tabindex</code> attribute, because Chrome reports -1 for a contentEditable without one (2026-09-08 build rules). Escape keeps the text, as settled, and undo reverts it. The topbar page name follows the same rules. Tiptap stays for rich fields under the same outside-write rule. If William accepts the alignment cut, the alignment bar is deleted rather than ported, and <code>EditableText</code> has nothing left that <code>InlineText</code> lacks except the count.</p>
+<h4>One drag lifecycle</h4>
+<p>The closest component is <code>beginPointerDrag</code>. It has no Escape cancel. It also lacks a hook that always stores the session so unmount always cancels, and the <code>CanvasReorder</code> bug shows the manual pattern does not guarantee that. It has no horizontal or grid hit-testing for summary columns and gallery cells, and no resize mode that writes a live CSS variable and reverts on cancel.</p>
+<p>Its rules stay. It blurs the focused editor first. It captures on a stable container, never the moving cell (WIL-3331; GalleryEditor.tsx:76-78). It commits once, on drop, as one batch. A cancel, a lost capture or an unmount writes nothing. Row chrome hides during a drag, and the drop gap is drawn where content does not paint over it (2026-09-08). One drag runs at a time (reorder.ts:110-112). Each drag moves onto the hook when its control moves, not in a separate rewrite, as the WIL-3276 consolidation rule says.</p>
+<h4>One keyboard idiom for moving things</h4>
+<p>The closest pieces are FAQ&#39;s Alt+Up and Alt+Down in the question (FaqListEditor.tsx:174-185) and the panel&#39;s live region (EditorWorkspace.tsx:72-83). The record contradicts itself here. WIL-3277 rule 4 made &quot;arrow keys on the grip&quot; the precise equivalent of drag. The FAQ slice then deleted the grip keyboard path in favor of Alt+arrows and took the grip out of the tab order (WIL-3277, 2026-07-28; PR #530). PR #572 added fallback buttons because browse-mode screen readers consume arrow keys. The same rule 4 rejected per-row up and down buttons, because the item slides away from a stationary pointer.</p>
+<p>The resolution is one handle per movable thing. The handle is a button in the tab order, and drag starts from it. Enter or a click opens a menu with Move up, Move down and Remove, plus Add above and Add below for blocks and Duplicate for plans. Alt+Up and Alt+Down move the innermost movable item that holds focus, and Alt+Left and Alt+Right move summary columns. Every move announces its landing in one live region on the canvas. A screen reader can operate a menu without per-row buttons, and the menu closes after each choice, so nothing slides under a stationary pointer. The 2026-09-08 doc already chose &quot;A click menu on the existing gutter grip&quot; for block delete, move and add. The cost is one extra Tab stop per row, which #530 avoided, so the tab order goes to William below.</p>
+<h4>One grammar for row controls</h4>
+<p>The closest component is FAQ&#39;s row bar, <code>faq-row-ops</code> (FaqListEditor.tsx:193-230), with the 2026-09-08 bottom-edge bar as its form-row variant. It is FAQ-only, since summary, gallery and logos each draw their own (SummaryTableEditor.tsx:249-284; GalleryEditor.tsx:164-173). It commits by index and has no keyboard delete.</p>
+<p>It keeps WIL-3277 list rules 2 to 5. Controls sit in a slot the published row already spends, stacked, with drag plus a keyboard equivalent, and they reveal on hover like the media overlay, never with <code>visibility: hidden</code>. It keeps the 2026-09-08 rules. Controls act on mousedown with <code>preventDefault</code> so the caret survives, and keyboard activation arrives as a click with <code>detail === 0</code>. The bar stays open across the focus hand-off after Remove and hides during drags. Anything hanging below a section goes in a portal, because sections clip with <code>clip-path</code> (CtaRowEditor.tsx:15-24). Coarse pointers get 44 px targets, and reduced motion drops the fade. From 2026-07-27 it keeps one edit-lock scope per page and the finding that published rows clip their overflow. The page has about 34 px of slack beside it at 1440 px, so chrome stays inside rows (WIL-3277). A ghost row adds an item and takes the caret.</p>
+<p>The 2026-09-08 rule hid form-row bars with <code>visibility</code> so Required and Remove left the tab order, and rule 5 forbids <code>visibility: hidden</code>. With Remove in the handle menu and Required cut, no row bar needs <code>visibility</code> at all. If William keeps Required, it becomes a labeled switch that appears when the row has focus, as the 2026-09-08 doc describes.</p>
+<h4>One settings card for things with no pixel</h4>
+<p>The closest component is the Base UI hover card in <code>CtaRowEditor</code> (CtaRowEditor.tsx:220-359). It is CTA-specific. Its keyboard path is unverified, because the trigger is <code>tabIndex={-1}</code> and opens on hover (CtaRowEditor.tsx:261-271), and I did not confirm that focusing the label opens the card. It should also serve plan CTAs and the form&#39;s Submit button.</p>
+<p>Its rules stay. The card goes in a portal outside the section. At most one card is open, computed as <code>open = pinned ? pinned === id : hover === id</code> (WIL-3277, 2026-07-26). Escape closes it through Base UI&#39;s <code>escape-key</code> reason and releases the lock (CtaRowEditor.tsx:236-241), and focus returns to the trigger without reopening the card (2026-09-08). A link is validated only once something is typed (CtaRowEditor.tsx:312-334). If the audit&#39;s cuts land, the card holds only button settings. Those are the label, the link, the Primary switch and Remove, on hero CTAs, plan CTAs and the Submit button. The 2026-10-03 design directions keep a right-hand inspector instead, and V5 rejects floating property popovers (why-docs). That goes to William below.</p>
+<h3>Sequence</h3>
+<p>Each slice deletes the panel copy of what it replaced, in the same PR, and rewrites the critical-flow and verify-loop steps it touched. The 2026-09-08 plan kept the panel until the last step. In the four weeks after it, the panel got a restyle (#724), new panel-only settings (#782) and an open proposal to move canvas affordances back into it (#944). A panel that stays keeps drawing work, and every shared change in slices 2 to 9 would land twice. The gate for deleting a panel control is that its canvas replacement has a pointer path, a keyboard path, a screen-reader announcement and a passing reload check. The audit puts the editor last of its four phases, and its first phase already holds the editor cuts, so slice 0 agrees with the audit whatever order William picks for the rest.</p>
+<h4>Slice 0. Subtract</h4>
+<p>Ship the editor cuts William accepts as one small PR each, in the audit&#39;s order. These are the alignment switches, logos variant and color, and Summary and Gallery out of the picker. Stored values keep rendering. Delete dead code, <code>landingIndex</code> with no caller (reorder.ts:45-51), the unused <code>currency</code> and <code>updateMeta</code> props (block-editors.tsx:52, 57) and <code>settingsAdvanced</code> (use-editor-page.ts:257). Add a check that fails if block-editors.tsx gains a block case or lines, so nothing new lands in the panel, and close or redirect #944.</p>
+<p>Verify by counting controls with every block added, against the 154 in the 2026-10-05 before and after page. Pages with rolling logos or custom alignment must render unchanged on the canvas and the public page under the parity tests, and the critical flow must pass.</p>
+<h4>Slice 1. Item ids and per-item merge</h4>
+<p>Give every list item a durable id in normalize, with the router deployed first, and teach <code>mergeValue</code> to merge id-carrying arrays item by item. Nothing visible changes.</p>
+<p>Verify with root <code>pnpm test</code>, including a merge where two writers change different rows of one list and both rows survive. In the editor, open one page in two tabs, edit a different FAQ question in each, let both save and reload. Both edits must survive, which they do not today. Load a page whose rows have no stored ids in both tabs and check in the PUT bodies that both send the same item ids.</p>
+<h4>Slice 2. The edit core behind today&#39;s controls</h4>
+<p>Ship page-edits.ts, the edit specs and <code>apply</code> in the hook. Route <code>addBlockOfKind</code>, <code>removeBlockById</code>, <code>moveBlockTo</code> and <code>updateBlock</code> through it, and move the hero rule into the domain after the D1 census. The panel hides delete on the hero because the spec marks it fixed.</p>
+<p>Verify with root <code>pnpm test</code>, including a check that <code>applyEdits</code> never yields a document the validator refuses and that replaying any edit is a no-op. In the editor, every existing control on both sides still works and survives a reload, the hero has no delete button, and no path puts a block above the hero.</p>
+<h4>Slice 3. Undo</h4>
+<p>Ship the undo stack in the store, Cmd+Z and Shift+Cmd+Z outside fields, and an Undo button in the topbar, which the WIL-3276 product direction already lists.</p>
+<p>Verify by undoing a title edit, a block move, an add and a panel delete, each followed by a reload. An undone delete must bring the block back in place with the same <code>data-section-id</code>. Change a field in tab A, change it again in tab B, let tab A merge, then undo in tab A. The undo must report the conflict instead of overwriting tab B&#39;s text.</p>
+<h4>Slice 4. Inline text</h4>
+<p>Ship the one plain-text field, put every heading on it and delete <code>EditableText</code>. Delete the panel&#39;s title fields and CTA label inputs, and move the critical flow&#39;s title steps onto the canvas.</p>
+<p>Verify with a keyboard script for each field type, a heading, a CTA label, a FAQ question and answer and a summary cell. Type, press Enter, press Escape and Tab out. Paste HTML copied from a web page and check that plain text lands. Paste past the limit and check the cut. Compose with the Japanese IME in Chrome and check that Enter confirms the candidate without committing. Empty a FAQ title and check that the canvas shows what the public page shows. Type in a heading while a generation lands and check that the draft survives. Undo after blur, then reload.</p>
+<h4>Slice 5. Moving blocks</h4>
+<p>Ship the drag hook, which fixes the <code>CanvasReorder</code> session, and a block handle in the tab order with its menu. Add Alt+Up and Alt+Down, delete on the canvas with undo, Add above and Add below, and one live region on the canvas. The hero gets no handle. Delete the panel&#39;s <code>useBlockReorder</code>, grip, fallback buttons, delete button and add menu, the panel rules in 24-block-reorder.css and its exception at check-css-budget.mjs:49. Before deleting the panel add menu, read PostHog&#39;s panel <code>feature_used</code> events from #658 to settle the 2026-09-08 question of whether reps use the accordion as an outline.</p>
+<p>Verify by dragging every kind, including a story with fused logos, where both move and one undo reverses both. Press Escape mid-drag and check that the order is restored. Navigate away mid-drag and check that <code>secdrag-active</code> is gone from the body. Using only the keyboard, Tab to a handle, move a block, delete it, undo and add one below. With VoiceOver, check that a move announces its position, for example &quot;Story moved to position 3 of 6&quot;. Reload and check the order. Check that <code>data-section-id</code> values are unchanged.</p>
+<h4>Slice 6. FAQ on the shared row grammar</h4>
+<p>Ship the row handle and menu, edits by item id and keyboard delete. Delete the panel FAQ editor.</p>
+<p>Verify with the click-through WIL-3277 has owed since 2026-07-28, adding, editing, reordering and deleting questions and then reloading. Check on a PR preview that the published order matches the canvas. Have two tabs edit different questions and check that both survive.</p>
+<h4>Slice 7. Pricing</h4>
+<p>Ship plan text inline, the description in Tiptap, features as rows and the plan CTA in the settings card. Add, duplicate, remove and reorder plans with renumbering, and take the cap from the spec. Delete the panel pricing editor.</p>
+<p>Verify that a reorder reaches the published page, the two-part bug the FAQ slice found, and that open state and focus survive a move. Check that a fourth plan is refused and that the critical flow&#39;s pricing steps run on the canvas.</p>
+<h4>Slice 8. The lead form</h4>
+<p>The shape depends on William&#39;s call. If he accepts the cut, ship title, description and submit label inline over fixed fields. If not, ship field rows with the 2026-09-08 bottom-edge bar. Delete the panel form editor and replace form-block-editor.test.ts.</p>
+<p>Verify by submitting a lead on a PR preview, and check that no two fields share a name.</p>
+<h4>Slice 9. Remaining media and lists</h4>
+<p>Ship logo add and remove on a populated row, PDF change and remove through the media overlay, the gallery on the drag hook with one commit on drop, and summary row and column ids with keyboard paths. Delete the remaining panel copies.</p>
+<p>Verify keyboard move and delete in each list. Check that a cancelled gallery drag changes nothing and that Tab across summary cells keeps focus.</p>
+<h4>Slice 10. Remove the panel shell</h4>
+<p>Delete the panel element and <code>editor-form</code>, <code>PANEL_OPEN_KEY</code>, the topbar toggle (EditorTopbar.tsx:452-460), the grid tokens (index.css:359-363), block-editors.tsx, DynamicList.tsx, Accordion.tsx and Accordion.css, the panel-only parts of FormFields.tsx, and <code>collapsed</code> in the hook. Update DESIGN.md:122 and the verify-loop map, and give the critical flow a canvas trigger for its first save.</p>
+<p>Verify that the critical flow passes on a PR preview and on staging, that a search for <code>editor-panel</code>, <code>editor-form</code> and <code>accordion-</code> finds nothing in editor/src or tests, and that the CSS budget dropped.</p>
+<h4>Slice 11. Agent writes</h4>
+<p>This can start after slice 2 if William chooses edits for MCP. Ship <code>applyEditsToDraft</code>, <code>pages_edit</code> in the #1024 registry, and edit by asking on the same path.</p>
+<p>Verify that an agent&#39;s edit to block B and the rep&#39;s typing in block A both survive the rep&#39;s next save. Check that an agent&#39;s edit to a FAQ row the rep just reordered lands on the right row, that the same <code>editId</code> sent twice bumps the revision once, and that a deleted target returns <code>not_found</code>.</p>
+<h3>Calls only William can make</h3>
+<table>
+<thead>
+<tr>
+<th>Call</th>
+<th>Recommended default</th>
+<th>If William picks otherwise</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Which simplicity-audit editor cuts to accept. They are the alignment switches, logos variant and color, form redirect, Required, Cancel and the mobile default with the one-field form, Page style reduced to presets, and Summary and Gallery out of the picker</td>
+<td>Accept all of them. They remove most of the settings that have no pixel</td>
+<td>Each kept control joins a slice. Alignment brings the heading bar back in slice 4. Logos settings need a settings card of their own. The full field editor makes slice 8 the largest. Kept theme levers widen <code>set_theme</code></td>
+</tr>
+<tr>
+<td>When the panel goes</td>
+<td>Delete each panel copy in the slice that replaces it</td>
+<td>Keeping the panel to the end means every change in slices 2 to 9 lands twice, and the panel growth check matters more</td>
+</tr>
+<tr>
+<td>WIL-3276, 3277 and 3278</td>
+<td>Restore all three from the trash and record this plan on WIL-3276. The 2026-10-01 trash was an 82-ticket housekeeping batch, not a product decision (why-linear). Decisions live on the ticket that made them (AGENTS.md), and trashed issues do not appear in keyword search</td>
+<td>A fresh map must first copy the WIL-3277 CTA and list grammar and the open undo question, or agents lose them</td>
+</tr>
+<tr>
+<td>Undo scope</td>
+<td>Session only, per tab, the rep&#39;s own edits, one step per gesture, Cmd+Z outside fields plus a topbar button. Delete needs no confirmation because undo covers it, the way auto-trim chose &quot;auto-applies, with a visible undo&quot; (WIL-3184)</td>
+<td>Persisted history needs a stored version table and a restore screen. A confirm dialog adds a step to every removal</td>
+</tr>
+<tr>
+<td>MCP writes</td>
+<td>Ship <code>pages_edit</code> as the v1 page write, and drop or defer whole-document <code>pages_update</code></td>
+<td>With whole-document v1, agents round-trip full pages, list rows merge as one unit until server merge lands, and a second write contract arrives later</td>
+</tr>
+<tr>
+<td>The right-hand inspector in the design directions and the 2026-10-05 &quot;calmer editor panel&quot; mock</td>
+<td>Treat both as dead for the editor. WIL-3540 closed as Won&#39;t fix on 2026-10-05. Update DESIGN.md:122</td>
+<td>Settings with no pixel move to an inspector instead of the card, and slice 10 rebuilds the panel shell as an inspector instead of deleting it</td>
+</tr>
+<tr>
+<td>Tab order for row handles</td>
+<td>One handle stop per item, with a menu</td>
+<td>A text-only Tab flow as in #530 needs a separate keyboard delete and a separate screen-reader path in every list</td>
+</tr>
+</tbody></table>
+<script type="module">import m from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';document.querySelectorAll('pre > code.language-mermaid').forEach((c)=>{const d=document.createElement('div');d.className='mermaid';d.textContent=c.textContent;c.parentElement.replaceWith(d)});m.initialize({startOnLoad:false,theme:'default'});m.run();</script></body></html>
