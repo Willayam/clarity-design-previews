@@ -552,3 +552,79 @@ kbd { font-family: var(--font-sans); font-size: 10px; padding: 1px 5px; border-r
 .modal.deck, .modal.deck * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .modal.deck img, .modal.deck canvas, .modal.deck video { -webkit-user-drag: none; user-drag: none; pointer-events: auto; }
 .modal.deck .strip-wrap, .modal.deck .strip-wrap * { touch-action: none; }
+
+/* ---------- round 4: zoom styles, trim-status variants, prototype switches ---------- */
+/* grow: the strip gets taller while zoomed (hold or Preview). flat: same box, only the scale changes. */
+.deck .track { height: 64px; transition: height 320ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms; }
+.deck.is-zoomed .track { height: 64px; }
+.deck.zoom-grow.is-zoomed .track { height: 92px; }
+/* flat: one pulse on the strip's edge as the zoom starts, then fades at the ends that have more video beyond them. */
+@keyframes zoom-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--timeline-range) 0%, transparent); }
+  18% { box-shadow: 0 0 0 2px var(--timeline-range), 0 0 18px color-mix(in srgb, var(--timeline-range) 55%, transparent); }
+  100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--timeline-range) 0%, transparent); }
+}
+.deck.zoom-flat .track.zoom-pulse { animation: zoom-pulse 650ms ease-out; }
+.deck .track::before, .deck .track::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 36px; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 220ms;
+}
+.deck .track::before { left: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); background: linear-gradient(90deg, var(--background) 0%, color-mix(in oklab, var(--background) 70%, transparent) 45%, transparent 100%); }
+.deck .track::after { right: 0; border-radius: 0 var(--radius-md) var(--radius-md) 0; background: linear-gradient(270deg, var(--background) 0%, color-mix(in oklab, var(--background) 70%, transparent) 45%, transparent 100%); }
+.deck.zoom-flat.is-zoomed:not(.win-at-start) .track::before { opacity: 1; }
+.deck.zoom-flat.is-zoomed:not(.win-at-end) .track::after { opacity: 1; }
+
+/* a: icon, "Auto-trimmed 25.9 s", Reset */
+.status-line { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+.status-icon { display: inline-grid; place-items: center; width: 14px; height: 14px; color: var(--warning); }
+.status-icon svg { width: 14px; height: 14px; }
+.status-line .status-icon { margin-right: -2px; }
+.btn.status-reset { height: 24px; padding: 0 6px; font-size: 12.5px; color: var(--foreground); border-radius: var(--radius-sm); }
+.btn.status-reset:hover { background: var(--cg-btn-hover); }
+/* b: one chip, popover underneath */
+.status-chip-wrap { position: relative; display: inline-flex; }
+.status-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in oklab, var(--foreground) 6%, transparent); color: var(--foreground); font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.status-chip:hover, .status-chip[aria-expanded="true"] { background: color-mix(in oklab, var(--foreground) 12%, transparent); }
+.status-pop { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); z-index: 6; width: 300px; padding: 12px 12px 10px; border-radius: var(--radius-lg); background: var(--card); border: 1px solid var(--border); box-shadow: var(--dialog-shadow); display: flex; flex-direction: column; gap: 10px; animation: chip-in 140ms ease-out; }
+.status-pop p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--foreground); }
+.status-pop .btn.reset { align-self: flex-start; }
+/* c: a badge above each cut end; e: a sparkle above each machine cut */
+.deck.sv-ends .strip-wrap, .deck.sv-silent .strip-wrap { padding-top: 20px; }
+.deck.sv-ends, .deck.sv-silent { --deck-chrome: 140px; }
+.cut-badge { position: absolute; top: 0; z-index: 2; display: inline-flex; align-items: center; gap: 3px; height: 16px; padding: 0 6px 0 5px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in oklab, var(--foreground) 7%, var(--background)); color: var(--foreground); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; }
+.cut-badge svg { display: none; width: 10px; height: 10px; color: var(--warning); }
+.cut-badge.auto svg { display: block; }
+.cut-badge.auto { padding-left: 4px; }
+.cut-badge:hover { background: color-mix(in oklab, var(--foreground) 14%, var(--background)); }
+.cut-mark { position: absolute; top: 2px; z-index: 2; width: 14px; height: 14px; color: var(--warning); display: grid; place-items: center; }
+.cut-mark svg { width: 12px; height: 12px; }
+.deck.sv-silent .scrim { background: repeating-linear-gradient(-45deg, rgb(0 0 0 / 0.58) 0 5px, rgb(0 0 0 / 0.72) 5px 10px); }
+/* d: the Auto-trim switch */
+.status-switch { display: inline-flex; align-items: center; gap: 9px; height: 26px; padding: 0 2px 0 8px; border: 0; background: transparent; color: var(--muted-foreground); font-size: 12.5px; cursor: pointer; white-space: nowrap; border-radius: 999px; }
+.status-switch:hover { color: var(--foreground); }
+.status-switch .sw { position: relative; width: 30px; height: 18px; border-radius: 999px; background: color-mix(in oklab, var(--foreground) 18%, transparent); transition: background-color 160ms; }
+.status-switch .sw-knob { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--foreground); transition: left 160ms, background-color 160ms; }
+.status-switch[aria-checked="true"] .sw { background: var(--primary); }
+.status-switch[aria-checked="true"] .sw-knob { left: 14px; background: var(--primary-foreground); }
+.status-switch[aria-checked="mixed"] .sw { background: color-mix(in oklab, var(--primary) 45%, transparent); }
+.status-switch[aria-checked="mixed"] .sw-knob { left: 8px; }
+.status-switch[aria-checked="true"] { color: var(--foreground); }
+.status-switch:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* The prototype switches: not part of the design. */
+.proto-bar { position: fixed; top: 10px; right: 12px; z-index: 120; display: inline-flex; align-items: center; gap: 10px; padding: 4px 8px 4px 6px; border-radius: 6px; border: 1px dashed rgba(255,255,255,0.35); background: rgba(20, 24, 36, 0.9); color: #cbd5e1; font-family: var(--font-mono); font-size: 11px; }
+html.light .proto-bar { border-color: rgba(0,0,0,0.35); background: rgba(240, 242, 248, 0.92); color: #334155; }
+.proto-tag { font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #f59e0b; }
+.proto-group { display: inline-flex; align-items: center; gap: 2px; }
+.proto-label { opacity: 0.7; margin-right: 4px; }
+.proto-btn { border: 1px solid transparent; background: transparent; color: inherit; font: inherit; padding: 1px 6px; border-radius: 4px; cursor: pointer; }
+.proto-btn:hover { border-color: currentColor; }
+.proto-btn.on { background: #f59e0b; color: #1c1917; font-weight: 700; }
+.proto-keys { opacity: 0.55; }
+@media (max-width: 560px) {
+  .proto-bar { top: 6px; right: 6px; gap: 6px; font-size: 10px; }
+  .proto-keys { display: none; }
+}
+/* The drag readout lives inside the strip, beside the handle on its cut side, so it never covers kept frames or the console. */
+.deck .track .tooltip { top: 50%; transform: translate(10px, -50%); }
+.deck .track[data-tip-side="left"] .tooltip { transform: translate(calc(-100% - 10px), -50%); }
+.deck .track .tooltip::after { display: none; }

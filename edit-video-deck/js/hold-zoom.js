@@ -1,7 +1,8 @@
 import { clamp, on, tween } from "./util.js"
 
 export const HOLD_SPAN = 12
-export const HOLD_MS = 280
+/** Hold still this long before the zoom starts: deliberate, short of sluggish. */
+export const HOLD_MS = 450
 const MIN_SPAN = 1.5
 
 /**
