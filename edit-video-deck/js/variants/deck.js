@@ -19,7 +19,7 @@ const FIT_MS = 320
 const MIN_CUT = 0.05
 
 /** Prototype switches, in the URL as ?zoom= and ?status= so a link carries them. */
-const ZOOM_STYLES = ["grow", "flat"]
+const ZOOM_STYLES = ["flat"]
 const STATUS_KEYS = "abcdefghijklmnopqrst".split("")
 const STATUS_NAMES = { a: "line", b: "chip", c: "ends", d: "switch", e: "silent", f: "autobtn", g: "modes", h: "dropdown", i: "moddot", j: "compare", k: "suggest", l: "perend", m: "quiet", n: "cycle", o: "inverse", p: "chippop", q: "threeway", r: "dropdown3", s: "chip3", t: "threeicons" }
 
@@ -53,8 +53,8 @@ export const deck = {
     let mode = "trim"
     let busy = false
     const params = new URLSearchParams(location.search)
-    let zoomStyle = ZOOM_STYLES.includes(params.get("zoom")) ? params.get("zoom") : "grow"
-    let statusKey = STATUS_KEYS.includes((params.get("status") || "").toLowerCase()) ? params.get("status").toLowerCase() : "a"
+    let zoomStyle = "flat"
+    let statusKey = STATUS_KEYS.includes((params.get("status") || "").toLowerCase()) ? params.get("status").toLowerCase() : "t"
 
     /* the picture */
     const slot = h("div.video-slot")
@@ -301,8 +301,8 @@ export const deck = {
     /* the console row */
     const seg = segmented(
       [
-        { v: "trim", label: "Trim" },
-        { v: "preview", label: "Preview" },
+        { v: "trim", label: "Trim", icon: "scissors" },
+        { v: "preview", label: "Preview", icon: "film" },
       ],
       "trim",
       (v) => setMode(v),
@@ -312,7 +312,6 @@ export const deck = {
     const pvTools = h("div.plane-tools.hidden", pvToggle.el, pvLen.el)
     // Labels only: no hover explainers and no icons on the preview controls.
     for (const n of pvTools.querySelectorAll("[title]")) n.removeAttribute("title")
-    for (const n of pvToggle.el.querySelectorAll("svg")) n.remove()
     const consoleCenter = h("div.console-center", line, chipWrap, switchEl, pvTools)
     const cancelBtn = h("button.btn.ghost", { type: "button", "data-action": "cancel" }, "Cancel")
     const doneBtn = h("button.btn.primary.deck-done", { type: "button", "data-action": "done" }, "Done")
@@ -362,9 +361,8 @@ export const deck = {
       "div.proto-bar",
       { "aria-label": "Prototype switches" },
       h("span.proto-tag", "proto"),
-      h("span.proto-group", h("span.proto-label", "zoom"), ...ZOOM_STYLES.map((z) => protoBtn("zoom", z, z))),
       h("span.proto-group", h("span.proto-label", "status"), ...STATUS_KEYS.map((k) => protoBtn("status", k, k.toUpperCase()))),
-      h("span.proto-keys", "z · s"),
+      h("span.proto-keys", "s"),
     )
     document.body.append(protoBar)
     const syncProto = () => {
@@ -517,10 +515,6 @@ export const deck = {
             return true
           }
           cancel()
-          return true
-        }
-        if (e.key === "z" || e.key === "Z") {
-          setZoom(zoomStyle === "grow" ? "flat" : "grow")
           return true
         }
         if (e.key === "s" || e.key === "S") {
