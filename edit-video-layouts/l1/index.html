@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="layout-name" content="Actions bottom right">
+  <title>Edit Video · actions bottom right · Clarity prototype</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.add(new URLSearchParams(location.search).get("theme") === "light" ? "light" : "dark")</script>
+</head>
+<body>
+  <div class="shell" id="shell" aria-hidden="true"></div>
+  <div class="modal-root" id="modal-root">
+    <div class="backdrop"></div>
+  </div>
+  <nav class="switcher glass hidden" id="switcher" aria-label="Reopen"></nav>
+  <div class="loading-note hidden" id="loading-note"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit Video, five layouts</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #070a12; font: 13px/1.4 system-ui, sans-serif; color: #e6e9f2; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+  nav { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px;
+    padding: 4px; border-radius: 999px; background: rgba(255,255,255,.92); color: #111; box-shadow: 0 6px 24px rgba(0,0,0,.35); z-index: 2; }
+  nav button { border: 0; background: transparent; padding: 6px 12px; border-radius: 999px; font: inherit; cursor: pointer; color: #333; }
+  nav button[aria-current="true"] { background: #111; color: #fff; }
+</style>
+<iframe id="frame" title="Layout"></iframe>
+<nav id="nav" aria-label="Layouts"></nav>
+<script>
+  const layouts = [
+    { key: 'l1', name: '1' }, { key: 'l2', name: '2' }, { key: 'l3', name: '3' }, { key: 'l4', name: '4' }, { key: 'l5', name: '5' },
+  ]
+  const frame = document.getElementById('frame')
+  const nav = document.getElementById('nav')
+  const params = new URLSearchParams(location.search)
+  let index = Math.max(0, layouts.findIndex((l) => l.key === params.get('layout')))
+  async function label(layout) {
+    try {
+      const html = await (await fetch(`${layout.key}/index.html`)).text()
+      const name = html.match(/<meta name="layout-name" content="([^"]+)"/)
+      if (name) layout.name = `${layout.key.slice(1)} · ${name[1]}`
+    } catch {}
+  }
+  function render() {
+    nav.innerHTML = ''
+    layouts.forEach((layout, i) => {
+      const b = document.createElement('button')
+      b.textContent = layout.name
+      b.setAttribute('aria-current', String(i === index))
+      b.onclick = () => go(i)
+      nav.append(b)
+    })
+  }
+  function go(i) {
+    index = (i + layouts.length) % layouts.length
+    frame.src = `${layouts[index].key}/`
+    history.replaceState(null, '', `?layout=${layouts[index].key}`)
+    render()
+  }
+  addEventListener('keydown', (e) => {
+    if (e.target.closest?.('input, textarea, [contenteditable]')) return
+    if (e.key === 'ArrowRight' && e.altKey) go(index + 1)
+    if (e.key === 'ArrowLeft' && e.altKey) go(index - 1)
+  })
+  Promise.all(layouts.map(label)).then(render)
+  go(index)
+</script>
+</html>
