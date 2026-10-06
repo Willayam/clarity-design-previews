@@ -6,6 +6,7 @@ import { createSpeechMap } from "../speech.js"
 import { createClock, seekOnTrack } from "../transport.js"
 import { createPreviewOverlay, previewLengthStepper, previewModeToggle } from "../preview-ui.js"
 import { nudgeHandles, segmented, snapTransform, spinner } from "../ui.js"
+import { createStatusVariants } from "./status-variants.js"
 
 /** The preview range fills about this much of the strip: 3 s in a 10 s window. */
 const PREVIEW_FILL = 0.3
@@ -19,8 +20,8 @@ const MIN_CUT = 0.05
 
 /** Prototype switches, in the URL as ?zoom= and ?status= so a link carries them. */
 const ZOOM_STYLES = ["grow", "flat"]
-const STATUS_KEYS = ["a", "b", "c", "d", "e"]
-const STATUS_NAMES = { a: "line", b: "chip", c: "ends", d: "switch", e: "silent" }
+const STATUS_KEYS = "abcdefghijklmnop".split("")
+const STATUS_NAMES = { a: "line", b: "chip", c: "ends", d: "switch", e: "silent", f: "autobtn", g: "modes", h: "dropdown", i: "moddot", j: "compare", k: "suggest", l: "perend", m: "quiet", n: "cycle", o: "inverse", p: "chippop" }
 
 /**
  * Deck console, round 4. No header and no title: the modal is the picture
@@ -289,6 +290,11 @@ export const deck = {
       const marks = inTrim && v === "silent" && t.kind === "auto"
       placeAtHandle(headMark, t.start, "head", marks && t.head >= MIN_CUT)
       placeAtHandle(tailMark, t.end, "tail", marks && t.tail >= MIN_CUT)
+      for (const [k, ev] of Object.entries(extra.variants)) {
+        const selected = statusKey === k
+        const show = ev.paint(t, { selected, inTrim })
+        ev.center?.classList.toggle("hidden", !(selected && inTrim && show))
+      }
     }
     const schedStatus = rafCoalesce(paintStatus)
 
@@ -312,6 +318,25 @@ export const deck = {
     const doneBtn = h("button.btn.primary.deck-done", { type: "button", "data-action": "done" }, "Done")
     const actions = h("div.console-actions", cancelBtn, doneBtn)
     const consoleRow = h("div.console", h("div.console-left", transport, seg.el), consoleCenter, actions)
+    /* round 5: variants F to O live in their own module and hang off the same slots */
+    const extra = createStatusVariants({
+      ctx,
+      store,
+      speech,
+      trimState,
+      applyAuto: () => session.reapplyAuto(),
+      removeTrim: restoreFull,
+      restoreStart,
+      restoreEnd,
+      placeAtHandle,
+      trimTab: seg.el.querySelector('[data-value="trim"]'),
+      clockEl: clock.el,
+      actionsEl: actions,
+      cancelBtn,
+      bandEl: stripWrap,
+      repaint: () => schedStatus(),
+    })
+    for (const v of Object.values(extra.variants)) if (v.center) consoleCenter.insertBefore(v.center, pvTools)
 
     const el = h("div.modal.deck", { role: "dialog", "aria-modal": "true", "aria-label": "Edit Video", dataset: { variant: "D", mode } }, stage, consoleRow, stripWrap)
     ctx.placeVideo(slot)
@@ -364,6 +389,7 @@ export const deck = {
       if (!STATUS_KEYS.includes(k)) return
       statusKey = k
       setPop(false)
+      extra.closeMenus()
       syncProto()
     }
     const offProto = on(protoBar, "click", (e) => {
@@ -484,6 +510,7 @@ export const deck = {
       cancel,
       reset: restoreFull,
       onKey(e) {
+        if (extra.onKey(e)) return true
         if (e.key === "Escape") {
           if (popOpen()) {
             setPop(false)
@@ -518,6 +545,12 @@ export const deck = {
         modalRect: el.getBoundingClientRect().toJSON(),
         consoleRect: consoleRow.getBoundingClientRect().toJSON(),
         centerText: [...consoleCenter.children].filter((c) => !c.classList.contains("hidden")).map((c) => c.textContent.trim()).join(" | "),
+        actionsText: (el.querySelector(".more-btn")?.classList.contains("hidden") === false ? "⋯ " : "") + "Cancel Done",
+        clockText: clock.el.textContent.trim() + (el.querySelector(".clock-auto")?.classList.contains("hidden") === false ? " ✦" : ""),
+        trimTabText: el.querySelector(".mod-dot")?.classList.contains("hidden") === false ? "Trim •" : "Trim",
+        arrows: stripWrap.querySelectorAll(".restore-arrow:not(.hidden)").length,
+        menuOpen: extra.menuOpen(),
+        peeking: extra.variants.j.peeking,
         badges: [headBadge, tailBadge].filter((b) => !b.classList.contains("hidden")).map((b) => b.textContent.trim()),
         marks: [headMark, tailMark].filter((m) => !m.classList.contains("hidden")).length,
         popOpen: popOpen(),
@@ -533,6 +566,7 @@ export const deck = {
         for (const off of offs) off()
         schedStatus.cancel()
         schedOverview.cancel()
+        extra.destroy()
         overlay.destroy()
         preview.destroy()
         pvToggle.destroy()
