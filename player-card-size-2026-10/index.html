@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity player · card size</title>
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+  body { margin: 0; padding: 32px; background: #0b0f17; color: #e4e4e7; font: 14px/1.5 InterVariable, Inter, system-ui, sans-serif; }
+  .grid { display: flex; gap: 28px; flex-wrap: wrap; }
+  .col h2 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+  .col p { margin: 0 0 12px; color: #a1a1aa; font-size: 12.5px; max-width: 288px; min-height: 38px; }
+  .card { position: relative; width: 288px; aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #000;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 12px 30px rgba(0,0,0,.4); }
+  .card mux-player { position: absolute; inset: 0; width: 100%; height: 100%; --media-object-fit: cover; }
+  .actions { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 5; pointer-events: none; }
+  .actions span { width: 34px; height: 34px; border-radius: 10px; background: rgba(20,22,28,.82); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); display: grid; place-items: center; }
+  .actions svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .title { margin-top: 10px; font-weight: 600; font-size: 16px; }
+</style>
+</head>
+<body>
+<h1 style="font-size:22px;margin:0 0 6px">Player at card size</h1>
+<p style="color:#a1a1aa;max-width:72ch;margin:0 0 20px">Three simpler versions of the #1036 theme for small surfaces like the library card, each inside a mock card with its share, edit and more buttons. These are live players: hover, click, scrub. Screenshots of playing and paused states are at the bottom. Throwaway prototype, Mux demo video.</p>
+<div class="grid" id="grid"></div>
+<h2 style="font-size:15px;margin:40px 0 8px">Playing with hover (top) and paused with hover (bottom)</h2>
+<img src="sheet.jpg" alt="Each card variant while playing and while paused" style="max-width:1300px;width:100%;border-radius:10px">
+<script>
+const ID = 'EcHgOK9coz5K4rjSwOkoE7Y7O01201YMIC200RI6lNxnhs';
+const actions = `<div class="actions" aria-hidden="true">
+  <span><svg viewBox="0 0 24 24"><path d="M12 15V3m0 0-4 4m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></span>
+  <span><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg></span>
+  <span><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg></span>
+</div>`;
+// Overrides layered on the production theme (mux-player-theme.ts). The row
+// keeps its markup; each variant only hides or repositions pieces of it.
+const LINE = `
+  .fixedScrim { height: 56px; }
+  .row > :not(media-time-range) { display: none; }
+  .chrome { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 10px 4px; }
+  .row media-time-range { margin: 0; }`;
+const VARIANTS = {
+  current: { label: 'Current theme as shipped in #1036', note: 'Unchanged. At card width it still shows play, scrubber, speed, captions and fullscreen.', css: '' },
+  line: { label: 'A · Line', note: 'No buttons. Click toggles play. A thin scrubber along the bottom edge, a play glyph when paused.', css: LINE },
+  lineIcons: { label: 'B · Line + icons', note: 'Line, plus mute and fullscreen at the right end of the scrubber.', css: `
+  .fixedScrim { height: 64px; }
+  .row > :not(media-time-range, media-mute-button, media-fullscreen-button) { display: none; }
+  .row media-mute-button { display: inline-flex !important; }
+  .row > * { height: 32px; padding: 0 6px; }
+  .row svg { width: 18px; height: 18px; }
+  .chrome { padding: 0 6px 2px 10px; }` },
+  compact: { label: 'C · Compact row', note: 'Play, scrubber and fullscreen. Nothing else.', css: `
+  .fixedScrim { height: 64px; }
+  .row > :not(media-play-button, media-time-range, media-fullscreen-button) { display: none; }
+  .row > * { height: 34px; padding: 0 7px; }
+  .row svg { width: 18px; height: 18px; }
+  .chrome { padding: 0 6px 3px 4px; }` },
+};
+fetch('theme.html').then(r => r.text()).then(base => {
+  const grid = document.getElementById('grid');
+  for (const [key, v] of Object.entries(VARIANTS)) {
+    const html = base.replace('id="clarity-player"', `id="card-${key}"`).replace('</style>', `${v.css}\n</style>`);
+    document.body.insertAdjacentHTML('beforeend', html);
+    grid.insertAdjacentHTML('beforeend', `<div class="col" data-v="${key}"><h2>${v.label}</h2><p>${v.note}</p>
+      <div class="card">${actions}<mux-player theme="card-${key}" playback-id="${ID}" stream-type="on-demand" playbackrates="1 1.25 1.5 2" preload="metadata" muted
+        poster="https://image.mux.com/${ID}/thumbnail.webp?time=8&width=640" disable-tracking></mux-player></div>
+      <div class="title">Untitled Video</div></div>`);
+  }
+  const s = document.createElement('script'); s.type = 'module'; s.src = 'https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.4/+esm'; document.head.append(s);
+});
+</script>
+</body>
+</html>
