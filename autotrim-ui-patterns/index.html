@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How other apps show an automatic edit (Clarity auto-trim research)</title>
+<style>
+  :root {
+    --ink: #1d1d1f;
+    --muted: #5f6368;
+    --line: #e3e3e6;
+    --bg: #fbfbfa;
+    --card: #ffffff;
+    --accent: #3b5bdb;
+    --accent-soft: #edf1ff;
+    --gray-cut: #d9d9de;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  .wide { max-width: 72rem; margin: 0 auto; padding: 0 1.25rem; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .4rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.35rem; margin: 3rem 0 .75rem; letter-spacing: -0.005em; }
+  h3 { font-size: 1.05rem; margin: 2rem 0 .4rem; }
+  p { margin: .6rem 0; }
+  .meta { color: var(--muted); font-size: .9rem; margin-bottom: 2rem; }
+  .answer {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    border-radius: 10px; padding: 1.1rem 1.25rem; margin: 1.5rem 0 0;
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  sup a { text-decoration: none; font-size: .75em; }
+  q { quotes: '"' '"'; }
+  code, .copy { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; background: #f1f1f3; padding: .05em .35em; border-radius: 4px; white-space: nowrap; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .84rem; line-height: 1.45; }
+  th, td { text-align: left; vertical-align: top; padding: .55rem .7rem; border-bottom: 1px solid var(--line); }
+  th { background: #f5f5f7; font-weight: 600; position: sticky; top: 0; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td .copy { white-space: normal; }
+  .pattern { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1.1rem; margin: .9rem 0; }
+  .pattern h3 { margin: 0 0 .3rem; }
+  .pattern p { margin: .35rem 0; font-size: .95rem; }
+  .label { font-weight: 600; }
+  .rec { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.1rem 0; }
+  .rec h3 { margin: 0 0 .4rem; }
+  .rank { display: inline-block; min-width: 1.6rem; height: 1.6rem; line-height: 1.6rem; text-align: center; border-radius: 50%; background: var(--ink); color: #fff; font-size: .85rem; margin-right: .4rem; }
+  .states { display: grid; grid-template-columns: 9.5rem 1fr; gap: .45rem .9rem; margin: .7rem 0; font-size: .93rem; align-items: start; }
+  .states .k { color: var(--muted); padding-top: .2rem; }
+  .chip { display: inline-block; border: 1px solid #cfd3dc; border-radius: 999px; padding: .1rem .65rem; font-size: .88rem; background: #fff; white-space: nowrap; }
+  .chip.auto { background: var(--accent-soft); border-color: #c7d2fe; color: #2a3f9e; }
+  .btnlike { display: inline-block; border-radius: 6px; padding: .05rem .5rem; font-size: .86rem; color: var(--accent); border: 1px solid #c7d2fe; white-space: nowrap; }
+  .seg { display: inline-flex; border: 1px solid #cfd3dc; border-radius: 8px; overflow: hidden; font-size: .86rem; vertical-align: middle; }
+  .seg span { padding: .1rem .6rem; border-left: 1px solid #cfd3dc; background: #fff; }
+  .seg span:first-child { border-left: 0; }
+  .seg span.on { background: var(--ink); color: #fff; }
+  .tl { display: inline-flex; width: 15rem; height: 1.3rem; border-radius: 4px; overflow: hidden; vertical-align: middle; border: 1px solid #cfd3dc; font-size: .7rem; position: relative; }
+  .tl .cut { background: repeating-linear-gradient(135deg, var(--gray-cut), var(--gray-cut) 4px, #e8e8ec 4px, #e8e8ec 8px); color: #555; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+  .tl .keep { background: #c9d6ff; flex: 1; }
+  .tl .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--accent); opacity: .55; }
+  .note { color: var(--muted); font-size: .88rem; }
+  .guess { background: #fff7e0; border: 1px solid #f1dfa6; border-radius: 4px; padding: 0 .3rem; font-size: .8rem; color: #7a5a00; white-space: nowrap; }
+  ol.sources { font-size: .82rem; color: var(--muted); padding-left: 1.4rem; }
+  ol.sources li { margin: .2rem 0; word-break: break-word; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>How other apps show an automatic edit</h1>
+  <div class="meta">Research for Clarity's auto-trim status. Built from help pages and design guidelines fetched on 6 October 2026, not hands-on use. Anything marked <span class="guess">guess</span> is my inference with no source behind it.</div>
+
+  <h2 id="answer">Short answer</h2>
+  <div class="answer">
+    <p>Apps that edit automatically almost never give the hand-edited state a control position of its own. They mark the machine's work, show what changed (a checkmark, a gray removed region, press-and-hold for the original), and offer two differently named exits, one to re-apply the automatic result and one to go back to the original. Once you touch the automatic result it becomes your edit, the auto mark goes away, and a way back stays in reach. No product I checked uses a half-on switch, and Apple's guidelines keep the mixed state for checkboxes that summarize sub-items. For Clarity, keep B's chip and drop the &#10022; when the rep drags a handle. Put two verbs in the popover that name where they go, <span class="copy">Use auto-trim</span> and <span class="copy">Use full video</span>. Draw the cut silence on the timeline as gray regions the rep can restore.</p>
+  </div>
+</main>
+
+<div class="wide">
+  <h2 id="products" style="max-width:46rem;margin-left:auto;margin-right:auto;">Products</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Product</th><th>Feature</th><th>How the auto result shows</th><th>Compare, revert, re-apply</th><th>Exact copy</th><th>Source</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Apple Photos, Mac</td><td>Adjust &gt; Auto</td><td>A blue checkmark appears next to each changed adjustment. Unchecking it turns that adjustment off temporarily.</td><td>Double-click a slider to reset that one adjustment. Revert to Original resets everything. Click and hold Compare, or hold M, to see the original.</td><td><span class="copy">Auto</span>, <span class="copy">Revert to Original</span></td><td><sup><a href="#s1">1</a></sup> <sup><a href="#s2">2</a></sup></td></tr>
+      <tr><td>Apple Photos, iPhone</td><td>Auto wand, Adjust, video trim</td><td>"The outline around each button indicates the level of change for that setting."</td><td>Tap a button or the photo to compare. Cancel, then Discard Changes. After saving, Revert to Original. A trimmed video offers Revert.</td><td><span class="copy">Discard Changes</span>, <span class="copy">Revert to Original</span>, <span class="copy">Revert</span></td><td><sup><a href="#s3">3</a></sup> <sup><a href="#s4">4</a></sup> <sup><a href="#s5">5</a></sup></td></tr>
+      <tr><td>Lightroom mobile</td><td>Auto</td><td>Auto button.</td><td>"Tap Auto again to turn it off." Press and hold the photo for Before. Double-tap a slider to reset it. The Reset menu has four destinations.</td><td><span class="copy">To Import</span>, <span class="copy">To Open</span>, <span class="copy">All</span>, <span class="copy">Adjustments</span></td><td><sup><a href="#s6">6</a></sup> <sup><a href="#s7">7</a></sup></td></tr>
+      <tr><td>Lightroom Classic</td><td>Auto (Basic panel)</td><td>One-shot. Auto sets the sliders and has no off state.</td><td>Undo or Reset. A 2023 user idea asks for Auto to become an on/off toggle. A community expert's answer was to press Cmd-Z.</td><td><span class="copy">Auto</span>, <span class="copy">Reset</span></td><td><sup><a href="#s8">8</a></sup> <sup><a href="#s9">9</a></sup></td></tr>
+      <tr><td>Google Photos</td><td>Suggested edits</td><td>A row of suggestions.</td><td>Tap and hold the preview to compare. Revert undoes edits. A photo saved as a copy cannot be reverted.</td><td><span class="copy">Enhance</span>, <span class="copy">Dynamic</span>, <span class="copy">AI Enhance</span>, <span class="copy">Revert</span></td><td><sup><a href="#s10">10</a></sup></td></tr>
+      <tr><td>Snapseed</td><td>Edit stack</td><td>Stack menu.</td><td>Undo, Redo, Revert. Revert itself can be undone.</td><td><span class="copy">Revert</span></td><td><sup><a href="#s11">11</a></sup></td></tr>
+      <tr><td>Descript</td><td>Filler words, Edit for Clarity, Shorten word gaps, Studio Sound, Underlord</td><td>Fillers underlined light blue. AI edits in blue. Removed words stay in the script as strikethrough "ignored text".</td><td>Hover strikethrough, choose Restore. Edit for Clarity has Discard all edits. Studio Sound is a toggle with Intensity. Underlord makes a checkpoint and offers Revert.</td><td><span class="copy">Restore</span>, <span class="copy">Discard all edits</span>, <span class="copy">Shorten all</span></td><td><sup><a href="#s12">12</a></sup> <sup><a href="#s13">13</a></sup> <sup><a href="#s14">14</a></sup> <sup><a href="#s15">15</a></sup> <sup><a href="#s16">16</a></sup> <sup><a href="#s17">17</a></sup></td></tr>
+      <tr><td>Loom</td><td>Remove silences, filler words</td><td>Toggles in the edit panel and the trim screen, turned on per video. Loom has no default setting for them. Removed timeline portions show light gray.</td><td>Toggle off. Revert to Original restores the unedited video.</td><td><span class="copy">Remove Silence</span>, <span class="copy">Remove filler words</span>, <span class="copy">Revert to Original</span></td><td><sup><a href="#s18">18</a></sup> <sup><a href="#s19">19</a></sup></td></tr>
+      <tr><td>Riverside</td><td>Remove pauses, Magic Audio</td><td>Apply, then a slider for how many pauses. Removed pauses stay in the transcript gray with strikethrough.</td><td>Click a gray pause, choose Restore. Revert to original restores all. Magic Audio is a toggle with 0 to 100%. Studio defaults have "reset to default".</td><td><span class="copy">Apply</span>, <span class="copy">Restore</span>, <span class="copy">Revert to original</span></td><td><sup><a href="#s20">20</a></sup> <sup><a href="#s21">21</a></sup> <sup><a href="#s22">22</a></sup> <sup><a href="#s23">23</a></sup></td></tr>
+      <tr><td>CapCut</td><td>Auto cut</td><td>The cuts land on the timeline as ordinary edits.</td><td>Edit or delete cuts by hand. No dedicated revert is documented.</td><td><span class="copy">Apply</span> or <span class="copy">Generate</span></td><td><sup><a href="#s24">24</a></sup></td></tr>
+      <tr><td>Premiere Pro</td><td>Enhance Speech</td><td>Enhance button, then a Mix Amount slider.</td><td>Mix Amount blends raw and enhanced audio. The announcement does not describe removal.</td><td><span class="copy">Enhance</span>, <span class="copy">Mix Amount</span></td><td><sup><a href="#s25">25</a></sup></td></tr>
+      <tr><td>Final Cut Pro</td><td>Balance Color, audio enhancements</td><td>Green checkmark means analyzed and adjusted. Blue checkbox per enhancement.</td><td>Deselect the checkbox to turn it off. "A yellow warning triangle may appear in the inspector, indicating potential problems."</td><td><span class="copy">Balance Color</span>, <span class="copy">Enhance Audio</span></td><td><sup><a href="#s26">26</a></sup> <sup><a href="#s27">27</a></sup></td></tr>
+      <tr><td>iMovie</td><td>Enhance, audio Auto</td><td>The buttons Enhance touched become highlighted. The audio Auto button becomes highlighted.</td><td>Not described on the pages I fetched.</td><td><span class="copy">Enhance</span>, <span class="copy">Auto</span></td><td><sup><a href="#s28">28</a></sup> <sup><a href="#s29">29</a></sup></td></tr>
+      <tr><td>YouTube Studio</td><td>Automatic chapters</td><td>Checkbox, checked by default for new uploads.</td><td>Uncheck per video or in upload defaults. Manual chapters override automatic ones.</td><td><span class="copy">Allow automatic chapters</span></td><td><sup><a href="#s30">30</a></sup></td></tr>
+      <tr><td>Zoom</td><td>Touch up, low light</td><td>Low light "will default to Auto".</td><td>Select Manual to get a slider. Touch up is a slider.</td><td><span class="copy">Auto</span>, <span class="copy">Manual</span></td><td><sup><a href="#s31">31</a></sup></td></tr>
+      <tr><td>Camtasia Audiate</td><td>Suggested Edits</td><td>Fillers highlighted pink.</td><td>A deletion leaves a marker. Click it, choose Restore Audio.</td><td><span class="copy">Shorten Pauses</span>, <span class="copy">Restore Audio</span></td><td><sup><a href="#s32">32</a></sup></td></tr>
+      <tr><td>Tella</td><td>Silence Removal</td><td>You pick a mode and click Remove. It shows the silence count and time saved before you commit.</td><td>Reset silences (circular arrow) or Reset all cuts. Plain trim has no auto mode.</td><td><span class="copy">Remove 12 silences</span>, <span class="copy">Reset silences</span></td><td><sup><a href="#s33">33</a></sup> <sup><a href="#s34">34</a></sup></td></tr>
+      <tr><td>Screen Studio</td><td>Auto zoom</td><td>On by default. Purple blocks on a zoom track.</td><td>Right-click a zoom, choose Disable or Remove. Each zoom is auto or manual. Global setting turns it off.</td><td><span class="copy">Disable</span>, <span class="copy">Remove</span>, <span class="copy">Create zooms automatically</span></td><td><sup><a href="#s35">35</a></sup> <sup><a href="#s36">36</a></sup></td></tr>
+      <tr><td>macOS, iOS brightness</td><td>Auto brightness</td><td>Mac lists it in the same Displays pane as the Brightness slider. On iOS it is on by default and the slider moves with the light.</td><td>Turn the switch off.</td><td><span class="copy">Automatically adjust brightness</span>, <span class="copy">Auto-Brightness</span></td><td><sup><a href="#s37">37</a></sup> <sup><a href="#s38">38</a></sup></td></tr>
+      <tr><td>VS Code settings</td><td>Reference for "modified"</td><td>A colored bar left of any setting you changed.</td><td>Gear menu, Reset Setting.</td><td><span class="copy">Reset Setting</span></td><td><sup><a href="#s39">39</a></sup></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<main style="padding-top:0">
+  <h2 id="patterns">Patterns</h2>
+
+  <div class="pattern">
+    <h3>1. Auto as a toggle button</h3>
+    <p>Seen in Lightroom mobile ("tap Auto again to turn it off")<sup><a href="#s6">6</a></sup> and iMovie's highlighted Auto button<sup><a href="#s29">29</a></sup>.</p>
+    <p><span class="label">Works</span> when auto is one reversible step and nobody edits afterwards. <span class="label">Confuses</span> after a hand edit, because neither page says whether the button is still on. Lightroom Classic shows what happens without it. Users asked Adobe for exactly this toggle<sup><a href="#s8">8</a></sup>. I found no docs for "filled when applied, outlined once edited". <span class="guess">guess</span> It may exist in apps whose help pages don't describe button states.</p>
+  </div>
+
+  <div class="pattern">
+    <h3>2. Explicit mode picker: Auto, Manual, Original</h3>
+    <p>Zoom low light defaults to Auto, and choosing Manual reveals a slider<sup><a href="#s31">31</a></sup>. Apple lists "Original" as a peer in the filter row<sup><a href="#s3">3</a></sup>, and Audio Mix offers "Standard: Play the original audio you recorded"<sup><a href="#s5">5</a></sup>. A dropdown like <span class="copy">Trim: Auto &#9662;</span> is the same pattern.</p>
+    <p><span class="label">Works</span> when the states are peers and switching costs nothing. <span class="label">Confuses</span> when the manual value is set by direct manipulation somewhere else. Clarity's handles are that case, so the picker would have to jump to Custom on its own.</p>
+  </div>
+
+  <div class="pattern">
+    <h3>3. Modified marker plus a reset verb</h3>
+    <p>Apple's blue checkmark on Mac<sup><a href="#s1">1</a></sup> and the outline ring on iPhone<sup><a href="#s3">3</a></sup>, VS Code's colored bar with <span class="copy">Reset Setting</span><sup><a href="#s39">39</a></sup>, Final Cut's green checkmark<sup><a href="#s27">27</a></sup>.</p>
+    <p><span class="label">Works</span> for many independent values, since it says "this one changed" without a mode. <span class="label">Confuses</span> when "Reset" doesn't say where it goes. Lightroom mobile needs four reset destinations to stay clear<sup><a href="#s7">7</a></sup>.</p>
+  </div>
+
+  <div class="pattern">
+    <h3>4. Separate verbs for the original and for auto</h3>
+    <p>Apple pairs Auto with <span class="copy">Revert to Original</span><sup><a href="#s1">1</a>,<a href="#s2">2</a></sup>, Riverside pairs Apply with <span class="copy">Revert to original</span><sup><a href="#s20">20</a></sup>, and Descript offers <span class="copy">Discard all edits</span><sup><a href="#s14">14</a></sup>.</p>
+    <p><span class="label">Works</span> whenever there are three states, which Clarity has. <span class="label">Confuses</span> when both verbs are called Reset.</p>
+  </div>
+
+  <div class="pattern">
+    <h3>5. Hold to compare</h3>
+    <p>Click and hold or the M key on Mac<sup><a href="#s2">2</a></sup>, tap and hold in Google Photos<sup><a href="#s10">10</a></sup>, press and hold in Lightroom mobile<sup><a href="#s6">6</a></sup>.</p>
+    <p><span class="label">Works</span> for stills, where the difference shows in one frame. <span class="guess">guess</span> A trim's difference is time at the edges, which a held frame can't show. The gray cut regions in pattern 6 do that job for video.</p>
+  </div>
+
+  <div class="pattern">
+    <h3>6. Removed parts shown in place, restorable one by one</h3>
+    <p>Riverside shows removed pauses gray with strikethrough and offers <span class="copy">Restore</span><sup><a href="#s21">21</a></sup>. Descript does the same with ignored text<sup><a href="#s13">13</a></sup>. Audiate leaves a marker with <span class="copy">Restore Audio</span><sup><a href="#s32">32</a></sup>. Loom shows removed timeline parts in light gray<sup><a href="#s19">19</a></sup>, and Screen Studio has Disable or Remove per zoom<sup><a href="#s35">35</a></sup>.</p>
+    <p><span class="label">Works</span> when the removals are few and discrete. Clarity has exactly two. <span class="label">Confuses</span> at scale, so Tella and Riverside add a bulk reset<sup><a href="#s33">33</a>,<a href="#s20">20</a></sup>.</p>
+  </div>
+
+  <div class="pattern">
+    <h3>7. On by default, off in settings</h3>
+    <p>YouTube automatic chapters are checked for new uploads<sup><a href="#s30">30</a></sup>, Screen Studio has <span class="copy">Create zooms automatically</span><sup><a href="#s36">36</a></sup>, iOS Auto-Brightness is on by default<sup><a href="#s38">38</a></sup>, and Riverside has studio-level defaults<sup><a href="#s23">23</a></sup>.</p>
+    <p><span class="label">Works</span> for a trusted default. The per-video control stays quiet and the global off switch lives in settings. Tella's count-and-confirm step<sup><a href="#s33">33</a></sup> suits opt-in tools, not defaults.</p>
+  </div>
+
+  <p class="note">Google Photos' suggestion row<sup><a href="#s10">10</a></sup> may be an "applied chip" pattern, but the help page doesn't describe how a chosen suggestion looks, so I left it out.</p>
+
+  <h2 id="modified">The hand-adjusted state</h2>
+  <p>This is the state D's half switch tried to show. The products split three ways.</p>
+  <p><span class="label">The edit becomes the truth, with no label.</span> After Lightroom's Auto the sliders just hold numbers<sup><a href="#s8">8</a></sup>. YouTube's manual chapters override the automatic ones<sup><a href="#s30">30</a></sup>. A revert verb stays available.</p>
+  <p><span class="label">A "changed" marker, not a mode.</span> Apple's checkmark and outline ring<sup><a href="#s1">1</a>,<a href="#s3">3</a></sup> and VS Code's bar<sup><a href="#s39">39</a></sup> say a value differs and offer a way back. Descript colors AI edits blue<sup><a href="#s14">14</a></sup>, which marks the machine's work rather than yours.</p>
+  <p><span class="label">An explicit mode.</span> Zoom makes you pick Manual before the slider appears<sup><a href="#s31">31</a></sup>. Screen Studio sets auto or manual on each zoom<sup><a href="#s35">35</a></sup>.</p>
+  <p>None of them uses a half-on switch. Switches are for "two mutually exclusive options" and "should take immediate effect" (NN/g)<sup><a href="#s40">40</a></sup>. Apple's guidelines give the mixed state to checkboxes whose sub-items differ. They also say "Outside of a list, use a button that behaves like a toggle, not a switch"<sup><a href="#s41">41</a></sup>. The deeper problem is that a switch has one off position, and Clarity has two states that aren't auto, the rep's trim and the full video. "Off" can't mean both.</p>
+
+  <h2 id="recommendations">Recommendations for Clarity</h2>
+  <p>Two rules apply to every option. First, never use a bare "Reset". Name where it goes, as in <span class="copy">Use auto-trim</span> and <span class="copy">Use full video</span>. Second, the &#10022; marks machine work only and disappears as soon as the rep drags a handle.</p>
+
+  <div class="rec">
+    <h3><span class="rank">1</span>Chip with a popover that names both exits (B, refined)</h3>
+    <div class="states">
+      <div class="k">Auto</div><div><span class="chip auto">&#10022; Trimmed 25.9 s</span><br><span class="note">Popover: "Cut 4.9 s of silence before the first word and 21.0 s after the last." Button: </span><span class="btnlike">Use full video</span></div>
+      <div class="k">Hand-adjusted</div><div><span class="chip">Trimmed 27.4 s</span><br><span class="note">Popover: "You set this trim. Auto-trim would cut 25.9 s." Buttons: </span><span class="btnlike">Use auto-trim</span> <span class="btnlike">Use full video</span></div>
+      <div class="k">Full video</div><div><span class="chip">Full video</span><br><span class="note">Popover: "Auto-trim would cut 25.9 s of silence." Button: </span><span class="btnlike">&#10022; Use auto-trim</span></div>
+    </div>
+    <p>Back to auto and removing the trim are both one click inside the popover, from any state. It is the quietest option and every exit has a name. Precedents are patterns 3 and 4. <span class="guess">guess</span> "Trimmed 25.9 s" can read as the clip's new length. If a rep test shows that, switch to <span class="copy">&#10022; Cut 25.9 s</span>.</p>
+  </div>
+
+  <div class="rec">
+    <h3><span class="rank">2</span>Cut regions on the timeline, restorable in place (pair with 1)</h3>
+    <div class="states">
+      <div class="k">Auto</div><div><span class="tl"><span class="cut" style="width:20%">&#10022; 4.9 s</span><span class="keep"></span><span class="cut" style="width:36%">&#10022; 21.0 s silence</span></span><br><span class="note">Hovering a gray end shows </span><span class="btnlike">Restore</span></div>
+      <div class="k">Hand-adjusted</div><div><span class="tl"><span class="cut" style="width:13%">3.1 s</span><span class="keep"></span><span class="cut" style="width:42%">24.3 s</span><span class="tick" style="left:20%"></span><span class="tick" style="left:64%"></span></span><br><span class="note">Thin ticks mark the auto-trim points, tooltip "Auto-trim point". The handles snap to them. </span><span class="guess">guess</span></div>
+      <div class="k">Full video</div><div><span class="tl"><span class="keep"></span><span class="tick" style="left:20%"></span><span class="tick" style="left:64%"></span></span><br><span class="note">Ticks stay visible. Clicking one applies auto-trim at that end.</span></div>
+    </div>
+    <p>To get back to auto, drag a handle to its tick or use the chip. To remove the trim, Restore each end or use the chip. This is pattern 6, and it replaces hold-to-compare because the rep can see exactly what was cut. None of the products I checked documents snapping to an auto point, so test that part.</p>
+  </div>
+
+  <div class="rec">
+    <h3><span class="rank">3</span>Segmented control, with Custom appearing after a drag</h3>
+    <div class="states">
+      <div class="k">Auto</div><div><span class="seg"><span class="on">&#10022; Auto-trim</span><span>Full video</span></span> <span class="note">Cut 25.9 s</span></div>
+      <div class="k">Hand-adjusted</div><div><span class="seg"><span>&#10022; Auto-trim</span><span class="on">Custom</span><span>Full video</span></span></div>
+      <div class="k">Full video</div><div><span class="seg"><span>&#10022; Auto-trim</span><span class="on">Full video</span></span></div>
+    </div>
+    <p>To get back to auto, tap Auto-trim. To remove the trim, tap Full video. Custom keeps the rep's trim, so flipping between segments is a free comparison. This is pattern 2 (Zoom, Apple's "Original"). It is louder than a quiet default needs, and the third segment appearing shifts the layout.</p>
+  </div>
+
+  <div class="rec">
+    <h3><span class="rank">4</span>Status line with one verb (A, refined)</h3>
+    <div class="states">
+      <div class="k">Auto</div><div><span class="copy">&#10022; Auto-trimmed 25.9 s</span> &middot; <span class="btnlike">Use full video</span></div>
+      <div class="k">Hand-adjusted</div><div><span class="copy">Trimmed 27.4 s by you</span> &middot; <span class="btnlike">Use auto-trim</span></div>
+      <div class="k">Full video</div><div><span class="copy">Full video</span> &middot; <span class="btnlike">Use auto-trim (cuts 25.9 s)</span></div>
+    </div>
+    <p>This is the simplest to build. Its gap is that removing a hand trim takes two steps (go back to auto, then pick full video) or dragging the handles out.</p>
+  </div>
+
+  <h3>Avoid</h3>
+  <p>Avoid the half-on switch. If a switch has to stay, make it two-state, let a drag turn it off with the line reading "Your trim", and give the full video its own link. Skip a confirm-before-trim step, which suits opt-in tools like Tella. A global <span class="copy">Auto-trim new recordings</span> switch in settings lets the per-video control stay quiet (pattern 7).</p>
+
+  <hr>
+  <h2 id="sources">Sources</h2>
+  <ol class="sources">
+    <li id="s1"><a href="https://support.apple.com/guide/photos/adjust-light-exposure-and-color-pht806aea6a6/mac">Apple, Adjust light, exposure, and color in Photos on Mac</a></li>
+    <li id="s2"><a href="https://support.apple.com/guide/photos/editing-basics-pht304c2ace6/mac">Apple, Editing basics in Photos on Mac</a></li>
+    <li id="s3"><a href="https://support.apple.com/guide/iphone/edit-photos-and-videos-iphb08064d57/ios">Apple, Edit photos and videos on iPhone</a></li>
+    <li id="s4"><a href="https://support.apple.com/guide/iphone/undo-and-revert-photo-edits-iph2413db0ab/ios">Apple, Undo and revert photo edits on iPhone</a></li>
+    <li id="s5"><a href="https://support.apple.com/guide/iphone/trim-video-length-adjust-speed-and-edit-audio-iph1d1344a2d/ios">Apple, Trim video length, adjust speed, and edit audio on iPhone</a></li>
+    <li id="s6"><a href="https://www.adobe.com/learn/lightroom-cc/web/lightroom-mobile-adjustments">Adobe, Improve your photos with basic edits in Lightroom on mobile</a></li>
+    <li id="s7"><a href="https://community.adobe.com/questions-680/lightroom-cc-mobile-reset-menu-description-926523">Adobe Community, Lightroom mobile reset menu description (community member, 2018)</a></li>
+    <li id="s8"><a href="https://community.adobe.com/t5/lightroom-classic-ideas/p-quick-toggle-auto-button-in-basic-develop-module-on-off-without-pressing-reset/idi-p/13890786">Adobe Community idea, Quick toggle Auto button on/off (June 2023)</a></li>
+    <li id="s9"><a href="https://lightroomkillertips.com/hit-lightrooms-auto-tone-button/">Scott Kelby, When to hit Lightroom's Auto Tone button (2017)</a></li>
+    <li id="s10"><a href="https://support.google.com/photos/answer/6128850?hl=en">Google Photos Help, Edit your photos</a></li>
+    <li id="s11"><a href="https://support.google.com/snapseed/answer/6181627?hl=en">Snapseed Help, Undo, Redo, Revert</a></li>
+    <li id="s12"><a href="https://help.descript.com/script-editing/filler-words">Descript, Filler words</a></li>
+    <li id="s13"><a href="https://help.descript.com/hc/en-us/articles/10164872017933-Deleting-vs-ignoring-script-text">Descript, Deleting vs ignoring script text</a></li>
+    <li id="s14"><a href="https://help.descript.com/script-editing/edit-for-clarity">Descript, Edit for Clarity</a></li>
+    <li id="s15"><a href="https://help.descript.com/script-editing/shorten-word-gaps">Descript, Shorten word gaps</a></li>
+    <li id="s16"><a href="https://help.descript.com/effects-animations-transitions/studio-sound">Descript, Studio Sound</a></li>
+    <li id="s17"><a href="https://help.descript.com/ai-assistant/revert">Descript, Undo or rollback changes made by Underlord</a></li>
+    <li id="s18"><a href="https://support.atlassian.com/loom/docs/remove-filler-words-and-silences-from-your-video/">Loom, Remove filler words and silences from your video</a></li>
+    <li id="s19"><a href="https://support.atlassian.com/loom/docs/edit-your-loom-video/">Loom, Edit your Loom video</a></li>
+    <li id="s20"><a href="https://support.riverside.com/hc/en-us/articles/13993078729245-Remove-pauses-and-silences">Riverside, Remove pauses and silences</a></li>
+    <li id="s21"><a href="https://support.riverside.com/hc/en-us/articles/12245776523677-Remove-individual-silences-and-pauses">Riverside, Remove individual silences and pauses</a></li>
+    <li id="s22"><a href="https://support.riverside.com/hc/en-us/articles/13395368921885-Apply-Magic-Audio-to-individual-tracks-in-the-editor">Riverside, Apply Magic Audio to individual tracks</a></li>
+    <li id="s23"><a href="https://support.riverside.com/hc/en-us/articles/23799266930717-Set-default-preferences-for-Magic-Episodes">Riverside, Set default preferences for Magic Episodes</a></li>
+    <li id="s24"><a href="https://www.capcut.com/help/auto-cut-in-capcut">CapCut, What is Auto Cut in CapCut?</a></li>
+    <li id="s25"><a href="https://community.adobe.com/announcements-732/now-released-enhance-speech-in-premiere-pro-313485">Adobe Community, Now released: Enhance Speech in Premiere Pro</a></li>
+    <li id="s26"><a href="https://support.apple.com/guide/final-cut-pro/verbbd363f5/mac">Apple, Balance a clip's colors in Final Cut Pro for Mac</a></li>
+    <li id="s27"><a href="https://support.apple.com/guide/final-cut-pro/verc1fab873/mac">Apple, Enhance audio in Final Cut Pro for Mac</a></li>
+    <li id="s28"><a href="https://support.apple.com/guide/imovie/mov29c0961af/mac">Apple, Automatically enhance clips in iMovie on Mac</a></li>
+    <li id="s29"><a href="https://support.apple.com/guide/imovie/mov86277afbd/mac">Apple, Correct and enhance audio in iMovie on Mac</a></li>
+    <li id="s30"><a href="https://support.google.com/youtube/answer/9884579?hl=en">YouTube Help, Video chapters</a></li>
+    <li id="s31"><a href="https://support.zoom.com/hc/en/article?id=zm_kb&amp;sysparm_article=KB0060352">Zoom Support, Enhancing your video in Zoom</a></li>
+    <li id="s32"><a href="https://www.techsmith.com/learn/tutorials/audiate/edit-audio-faster/">TechSmith, Audiate: edit audio faster</a></li>
+    <li id="s33"><a href="https://help.tella.com/help/editing/remove-silences-automatically">Tella, Remove silences automatically</a></li>
+    <li id="s34"><a href="https://help.tella.com/help/editing/trim-and-split-clips">Tella, Trim and split clips</a></li>
+    <li id="s35"><a href="https://screen.studio/guide/adding-editing-zooms">Screen Studio, Adding and editing zooms</a></li>
+    <li id="s36"><a href="https://screen.studio/guide/disable-automatic-zooms-">Screen Studio, Disable automatic zooms</a></li>
+    <li id="s37"><a href="https://support.apple.com/guide/mac-help/mh40768/mac">Apple, Displays settings on Mac</a></li>
+    <li id="s38"><a href="https://support.apple.com/en-us/HT203073">Apple, Adjust the brightness and color temperature on your iPhone or iPad</a></li>
+    <li id="s39"><a href="https://code.visualstudio.com/docs/configure/settings">VS Code, User and workspace settings</a></li>
+    <li id="s40"><a href="https://www.nngroup.com/articles/toggle-switch-guidelines/">NN/g, Toggle-switch guidelines (Kendrick, 2018)</a></li>
+    <li id="s41"><a href="https://developer.apple.com/design/human-interface-guidelines/toggles">Apple Human Interface Guidelines, Toggles</a></li>
+  </ol>
+  <p class="note">Fetch notes. Riverside's help pages returned 403 to a direct fetch, so I read them through the help center's public article API. The Apple HIG page renders client-side, so I read its published JSON. Adobe helpx pages (Lightroom Auto settings, Lightroom Classic workspace basics, Premiere Enhance Speech) returned 403 and are not cited. The old Loom support URL redirects to the Atlassian pages above. No product in the brief was tested hands-on.</p>
+</main>
+</body>
+</html>
