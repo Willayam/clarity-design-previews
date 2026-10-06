@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-title on the jobs table, before and after (PR #1037)</title>
+<style>
+  :root { color-scheme: light; --ink: #101828; --muted: #475467; --line: #e4e7ec; --ok: #067647; --no: #b42318; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #f9fafb; }
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 40px 0 12px; }
+  p { margin: 0 0 12px; color: var(--muted); max-width: 70ch; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  figure img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line); }
+  figcaption { padding: 10px 14px; font-size: 14px; color: var(--muted); }
+  figcaption strong { color: var(--ink); }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f2f4f7; font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .no { color: var(--no); font-weight: 600; }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: #f2f4f7; padding: 1px 4px; border-radius: 4px; }
+  .narrow { max-width: 420px; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Auto-title on the jobs table</h1>
+  <p>PR #1037 on its preview at commit 5e5ce702e, with real calls to the model. The takes are synthetic speech made for this test.</p>
+
+  <h2>A fresh recording, after the rep saved it in the editor</h2>
+  <p>Before: the take is "Untitled Video" and its share page has no headline. The rep opened the page in the editor and saved it before any title existed, which writes revision 2 with an empty hero title. After: the same link shows the title the model gave the video. The page follows the video because its hero title is still empty.</p>
+  <div class="pair">
+    <figure><img src="img/before-public.png" alt="Share page with no headline above the video"><figcaption><strong>Before.</strong> Share page right after finish.</figcaption></figure>
+    <figure><img src="img/after-public.png" alt="Share page headed Sales team onboarding for personalized video follow-ups"><figcaption><strong>After.</strong> Same link once the title job ran. The page title and og:title match.</figcaption></figure>
+  </div>
+
+  <h2>The editor does not show the followed title yet</h2>
+  <p>The editor still shows the "Page title..." placeholder and "Untitled Video" in the top bar, while the live page shows the video's title. This PR leaves the editor alone; whether the editor should show the followed title is an open call.</p>
+  <div class="pair">
+    <figure><img src="img/before-editor.png" alt="Editor with an empty hero title before titling"><figcaption><strong>Before.</strong> Editor when the rep saved.</figcaption></figure>
+    <figure><img src="img/after-editor.png" alt="Editor still showing Page title placeholder after titling"><figcaption><strong>After.</strong> Editor after the title landed. Unchanged.</figcaption></figure>
+  </div>
+
+  <h2>A rename wins, and non-English speech gets no title</h2>
+  <div class="pair">
+    <figure><img src="img/after-rename.png" alt="Share page headed Pricing for Sam"><figcaption><strong>Renamed right after finish.</strong> The job found a person's title and wrote nothing. The page shows the rename.</figcaption></figure>
+    <figure><img src="img/after-swedish.png" alt="Share page with no headline for a Swedish take"><figcaption><strong>Swedish speech.</strong> Screened as not English before any model call. No title.</figcaption></figure>
+  </div>
+
+  <h2>Every take in the run</h2>
+  <table>
+    <thead><tr><th>Take</th><th>Name after the run</th><th>Job outcome</th><th>Finish to done</th></tr></thead>
+    <tbody>
+      <tr><td>English recording, saved early in the editor</td><td class="ok">Sales team onboarding for personalized video follow-ups</td><td><code>titled</code></td><td>121 s (ticks about once a minute)</td></tr>
+      <tr><td>English recording, ticks every 5 s</td><td class="ok">Sales team onboarding for personalized video follow-ups</td><td><code>titled</code></td><td>38 s (asset ready at 13 s)</td></tr>
+      <tr><td>Upload <code>IMG_4821.mp4</code></td><td class="ok">Pricing plans overview</td><td><code>titled</code></td><td>77 s</td></tr>
+      <tr><td>English recording renamed right after finish</td><td>Pricing for Sam</td><td><code>not_eligible</code></td><td>44 s</td></tr>
+      <tr><td>Upload <code>Q3 pricing walkthrough.mp4</code></td><td>Q3 pricing walkthrough</td><td>no job: a human-named file is the person's title</td><td></td></tr>
+      <tr><td>Swedish recording</td><td class="no">Untitled Video</td><td><code>not_english</code>, no model call</td><td>18 s</td></tr>
+      <tr><td>German upload <code>IMG_6001.MOV</code></td><td class="no">IMG_6001</td><td><code>not_english</code>, no model call</td><td>77 s</td></tr>
+      <tr><td>Silent recording</td><td class="no">Untitled Video</td><td><code>no_speech</code>, no model call</td><td>79 s</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What the captions look like for other languages</h2>
+  <p>Mux makes English captions only. Swedish came back as English-shaped text full of invented names. German and French came back as one English line repeated ("I'll see you guys in the next video"). Spanish stayed Spanish. The screen checks three things, measured on these real captions: the share of common English words, the share of mid-sentence capitalised words, and how much the text repeats itself. Each non-English take fails exactly one of the three.</p>
+
+  <h2>On phones</h2>
+  <figure class="narrow"><img src="img/after-public-phone.png" alt="Titled share page at phone width"><figcaption>The titled share page at 390 px.</figcaption></figure>
+</main>
+</body>
+</html>
