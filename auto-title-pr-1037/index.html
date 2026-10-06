@@ -31,7 +31,7 @@
 <body>
 <main>
   <h1>Auto-title on the jobs table</h1>
-  <p>PR #1037 on its preview, with real calls to the model. The first sections are from commit 5e5ce702e. The editor and stale-save sections are from b53e0e24b. The takes are synthetic speech made for this test.</p>
+  <p>PR #1037 on its preview, with real calls to the model. The first section and the first results table are from commit 5e5ce702e. The editor screenshots marked After, Typed and Fixed are from b53e0e24b, the current head. The stale-save replay ran at f286f3f7a, and an independent check repeated it at b53e0e24b. The takes are synthetic speech made for this test.</p>
 
   <h2>A fresh recording, after the rep saved it in the editor</h2>
   <p>Before: the take is "Untitled Video" and its share page has no headline. The rep opened the page in the editor and saved it before any title existed, which writes revision 2 with an empty hero title. After: the same link shows the title the model gave the video. The page follows the video because its hero title is still empty.</p>
@@ -41,7 +41,7 @@
   </div>
 
   <h2>The editor shows the title the live page shows</h2>
-  <p>On a page made from a video, an empty hero title now shows the video's title in the editor, styled like any title. The Page Title field keeps an empty value and shows the title as its placeholder. The top bar shows it too, since the page's stored name is still "Untitled Video". None of it is stored. After five editor saves the page still has an empty hero title and the name "Untitled Video", and the live page still follows the video.</p>
+  <p>On a page made from a video, an empty hero title now shows the video's title in the editor, styled like any title. The Page Title field keeps an empty value and shows the title as its placeholder. The top bar shows it too, since the page's stored name is still "Untitled Video". None of it is stored. After repeated editor saves (draft revision 1 to 8) the page still has an empty hero title and the name "Untitled Video", and the live page still follows the video.</p>
   <div class="pair">
     <figure><img src="img/before-editor.png" alt="Editor showing Page title placeholder and Untitled Video"><figcaption><strong>Before.</strong> The editor showed "Page title..." and "Untitled Video" while the live page showed the video's title.</figcaption></figure>
     <figure><img src="img/editor-follows.png" alt="Editor heading and top bar showing the video's title"><figcaption><strong>After.</strong> Heading, top bar and the field's placeholder show the video's title. Saving sends an empty hero title.</figcaption></figure>
@@ -53,8 +53,8 @@
     <figure><img src="img/public-typed.png" alt="Live page headed Q3 plan for Sam"><figcaption><strong>Live page</strong> after publishing the typed title.</figcaption></figure>
   </div>
   <div class="pair" style="margin-top:16px">
-    <figure><img src="img/editor-cleared-before-fix.png" alt="Editor heading empty after clearing"><figcaption><strong>Found in review.</strong> Clearing the heading left it empty until reload, while the live page still showed the video's title.</figcaption></figure>
-    <figure><img src="img/editor-cleared-fixed.png" alt="Editor heading shows the video's title again after clearing"><figcaption><strong>Fixed.</strong> Clearing the heading brings the video's title back. Nothing is stored.</figcaption></figure>
+    <figure><img src="img/editor-cleared-before-fix.png" alt="Editor heading empty after clearing"><figcaption><strong>Found in review.</strong> At f286f3f7a, clearing the heading left it empty, while the live page still showed the video's title.</figcaption></figure>
+    <figure><img src="img/editor-cleared-fixed.png" alt="Editor heading shows the video's title again after clearing"><figcaption><strong>Fixed.</strong> Clearing the heading brings the video's title back, and the save sends an empty hero title. Tested on a page whose hero title was already empty.</figcaption></figure>
   </div>
   <figure class="narrow" style="margin-top:16px"><img src="img/editor-swedish.png" alt="Editor for a Swedish take showing the Page title placeholder"><figcaption><strong>No title to follow.</strong> The Swedish take got no title, so its editor still shows "Page title...".</figcaption></figure>
 
@@ -67,7 +67,19 @@
     <figure><img src="img/after-swedish.png" alt="Share page with no headline for a Swedish take"><figcaption><strong>Swedish speech.</strong> Screened as not English before any model call. No title.</figcaption></figure>
   </div>
 
-  <h2>Every take in the run</h2>
+  <h2>Re-check at f286f3f7a, with fresh takes</h2>
+  <table>
+    <thead><tr><th>Take</th><th>Name after the run</th><th>Job outcome</th><th>Finish to done</th></tr></thead>
+    <tbody>
+      <tr><td>English recording, saved early in the editor</td><td class="ok">Sales team onboarding for personalized video follow-ups</td><td><code>titled</code></td><td>37 s</td></tr>
+      <tr><td>English recording, later given a typed page title</td><td class="ok">Pricing plans: Starter, Team, and Enterprise</td><td><code>titled</code></td><td>16 s</td></tr>
+      <tr><td>English recording renamed right after finish</td><td>Pricing for Sam</td><td><code>not_eligible</code></td><td>9 s</td></tr>
+      <tr><td>Swedish recording</td><td class="no">Untitled Video</td><td><code>not_english</code>, no model call</td><td>38 s</td></tr>
+      <tr><td>Silent recording</td><td class="no">Untitled Video</td><td><code>no_speech</code>, no model call</td><td>35 s</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Every take in the first run, at 5e5ce702e</h2>
   <table>
     <thead><tr><th>Take</th><th>Name after the run</th><th>Job outcome</th><th>Finish to done</th></tr></thead>
     <tbody>
