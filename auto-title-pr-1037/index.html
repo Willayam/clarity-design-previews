@@ -31,7 +31,7 @@
 <body>
 <main>
   <h1>Auto-title on the jobs table</h1>
-  <p>PR #1037 on its preview at commit 5e5ce702e, with real calls to the model. The takes are synthetic speech made for this test.</p>
+  <p>PR #1037 on its preview, with real calls to the model. The first sections are from commit 5e5ce702e. The editor and stale-save sections are from b53e0e24b. The takes are synthetic speech made for this test.</p>
 
   <h2>A fresh recording, after the rep saved it in the editor</h2>
   <p>Before: the take is "Untitled Video" and its share page has no headline. The rep opened the page in the editor and saved it before any title existed, which writes revision 2 with an empty hero title. After: the same link shows the title the model gave the video. The page follows the video because its hero title is still empty.</p>
@@ -40,12 +40,26 @@
     <figure><img src="img/after-public.png" alt="Share page headed Sales team onboarding for personalized video follow-ups"><figcaption><strong>After.</strong> Same link once the title job ran. The page title and og:title match.</figcaption></figure>
   </div>
 
-  <h2>The editor does not show the followed title yet</h2>
-  <p>The editor still shows the "Page title..." placeholder and "Untitled Video" in the top bar, while the live page shows the video's title. This PR leaves the editor alone; whether the editor should show the followed title is an open call.</p>
+  <h2>The editor shows the title the live page shows</h2>
+  <p>On a page made from a video, an empty hero title now shows the video's title in the editor, styled like any title. The Page Title field keeps an empty value and shows the title as its placeholder. The top bar shows it too, since the page's stored name is still "Untitled Video". None of it is stored. After five editor saves the page still has an empty hero title and the name "Untitled Video", and the live page still follows the video.</p>
   <div class="pair">
-    <figure><img src="img/before-editor.png" alt="Editor with an empty hero title before titling"><figcaption><strong>Before.</strong> Editor when the rep saved.</figcaption></figure>
-    <figure><img src="img/after-editor.png" alt="Editor still showing Page title placeholder after titling"><figcaption><strong>After.</strong> Editor after the title landed. Unchanged.</figcaption></figure>
+    <figure><img src="img/before-editor.png" alt="Editor showing Page title placeholder and Untitled Video"><figcaption><strong>Before.</strong> The editor showed "Page title..." and "Untitled Video" while the live page showed the video's title.</figcaption></figure>
+    <figure><img src="img/editor-follows.png" alt="Editor heading and top bar showing the video's title"><figcaption><strong>After.</strong> Heading, top bar and the field's placeholder show the video's title. Saving sends an empty hero title.</figcaption></figure>
   </div>
+
+  <h2>Typing a title stores it, and clearing it goes back to the video's</h2>
+  <div class="pair">
+    <figure><img src="img/editor-typed.png" alt="Editor with the typed title Q3 plan for Sam"><figcaption><strong>Typed.</strong> "Q3 plan for Sam" is saved as the hero title. Once published, the live page shows it.</figcaption></figure>
+    <figure><img src="img/public-typed.png" alt="Live page headed Q3 plan for Sam"><figcaption><strong>Live page</strong> after publishing the typed title.</figcaption></figure>
+  </div>
+  <div class="pair" style="margin-top:16px">
+    <figure><img src="img/editor-cleared-before-fix.png" alt="Editor heading empty after clearing"><figcaption><strong>Found in review.</strong> Clearing the heading left it empty until reload, while the live page still showed the video's title.</figcaption></figure>
+    <figure><img src="img/editor-cleared-fixed.png" alt="Editor heading shows the video's title again after clearing"><figcaption><strong>Fixed.</strong> Clearing the heading brings the video's title back. Nothing is stored.</figcaption></figure>
+  </div>
+  <figure class="narrow" style="margin-top:16px"><img src="img/editor-swedish.png" alt="Editor for a Swedish take showing the Page title placeholder"><figcaption><strong>No title to follow.</strong> The Swedish take got no title, so its editor still shows "Page title...".</figcaption></figure>
+
+  <h2>A stale save no longer undoes the title</h2>
+  <p>The video details form that sent a title with every save was removed in June, and its save code was still in the editor unused. That code is deleted. The legacy route it called, <code>PATCH /api/media/videos</code>, no longer writes titles. Replaying the old form's request after the automatic title landed, with the title "Untitled Video" and a new description, kept the automatic title and its <code>auto</code> source, and saved the description.</p>
 
   <h2>A rename wins, and non-English speech gets no title</h2>
   <div class="pair">
