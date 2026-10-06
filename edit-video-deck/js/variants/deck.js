@@ -46,8 +46,8 @@ export const deck = {
     const slot = h("div.video-slot")
     const playBtn = h("button.hud-play", { type: "button", "aria-label": "Play", "data-action": "play" }, icon("play"))
     const clock = createClock(ctx)
-    const hud = h("div.hud.glass.glass-media", playBtn, clock.el)
-    const stage = h("section.stage.deck-stage", slot, hud)
+    const transport = h("div.console-transport", playBtn, clock.el)
+    const stage = h("section.stage.deck-stage", slot)
 
     /* the strip */
     const strip = createStrip({ frames: ctx.frames, duration: ctx.duration, height: 64, tileWidth: 56, maxTileWidth: 164, flush: true })
@@ -195,7 +195,7 @@ export const deck = {
     const cancelBtn = h("button.btn.ghost", { type: "button", "data-action": "cancel" }, "Cancel")
     const doneBtn = h("button.btn.primary.deck-done", { type: "button", "data-action": "done" }, "Done")
     const actions = h("div.console-actions", cancelBtn, doneBtn)
-    const consoleRow = h("div.console", seg.el, consoleCenter, actions)
+    const consoleRow = h("div.console", h("div.console-left", transport, seg.el), consoleCenter, actions)
 
     const el = h("div.modal.deck", { role: "dialog", "aria-modal": "true", "aria-label": "Edit Video", dataset: { variant: "D", mode } }, stage, consoleRow, stripWrap)
     ctx.placeVideo(slot)

@@ -1,6 +1,6 @@
 import { clamp, on, tween } from "./util.js"
 
-export const HOLD_SPAN = 6
+export const HOLD_SPAN = 12
 export const HOLD_MS = 280
 const MIN_SPAN = 1.5
 

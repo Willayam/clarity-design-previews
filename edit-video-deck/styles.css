@@ -532,3 +532,19 @@ kbd { font-family: var(--font-sans); font-size: 10px; padding: 1px 5px; border-r
   .console-center { grid-column: 1 / -1; grid-row: 2; }
   .deck-done { min-width: 76px; }
 }
+
+/* round 3b: transport moves into the console row, left of Trim | Preview */
+.console-left { justify-self: start; display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+.console-transport { display: inline-flex; align-items: center; gap: 6px; }
+.console-transport .hud-play { color: var(--cg-ink); }
+.console-transport .hud-play:hover { background: color-mix(in oklab, var(--cg-ink) 10%, transparent); }
+.console-transport .clock { font-size: 13px; color: var(--cg-ink-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.console-transport .clock .now { color: var(--cg-ink); }
+.deck .console-transport { transition: opacity 160ms ease; }
+.deck.is-zoomed .console-transport { opacity: 0; }
+@media (max-width: 560px) {
+  .console { grid-template-columns: 1fr auto; row-gap: 10px; }
+  .console-left { grid-column: 1 / -1; grid-row: 1; justify-content: space-between; width: 100%; }
+  .console-center { grid-column: 1; grid-row: 2; justify-self: start; }
+  .console-actions { grid-column: 2; grid-row: 2; }
+}

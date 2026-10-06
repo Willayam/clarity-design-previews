@@ -110,7 +110,7 @@ async function boot() {
       const pend = source.frames.pendingCount
       const parts = []
       if (!loaded) parts.push("Loading video…")
-      if (pend > 0) parts.push(`Filmstrip: ${pend} frames to go`)
+      void pend
       noteEl.textContent = parts.join(" · ")
       noteEl.classList.toggle("hidden", !noteEl.textContent)
     }
