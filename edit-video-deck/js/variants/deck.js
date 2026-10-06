@@ -199,6 +199,7 @@ export const deck = {
 
     const el = h("div.modal.deck", { role: "dialog", "aria-modal": "true", "aria-label": "Edit Video", dataset: { variant: "D", mode } }, stage, consoleRow, stripWrap)
     ctx.placeVideo(slot)
+    for (const type of ["selectstart", "contextmenu", "dragstart"]) el.addEventListener(type, (event) => event.preventDefault())
     const offWin = strip.onWindow(() => {
       el.classList.toggle("is-zoomed", strip.span() < ctx.duration - 1e-6)
       schedOverview()

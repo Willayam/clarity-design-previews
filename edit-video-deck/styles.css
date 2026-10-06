@@ -548,3 +548,7 @@ kbd { font-family: var(--font-sans); font-size: 10px; padding: 1px 5px; border-r
   .console-center { grid-column: 1; grid-row: 2; justify-self: start; }
   .console-actions { grid-column: 2; grid-row: 2; }
 }
+/* Long-press is the zoom gesture: no text selection, callout, or image drag anywhere in the editor. */
+.modal.deck, .modal.deck * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.modal.deck img, .modal.deck canvas, .modal.deck video { -webkit-user-drag: none; user-drag: none; pointer-events: auto; }
+.modal.deck .strip-wrap, .modal.deck .strip-wrap * { touch-action: none; }
