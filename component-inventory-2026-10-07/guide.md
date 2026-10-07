@@ -94,7 +94,7 @@ New feature compositions are allowed. Before adding a shared primitive or varian
 
 ## Review findings and refinement order
 
-The first scan found 25 shared UI modules and 103 named primitive components. Button has 181 direct JSX sites and ButtonBase has 42. The app already has a central control system. Moving all feature components into ui/ would blur its ownership.
+The first scan found 25 shared UI modules and 105 named UI declarations, including internal helpers and aliases. Button has 181 direct JSX sites and ButtonBase has 42. The app already has a central control system. Moving all feature components into ui/ would blur its ownership.
 
 1. Consolidate existing Button overrides at their source. `TeamsRoute.tsx` has custom painted CTAs using `data-button-surface="none"`. `ContactUsRoute.tsx` overrides disabled paint. Compare those actual states before replacing them with a shared marketing treatment. The inventory's Button section identifies every caller.
 2. Finish raw controls in `HomeTreeRoute`, `ContactsIndexRoute`, `LibraryGrid`, `EditorWorkspace`, and `AddSection`. Choose Button for actions and ButtonBase for tiles and hit areas. Preserve focus, drag, and pointer behavior. Leave Journey Page parity controls in `LivePreview` to a separate parity-tested change.
