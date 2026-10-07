@@ -1,0 +1,15 @@
+- main:
+  - paragraph
+- region "Notifications"
+- dialog "Share":
+  - heading "Share" [level=2]
+  - paragraph: Published
+  - paragraph: Anyone with the link sees this page.
+  - button "Unpublish"
+  - link "Open this Journey Page in a new tab":
+    - /url: https://pr-1042.clarity-video.workers.dev/page/kkhry6
+    - text: pr-1042.clarity-video.workers.dev/page/kkhry6
+  - text: Password protected
+  - switch "Password protected"
+  - button "Copy link"
+  - button "Close"

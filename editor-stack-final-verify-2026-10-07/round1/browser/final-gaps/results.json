@@ -1,0 +1,46 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "name": "logo-seed",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "logo-seed.json"
+  },
+  {
+    "name": "seventh-logo",
+    "status": "FAIL",
+    "error": "API assertion failed seventh-logo-pointer"
+  },
+  {
+    "name": "hero-image",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "hero-image.json"
+  },
+  {
+    "name": "hero-real-tab",
+    "status": "FAIL",
+    "error": "Tab did not reach Edit"
+  },
+  {
+    "name": "empty-story-title",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "empty-story-title.json"
+  },
+  {
+    "name": "empty-story",
+    "status": "FAIL",
+    "error": "locator.press: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=story]').locator('.ProseMirror')\u001b[22m\n"
+  },
+  {
+    "cleanup": "646ca59b-9dea-46de-b875-8a4140d51dd7",
+    "status": 200,
+    "getStatus": 404
+  }
+]

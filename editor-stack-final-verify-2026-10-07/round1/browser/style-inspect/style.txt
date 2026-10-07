@@ -1,0 +1,178 @@
+- link "Clarity":
+  - /url: /home
+  - img "Clarity"
+- button "Toggle navigation"
+- list:
+  - listitem:
+    - link "Home":
+      - /url: /home
+    - link "Production shape fixtures":
+      - /url: /home?folder=folder%3Auser%3Auser_01M3PV8N4H36ZZPHGXFXWCQPM3%3A9d1bf3cf-caa8-5083-a422-f7562bf3ae6e
+  - listitem:
+    - link "Contacts":
+      - /url: /contacts
+  - listitem:
+    - link "Learn":
+      - /url: /learn
+  - listitem:
+    - link "Settings":
+      - /url: /settings/branding
+- button "Account menu for Clarity E2E":
+  - text: C
+  - paragraph: Clarity E2E
+- button "Toggle Sidebar"
+- main:
+  - paragraph
+  - navigation "Breadcrumb":
+    - link "Journey Pages":
+      - /url: /home?library=pages
+    - textbox "Untitled Journey Page": Overnight verify LAND 16:42 9d76f5bb
+  - text: Draft
+  - button "Page style"
+  - radiogroup "Theme preset":
+    - radio "Clean"
+    - radio "Editorial"
+    - radio "Warm"
+    - radio "Aurora"
+    - radio "Bold"
+    - radio "Noir"
+  - button "+ Add logo"
+  - text: Color
+  - radiogroup "Accent color":
+    - radio "Indigo"
+    - radio "Emerald"
+    - radio "Amber"
+    - radio "Crimson"
+    - radio "Cobalt" [checked]
+  - button "Custom color"
+  - text: Background
+  - radiogroup "Background":
+    - radio "Light" [checked]
+    - radio "Tinted"
+    - radio "Dark"
+  - text: Fonts
+  - radiogroup "Fonts":
+    - radio "System" [checked]: Ag System
+    - radio "Modern": Ag Modern
+    - radio "Editorial": Ag Editorial
+    - radio "Elegant": Ag Elegant
+    - radio "Friendly": Ag Friendly
+    - radio "Display": Ag Display
+  - text: Size
+  - radiogroup "Size":
+    - radio "Small" [checked]
+    - radio "Medium"
+    - radio "Large"
+  - text: Corners
+  - radiogroup "Corners":
+    - radio "Square"
+    - radio "Rounded" [checked]
+    - radio "Pill"
+  - button "AI Generate"
+  - button "Publish"
+  - button "Sharing settings"
+  - main:
+    - status
+    - button "+ Add logo"
+    - heading "Seed hero" [level=1]
+    - button "Overview media Add media":
+      - img
+      - text: Overview media Add media
+    - button "+ Add"
+    - heading "Seed story" [level=2]
+    - textbox:
+      - paragraph: Seed story
+    - button "Add image or video"
+    - heading "Seed logos" [level=2]
+    - button "Logo settings"
+    - button "+ Add logo"
+    - heading "Seed gallery" [level=2]
+    - button "Fewer columns"
+    - text: 3 col
+    - button "More columns"
+    - button "Add images"
+    - textbox "Form title"
+    - textbox "Form description":
+      - paragraph: Form description...
+    - textbox "Field label for Enter First Name"
+    - textbox "Enter First Name Required for Enter First Name Remove Enter First Name"
+    - switch "Required for Enter First Name": Required
+    - button "Remove Enter First Name"
+    - textbox "Field label for Enter Last Name"
+    - textbox "Enter Last Name Required for Enter Last Name Remove Enter Last Name"
+    - switch "Required for Enter Last Name": Required
+    - button "Remove Enter Last Name"
+    - text: "*"
+    - textbox "Field label for Enter Email"
+    - textbox "* Enter Email Required for Enter Email Remove Enter Email"
+    - switch "Required for Enter Email" [checked]: Required
+    - button "Remove Enter Email"
+    - text: "*"
+    - textbox "Field label for Enter Mobile Number"
+    - textbox "* Enter Mobile Number Required for Enter Mobile Number Remove Enter Mobile Number"
+    - switch "Required for Enter Mobile Number" [checked]: Required
+    - button "Remove Enter Mobile Number"
+    - button "+ Add field"
+    - checkbox "By checking this box, I consent to receive transactional messages related to my account, orders, or services I have requested."
+    - text: By checking this box, I consent to receive transactional messages related to my account, orders, or services I have requested.
+    - button "Cancel"
+    - button "Submit":
+      - textbox "Submit button label"
+    - button "Add a document Add PDF":
+      - img
+      - text: Add a document Add PDF
+    - heading "Seed faq" [level=2]
+    - list:
+      - listitem:
+        - group:
+          - text: Seed question
+          - button "Drag to reorder — Alt+↑/↓ in the question also moves it"
+          - button "Remove question 1"
+      - listitem:
+        - button "+ Add question"
+    - heading "Seed pricing" [level=2]
+    - list:
+      - listitem:
+        - heading [level=3]:
+          - textbox "Plan 1 title": Plan name
+        - paragraph:
+          - textbox "Plan 1 price": $0/month
+        - textbox "Plan 1 description":
+          - paragraph: Plan description...
+        - list:
+          - listitem:
+            - button "+ Add feature"
+        - button "+ Add button"
+        - button "Duplicate plan 1"
+        - button "Delete plan 1"
+    - button "+ Add plan"
+    - heading "Seed summary" [level=2]
+    - text: Label
+    - button "Drag to reorder row"
+    - text: Value
+    - button "Remove row"
+    - text: Label
+    - button "Drag to reorder row"
+    - text: Value
+    - button "Remove row"
+    - text: Label
+    - button "Drag to reorder row"
+    - text: Value
+    - button "Remove row"
+    - button "Insert row here"
+    - button "Insert row here"
+    - button "Insert row here"
+    - button "Add row at the end"
+    - button "Insert column here"
+    - button "Add column at the end"
+    - button "Drag to reorder column"
+    - button "Drag to reorder column"
+    - 'button "Section options: Seed story"'
+    - 'button "Section options: Seed logos"'
+    - 'button "Section options: Seed gallery"'
+    - 'button "Section options: Get Started"'
+    - 'button "Section options: Document"'
+    - 'button "Section options: Seed faq"'
+    - 'button "Section options: Seed pricing"'
+    - 'button "Section options: Seed summary"'
+- region "Notifications"

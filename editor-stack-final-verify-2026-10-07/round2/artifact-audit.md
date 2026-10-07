@@ -1,0 +1,13 @@
+# Independent artifact audit
+
+VERDICT: FINDINGS
+
+I opened and visually inspected `grip-offset-60.png`, `grip-offset-200.png`, `before-short-image.png`, and `after-short-image.png`. I also independently read all 14 samples in `browser/ui-proof/settled-height-sweep.json` and checked `geometry-summary.json`. This audit did not drive a browser or change product code.
+
+The vertical offset is real. The visible three-dot grip sits above the media midpoint in both representative height screenshots. At 60px, its center is 18px below the media top instead of 30px. At 200px, it is 88px below the top instead of 100px. All 14 settled samples, covering actual heights 60, 80, 100, 120, 200, 400, and 540px on both sides, measure exactly -12px. In the saved geometry, each media midpoint is y=526.171875 and each visible grip midpoint is y=514.171875. This is the visible grip's bounding box, not merely its larger invisible hit area.
+
+Finding: blocker at `editor/src/components/editor/JourneyMediaResizer.tsx:154`. The `top-0 bottom-6` region reserves 24px below the handle and centers its contents in the remaining height. That puts the visible grip 12px above the full media midpoint at every sampled height. Reproduce with a story image on either side, reveal its controls, and compare the grip and image midpoints. Owner criterion 2 explicitly requires the handle to remain "visually centred beside the media". The 12px displacement, especially apparent at 60px, fails that requirement. The generic verifier brief defines any broken acceptance criterion as a blocker, so that classification follows the supplied rubric despite this being a visual issue rather than lost data or broken resizing. Expected fix: center the visible grip on the media while preserving a hit area that cannot intercept toolbar buttons.
+
+The earlier toolbar hit problem is distinct from this remaining visual failure. The before/after short-image screenshots show the grip moved upward. Screenshots alone cannot prove pointer routing, but the settled sweep records zero blocked points out of 1008 toolbar probes and a reachable resize handle in every sample. Those records support the parent's successful real pointer replay of Left and Right. I find no remaining toolbar obstruction in this evidence. The centering failure does not invalidate the repaired toolbar behavior.
+
+Limits: these artifacts establish 14 settled height/side combinations at the recorded desktop viewport. They do not independently prove every possible height, mobile behavior, or save persistence. The parent owns those checks and the complete verdict.

@@ -1,0 +1,49 @@
+- link "Clarity":
+  - /url: /home
+  - img "Clarity"
+- button "Toggle navigation"
+- list:
+  - listitem:
+    - link "Home":
+      - /url: /home
+    - link "Production shape fixtures":
+      - /url: /home?folder=folder%3Auser%3Auser_01M3PV8N4H36ZZPHGXFXWCQPM3%3A9d1bf3cf-caa8-5083-a422-f7562bf3ae6e
+  - listitem:
+    - link "Contacts":
+      - /url: /contacts
+  - listitem:
+    - link "Learn":
+      - /url: /learn
+  - listitem:
+    - link "Settings":
+      - /url: /settings/branding
+- button "Account menu for Clarity E2E":
+  - text: C
+  - paragraph: Clarity E2E
+- button "Toggle Sidebar"
+- main:
+  - paragraph
+  - button
+  - heading "Record a Video" [level=1]
+  - main:
+    - complementary:
+      - 'button "Camera: Choose camera"': Choose camera
+      - 'button "Microphone: Choose microphone"': Choose microphone
+      - status:
+        - paragraph: No camera or microphone found
+        - paragraph: Connect one, then reload.
+        - button "Reload"
+      - button "Camera only" [pressed]:
+        - img
+        - text: Camera only
+      - button "1/3 split":
+        - img
+        - text: 1/3 split
+      - button "Camera inset":
+        - img
+        - text: Camera inset
+      - button "Screen only":
+        - img
+        - text: Screen only
+      - button "Record camera"
+- region "Notifications"

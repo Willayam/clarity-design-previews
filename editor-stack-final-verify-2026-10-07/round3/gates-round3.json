@@ -1,0 +1,37 @@
+{
+  "typecheck": {
+    "command": "pnpm run typecheck",
+    "exit": 0,
+    "seconds": 14.9
+  },
+  "test": {
+    "command": "pnpm test",
+    "exit": 0,
+    "seconds": 66.1
+  },
+  "build": {
+    "command": "pnpm run editor:build",
+    "exit": 0,
+    "seconds": 1.8
+  },
+  "lint": {
+    "command": "pnpm lint",
+    "exit": 0,
+    "seconds": 20.4
+  },
+  "ratchet": {
+    "command": "BASE_REF=origin/main ./scripts/check-loc-ratchet.sh",
+    "exit": 0,
+    "seconds": 1.0
+  },
+  "guards": {
+    "command": "node scripts/generate-guards-table.mjs --check",
+    "exit": 0,
+    "seconds": 0.6
+  },
+  "diff-check": {
+    "command": "git diff --check origin/main...HEAD",
+    "exit": 0,
+    "seconds": 0.0
+  }
+}

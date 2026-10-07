@@ -1,0 +1,54 @@
+- link "Clarity":
+  - /url: /home
+  - img "Clarity"
+- button "Toggle navigation"
+- list:
+  - listitem:
+    - link "Home":
+      - /url: /home
+  - listitem:
+    - link "Contacts":
+      - /url: /contacts
+  - listitem:
+    - link "Learn":
+      - /url: /learn
+  - listitem:
+    - link "Settings":
+      - /url: /settings/branding
+- button "Account menu for Clarity E2E":
+  - text: C
+  - paragraph: Clarity E2E
+- button "Toggle Sidebar"
+- main:
+  - paragraph
+  - heading "Settings" [level=1]
+  - navigation "Settings":
+    - list:
+      - listitem:
+        - link "Branding":
+          - /url: /settings/branding
+      - listitem:
+        - link "Billing":
+          - /url: /settings/billing
+      - listitem:
+        - link "Subscription":
+          - /url: /settings/subscription
+      - listitem:
+        - link "Password":
+          - /url: /settings/password
+  - main:
+    - text: Brand Customize your company branding that appears on your videos and pages. Logo
+    - img "Brand logo"
+    - button "Change"
+    - button "Clear"
+    - paragraph: New pages start with this logo.
+    - separator
+    - text: Company Name
+    - textbox "Company Name":
+      - /placeholder: Enter your company name
+    - separator
+    - text: Brand Color Hex
+    - textbox "Hex":
+      - /placeholder: "#000000"
+      - text: "#2563eb"
+- region "Notifications"

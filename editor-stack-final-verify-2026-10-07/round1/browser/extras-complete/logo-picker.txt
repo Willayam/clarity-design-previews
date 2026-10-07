@@ -1,0 +1,27 @@
+- main:
+  - paragraph
+- region "Notifications"
+- dialog:
+  - heading "Select an image" [level=2]
+  - button "Close"
+  - main:
+    - textbox "Search":
+      - /placeholder: Search images...
+    - 'button "Sort: Newest"'
+    - button "Import from URL"
+    - button "Upload"
+    - heading "Folders" [level=2]
+    - text: "1"
+    - button "Open Production shape fixtures": Production shape fixtures
+    - heading "Images" [level=2]
+    - text: "2"
+    - button "LAND-logo-2 LAND-logo-2 10m ago":
+      - img "LAND-logo-2"
+      - text: LAND-logo-2 10m ago
+    - button "LAND-logo-1 LAND-logo-1 Logo 12m ago":
+      - img "LAND-logo-1"
+      - text: LAND-logo-1 Logo 12m ago
+  - checkbox "Use on new pages too"
+  - text: Use on new pages too
+  - button "Cancel"
+  - button "Set logo"

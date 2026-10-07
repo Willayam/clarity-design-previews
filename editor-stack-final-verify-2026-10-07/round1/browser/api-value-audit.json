@@ -1,0 +1,1643 @@
+{
+  "checks": [
+    {
+      "evidence": "canonical-pointer/hero-title.json",
+      "field": "hero.title",
+      "expected": "pointer hero",
+      "actual": "pointer hero",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-align-Left.json",
+      "field": "hero.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-align-Center.json",
+      "field": "hero.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-align-Right.json",
+      "field": "hero.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/story-title.json",
+      "field": "story.title",
+      "expected": "pointer story",
+      "actual": "pointer story",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/story-align-Left.json",
+      "field": "story.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/story-align-Center.json",
+      "field": "story.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/story-align-Right.json",
+      "field": "story.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-title.json",
+      "field": "logos.title",
+      "expected": "pointer logos",
+      "actual": "pointer logos",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-align-Left.json",
+      "field": "logos.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-align-Center.json",
+      "field": "logos.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-align-Right.json",
+      "field": "logos.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/gallery-title.json",
+      "field": "gallery.title",
+      "expected": "pointer gallery",
+      "actual": "pointer gallery",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/gallery-align-Left.json",
+      "field": "gallery.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/gallery-align-Center.json",
+      "field": "gallery.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/gallery-align-Right.json",
+      "field": "gallery.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-title.json",
+      "field": "faq.title",
+      "expected": "pointer faq",
+      "actual": "pointer faq",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-align-Left.json",
+      "field": "faq.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-align-Center.json",
+      "field": "faq.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-align-Right.json",
+      "field": "faq.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/pricing-title.json",
+      "field": "pricing.title",
+      "expected": "pointer pricing",
+      "actual": "pointer pricing",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/pricing-align-Left.json",
+      "field": "pricing.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/pricing-align-Center.json",
+      "field": "pricing.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/pricing-align-Right.json",
+      "field": "pricing.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/summary-title.json",
+      "field": "summary.title",
+      "expected": "pointer summary",
+      "actual": "pointer summary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/summary-align-Left.json",
+      "field": "summary.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/summary-align-Center.json",
+      "field": "summary.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/summary-align-Right.json",
+      "field": "summary.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/story-body.json",
+      "field": "story.body",
+      "expected": "Sweep story body",
+      "actual": "<p>Sweep story body</p>",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-title.json",
+      "field": "form.form.form_title",
+      "expected": "Sweep form",
+      "actual": "Sweep form",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-description.json",
+      "field": "form.form.form_description",
+      "expected": "Sweep description",
+      "actual": "<p>Sweep description</p>",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-submit.json",
+      "field": "form.form.cta",
+      "expected": "Send sweep",
+      "actual": "Send sweep",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-redirect.json",
+      "field": "form.form.cta_link",
+      "expected": "https://example.com/sweep",
+      "actual": "https://example.com/sweep",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-field-label.json",
+      "field": "form.form.fields.4.field_type",
+      "expected": "Sweep field",
+      "actual": "Sweep field",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-required.json",
+      "field": "form.form.fields.4.is_required",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-question.json",
+      "field": "faq.questions.1.question",
+      "expected": "Sweep question",
+      "actual": "Sweep question",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-answer.json",
+      "field": "faq.questions.1.answer",
+      "expected": "Sweep answer",
+      "actual": "Sweep answer",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-title.json",
+      "field": "pricing.pricings.0.title",
+      "expected": "Sweep plan",
+      "actual": "Sweep plan",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-price.json",
+      "field": "pricing.pricings.0.price",
+      "expected": "299",
+      "actual": "299",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-description.json",
+      "field": "pricing.pricings.0.description",
+      "expected": "Sweep plan description",
+      "actual": "<p>Sweep plan description</p>",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-feature-edit.json",
+      "field": "pricing.pricings.0.features.0.feature",
+      "expected": "Sweep feature",
+      "actual": "Sweep feature",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-cta-label.json",
+      "field": "pricing.pricings.0.cta",
+      "expected": "Sweep buy",
+      "actual": "Sweep buy",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-cta-link.json",
+      "field": "pricing.pricings.0.cta_link",
+      "expected": "https://example.com/plan",
+      "actual": "https://example.com/plan",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/summary-cell.json",
+      "field": "summary.rows.0.cells.0",
+      "expected": "Sweep summary",
+      "actual": "Sweep summary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-Rolling.json",
+      "field": "logos.variant",
+      "expected": "rolling",
+      "actual": "rolling",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-Static.json",
+      "field": "logos.variant",
+      "expected": "static",
+      "actual": "static",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-Muted.json",
+      "field": "logos.logoColor",
+      "expected": "muted",
+      "actual": "muted",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-Full-color.json",
+      "field": "logos.logoColor",
+      "expected": "full",
+      "actual": "full",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/logos-Auto.json",
+      "field": "logos.logoColor",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "story-hit/story-media-Left.json",
+      "field": "story.mediaSide",
+      "expected": "left",
+      "actual": "right",
+      "passed": false
+    },
+    {
+      "evidence": "media-land/story-media-Right.json",
+      "field": "story.mediaSide",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/hero-media-add.json",
+      "field": "hero.media.assetId",
+      "expected": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "actual": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/hero-media-change.json",
+      "field": "hero.media.assetId",
+      "expected": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "actual": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/hero-media-remove.json",
+      "field": "hero.media.assetId",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/story-media-add.json",
+      "field": "story.media.assetId",
+      "expected": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "actual": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/story-media-change.json",
+      "field": "story.media.assetId",
+      "expected": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "actual": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "passed": true
+    },
+    {
+      "evidence": "media-land/story-media-remove.json",
+      "field": "story.media.assetId",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Label-0.json",
+      "field": "hero.primaryCta.label",
+      "expected": "Sweep CTA 0",
+      "actual": "Sweep CTA 0",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Link-0.json",
+      "field": "hero.primaryCta.link",
+      "expected": "https://example.com/cta-0",
+      "actual": "https://example.com/cta-0",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Label-1.json",
+      "field": "hero.paymentCta.label",
+      "expected": "Sweep CTA 1",
+      "actual": "Sweep CTA 1",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Link-1.json",
+      "field": "hero.paymentCta.link",
+      "expected": "https://example.com/cta-1",
+      "actual": "https://example.com/cta-1",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Label-2.json",
+      "field": "hero.customCta.label",
+      "expected": "Sweep CTA 2",
+      "actual": "Sweep CTA 2",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Link-2.json",
+      "field": "hero.customCta.link",
+      "expected": "https://example.com/cta-2",
+      "actual": "https://example.com/cta-2",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Label-3.json",
+      "field": "hero.signCta.label",
+      "expected": "Sweep CTA 3",
+      "actual": "Sweep CTA 3",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-Link-3.json",
+      "field": "hero.signCta.link",
+      "expected": "https://example.com/cta-3",
+      "actual": "https://example.com/cta-3",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-title.json",
+      "field": "hero.title",
+      "expected": "keyboard hero",
+      "actual": "keyboard hero",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-align-Left.json",
+      "field": "hero.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-align-Center.json",
+      "field": "hero.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-align-Right.json",
+      "field": "hero.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-title.json",
+      "field": "story.title",
+      "expected": "keyboard story",
+      "actual": "keyboard story",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-align-Left.json",
+      "field": "story.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-align-Center.json",
+      "field": "story.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-align-Right.json",
+      "field": "story.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-title.json",
+      "field": "logos.title",
+      "expected": "keyboard logos",
+      "actual": "keyboard logos",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-align-Left.json",
+      "field": "logos.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-align-Center.json",
+      "field": "logos.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-align-Right.json",
+      "field": "logos.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-title.json",
+      "field": "gallery.title",
+      "expected": "keyboard gallery",
+      "actual": "keyboard gallery",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-align-Left.json",
+      "field": "gallery.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-align-Center.json",
+      "field": "gallery.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-align-Right.json",
+      "field": "gallery.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-title.json",
+      "field": "faq.title",
+      "expected": "keyboard faq",
+      "actual": "keyboard faq",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-align-Left.json",
+      "field": "faq.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-align-Center.json",
+      "field": "faq.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-align-Right.json",
+      "field": "faq.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/pricing-title.json",
+      "field": "pricing.title",
+      "expected": "keyboard pricing",
+      "actual": "keyboard pricing",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/pricing-align-Left.json",
+      "field": "pricing.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/pricing-align-Center.json",
+      "field": "pricing.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/pricing-align-Right.json",
+      "field": "pricing.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/summary-title.json",
+      "field": "summary.title",
+      "expected": "keyboard summary",
+      "actual": "keyboard summary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/summary-align-Left.json",
+      "field": "summary.titlePosition",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/summary-align-Center.json",
+      "field": "summary.titlePosition",
+      "expected": "middle",
+      "actual": "middle",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/summary-align-Right.json",
+      "field": "summary.titlePosition",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-body.json",
+      "field": "story.body",
+      "expected": "Sweep story body",
+      "actual": "<p>Sweep story body</p>",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-title.json",
+      "field": "form.form.form_title",
+      "expected": "Sweep form",
+      "actual": "Sweep form",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-description.json",
+      "field": "form.form.form_description",
+      "expected": "Sweep description",
+      "actual": "<p>Sweep description</p>",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-submit.json",
+      "field": "form.form.cta",
+      "expected": "Send sweep",
+      "actual": "Send sweep",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-redirect.json",
+      "field": "form.form.cta_link",
+      "expected": "https://example.com/sweep",
+      "actual": "https://example.com/sweep",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-field-label.json",
+      "field": "form.form.fields.4.field_type",
+      "expected": "Sweep field",
+      "actual": "Sweep field",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-required.json",
+      "field": "form.form.fields.4.is_required",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-question.json",
+      "field": "faq.questions.1.question",
+      "expected": "Sweep question",
+      "actual": "Sweep question",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-answer.json",
+      "field": "faq.questions.1.answer",
+      "expected": "Sweep answer",
+      "actual": "Sweep answer",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-title.json",
+      "field": "pricing.pricings.0.title",
+      "expected": "Sweep plan",
+      "actual": "Sweep plan",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-price.json",
+      "field": "pricing.pricings.0.price",
+      "expected": "299",
+      "actual": "299",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-description.json",
+      "field": "pricing.pricings.0.description",
+      "expected": "Sweep plan description",
+      "actual": "<p>Sweep plan description</p>",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-feature-edit.json",
+      "field": "pricing.pricings.0.features.0.feature",
+      "expected": "Sweep feature",
+      "actual": "Sweep feature",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-cta-label.json",
+      "field": "pricing.pricings.0.cta",
+      "expected": "Sweep buy",
+      "actual": "Sweep buy",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-cta-link.json",
+      "field": "pricing.pricings.0.cta_link",
+      "expected": "https://example.com/plan",
+      "actual": "https://example.com/plan",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/summary-cell.json",
+      "field": "summary.rows.0.cells.0",
+      "expected": "Sweep summary",
+      "actual": "Sweep summary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-Rolling.json",
+      "field": "logos.variant",
+      "expected": "rolling",
+      "actual": "rolling",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-Static.json",
+      "field": "logos.variant",
+      "expected": "static",
+      "actual": "static",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-Muted.json",
+      "field": "logos.logoColor",
+      "expected": "muted",
+      "actual": "muted",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-Full-color.json",
+      "field": "logos.logoColor",
+      "expected": "full",
+      "actual": "full",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-Auto.json",
+      "field": "logos.logoColor",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-media-Left.json",
+      "field": "story.mediaSide",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-media-Right.json",
+      "field": "story.mediaSide",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-media-add.json",
+      "field": "hero.media.assetId",
+      "expected": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "actual": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-media-change.json",
+      "field": "hero.media.assetId",
+      "expected": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "actual": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-media-remove.json",
+      "field": "hero.media.assetId",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-media-add.json",
+      "field": "story.media.assetId",
+      "expected": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "actual": "ea42ec75-51d1-46cd-aa28-57c4d06d36ee",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-media-change.json",
+      "field": "story.media.assetId",
+      "expected": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "actual": "23ac16b2-d781-49b3-bd29-812b30585f13",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/story-media-remove.json",
+      "field": "story.media.assetId",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Label-0.json",
+      "field": "hero.primaryCta.label",
+      "expected": "Sweep CTA 0",
+      "actual": "Sweep CTA 0",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Link-0.json",
+      "field": "hero.primaryCta.link",
+      "expected": "https://example.com/cta-0",
+      "actual": "https://example.com/cta-0",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Label-1.json",
+      "field": "hero.paymentCta.label",
+      "expected": "Sweep CTA 1",
+      "actual": "Sweep CTA 1",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Link-1.json",
+      "field": "hero.paymentCta.link",
+      "expected": "https://example.com/cta-1",
+      "actual": "https://example.com/cta-1",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Label-2.json",
+      "field": "hero.customCta.label",
+      "expected": "Sweep CTA 2",
+      "actual": "Sweep CTA 2",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Link-2.json",
+      "field": "hero.customCta.link",
+      "expected": "https://example.com/cta-2",
+      "actual": "https://example.com/cta-2",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Label-3.json",
+      "field": "hero.signCta.label",
+      "expected": "Sweep CTA 3",
+      "actual": "Sweep CTA 3",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-Link-3.json",
+      "field": "hero.signCta.link",
+      "expected": "https://example.com/cta-3",
+      "actual": "https://example.com/cta-3",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-add-field.json",
+      "field": "form.form.fields.length",
+      "expected": 5,
+      "actual": 5,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/form-remove-field.json",
+      "field": "form.form.fields.length",
+      "expected": 4,
+      "actual": 4,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-add.json",
+      "field": "faq.questions.length",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/faq-remove.json",
+      "field": "faq.questions.length",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-duplicate.json",
+      "field": "pricing.pricings.length",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-add.json",
+      "field": "pricing.pricings.length",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/plan-delete.json",
+      "field": "pricing.pricings.length",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-add-0.json",
+      "field": "hero active CTA count",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-remove-0.json",
+      "field": "hero active CTA count",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-add-1.json",
+      "field": "hero active CTA count",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-remove-1.json",
+      "field": "hero active CTA count",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-add-2.json",
+      "field": "hero active CTA count",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-remove-2.json",
+      "field": "hero active CTA count",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-add-3.json",
+      "field": "hero active CTA count",
+      "expected": 4,
+      "actual": 4,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-pointer/hero-cta-remove-3.json",
+      "field": "hero active CTA count",
+      "expected": 0,
+      "actual": 0,
+      "passed": true
+    },
+    {
+      "evidence": "media-land/logos-add.json",
+      "field": "logos.images.length",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "media-land/logos-remove.json",
+      "field": "logos.images.length",
+      "expected": 0,
+      "actual": 0,
+      "passed": true
+    },
+    {
+      "evidence": "media-land/gallery-add.json",
+      "field": "gallery.images.length",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "media-land/gallery-remove.json",
+      "field": "gallery.images.length",
+      "expected": 0,
+      "actual": 0,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-add-field.json",
+      "field": "form.form.fields.length",
+      "expected": 5,
+      "actual": 5,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/form-remove-field.json",
+      "field": "form.form.fields.length",
+      "expected": 4,
+      "actual": 4,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-add.json",
+      "field": "faq.questions.length",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/faq-remove.json",
+      "field": "faq.questions.length",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-duplicate.json",
+      "field": "pricing.pricings.length",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-add.json",
+      "field": "pricing.pricings.length",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/plan-delete.json",
+      "field": "pricing.pricings.length",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-add-0.json",
+      "field": "hero active CTA count",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-remove-0.json",
+      "field": "hero active CTA count",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-add-1.json",
+      "field": "hero active CTA count",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-remove-1.json",
+      "field": "hero active CTA count",
+      "expected": 2,
+      "actual": 2,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-add-2.json",
+      "field": "hero active CTA count",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-remove-2.json",
+      "field": "hero active CTA count",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-add-3.json",
+      "field": "hero active CTA count",
+      "expected": 4,
+      "actual": 4,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-remove-3.json",
+      "field": "hero active CTA count",
+      "expected": 0,
+      "actual": 0,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-add.json",
+      "field": "logos.images.length",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/logos-remove.json",
+      "field": "logos.images.length",
+      "expected": 0,
+      "actual": 0,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-add.json",
+      "field": "gallery.images.length",
+      "expected": 1,
+      "actual": 1,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-remove.json",
+      "field": "gallery.images.length",
+      "expected": 0,
+      "actual": 0,
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-hero-title.json",
+      "field": "hero-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-story-title.json",
+      "field": "story-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-logos-title.json",
+      "field": "logos-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-faq-answer.json",
+      "field": "faq-answer",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-plan-title.json",
+      "field": "plan-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-plan-price.json",
+      "field": "plan-price",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-plan-description.json",
+      "field": "plan-description",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-plan-feature.json",
+      "field": "plan-feature",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-form-title.json",
+      "field": "form-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-form-description.json",
+      "field": "form-description",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-form-submit.json",
+      "field": "form-submit",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing/branch-form-field.json",
+      "field": "form-field",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-hero-title.json",
+      "field": "hero-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-story-title.json",
+      "field": "story-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-logos-title.json",
+      "field": "logos-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-story-body.json",
+      "field": "story-body",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-faq-question.json",
+      "field": "faq-question",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-faq-answer.json",
+      "field": "faq-answer",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-plan-title.json",
+      "field": "plan-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-plan-price.json",
+      "field": "plan-price",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-plan-description.json",
+      "field": "plan-description",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-plan-feature.json",
+      "field": "plan-feature",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-form-title.json",
+      "field": "form-title",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-form-description.json",
+      "field": "form-description",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-form-submit.json",
+      "field": "form-submit",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-keyboard/branch-form-field.json",
+      "field": "form-field",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-primaryCta-link.json",
+      "field": "primaryCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-primaryCta-label.json",
+      "field": "primaryCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-signCta-link.json",
+      "field": "signCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-signCta-label.json",
+      "field": "signCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-paymentCta-link.json",
+      "field": "paymentCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-paymentCta-label.json",
+      "field": "paymentCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-customCta-link.json",
+      "field": "customCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-customCta-label.json",
+      "field": "customCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-pricing-link.json",
+      "field": "pricing-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-pricing-label.json",
+      "field": "pricing-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-form-link.json",
+      "field": "form-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links/branch-form-label.json",
+      "field": "form-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-primaryCta-link.json",
+      "field": "primaryCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-primaryCta-label.json",
+      "field": "primaryCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-signCta-link.json",
+      "field": "signCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-signCta-label.json",
+      "field": "signCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-paymentCta-link.json",
+      "field": "paymentCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-paymentCta-label.json",
+      "field": "paymentCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-customCta-link.json",
+      "field": "customCta-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-customCta-label.json",
+      "field": "customCta-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-pricing-link.json",
+      "field": "pricing-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-pricing-label.json",
+      "field": "pricing-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-form-link.json",
+      "field": "form-link",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "clearing-links-keyboard/branch-form-label.json",
+      "field": "form-label",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-emphasis-0.json",
+      "field": "primaryCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-emphasis-1.json",
+      "field": "paymentCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-emphasis-2.json",
+      "field": "customCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/hero-cta-emphasis-3.json",
+      "field": "signCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-emphasis-0.json",
+      "field": "primaryCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-emphasis-1.json",
+      "field": "paymentCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-emphasis-2.json",
+      "field": "customCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/hero-cta-emphasis-3.json",
+      "field": "signCta.style",
+      "expected": "secondary",
+      "actual": "secondary",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/document-add.json",
+      "field": "document.url",
+      "expected": "055f1539-7641-46df-8de8-8b332c69ef62",
+      "actual": "055f1539-7641-46df-8de8-8b332c69ef62",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/document-change.json",
+      "field": "document.url",
+      "expected": "1d18c0fa-2b5c-420d-8d1b-bb9102a12ae5",
+      "actual": "1d18c0fa-2b5c-420d-8d1b-bb9102a12ae5",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/document-remove.json",
+      "field": "document.url",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/document-add.json",
+      "field": "document.url",
+      "expected": "055f1539-7641-46df-8de8-8b332c69ef62",
+      "actual": "055f1539-7641-46df-8de8-8b332c69ef62",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/document-change.json",
+      "field": "document.url",
+      "expected": "1d18c0fa-2b5c-420d-8d1b-bb9102a12ae5",
+      "actual": "1d18c0fa-2b5c-420d-8d1b-bb9102a12ae5",
+      "passed": true
+    },
+    {
+      "evidence": "pointer-retry/document-remove.json",
+      "field": "document.url",
+      "expected": "",
+      "actual": "",
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-more-columns.json",
+      "field": "gallery.columns",
+      "expected": 4,
+      "actual": 4,
+      "passed": true
+    },
+    {
+      "evidence": "canonical-keyboard/gallery-fewer-columns.json",
+      "field": "gallery.columns",
+      "expected": 3,
+      "actual": 3,
+      "passed": true
+    }
+  ],
+  "allPass": false
+}

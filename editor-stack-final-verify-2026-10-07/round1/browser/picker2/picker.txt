@@ -1,0 +1,28 @@
+- main:
+  - paragraph
+- region "Notifications"
+- dialog:
+  - heading "Select media" [level=2]
+  - button "Close"
+  - button
+  - text: Production shape fixtures
+  - main:
+    - textbox "Search":
+      - /placeholder: Search...
+    - 'button "Filter by type: All"'
+    - 'button "Sort: Newest"'
+    - button "Import from URL"
+    - button "Upload"
+    - heading "Videos" [level=2]
+    - text: "3"
+    - 'button "Fixture: re-ingested legacy_import with legacy trim pair Fixture: re-ingested legacy_import with legacy trim pair 0:04 5mo ago"':
+      - 'img "Fixture: re-ingested legacy_import with legacy trim pair"'
+      - text: "Fixture: re-ingested legacy_import with legacy trim pair 0:04 5mo ago"
+    - 'button "Fixture: re-ingested media_video_materialization with legacy trim pair Fixture: re-ingested media_video_materialization with legacy trim pair 0:04 5mo ago"':
+      - 'img "Fixture: re-ingested media_video_materialization with legacy trim pair"'
+      - text: "Fixture: re-ingested media_video_materialization with legacy trim pair 0:04 5mo ago"
+    - 'button "Fixture: old-app import (2024 Mux) Fixture: old-app import (2024 Mux) 0:06 2y ago"':
+      - 'img "Fixture: old-app import (2024 Mux)"'
+      - text: "Fixture: old-app import (2024 Mux) 0:06 2y ago"
+  - button "Cancel"
+  - button "Select" [disabled]

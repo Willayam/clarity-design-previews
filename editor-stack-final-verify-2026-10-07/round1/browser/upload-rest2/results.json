@@ -1,0 +1,23 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "name": "LAND-logo-2.png",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "LAND-logo-2.png.json"
+  },
+  {
+    "status": "ERROR",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=document]').getByRole('button', { name: 'Add PDF', exact: true })\u001b[22m\n\n    at eval (<anonymous>:1:223)\n    at async /private/tmp/verify-land/scripts/runner.cjs:21:209"
+  },
+  {
+    "cleanup": "e3e964ab-60eb-42d9-a073-8d5ef88c32c5",
+    "status": 200,
+    "getStatus": 404
+  }
+]

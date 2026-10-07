@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Editor canvas stack: final preview verification</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem;color:#1a1a1a}li{margin:.5rem 0}code{font-size:.9em}</style></head><body>
+<h1>Editor canvas stack: final preview verification</h1>
+<p>Independent verification of PR #1042 on its preview, https://pr-1042.clarity-video.workers.dev, before the production merge on 2026-10-07.</p>
+<ul>
+<li><a href="round3/report.html">Round 3</a> at <code>0e6e547</code>: <strong>VERIFIED</strong>. The resize grip is centered at every height, the toolbar stays clear, and short-image alignment and resizing save.</li>
+<li><a href="round2/report.html">Round 2</a> at <code>6d4bd34</code>: every functional check passed. One finding: the resize grip sat 12px above center, fixed in round 3.</li>
+<li><a href="round1/report.html">Round 1</a> at <code>6c8c169</code>: 190 of 191 canvas rows, main's carried-over features, the review fixes and publishing passed. One finding: the resize handle covered the Left button on short images (#1375), fixed in round 2.</li>
+</ul></body></html>

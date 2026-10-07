@@ -1,0 +1,71 @@
+{
+  "acceptance-complete": {
+    "uniquePass": 106,
+    "failures": [
+      {
+        "name": "toolbar-height-sweep-60-through-600",
+        "status": "FAIL",
+        "samples": 1082
+      },
+      {
+        "name": "resize-grip-visual-centering",
+        "status": "FAIL",
+        "offsets": [
+          -12
+        ]
+      },
+      {
+        "name": "branch-story-keyboard-link-access",
+        "status": "FAIL",
+        "error": "Keyboard link shortcut unavailable; Tab skips toolbar"
+      }
+    ],
+    "cleanup": [
+      {
+        "cleanup": "c710fbac-b55d-477c-a277-0b50cce3b25c",
+        "status": 200,
+        "getStatus": 404
+      }
+    ]
+  },
+  "ui-proof": {
+    "uniquePass": 31,
+    "failures": [
+      {
+        "name": "ui-left-S-wrap-false",
+        "status": "FAIL",
+        "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=story]').getByRole('button', { name: 'S', exact: true })\u001b[22m\n"
+      },
+      {
+        "name": "ui-right-S-wrap-false",
+        "status": "FAIL",
+        "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=story]').getByRole('button', { name: 'S', exact: true })\u001b[22m\n"
+      },
+      {
+        "name": "settled-visual-centering",
+        "status": "FAIL",
+        "offsets": [
+          -12
+        ]
+      }
+    ],
+    "cleanup": [
+      {
+        "cleanup": "75f47eeb-829e-40cf-88a2-840db05169af",
+        "status": 200,
+        "getStatus": 404
+      }
+    ]
+  },
+  "ui-recheck": {
+    "uniquePass": 4,
+    "failures": [],
+    "cleanup": [
+      {
+        "cleanup": "f397da48-b113-4f5a-8fb4-a986567c6055",
+        "status": 200,
+        "getStatus": 404
+      }
+    ]
+  }
+}

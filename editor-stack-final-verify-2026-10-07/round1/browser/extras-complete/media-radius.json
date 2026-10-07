@@ -1,0 +1,90 @@
+[
+  {
+    "tag": "DIV",
+    "slot": "media-overlay",
+    "class": "group/media-overlay relative z-0 cursor-pointer rounded-(--jp-radius) ring-black/8 transition-shadow duration-150 [&:hover]:ring-2 [&_img]:block",
+    "radius": "20px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "IMG",
+    "slot": null,
+    "class": "media-image",
+    "radius": "20px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "DIV",
+    "slot": "media-overlay-toolbar",
+    "class": "pointer-events-none invisible absolute bottom-0 left-1/2 z-10 flex-nowrap justify-center whitespace-nowrap -translate-x-1/2 translate-y-1/2 opacity-0 transition-opacity duration-120 group-focus-within/media-overlay:pointer-events-auto group-focus-within/media-overlay:visible group-focus-within/media-overlay:opacity-100 group-[:hover:not(:has([data-playing=true]))]/media-overlay:pointer-events-auto group-[:hover:not(:has([data-playing=true]))]/media-overlay:visible group-[:hover:not(:has([data-playing=true]))]/media-overlay:opacity-100 group-[:hover:not(:has([data-playing=true]))]/media-resizer:pointer-events-auto group-[:hover:not(:has([data-playing=true]))]/media-resizer:visible group-[:hover:not(:has([data-playing=true]))]/media-resizer:opacity-100 glass inline-flex items-center gap-0.5 rounded-full p-1",
+    "radius": "3.35544e+07px",
+    "border": "1px",
+    "theme": "20px"
+  },
+  {
+    "tag": "BUTTON",
+    "slot": "button",
+    "class": "group/button inline-flex shrink-0 items-center justify-center text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-disabled:pointer-events-none data-disabled:opacity-50 motion-reduce:transition-none size-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid h-8 min-w-8 border-0 border-none border-current bg-transparent bg-clip-border text-(--cg-ink) pointer-coarse:h-11 pointer-coarse:min-w-11 rounded-full hover:bg-(--cg-btn-hover) aria-pressed:bg-(--cg-active) aria-pressed:text-(--cg-ink)",
+    "radius": "3.35544e+07px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "svg",
+    "slot": null,
+    "class": {},
+    "radius": "0px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "path",
+    "slot": null,
+    "class": {},
+    "radius": "0px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "path",
+    "slot": null,
+    "class": {},
+    "radius": "0px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "BUTTON",
+    "slot": "button",
+    "class": "group/button inline-flex shrink-0 items-center justify-center text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-disabled:pointer-events-none data-disabled:opacity-50 motion-reduce:transition-none size-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid h-8 min-w-8 border-0 border-none border-current bg-transparent bg-clip-border text-(--cg-ink) pointer-coarse:h-11 pointer-coarse:min-w-11 rounded-full hover:bg-(--btn-bar-danger) hover:text-(--cg-danger)",
+    "radius": "3.35544e+07px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "svg",
+    "slot": null,
+    "class": {},
+    "radius": "0px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "path",
+    "slot": null,
+    "class": {},
+    "radius": "0px",
+    "border": "0px",
+    "theme": "20px"
+  },
+  {
+    "tag": "path",
+    "slot": null,
+    "class": {},
+    "radius": "0px",
+    "border": "0px",
+    "theme": "20px"
+  }
+]

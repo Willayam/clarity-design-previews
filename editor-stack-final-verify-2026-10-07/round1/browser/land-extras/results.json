@@ -1,0 +1,117 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "name": "panel-absent-hero-protected",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Theme preset",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Theme preset.json"
+  },
+  {
+    "name": "style-Theme preset",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Accent color",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Accent color.json"
+  },
+  {
+    "name": "style-Accent color",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Background",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Background.json"
+  },
+  {
+    "name": "style-Background",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Fonts",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Fonts.json"
+  },
+  {
+    "name": "style-Fonts",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Size",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Size.json"
+  },
+  {
+    "name": "style-Size",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Corners",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Corners.json"
+  },
+  {
+    "name": "style-Corners",
+    "status": "PASS"
+  },
+  {
+    "name": "logo-picker-default-offer",
+    "status": "FAIL",
+    "error": "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Use on new pages too', { exact: true }) to be visible\u001b[22m\n"
+  },
+  {
+    "name": "style-wide-logo-default-offer",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Page style', exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "aurora-heading-caret",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=hero]').locator('h1')\u001b[22m\n\u001b[2m    - locator resolved to <h1 contenteditable=\"true\" data-placeholder=\"Page title...\" class=\"cursor-text caret-(--jp-foreground) rounded-sm outline-none transition-colors duration-150 hover:bg-current/5 focus:bg-transparent empty:before:pointer-events-none empty:before:text-(--jp-muted-foreground) empty:before:content-[attr(data-placeholder)]\">Seed hero</h1>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex items-center justify-between gap-4 border-b px-5 py-4\">\u2026</div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"flex items-center justify-between gap-4 border-b px-5 py-4\">\u2026</div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 \u00d7 retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-open=\"\" aria-hidden=\"true\" role=\"presentation\" data-base-ui-inert=\"\" data-slot=\"dialog-backdrop\" class=\"data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 fixed inset-0 z-50 bg-black/50 transition-opacity duration-150\"></div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  9 \u00d7 retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex items-center justify-between gap-4 border-b px-5 py-4\">\u2026</div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex items-center justify-between gap-4 border-b px-5 py-4\">\u2026</div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-open=\"\" aria-hidden=\"true\" role=\"presentation\" data-base-ui-inert=\"\" data-slot=\"dialog-backdrop\" class=\"data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 fixed inset-0 z-50 bg-black/50 transition-opacity duration-150\"></div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-open=\"\" aria-hidden=\"true\" role=\"presentation\" data-base-ui-inert=\"\" data-slot=\"dialog-backdrop\" class=\"data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 fixed inset-0 z-50 bg-black/50 transition-opacity duration-150\"></div> from <div id=\"_r_52_\" data-base-ui-portal=\"\">\u2026</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "name": "caret-Plan 1 title",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=pricing]').getByRole('textbox', { name: 'Plan 1 title', exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "caret-Plan 1 price",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=pricing]').getByRole('textbox', { name: 'Plan 1 price', exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "feature-enter-backspace",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=pricing]').getByRole('button', { name: '+ Add feature', exact: true }).first()\u001b[22m\n"
+  },
+  {
+    "name": "media-radius",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=hero]').getByRole('button', { name: 'Overview media Add media', exact: true })\u001b[22m\n"
+  },
+  {
+    "name": "publish",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Publish', exact: true })\u001b[22m\n"
+  },
+  {
+    "cleanup": "ecb314b6-228d-4742-b525-d0943b3c5c07",
+    "status": 200,
+    "getStatus": 404
+  }
+]

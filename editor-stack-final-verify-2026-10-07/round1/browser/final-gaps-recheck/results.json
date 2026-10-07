@@ -1,0 +1,46 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "name": "logo-seed",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "logo-seed.json"
+  },
+  {
+    "name": "seventh-logo",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=logos]').getByRole('button', { name: 'Remove logo 7', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button tabindex=\"0\" type=\"button\" data-variant=\"bare\" title=\"Remove logo 7\" data-slot=\"button-base\" data-editor-chrome=\"true\" aria-label=\"Remove logo 7\" data-logo-occurrence=\"row:images:6\" class=\"cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-events-none absolute top-0 right-0 z-10 flex size-7 items-center justify-center rounded-full bg-(--glass-bg) text-(--cg-ink) opacity-0 backdrop-blur-md transition-opacity group\u2026>\u2026</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <img width=\"160\" height=\"90\" decoding=\"async\" alt=\"Client logo\" class=\"client-logo\" src=\"https://pr-1042-r2-media.clarity-video.workers.dev/files/images/user_01M3PV8N4H36ZZPHGXFXWCQPM3/15cd2cb2-d3c2-4694-a66b-210c1db6b0dc-LAND-logo-2.png?cm_exp=1791478800&cm_sig=QSc1Wn1cWn2tZRFfnHKhgGHvqHJ-YK6a6exSZsir8KE\"/> intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not stable\u001b[22m\n\u001b[2m  2 \u00d7 retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <img width=\"160\" height=\"90\" decoding=\"async\" alt=\"Client logo\" class=\"client-logo\" src=\"https://pr-1042-r2-media.clarity-video.workers.dev/files/images/user_01M3PV8N4H36ZZPHGXFXWCQPM3/15cd2cb2-d3c2-4694-a66b-210c1db6b0dc-LAND-logo-2.png?cm_exp=1791478800&cm_sig=QSc1Wn1cWn2tZRFfnHKhgGHvqHJ-YK6a6exSZsir8KE\"/> intercepts pointer events\u001b[22m\n\u001b[2m  36 \u00d7 retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <img width=\"160\" height=\"90\" decoding=\"async\" alt=\"Client logo\" class=\"client-logo\" src=\"https://pr-1042-r2-media.clarity-video.workers.dev/files/images/user_01M3PV8N4H36ZZPHGXFXWCQPM3/15cd2cb2-d3c2-4694-a66b-210c1db6b0dc-LAND-logo-2.png?cm_exp=1791478800&cm_sig=QSc1Wn1cWn2tZRFfnHKhgGHvqHJ-YK6a6exSZsir8KE\"/> intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "name": "hero-image",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "hero-image.json"
+  },
+  {
+    "name": "hero-real-tab",
+    "status": "FAIL",
+    "error": "Tab did not reach Edit"
+  },
+  {
+    "name": "empty-story-title",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "empty-story-title.json"
+  },
+  {
+    "name": "empty-story",
+    "status": "FAIL",
+    "error": "API assertion failed empty-story-body"
+  },
+  {
+    "cleanup": "0a098ddf-8edb-4a72-9d69-d216e221a8dc",
+    "status": 200,
+    "getStatus": 404
+  }
+]

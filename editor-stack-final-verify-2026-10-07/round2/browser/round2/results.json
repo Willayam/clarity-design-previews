@@ -1,0 +1,46 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json",
+    "screenshot": "created.png"
+  },
+  {
+    "name": "upload-R2-short.png",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "upload-R2-short.png.json",
+    "screenshot": "upload-R2-short.png.png"
+  },
+  {
+    "name": "upload-clear-R2-short.png",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "upload-clear-R2-short.png.json",
+    "screenshot": "upload-clear-R2-short.png.png"
+  },
+  {
+    "name": "upload-R2-normal.png",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "upload-R2-normal.png.json",
+    "screenshot": "upload-R2-normal.png.png"
+  },
+  {
+    "name": "upload-clear-R2-normal.png",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "upload-clear-R2-normal.png.json",
+    "screenshot": "upload-clear-R2-normal.png.png"
+  },
+  {
+    "status": "ERROR",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-slot=journey-preview] [data-section-kind=document]').getByRole('button', { name: 'Add PDF', exact: true })\u001b[22m\n\n    at eval (eval at <anonymous> (eval at <anonymous> (/private/tmp/verify-land/round2/runner.cjs:21:215)), <anonymous>:10:149)\n    at async eval (<anonymous>:1:19)\n    at async /private/tmp/verify-land/round2/runner.cjs:21:209"
+  },
+  {
+    "cleanup": "fb754f71-ce75-4d21-ba7a-61d678c7524f",
+    "status": 200,
+    "getStatus": 404
+  }
+]

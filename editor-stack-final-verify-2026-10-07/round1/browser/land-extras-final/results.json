@@ -1,0 +1,143 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "name": "panel-absent-hero-protected",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Theme preset",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Theme preset.json"
+  },
+  {
+    "name": "style-Theme preset",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Accent color",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Accent color.json"
+  },
+  {
+    "name": "style-Accent color",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Background",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Background.json"
+  },
+  {
+    "name": "style-Background",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Fonts",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Fonts.json"
+  },
+  {
+    "name": "style-Fonts",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Size",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Size.json"
+  },
+  {
+    "name": "style-Size",
+    "status": "PASS"
+  },
+  {
+    "name": "style-Corners",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "style-Corners.json"
+  },
+  {
+    "name": "style-Corners",
+    "status": "PASS"
+  },
+  {
+    "name": "brand-logo",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "brand-logo.json"
+  },
+  {
+    "name": "logo-picker-default-offer",
+    "status": "PASS"
+  },
+  {
+    "name": "style-wide-logo-default-offer",
+    "status": "FAIL",
+    "error": "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Use as default for new pages', exact: true }) to be visible\u001b[22m\n"
+  },
+  {
+    "name": "aurora-heading",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "aurora-heading.json"
+  },
+  {
+    "name": "aurora-heading-caret",
+    "status": "PASS"
+  },
+  {
+    "name": "caret-Plan 1 title",
+    "status": "FAIL",
+    "error": "locator.count: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '[data-section-kind=Plan 1 title]' is not a valid selector.\n    at query (<anonymous>:5448:41)\n    at <anonymous>:5458:7\n    at SelectorEvaluatorImpl._cached (<anonymous>:5235:20)\n    at SelectorEvaluatorImpl._queryCSS (<anonymous>:5445:17)\n    at SelectorEvaluatorImpl._querySimple (<anonymous>:5325:19)\n    at <anonymous>:5273:29\n    at SelectorEvaluatorImpl._cached (<anonymous>:5235:20)\n    at SelectorEvaluatorImpl.query (<anonymous>:5266:19)\n    at Object.query (<anonymous>:5480:44)\n    at <anonymous>:5438:21"
+  },
+  {
+    "name": "caret-Plan 1 price",
+    "status": "FAIL",
+    "error": "locator.count: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '[data-section-kind=Plan 1 price]' is not a valid selector.\n    at query (<anonymous>:5448:41)\n    at <anonymous>:5458:7\n    at SelectorEvaluatorImpl._cached (<anonymous>:5235:20)\n    at SelectorEvaluatorImpl._queryCSS (<anonymous>:5445:17)\n    at SelectorEvaluatorImpl._querySimple (<anonymous>:5325:19)\n    at <anonymous>:5273:29\n    at SelectorEvaluatorImpl._cached (<anonymous>:5235:20)\n    at SelectorEvaluatorImpl.query (<anonymous>:5266:19)\n    at Object.query (<anonymous>:5480:44)\n    at <anonymous>:5438:21"
+  },
+  {
+    "name": "feature-enter",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "feature-enter.json"
+  },
+  {
+    "name": "feature-backspace",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "feature-backspace.json"
+  },
+  {
+    "name": "feature-enter-backspace",
+    "status": "PASS"
+  },
+  {
+    "name": "radius-media-added",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "radius-media-added.json"
+  },
+  {
+    "name": "media-radius",
+    "status": "PASS"
+  },
+  {
+    "name": "publish",
+    "status": "FAIL",
+    "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('LAND published Aurora heading', { exact: true }) to be visible\u001b[22m\n"
+  },
+  {
+    "cleanup": "fcc2606e-22d4-4dc8-9a17-716c6f1e3a68",
+    "status": 200,
+    "getStatus": 404
+  }
+]

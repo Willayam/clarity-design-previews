@@ -1,0 +1,1 @@
+for(const endpoint of ['/api/images','/api/videos','/api/documents']){const r=await context.request.get('https://pr-1042.clarity-video.workers.dev'+endpoint);fs.writeFileSync(out+'/'+endpoint.split('/').pop()+'.json',await r.text());}await page.goto('https://pr-1042.clarity-video.workers.dev/home');fs.writeFileSync(out+'/home.txt',await snap());

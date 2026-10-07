@@ -1,0 +1,17 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "status": "ERROR",
+    "error": "locator.setInputFiles: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=file]')\u001b[22m\n\n    at async eval (<anonymous>:1:171)\n    at async /private/tmp/verify-land/scripts/runner.cjs:21:209"
+  },
+  {
+    "cleanup": "5c047a39-f69b-4c24-aa51-1b68ebddbf9b",
+    "status": 200,
+    "getStatus": 404
+  }
+]

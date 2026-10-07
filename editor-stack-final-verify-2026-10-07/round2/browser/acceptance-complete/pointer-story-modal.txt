@@ -1,0 +1,17 @@
+- main:
+  - paragraph
+- region "Notifications"
+- dialog "Edit Video":
+  - heading "Edit Video" [level=2]
+  - text: Your browser does not support the video tag.
+  - button "Play"
+  - text: 0:00 / 0:03
+  - group "Edit":
+    - button "Trim" [pressed]
+    - button "Preview"
+  - text: Preparing trim
+  - button "Cancel"
+  - button "Done"
+  - slider "Playhead":
+    - button "Trim start"
+    - button "Trim end"

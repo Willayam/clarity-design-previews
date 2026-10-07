@@ -1,0 +1,60 @@
+[
+  {
+    "name": "created",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "created.json"
+  },
+  {
+    "name": "pricing-Plan-1-title",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "pricing-Plan-1-title.json"
+  },
+  {
+    "name": "Plan 1 title",
+    "status": "PASS"
+  },
+  {
+    "name": "pricing-Plan-1-price",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "pricing-Plan-1-price.json"
+  },
+  {
+    "name": "Plan 1 price",
+    "status": "PASS"
+  },
+  {
+    "name": "theme-Aurora",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "theme-Aurora.json"
+  },
+  {
+    "name": "hero-Aurora-heading",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "hero-Aurora-heading.json"
+  },
+  {
+    "name": "Aurora caret",
+    "status": "PASS"
+  },
+  {
+    "name": "logo-set",
+    "mode": "branch",
+    "status": "PASS",
+    "snapshot": "logo-set.json"
+  },
+  {
+    "name": "wide-logo",
+    "status": "FAIL",
+    "error": "The expression evaluated to a falsy value:\n\n  assert(info.width>info.height*3)\n"
+  },
+  {
+    "cleanup": "156e484e-e71f-4d6f-b65c-98edfce220b5",
+    "status": 200,
+    "getStatus": 404
+  }
+]

@@ -1,0 +1,19 @@
+- main:
+  - paragraph
+- region "Notifications"
+- dialog:
+  - heading "Select media" [level=2]
+  - button "Close"
+  - main:
+    - textbox "Search":
+      - /placeholder: Search...
+    - 'button "Filter by type: All"'
+    - 'button "Sort: Newest"'
+    - button "Import from URL"
+    - button "Upload"
+    - heading "Folders" [level=2]
+    - text: "2"
+    - button "Open Library QA 1791390932460": Library QA 1791390932460
+    - button "Open Production shape fixtures": Production shape fixtures
+  - button "Cancel"
+  - button "Select" [disabled]
