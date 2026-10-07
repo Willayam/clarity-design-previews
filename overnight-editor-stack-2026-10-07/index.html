@@ -5,14 +5,14 @@
 <p>Open any page in the editor. There is no right-hand panel and no panel toggle. Hover a section and use its handle to move it, add a section above or below, or remove it. The handle also works from the keyboard: Tab to it, Alt+Up or Alt+Down to move, Enter for its menu. Edit the lead form, pricing plans, logos, an attached PDF and FAQ rows directly on the page. Button links and other settings without a pixel open in the small card beside the button.</p>
 <p><strong>MCP, on the mini:</strong></p>
 <pre><code class="language-bash">cd ~/Development/clarity-overnight-1006/v-final
-claude mcp remove clarity-pr-1047 --scope local 2&gt;/dev/null || true
+claude mcp remove --scope local clarity-pr-1047 2&gt;/dev/null || true
 AGENT_PREVIEW_SIGNING_KEY=&quot;$(security find-generic-password -a &quot;$USER&quot; -s clarity-agent-preview-signing-key -w | base64 -d)&quot; \
   node scripts/agent-mcp.mjs connect \
   --base https://pr-1047.clarity-video.workers.dev \
-  --sub user_01M3PV8N4H36ZZPHGXFXWCQPM3 \
-  --name clarity-pr-1047
+  --sub user_01M3PV8N4H36ZZPHGXFXWCQPM3
+claude &#39;Use the clarity-pr-1047 MCP server. Call pages_get with pageId b0fdda79-ccab-4684-93ea-49a0976f3eb8 and includeDocument true. Then call pages_edit with a fresh editId and the returned revision to set the hero title to William morning MCP test. Read it back and confirm. Do not publish.&#39;
 </code></pre>
-<p>Then start a fresh <code>claude</code> session and ask it to use the <code>clarity-pr-1047</code> server: call <code>pages_get</code> on a page, then <code>pages_edit</code> to change something, then <code>pages_get</code> again. Reload the page in the editor to see the change. The token lasts 12 hours. The connected account is the preview&#39;s seeded <code>userPro</code> account, so sign in to the preview as that account to see the same pages.</p>
+<p>Then open <a href="https://pr-1047.clarity-video.workers.dev/edit/b0fdda79-ccab-4684-93ea-49a0976f3eb8">https://pr-1047.clarity-video.workers.dev/edit/b0fdda79-ccab-4684-93ea-49a0976f3eb8</a> signed in as the preview&#39;s <code>userPro</code> account and reload to see the edit. To see concurrent editing, have Claude change the story while you type in the hero; both edits survived verification. The token lasts 12 hours; rerun the two connection commands after it expires and start a fresh Claude Code session.</p>
 <h2>The stack, bottom to top</h2>
 <table>
 <thead>
@@ -57,13 +57,13 @@ AGENT_PREVIEW_SIGNING_KEY=&quot;$(security find-generic-password -a &quot;$USER&
 <td>6</td>
 <td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1046">https://github.com/Clarity-Video-HQ/clarity/pull/1046</a></td>
 <td>Deletes the right-hand panel, its toggle, the accordion and panel reorder; moves the e2e specs onto the canvas</td>
-<td>In its last fix round: a FAQ save-conflict could drop a typed answer</td>
+<td>Not yet clean. Round 6 found typed text lost when a save conflict lands while you type in a pricing, form or legacy FAQ field (two writers on one page). Round 7 fixes the shared text field itself and is running</td>
 </tr>
 <tr>
 <td>7</td>
 <td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1048">https://github.com/Clarity-Video-HQ/clarity/pull/1048</a></td>
 <td>One style for every ghost &quot;+ Add&quot; control in the page&#39;s own ink; pricing amounts wrap like the published page</td>
-<td>Two ghost controls joined the shared style; final round running</td>
+<td>Clean, round 2</td>
 </tr>
 <tr>
 <td>MCP</td>
@@ -108,6 +108,7 @@ AGENT_PREVIEW_SIGNING_KEY=&quot;$(security find-generic-password -a &quot;$USER&
 <li><strong>Two helpers pick the next free form field name.</strong> They are <code>nextCustomFieldName</code> in the editor stack and <code>nextLeadFormFieldName</code> in #1041. The preview merge makes one delegate to the other. Whichever stack lands second should delete the duplicate.</li>
 <li><strong>On a short story image, the 80 px resize handle covers the Left alignment button.</strong> This is the same on main. Keyboard alignment works.</li>
 <li><strong>The rich-text link buttons are unreachable by keyboard.</strong> They behave the same in main&#39;s panel.</li>
+<li><strong>Form labels show an &quot;Enter &quot; prefix.</strong> A label stored as &quot;Your first name&quot; displays as &quot;Enter Your first name&quot; in the editor and on the public form. <code>leadFormFieldLabel</code> in <code>packages/journey-page-domain/src/lead-form-fields.ts</code> adds it. The behavior predates this work, but inline editing makes it visible.</li>
 <li><strong>A half-finished pricing button is hidden after a reload until it has a link.</strong> The label is kept, and adding the link brings it back. This follows the published page&#39;s rule.</li>
 <li><strong>Two Tab presses with no delay can skip the PDF buttons.</strong> Real key presses work.</li>
 <li><strong>The editor still saves whole documents.</strong> Next steps, in order: move the editor onto <code>applyEdits</code>, give list items durable ids and merge per item, then undo (WIL-3278). Folding <code>EditableText</code> into <code>InlineText</code> gives one text engine. The gallery drag and media resize should move onto <code>beginPointerDrag</code>.</li>
