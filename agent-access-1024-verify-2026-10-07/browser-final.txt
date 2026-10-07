@@ -1,0 +1,10 @@
+VERIFIED for the bounded browser regression on https://pr-1024.clarity-video.workers.dev at `872460edd043a63861d778a52fc2af7f19f01948`.
+
+- Passed creation, hero/story edits, CTA add/remove, section creation, and pointer/keyboard reordering. Reloads and GET responses confirmed persistence.
+- Library and branding settings loaded with zero console errors.
+- Test page deleted. DELETE 200, GET 404, zero library matches.
+- Screenshots inspected; browser and operator processes stopped.
+
+Gaps: complete Tab-only traversal was not tested; story entry used contenteditable fill; transport failures were not separately captured. No connection API mutations occurred.
+
+[Full report and evidence](/Users/williamlarsten/Development/clarity-overnight-1006/verify/agent/browser/browser-report.md).

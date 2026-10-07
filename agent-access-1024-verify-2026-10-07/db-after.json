@@ -1,0 +1,290 @@
+[
+  {
+    "results": [
+      {
+        "actions": 0
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "EEUR",
+      "served_by_colo": "FRA",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.2772
+      },
+      "duration": 0.2772,
+      "changes": 0,
+      "last_row_id": 5,
+      "changed_db": false,
+      "size_after": 811008,
+      "rows_read": 0,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  },
+  {
+    "results": [
+      {
+        "name": "0001_auth_account_mapping.sql",
+        "applied_at": "2026-10-07 18:27:16"
+      },
+      {
+        "name": "0002_auth_account_mapping_missing_columns.sql",
+        "applied_at": "2026-10-07 18:27:16"
+      },
+      {
+        "name": "0003_legacy_account_relationships.sql",
+        "applied_at": "2026-10-07 18:27:16"
+      },
+      {
+        "name": "0004_legacy_subscription_snapshots.sql",
+        "applied_at": "2026-10-07 18:27:16"
+      },
+      {
+        "name": "0005_legacy_public_training_folder_snapshots.sql",
+        "applied_at": "2026-10-07 18:27:16"
+      },
+      {
+        "name": "0006_legacy_contact_snapshots.sql",
+        "applied_at": "2026-10-07 18:27:17"
+      },
+      {
+        "name": "0007_account_spine_final_tables.sql",
+        "applied_at": "2026-10-07 18:27:17"
+      },
+      {
+        "name": "0008_account_spine_user_expiration.sql",
+        "applied_at": "2026-10-07 18:27:17"
+      },
+      {
+        "name": "0009_auth_legacy_password_fallback_suppression.sql",
+        "applied_at": "2026-10-07 18:27:17"
+      },
+      {
+        "name": "0010_workos_last_login.sql",
+        "applied_at": "2026-10-07 18:27:18"
+      },
+      {
+        "name": "0011_product_analytics.sql",
+        "applied_at": "2026-10-07 18:27:18"
+      },
+      {
+        "name": "0012_user_profiles.sql",
+        "applied_at": "2026-10-07 18:27:18"
+      },
+      {
+        "name": "0013_native_accounts.sql",
+        "applied_at": "2026-10-07 18:27:18"
+      },
+      {
+        "name": "0014_account_kind_and_role.sql",
+        "applied_at": "2026-10-07 18:27:18"
+      },
+      {
+        "name": "0015_drop_legacy_user_type_and_role.sql",
+        "applied_at": "2026-10-07 18:27:19"
+      },
+      {
+        "name": "0016_support_invitations.sql",
+        "applied_at": "2026-10-07 18:27:19"
+      },
+      {
+        "name": "0017_drop_legacy_snapshot_tables.sql",
+        "applied_at": "2026-10-07 18:27:19"
+      },
+      {
+        "name": "0018_access_grants.sql",
+        "applied_at": "2026-10-07 18:27:19"
+      },
+      {
+        "name": "0019_account_holds.sql",
+        "applied_at": "2026-10-07 18:27:19"
+      },
+      {
+        "name": "0020_page_tables.sql",
+        "applied_at": "2026-10-07 18:27:20"
+      },
+      {
+        "name": "0021_library_tables.sql",
+        "applied_at": "2026-10-07 18:27:20"
+      },
+      {
+        "name": "0022_move_bookkeeping.sql",
+        "applied_at": "2026-10-07 18:27:20"
+      },
+      {
+        "name": "0023_move_triggers.sql",
+        "applied_at": "2026-10-07 18:27:21"
+      },
+      {
+        "name": "0024_journey_page_title.sql",
+        "applied_at": "2026-10-07 18:27:21"
+      },
+      {
+        "name": "0025_journey_page_title_backfill.sql",
+        "applied_at": "2026-10-07 18:27:21"
+      },
+      {
+        "name": "0026_journey_page_cards_by_reference.sql",
+        "applied_at": "2026-10-07 18:27:21"
+      },
+      {
+        "name": "0027_workspace_nodes_parent_index.sql",
+        "applied_at": "2026-10-07 18:27:21"
+      },
+      {
+        "name": "0028_jobs_kinds.sql",
+        "applied_at": "2026-10-07 18:27:22"
+      },
+      {
+        "name": "0029_videos.sql",
+        "applied_at": "2026-10-07 18:27:22"
+      },
+      {
+        "name": "0030_journey_pages_source_by_owner.sql",
+        "applied_at": "2026-10-07 18:27:22"
+      },
+      {
+        "name": "0031_videos_backfill.sql",
+        "applied_at": "2026-10-07 18:27:22"
+      },
+      {
+        "name": "0032_provider_event_inbox.sql",
+        "applied_at": "2026-10-07 18:27:23"
+      },
+      {
+        "name": "0033_gohighlevel_contact_sync.sql",
+        "applied_at": "2026-10-07 18:27:23"
+      },
+      {
+        "name": "0034_jobs_mux_unshare.sql",
+        "applied_at": "2026-10-07 18:27:23"
+      },
+      {
+        "name": "0035_page_route_liveness.sql",
+        "applied_at": "2026-10-07 18:27:23"
+      },
+      {
+        "name": "0036_clip_jobs.sql",
+        "applied_at": "2026-10-07 18:27:23"
+      },
+      {
+        "name": "0037_videos_settle_backoff.sql",
+        "applied_at": "2026-10-07 18:27:24"
+      },
+      {
+        "name": "0038_mux_inventory_status.sql",
+        "applied_at": "2026-10-07 18:27:24"
+      },
+      {
+        "name": "0040_videos_parser_parity.sql",
+        "applied_at": "2026-10-07 18:27:24"
+      },
+      {
+        "name": "0041_video_speech.sql",
+        "applied_at": "2026-10-07 18:27:24"
+      },
+      {
+        "name": "0042_agent_access.sql",
+        "applied_at": "2026-10-07 18:27:30"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "EEUR",
+      "served_by_colo": "FRA",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.3198
+      },
+      "duration": 0.3198,
+      "changes": 0,
+      "last_row_id": 5,
+      "changed_db": false,
+      "size_after": 811008,
+      "rows_read": 41,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  },
+  {
+    "results": [
+      {
+        "client_id": "overnight-verify-agent-1791397813893-a",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-b",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-1",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-2",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-3",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-4",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-5",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-6",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-7",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-8",
+        "status": "revoked",
+        "leads_contacts": 0
+      },
+      {
+        "client_id": "overnight-verify-agent-1791397813893-cap-9",
+        "status": "revoked",
+        "leads_contacts": 0
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "EEUR",
+      "served_by_colo": "FRA",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.1443
+      },
+      "duration": 0.1443,
+      "changes": 0,
+      "last_row_id": 5,
+      "changed_db": false,
+      "size_after": 811008,
+      "rows_read": 11,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

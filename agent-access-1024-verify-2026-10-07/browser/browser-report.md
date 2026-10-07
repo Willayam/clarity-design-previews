@@ -1,0 +1,28 @@
+VERIFIED for the bounded browser regression on https://pr-1024.clarity-video.workers.dev at head SHA 872460edd043a63861d778a52fc2af7f19f01948.
+
+Run on 2026-10-07 with repository Playwright and headless Chromium at 1440 × 1000. The preview supplied its own editor assets. No staging interception was used. This verdict covers the browser assignment only, not the full PR acceptance criteria.
+
+| Check | Result and evidence |
+| --- | --- |
+| Exact deployment | PASS. `deploy-proof.json` records the required headSha before authentication and browser checks. |
+| userPro authentication | PASS. `auth-proof.json` records login 200, `/auth/me` 200, and a non-null identity. No credentials, cookies, or tokens were saved. |
+| Canvas page creation and save | PASS. Created only `Overnight verify agent 20:29`, ID `56a11a55-074b-4065-89c3-fb3a48915e5c`, through `/new`. It became `/edit/<id>`. `01-created-get.json` has the name and hero title at revision 2. Reloaded canvas is in `01-created.png`. |
+| Inline hero title | PASS. Filled the inline H1, then separately clicked it and replaced its text with Home, Shift+End, keyboard typing, and Tab. `08-keyboard-hero-get.json` has `Agent hero keyboard verified` at revision 10. Reload showed the same text. See `11-final-editor.png`. |
+| Story body | PASS. Clicked the Description placeholder, filled its contenteditable body, and pressed Tab. `02-story-get.json` has `<p>Agent verification story body via keyboard.</p>` at revision 4. Reload showed the body in `02-story.png`. The text names the fixture; entry used Playwright fill, not character-by-character typing. |
+| Add and remove hero CTA | PASS with pointer and keyboard activation. Pointer Add created `Get Started` at revision 5. Focusing Remove button and pressing Enter removed it at revision 6. Keyboard Enter on Add created it again at revision 11; clicking Remove button removed it at revision 12. Each operation was followed by the saved signal, GET, and reload. See `03-cta-added-get.json`, `04-cta-removed-get.json`, `09-keyboard-cta-get.json`, `10-pointer-cta-remove-get.json`, and screenshots `03-cta-added.png` and `04-cta-removed.png`. |
+| Add section | PASS. Pointer activation of canvas Add section and FAQ produced hero, FAQ, Story at revision 7. Keyboard Enter on the Story section handle, ArrowRight on Add section below, then Enter on Story produced a fourth block at revision 13. See `05-section-added-get.json`, `11-keyboard-section-get.json`, `05-section-added.png`, and `11-final-editor-bottom.png`. Both survived reload. |
+| Keyboard section reorder | PASS. Focused the FAQ section handle and pressed Alt+ArrowDown. Revision 8 has hero, Story, FAQ. Reload retained that order. See `06-keyboard-reorder-get.json` and `06-keyboard-reorder.png`. |
+| Pointer section drag | PASS. Dragged the FAQ section handle upward above Story. Revision 9 has hero, FAQ, Story. Reload retained that order. See `07-drag-in-progress.png`, `07-pointer-reorder-get.json`, and `07-pointer-reorder.png`. |
+| Library | PASS. `/home?library=pages` rendered Pages and the new draft card, with no recorded console or page errors. See `12-library-proof.json` and `12-library.png`. |
+| Settings | PASS. `/settings/branding` rendered the branding controls, with no recorded console or page errors. See `13-settings-proof.json` and `13-settings.png`. |
+| Cleanup | PASS. Deleted only the fixture ID above. DELETE returned 200, subsequent GET returned 404, and reloaded library had zero name matches. See `cleanup-proof.json` and `14-cleanup-library.png`. |
+
+All edited states used `[data-slot="save-status"][data-save-state="saved"]` before persistence checks. `persistence-summary.json` collects the saved values and revisions. `browser-events.json` records browser response methods, paths, statuses, and console messages without headers or query strings. `console-summary.json` contains 12 successful page PUT responses, zero console errors, zero page errors, zero console warnings, and zero browser HTTP error responses. The expected cleanup GET 404 is recorded separately in `cleanup-proof.json`.
+
+I opened and inspected every saved screenshot with the image viewing tool. The editor uses an internal scroll area, so `11-final-editor-bottom.png` supplies the lower sections omitted by the top screenshot.
+
+No product bug was observed in this run. Two automation selectors needed correction: the library name matched both thumbnail text and card title, and Branding is a settings tab rather than a heading. The corrected selectors verified the rendered pages. These were operator errors, not application failures.
+
+Coverage limits: keyboard actions used explicit locator focus, so this does not prove complete Tab-only traversal. Story entry used contenteditable fill plus keyboard blur. No touch, mobile, other browser, public-page publication, billing, password, connection API, MCP, migration, or build/test gate checks ran. Network capture records HTTP responses but did not attach a requestfailed listener, so it does not independently exclude transport failures. The parent owns the non-browser PR checks.
+
+The active browser closed normally and its operator process exited with code 0. An initial operator with closed stdin was terminated before creating any page. No operator from this run remains. Other browser processes were left untouched. `process-cleanup.json` records the normal browser closure. The parent removed the scratch operator script after verification. No product code, other worktree, connection, or existing fixture was changed. No commit, push, deploy, publication, or comment was made.

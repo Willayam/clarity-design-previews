@@ -1,0 +1,1053 @@
+[
+  {
+    "name": "whoami overnight-verify-agent-1791397919913-read",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397919913-read",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:31:59.965Z",
+            "enabledAt": null,
+            "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-9",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.602Z",
+            "enabledAt": null,
+            "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.371Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-8",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.372Z",
+            "enabledAt": null,
+            "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.540Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-7",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.148Z",
+            "enabledAt": null,
+            "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.704Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-6",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.928Z",
+            "enabledAt": null,
+            "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.872Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-5",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.707Z",
+            "enabledAt": null,
+            "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.044Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-4",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.474Z",
+            "enabledAt": null,
+            "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.246Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-3",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.266Z",
+            "enabledAt": null,
+            "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.427Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-2",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.037Z",
+            "enabledAt": null,
+            "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.588Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-1",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.772Z",
+            "enabledAt": null,
+            "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.786Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-b",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.411Z",
+            "enabledAt": null,
+            "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.958Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:22.152Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_a1721728-b54b-41db-83a4-4490dafa70cf/enable",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397919913-read",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:31:59.965Z",
+        "enabledAt": "2026-10-07T18:32:00.486Z",
+        "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": null,
+        "status": "active",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "library_list overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"items\":[{\"id\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\",\"type\":\"folder\",\"title\":\"Production shape fixtures\",\"updatedAt\":\"2026-10-07T18:27:26.687Z\",\"folderId\":null}]}"
+          }
+        ],
+        "structuredContent": {
+          "items": [
+            {
+              "id": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e",
+              "type": "folder",
+              "title": "Production shape fixtures",
+              "updatedAt": "2026-10-07T18:27:26.687Z",
+              "folderId": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "library_list overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"items\":[{\"id\":\"56a11a55-074b-4065-89c3-fb3a48915e5c\",\"type\":\"journey_page\",\"title\":\"Overnight verify agent 20:29\",\"updatedAt\":\"2026-10-07T18:29:35.937Z\",\"folderId\":null},{\"id\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\",\"type\":\"folder\",\"title\":\"Production shape fixtures\",\"updatedAt\":\"2026-10-07T18:27:26.687Z\",\"folderId\":null}]}"
+          }
+        ],
+        "structuredContent": {
+          "items": [
+            {
+              "id": "56a11a55-074b-4065-89c3-fb3a48915e5c",
+              "type": "journey_page",
+              "title": "Overnight verify agent 20:29",
+              "updatedAt": "2026-10-07T18:29:35.937Z",
+              "folderId": null
+            },
+            {
+              "id": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e",
+              "type": "folder",
+              "title": "Production shape fixtures",
+              "updatedAt": "2026-10-07T18:27:26.687Z",
+              "folderId": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "library_list overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"items\":[{\"id\":\"e300555e-6ee9-5dda-aecb-26f50e242a73\",\"type\":\"journey_page\",\"title\":\"Untitled Journey Page\",\"updatedAt\":\"2026-10-07T18:27:26.687Z\",\"folderId\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\"},{\"id\":\"5160a32c-0337-5604-ab40-5423605f690e\",\"type\":\"video\",\"title\":\"Fixture: re-ingested legacy_import with legacy trim pair\",\"state\":\"ready\",\"updatedAt\":\"2026-10-07T18:27:26.687Z\",\"folderId\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\"},{\"id\":\"2a586696-f90f-5731-ac14-01dbc672bdec\",\"type\":\"video\",\"title\":\"Fixture: re-ingested media_video_materialization with legacy trim pair\",\"state\":\"ready\",\"updatedAt\":\"2026-10-07T18:27:26.687Z\",\"folderId\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\"},{\"id\":\"6915648c-b29f-56d0-a9fe-53c6eb285cf7\",\"type\":\"video\",\"title\":\"Fixture: old-app import (2024 Mux)\",\"state\":\"ready\",\"updatedAt\":\"2026-10-07T18:27:26.687Z\",\"folderId\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\"}]}"
+          }
+        ],
+        "structuredContent": {
+          "items": [
+            {
+              "id": "e300555e-6ee9-5dda-aecb-26f50e242a73",
+              "type": "journey_page",
+              "title": "Untitled Journey Page",
+              "updatedAt": "2026-10-07T18:27:26.687Z",
+              "folderId": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e"
+            },
+            {
+              "id": "5160a32c-0337-5604-ab40-5423605f690e",
+              "type": "video",
+              "title": "Fixture: re-ingested legacy_import with legacy trim pair",
+              "state": "ready",
+              "updatedAt": "2026-10-07T18:27:26.687Z",
+              "folderId": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e"
+            },
+            {
+              "id": "2a586696-f90f-5731-ac14-01dbc672bdec",
+              "type": "video",
+              "title": "Fixture: re-ingested media_video_materialization with legacy trim pair",
+              "state": "ready",
+              "updatedAt": "2026-10-07T18:27:26.687Z",
+              "folderId": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e"
+            },
+            {
+              "id": "6915648c-b29f-56d0-a9fe-53c6eb285cf7",
+              "type": "video",
+              "title": "Fixture: old-app import (2024 Mux)",
+              "state": "ready",
+              "updatedAt": "2026-10-07T18:27:26.687Z",
+              "folderId": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "pages_get overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"pageId\":\"56a11a55-074b-4065-89c3-fb3a48915e5c\",\"revision\":10,\"title\":\"Overnight verify agent 20:29\",\"updatedAt\":\"2026-10-07T18:31:52.071Z\",\"editorUrl\":\"https://pr-1024.clarity-video.workers.dev/edit/56a11a55-074b-4065-89c3-fb3a48915e5c\",\"publication\":{\"stage\":\"draft\",\"shareUrl\":null,\"publishedRevision\":null,\"publishedAt\":null,\"passwordEnabled\":false},\"generation\":null,\"document\":{\"source\":\"page\",\"untrusted\":true,\"value\":{\"blocks\":[{\"fields\":{\"calendarCtaEnabled\":false,\"contact\":{\"email\":\"\",\"mobile\":\"\",\"website\":\"\"},\"ctaColor\":\"#2563eb\",\"customCta\":{\"enabled\":false,\"label\":\"\",\"link\":\"\",\"style\":\"\"},\"description\":\"\",\"media\":{\"assetId\":\"\",\"assetType\":\"\",\"assetUrl\":\"\",\"gifEnd\":null,\"gifStart\":null,\"imageId\":\"\",\"imageUrl\":\"\",\"muxPlaybackId\":\"\",\"posterUrl\":\"\",\"preferredThumbnail\":\"\",\"thumbnailTime\":null,\"thumbnailUrl\":\"\",\"trimEnd\":null,\"trimStart\":null,\"videoId\":\"\",\"videoProcessingStatus\":\"\",\"videoUrl\":\"\"},\"paymentCta\":{\"enabled\":false,\"label\":\"\",\"link\":\"\",\"style\":\"\"},\"primaryCta\":{\"label\":\"\",\"link\":\"\",\"style\":\"\"},\"signCta\":{\"enabled\":false,\"label\":\"\",\"link\":\"\",\"style\":\"\"},\"title\":\"Agent hero keyboard verified\",\"titlePosition\":\"\"},\"id\":\"ec23c901-c6df-429e-856e-ac9e3f8bfc3d\",\"kind\":\"hero\"},{\"fields\":{\"questions\":[{\"answer\":\"\",\"question\":\"\",\"seq_no\":\"1\"}],\"title\":\"Frequently Asked Questions\",\"titlePosition\":\"left\"},\"id\":\"b89ebfbf-a03f-46df-af53-8271f8664942\",\"kind\":\"faq\"},{\"fields\":{\"body\":\"<p>Agent verification story body via keyboard.</p>\",\"media\":{\"assetId\":\"\",\"assetType\":\"\",\"assetUrl\":\"\",\"gifEnd\":null,\"gifStart\":null,\"imageId\":\"\",\"imageUrl\":\"\",\"muxPlaybackId\":\"\",\"posterUrl\":\"\",\"preferredThumbnail\":\"\",\"thumbnailTime\":null,\"thumbnailUrl\":\"\",\"trimEnd\":null,\"trimStart\":null,\"videoId\":\"\",\"videoProcessingStatus\":\"\",\"videoUrl\":\"\"},\"mediaRatio\":null,\"mediaSide\":\"\",\"mediaSize\":null,\"mediaWrap\":false,\"role\":\"custom\",\"subtitle\":\"\",\"title\":\"\",\"titlePosition\":\"left\"},\"id\":\"7995c84b-b7dd-4e8c-92f8-652e8e6b0c11\",\"kind\":\"story\"}],\"brand\":{\"color\":\"\",\"companyImageId\":\"\",\"companyImagePosition\":\"\",\"logoPosition\":\"\"},\"editor_id\":\"user_01M3PV8N4H36ZZPHGXFXWCQPM3\",\"extras\":{\"user_id\":\"user_01M3PV8N4H36ZZPHGXFXWCQPM3\",\"corp_id\":\"\",\"affiliate_id\":\"\"},\"id\":\"56a11a55-074b-4065-89c3-fb3a48915e5c\",\"meta\":{\"calendlyLink\":\"\",\"currency\":\"\",\"pageType\":\"\"},\"name\":\"Overnight verify agent 20:29\",\"owner_id\":\"user_01M3PV8N4H36ZZPHGXFXWCQPM3\",\"schema_version\":2}}}"
+          }
+        ],
+        "structuredContent": {
+          "pageId": "56a11a55-074b-4065-89c3-fb3a48915e5c",
+          "revision": 10,
+          "title": "Overnight verify agent 20:29",
+          "updatedAt": "2026-10-07T18:31:52.071Z",
+          "editorUrl": "https://pr-1024.clarity-video.workers.dev/edit/56a11a55-074b-4065-89c3-fb3a48915e5c",
+          "publication": {
+            "stage": "draft",
+            "shareUrl": null,
+            "publishedRevision": null,
+            "publishedAt": null,
+            "passwordEnabled": false
+          },
+          "generation": null,
+          "document": {
+            "source": "page",
+            "untrusted": true,
+            "value": {
+              "blocks": [
+                {
+                  "fields": {
+                    "calendarCtaEnabled": false,
+                    "contact": {
+                      "email": "",
+                      "mobile": "",
+                      "website": ""
+                    },
+                    "ctaColor": "#2563eb",
+                    "customCta": {
+                      "enabled": false,
+                      "label": "",
+                      "link": "",
+                      "style": ""
+                    },
+                    "description": "",
+                    "media": {
+                      "assetId": "",
+                      "assetType": "",
+                      "assetUrl": "",
+                      "gifEnd": null,
+                      "gifStart": null,
+                      "imageId": "",
+                      "imageUrl": "",
+                      "muxPlaybackId": "",
+                      "posterUrl": "",
+                      "preferredThumbnail": "",
+                      "thumbnailTime": null,
+                      "thumbnailUrl": "",
+                      "trimEnd": null,
+                      "trimStart": null,
+                      "videoId": "",
+                      "videoProcessingStatus": "",
+                      "videoUrl": ""
+                    },
+                    "paymentCta": {
+                      "enabled": false,
+                      "label": "",
+                      "link": "",
+                      "style": ""
+                    },
+                    "primaryCta": {
+                      "label": "",
+                      "link": "",
+                      "style": ""
+                    },
+                    "signCta": {
+                      "enabled": false,
+                      "label": "",
+                      "link": "",
+                      "style": ""
+                    },
+                    "title": "Agent hero keyboard verified",
+                    "titlePosition": ""
+                  },
+                  "id": "ec23c901-c6df-429e-856e-ac9e3f8bfc3d",
+                  "kind": "hero"
+                },
+                {
+                  "fields": {
+                    "questions": [
+                      {
+                        "answer": "",
+                        "question": "",
+                        "seq_no": "1"
+                      }
+                    ],
+                    "title": "Frequently Asked Questions",
+                    "titlePosition": "left"
+                  },
+                  "id": "b89ebfbf-a03f-46df-af53-8271f8664942",
+                  "kind": "faq"
+                },
+                {
+                  "fields": {
+                    "body": "<p>Agent verification story body via keyboard.</p>",
+                    "media": {
+                      "assetId": "",
+                      "assetType": "",
+                      "assetUrl": "",
+                      "gifEnd": null,
+                      "gifStart": null,
+                      "imageId": "",
+                      "imageUrl": "",
+                      "muxPlaybackId": "",
+                      "posterUrl": "",
+                      "preferredThumbnail": "",
+                      "thumbnailTime": null,
+                      "thumbnailUrl": "",
+                      "trimEnd": null,
+                      "trimStart": null,
+                      "videoId": "",
+                      "videoProcessingStatus": "",
+                      "videoUrl": ""
+                    },
+                    "mediaRatio": null,
+                    "mediaSide": "",
+                    "mediaSize": null,
+                    "mediaWrap": false,
+                    "role": "custom",
+                    "subtitle": "",
+                    "title": "",
+                    "titlePosition": "left"
+                  },
+                  "id": "7995c84b-b7dd-4e8c-92f8-652e8e6b0c11",
+                  "kind": "story"
+                }
+              ],
+              "brand": {
+                "color": "",
+                "companyImageId": "",
+                "companyImagePosition": "",
+                "logoPosition": ""
+              },
+              "editor_id": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+              "extras": {
+                "user_id": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+                "corp_id": "",
+                "affiliate_id": ""
+              },
+              "id": "56a11a55-074b-4065-89c3-fb3a48915e5c",
+              "meta": {
+                "calendlyLink": "",
+                "currency": "",
+                "pageType": ""
+              },
+              "name": "Overnight verify agent 20:29",
+              "owner_id": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+              "schema_version": 2
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "pages_stats overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"stats\":{\"title\":\"Overnight verify agent 20:29\",\"elements\":[],\"preview\":[{\"id\":\"ec23c901-c6df-429e-856e-ac9e3f8bfc3d\",\"title\":\"Agent hero keyboard verified\",\"kind\":\"hero\",\"poster\":\"\",\"elements\":[]},{\"id\":\"b89ebfbf-a03f-46df-af53-8271f8664942\",\"title\":\"Frequently Asked Questions\",\"kind\":\"faq\",\"poster\":\"\",\"elements\":[]},{\"id\":\"7995c84b-b7dd-4e8c-92f8-652e8e6b0c11\",\"title\":\"\",\"kind\":\"story\",\"poster\":\"\",\"elements\":[]}],\"outline\":{\"blocks\":[{\"count\":1,\"hasMedia\":false,\"kind\":\"faq\",\"title\":\"Frequently Asked Questions\"},{\"hasMedia\":false,\"kind\":\"story\",\"mediaSide\":\"left\",\"role\":\"custom\"}],\"brandColor\":\"\",\"hero\":{\"ctas\":[],\"hasMedia\":false,\"posterUrl\":\"\",\"title\":\"Agent hero keyboard verified\",\"titlePosition\":\"\"},\"theme\":{\"brandColor\":\"\",\"primaryColor\":\"#2563eb\"},\"version\":2},\"totalVisits\":0,\"visits\":0,\"watched\":0,\"clicked\":0,\"videos\":{},\"buttons\":{}}}"
+          }
+        ],
+        "structuredContent": {
+          "stats": {
+            "title": "Overnight verify agent 20:29",
+            "elements": [],
+            "preview": [
+              {
+                "id": "ec23c901-c6df-429e-856e-ac9e3f8bfc3d",
+                "title": "Agent hero keyboard verified",
+                "kind": "hero",
+                "poster": "",
+                "elements": []
+              },
+              {
+                "id": "b89ebfbf-a03f-46df-af53-8271f8664942",
+                "title": "Frequently Asked Questions",
+                "kind": "faq",
+                "poster": "",
+                "elements": []
+              },
+              {
+                "id": "7995c84b-b7dd-4e8c-92f8-652e8e6b0c11",
+                "title": "",
+                "kind": "story",
+                "poster": "",
+                "elements": []
+              }
+            ],
+            "outline": {
+              "blocks": [
+                {
+                  "count": 1,
+                  "hasMedia": false,
+                  "kind": "faq",
+                  "title": "Frequently Asked Questions"
+                },
+                {
+                  "hasMedia": false,
+                  "kind": "story",
+                  "mediaSide": "left",
+                  "role": "custom"
+                }
+              ],
+              "brandColor": "",
+              "hero": {
+                "ctas": [],
+                "hasMedia": false,
+                "posterUrl": "",
+                "title": "Agent hero keyboard verified",
+                "titlePosition": ""
+              },
+              "theme": {
+                "brandColor": "",
+                "primaryColor": "#2563eb"
+              },
+              "version": 2
+            },
+            "totalVisits": 0,
+            "visits": 0,
+            "watched": 0,
+            "clicked": 0,
+            "videos": {},
+            "buttons": {}
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "PATCH /api/agent/connections/conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397919913-read",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:31:59.965Z",
+        "enabledAt": "2026-10-07T18:32:00.486Z",
+        "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+        "lastUsedAt": "2026-10-07T18:32:00.677Z",
+        "leadsContacts": true,
+        "revokedAt": null,
+        "status": "active",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "pages_leads overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"count\":0,\"submissions\":[]}"
+          }
+        ],
+        "structuredContent": {
+          "count": 0,
+          "submissions": []
+        }
+      }
+    }
+  },
+  {
+    "name": "videos_get overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"videoId\":\"5160a32c-0337-5604-ab40-5423605f690e\",\"title\":\"Fixture: re-ingested legacy_import with legacy trim pair\",\"state\":\"ready\",\"shareLinkLive\":true,\"clipPending\":false,\"durationSeconds\":6.072733,\"playbackUrl\":\"https://stream.mux.com/eoDVeRu2hmm6dUiM7zXhBKsGtClTmixgVLiv2PlqeVc.m3u8\",\"posterUrl\":\"https://image.mux.com/eoDVeRu2hmm6dUiM7zXhBKsGtClTmixgVLiv2PlqeVc/thumbnail.jpg?time=1\",\"folderId\":\"folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e\"}"
+          }
+        ],
+        "structuredContent": {
+          "videoId": "5160a32c-0337-5604-ab40-5423605f690e",
+          "title": "Fixture: re-ingested legacy_import with legacy trim pair",
+          "state": "ready",
+          "shareLinkLive": true,
+          "clipPending": false,
+          "durationSeconds": 6.072733,
+          "playbackUrl": "https://stream.mux.com/eoDVeRu2hmm6dUiM7zXhBKsGtClTmixgVLiv2PlqeVc.m3u8",
+          "posterUrl": "https://image.mux.com/eoDVeRu2hmm6dUiM7zXhBKsGtClTmixgVLiv2PlqeVc/thumbnail.jpg?time=1",
+          "folderId": "folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:9d1bf3cf-caa8-5083-a422-f7562bf3ae6e"
+        }
+      }
+    }
+  },
+  {
+    "name": "approvals_get overnight-verify-agent-1791397919913-read",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"code\":\"not_found\",\"message\":\"No approval with this id belongs to this connection.\"}"
+          }
+        ],
+        "isError": true,
+        "structuredContent": {
+          "code": "not_found",
+          "message": "No approval with this id belongs to this connection."
+        }
+      }
+    }
+  },
+  {
+    "name": "ALL READ ASSERTIONS PASS",
+    "status": 200,
+    "body": {}
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397919913-read",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:31:59.965Z",
+            "enabledAt": "2026-10-07T18:32:00.486Z",
+            "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+            "lastUsedAt": "2026-10-07T18:32:00.677Z",
+            "leadsContacts": true,
+            "revokedAt": null,
+            "status": "active",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-9",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.602Z",
+            "enabledAt": null,
+            "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.371Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-8",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.372Z",
+            "enabledAt": null,
+            "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.540Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-7",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.148Z",
+            "enabledAt": null,
+            "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.704Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-6",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.928Z",
+            "enabledAt": null,
+            "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.872Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-5",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.707Z",
+            "enabledAt": null,
+            "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.044Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-4",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.474Z",
+            "enabledAt": null,
+            "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.246Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-3",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.266Z",
+            "enabledAt": null,
+            "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.427Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-2",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.037Z",
+            "enabledAt": null,
+            "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.588Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-1",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.772Z",
+            "enabledAt": null,
+            "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.786Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-b",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.411Z",
+            "enabledAt": null,
+            "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.958Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:22.152Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "PATCH /api/agent/connections/conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397919913-read",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:31:59.965Z",
+        "enabledAt": "2026-10-07T18:32:00.486Z",
+        "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+        "lastUsedAt": "2026-10-07T18:32:00.677Z",
+        "leadsContacts": false,
+        "revokedAt": null,
+        "status": "active",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_a1721728-b54b-41db-83a4-4490dafa70cf/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397919913-read",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:31:59.965Z",
+        "enabledAt": "2026-10-07T18:32:00.486Z",
+        "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+        "lastUsedAt": "2026-10-07T18:32:00.677Z",
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:32:03.142Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397919913-read",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:31:59.965Z",
+            "enabledAt": "2026-10-07T18:32:00.486Z",
+            "id": "conn_a1721728-b54b-41db-83a4-4490dafa70cf",
+            "lastUsedAt": "2026-10-07T18:32:00.677Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:32:03.142Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-9",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.602Z",
+            "enabledAt": null,
+            "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.371Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-8",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.372Z",
+            "enabledAt": null,
+            "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.540Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-7",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.148Z",
+            "enabledAt": null,
+            "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.704Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-6",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.928Z",
+            "enabledAt": null,
+            "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.872Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-5",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.707Z",
+            "enabledAt": null,
+            "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.044Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-4",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.474Z",
+            "enabledAt": null,
+            "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.246Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-3",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.266Z",
+            "enabledAt": null,
+            "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.427Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-2",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.037Z",
+            "enabledAt": null,
+            "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.588Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-1",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.772Z",
+            "enabledAt": null,
+            "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.786Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-b",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.411Z",
+            "enabledAt": null,
+            "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.958Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:22.152Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  }
+]

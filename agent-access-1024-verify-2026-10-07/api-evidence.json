@@ -1,0 +1,993 @@
+[
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": []
+      }
+    }
+  },
+  {
+    "name": "baseline live connections",
+    "status": 200,
+    "body": []
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-a",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ownerId\":\"user_01M3PV8N4H36ZZPHGXFXWCQPM3\",\"workspaceId\":\"user:user_01M3PV8N4H36ZZPHGXFXWCQPM3\",\"email\":\"williamlarsten+e2e-pro-20260929@gmail.com\",\"access\":{\"state\":\"allowed\"},\"connection\":{\"id\":\"conn_0e468eca-7f2a-4101-af97-ea9c6745c345\",\"status\":\"active\",\"permissions\":{\"leadsContacts\":false}}}"
+          }
+        ],
+        "structuredContent": {
+          "ownerId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+          "workspaceId": "user:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+          "email": "williamlarsten+e2e-pro-20260929@gmail.com",
+          "access": {
+            "state": "allowed"
+          },
+          "connection": {
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "status": "active",
+            "permissions": {
+              "leadsContacts": false
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "active",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "pages_leads overnight-verify-agent-1791397813893-a",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"code\":\"permission_required\",\"permission\":\"leads_contacts\",\"settingsUrl\":\"https://pr-1024.clarity-video.workers.dev/settings/agents\"}"
+          }
+        ],
+        "isError": true,
+        "structuredContent": {
+          "code": "permission_required",
+          "permission": "leads_contacts",
+          "settingsUrl": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+        }
+      }
+    }
+  },
+  {
+    "name": "contacts_list overnight-verify-agent-1791397813893-a",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"code\":\"permission_required\",\"permission\":\"leads_contacts\",\"settingsUrl\":\"https://pr-1024.clarity-video.workers.dev/settings/agents\"}"
+          }
+        ],
+        "isError": true,
+        "structuredContent": {
+          "code": "permission_required",
+          "permission": "leads_contacts",
+          "settingsUrl": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+        }
+      }
+    }
+  },
+  {
+    "name": "PATCH /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-a",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:14.060Z",
+        "enabledAt": "2026-10-07T18:30:14.060Z",
+        "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+        "lastUsedAt": "2026-10-07T18:30:14.060Z",
+        "leadsContacts": true,
+        "revokedAt": null,
+        "status": "active",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "pages_leads overnight-verify-agent-1791397813893-a",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"code\":\"not_found\",\"message\":\"No Journey Page with this id is in your account.\"}"
+          }
+        ],
+        "isError": true,
+        "structuredContent": {
+          "code": "not_found",
+          "message": "No Journey Page with this id is in your account."
+        }
+      }
+    }
+  },
+  {
+    "name": "contacts_list overnight-verify-agent-1791397813893-a",
+    "status": 200,
+    "body": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"contacts\":[]}"
+          }
+        ],
+        "structuredContent": {
+          "contacts": []
+        }
+      }
+    }
+  },
+  {
+    "name": "PATCH /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-a",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:14.060Z",
+        "enabledAt": "2026-10-07T18:30:14.060Z",
+        "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+        "lastUsedAt": "2026-10-07T18:30:14.060Z",
+        "leadsContacts": false,
+        "revokedAt": null,
+        "status": "active",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 401,
+    "body": {
+      "error": "Unauthorized"
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345/revoke",
+    "status": 403,
+    "body": {
+      "error": "Forbidden"
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345/revoke",
+    "status": 404,
+    "body": {
+      "error": "Connection not found"
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345/enable",
+    "status": 404,
+    "body": {
+      "error": "Connection not found"
+    }
+  },
+  {
+    "name": "PATCH /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+    "status": 404,
+    "body": {
+      "error": "Connection not found"
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-a",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:14.060Z",
+        "enabledAt": "2026-10-07T18:30:14.060Z",
+        "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+        "lastUsedAt": "2026-10-07T18:30:14.060Z",
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:17.109Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-a",
+    "status": 403,
+    "body": {
+      "code": "connection_revoked",
+      "message": "The account owner revoked this client in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-b",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397813893-b",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.411Z",
+            "enabledAt": null,
+            "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:17.109Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-1",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-2",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-3",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-4",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-5",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-6",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-7",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-8",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-cap-9",
+    "status": 403,
+    "body": {
+      "code": "connection_pending",
+      "message": "This client is waiting for the account owner to approve it in Settings.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "whoami overnight-verify-agent-1791397813893-eleventh",
+    "status": 403,
+    "body": {
+      "code": "too_many_connections",
+      "message": "This account already has 10 live agent connections; in Settings, revoke one it no longer uses, or re-enable an existing one instead of adding a new client.",
+      "url": "https://pr-1024.clarity-video.workers.dev/settings/agents"
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345/enable",
+    "status": 409,
+    "body": {
+      "code": "too_many_connections",
+      "error": "This account already has 10 live agent connections; revoke one it no longer uses before re-enabling this one."
+    }
+  },
+  {
+    "name": "ALL ACCEPTANCE ASSERTIONS PASS",
+    "status": 200,
+    "body": {}
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-9",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.602Z",
+            "enabledAt": null,
+            "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-8",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.372Z",
+            "enabledAt": null,
+            "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-7",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.148Z",
+            "enabledAt": null,
+            "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-6",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.928Z",
+            "enabledAt": null,
+            "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-5",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.707Z",
+            "enabledAt": null,
+            "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-4",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.474Z",
+            "enabledAt": null,
+            "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-3",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.266Z",
+            "enabledAt": null,
+            "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-2",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.037Z",
+            "enabledAt": null,
+            "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-1",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.772Z",
+            "enabledAt": null,
+            "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-b",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.411Z",
+            "enabledAt": null,
+            "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": null,
+            "status": "pending",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:17.109Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_2659af9f-cbd9-498d-bf6a-3805681cf439/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-9",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:19.602Z",
+        "enabledAt": null,
+        "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:20.371Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-8",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:19.372Z",
+        "enabledAt": null,
+        "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:20.540Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_9edb5364-7bc2-4984-b249-8d4577a0bb48/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-7",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:19.148Z",
+        "enabledAt": null,
+        "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:20.704Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-6",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:18.928Z",
+        "enabledAt": null,
+        "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:20.872Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_94f0743a-3617-439d-907a-88ddb02fc3e8/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-5",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:18.707Z",
+        "enabledAt": null,
+        "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:21.044Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_08e363d7-0cec-4c20-a2b4-21674939d298/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-4",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:18.474Z",
+        "enabledAt": null,
+        "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:21.246Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_e57e857d-c4cf-4ad6-b477-05310edd7edc/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-3",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:18.266Z",
+        "enabledAt": null,
+        "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:21.427Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_c709c22c-a403-47a6-8e5a-753417a39318/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-2",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:18.037Z",
+        "enabledAt": null,
+        "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:21.588Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-cap-1",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:17.772Z",
+        "enabledAt": null,
+        "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:21.786Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_d23d7620-b2a3-444e-a16d-2787a115559d/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-b",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:17.411Z",
+        "enabledAt": null,
+        "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+        "lastUsedAt": null,
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:21.958Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "POST /api/agent/connections/conn_0e468eca-7f2a-4101-af97-ea9c6745c345/revoke",
+    "status": 200,
+    "body": {
+      "data": {
+        "clientId": "overnight-verify-agent-1791397813893-a",
+        "clientName": null,
+        "createdAt": "2026-10-07T18:30:14.060Z",
+        "enabledAt": "2026-10-07T18:30:14.060Z",
+        "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+        "lastUsedAt": "2026-10-07T18:30:14.060Z",
+        "leadsContacts": false,
+        "revokedAt": "2026-10-07T18:30:22.152Z",
+        "status": "revoked",
+        "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3"
+      }
+    }
+  },
+  {
+    "name": "GET /api/agent/connections",
+    "status": 200,
+    "body": {
+      "data": {
+        "connections": [
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-9",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.602Z",
+            "enabledAt": null,
+            "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.371Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-8",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.372Z",
+            "enabledAt": null,
+            "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.540Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-7",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:19.148Z",
+            "enabledAt": null,
+            "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.704Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-6",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.928Z",
+            "enabledAt": null,
+            "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:20.872Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-5",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.707Z",
+            "enabledAt": null,
+            "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.044Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-4",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.474Z",
+            "enabledAt": null,
+            "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.246Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-3",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.266Z",
+            "enabledAt": null,
+            "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.427Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-2",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:18.037Z",
+            "enabledAt": null,
+            "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.588Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-cap-1",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.772Z",
+            "enabledAt": null,
+            "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.786Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-b",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:17.411Z",
+            "enabledAt": null,
+            "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+            "lastUsedAt": null,
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:21.958Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          },
+          {
+            "clientId": "overnight-verify-agent-1791397813893-a",
+            "clientName": null,
+            "createdAt": "2026-10-07T18:30:14.060Z",
+            "enabledAt": "2026-10-07T18:30:14.060Z",
+            "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+            "lastUsedAt": "2026-10-07T18:30:14.060Z",
+            "leadsContacts": false,
+            "revokedAt": "2026-10-07T18:30:22.152Z",
+            "status": "revoked",
+            "userId": "acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "workosUserId": "user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+            "actions": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "cleanup all created connections revoked",
+    "status": 200,
+    "body": [
+      {
+        "id": "conn_2659af9f-cbd9-498d-bf6a-3805681cf439",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_55f87bcb-5bee-43c9-ad02-9286d512b6e1",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_9edb5364-7bc2-4984-b249-8d4577a0bb48",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_8aeb7aa9-f338-4f30-8ca7-37fa07e6b8c7",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_94f0743a-3617-439d-907a-88ddb02fc3e8",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_08e363d7-0cec-4c20-a2b4-21674939d298",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_e57e857d-c4cf-4ad6-b477-05310edd7edc",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_c709c22c-a403-47a6-8e5a-753417a39318",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_92ab95fc-9916-4ff6-ba50-cc8f583011eb",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_d23d7620-b2a3-444e-a16d-2787a115559d",
+        "status": "revoked"
+      },
+      {
+        "id": "conn_0e468eca-7f2a-4101-af97-ea9c6745c345",
+        "status": "revoked"
+      }
+    ]
+  }
+]
