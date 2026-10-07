@@ -1,0 +1,99 @@
+{
+  "edits": [
+    {
+      "op": "remove_plan",
+      "blockId": "pricing",
+      "seqNo": "10"
+    },
+    {
+      "op": "remove_plan",
+      "blockId": "pricing",
+      "seqNo": "20"
+    }
+  ],
+  "result": {
+    "ok": true,
+    "plans": [
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [],
+        "price": "",
+        "seq_no": "20261007230000",
+        "title": "Plan B",
+        "unit_measure": ""
+      }
+    ]
+  }
+}
+{
+  "edits": [
+    {
+      "op": "remove_feature",
+      "blockId": "pricing",
+      "planSeqNo": "10",
+      "seqNo": "100"
+    },
+    {
+      "op": "remove_feature",
+      "blockId": "pricing",
+      "planSeqNo": "10",
+      "seqNo": "200"
+    }
+  ],
+  "result": {
+    "ok": true,
+    "plans": [
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [
+          {
+            "feature": "Feature B",
+            "seq_no": "20261007230000"
+          }
+        ],
+        "price": "",
+        "seq_no": "10",
+        "title": "Plan A",
+        "unit_measure": ""
+      },
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [],
+        "price": "",
+        "seq_no": "20",
+        "title": "Plan B",
+        "unit_measure": ""
+      }
+    ]
+  }
+}
+{
+  "edits": [
+    {
+      "op": "remove_plan",
+      "blockId": "pricing",
+      "seqNo": "10"
+    },
+    {
+      "op": "set_plan_field",
+      "blockId": "pricing",
+      "seqNo": "20",
+      "field": "title",
+      "value": "Renamed B"
+    }
+  ],
+  "result": {
+    "ok": false,
+    "at": 1,
+    "refusal": {
+      "code": "not_found",
+      "id": "20"
+    }
+  }
+}

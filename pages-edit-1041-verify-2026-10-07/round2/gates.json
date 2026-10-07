@@ -1,0 +1,43 @@
+{
+  "install": {
+    "status": "PASS",
+    "evidence": "install.log"
+  },
+  "typecheck": {
+    "status": "PASS",
+    "evidence": "typecheck.log",
+    "note": "207 existing test-type errors at budget"
+  },
+  "test": {
+    "status": "PASS",
+    "evidence": "test.log",
+    "counts": {
+      "router": 170,
+      "workspace_tree": 502,
+      "editor": 3920,
+      "scripts": 344,
+      "skipped": 1
+    }
+  },
+  "lint": {
+    "status": "PASS",
+    "evidence": "lint.log"
+  },
+  "build": {
+    "status": "PASS",
+    "evidence": "build.log",
+    "note": "Existing chunk-size advisory"
+  },
+  "loc": {
+    "status": "PASS",
+    "evidence": "loc.log"
+  },
+  "guards": {
+    "status": "PASS",
+    "evidence": "guards.log"
+  },
+  "css": {
+    "status": "PASS",
+    "evidence": "css.log"
+  }
+}

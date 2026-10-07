@@ -1,0 +1,156 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>PR 1041 independent verification</title><style>body{font:16px/1.5 system-ui,sans-serif;max-width:1100px;margin:36px auto;padding:0 24px;color:#172033;background:#f5f7fa}header,section{background:white;padding:24px;border:1px solid #dbe1ea;border-radius:12px;margin-bottom:24px}h1{margin:0;font-size:30px}table{border-collapse:collapse;width:100%}td,th{text-align:left;vertical-align:top;padding:12px;border-bottom:1px solid #dbe1ea}.pass{color:#086b45}img{width:100%;height:auto;border:1px solid #dbe1ea}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}a{color:#185abd}.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:650px){.pair{display:block}}</style><header><h1 class="pass">VERIFIED</h1><p>Independent preview verification of PR #1041. No actionable findings.</p><p><a href="https://pr-1041.clarity-video.workers.dev">https://pr-1041.clarity-video.workers.dev</a><br><code>272a2d37736aa6ab8785a542d30ad7e914d18387</code></p><p>2026-10-07T20:50:08.265383+00:00<br>Independent backend and diff verification passed. Fresh gpt-6-astra browser verification passed; key screenshots and API records independently inspected.</p></header><section><h2>Checks</h2><table><tr><th>Check</th><th>Result</th><th>Evidence</th></tr><tr><td>Frozen install, lint, typecheck, root tests, build</td><td class="pass">PASS</td><td>4,936 tests passed; one script test skipped. Typecheck stays at the existing 207-error test budget. Build retains its chunk-size advisory. <a href="gates.json">gates.json</a></td></tr><tr><td>LOC, guards table, CSS budget, diff whitespace</td><td class="pass">PASS</td><td>All checks passed against fetched origin/main. <a href="diff-audit.md">diff-audit.md</a></td></tr><tr><td>Authenticated exact-head preview</td><td class="pass">PASS</td><td>272a2d37736aa6ab8785a542d30ad7e914d18387 <a href="browser/doctor.json">browser/doctor.json</a></td></tr><tr><td>Original three batch repros</td><td class="pass">PASS</td><td>Two plan removals leave zero plans; two feature removals leave zero features; remove A then edit B preserves B at sequence 20. <a href="batch-defect.json">batch-defect.json</a></td></tr><tr><td>Plan, feature, form and ID-addressed FAQ batches</td><td class="pass">PASS</td><td>Thirteen cases cover two removals, removal then sibling edit, insertion then sibling edit, and plan duplication then original edit. <a href="batch-extended.json">batch-extended.json</a></td></tr><tr><td>Guarded positional lists</td><td class="pass">PASS</td><td>Eleven cases cover current-draft positions for summary rows and columns, gallery and logos images, and idless FAQ rows. Stale guards refuse atomically. <a href="positional.json">positional.json</a></td></tr><tr><td>MCP conformance</td><td class="pass">PASS</td><td>All 13 checks passed. <a href="conformance.json">conformance.json</a></td></tr><tr><td>Draft-only, replay, refusal and naming regressions</td><td class="pass">PASS</td><td>Live pages_get confirms edits, unchanged publication state, idempotent replay, atomic refusal and unique field names. <a href="live-api.json">live-api.json</a></td></tr><tr><td>Canvas field naming with pointer and keyboard</td><td class="pass">PASS</td><td>question_1 and custom_field2 remain; added fields use custom_field3 and custom_field4 after reload. Rendered input names are unique. <a href="browser/11-field-names.json">browser/11-field-names.json</a></td></tr><tr><td>Canvas content, CTA, insertion and drag</td><td class="pass">PASS</td><td>Hero, story, FAQ, pricing and form edits saved and reloaded. Hero CTA add/remove, canvas section insertion and pointer drag passed. <a href="browser/21-final-document.json">browser/21-final-document.json</a></td></tr><tr><td>Library and Settings</td><td class="pass">PASS</td><td>Screenshots inspected. No browser console errors or failed HTTP responses; 13 successful PUT saves and no publish calls. <a href="browser/network.ndjson">browser/network.ndjson</a></td></tr><tr><td>Connection lifecycle and cap</td><td class="pass">PASS</td><td>Revoke, pending approval and enable pass in live-api.json. The ten-connection cap passes here. <a href="connections-cap.json">connections-cap.json</a></td></tr><tr><td>Diff audit and publication regressions</td><td class="pass">PASS</td><td>Whole fetched-base diff reviewed. Local tests cover publication isolation, public ordering, lead metadata and contact creation. <a href="diff-audit.md">diff-audit.md</a></td></tr><tr><td>Cleanup</td><td class="pass">PASS</td><td>Every created page deleted and read back as 404; every created connection confirmed revoked. API-run cleanup appears in each JSON transcript. <a href="browser/cleanup.json">browser/cleanup.json</a></td></tr></table></section><section><h2>Before and after</h2><p>The same three live requests failed at the round-one head and pass at this head. The requests use sequences 10 and 20 for plans, and 100 and 200 for features.</p><div class="pair"><div><h3>Before</h3><pre>[
+  {
+    &quot;name&quot;: &quot;two plan removals&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 3,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20261007194956&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  },
+  {
+    &quot;name&quot;: &quot;two feature removals&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 5,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [
+          {
+            &quot;feature&quot;: &quot;Feature B&quot;,
+            &quot;seq_no&quot;: &quot;20261007194958&quot;
+          }
+        ],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;10&quot;,
+        &quot;title&quot;: &quot;Plan A&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      },
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  },
+  {
+    &quot;name&quot;: &quot;remove then edit sibling&quot;,
+    &quot;answer&quot;: {
+      &quot;code&quot;: &quot;edit_refused&quot;,
+      &quot;at&quot;: 1,
+      &quot;message&quot;: &quot;Edit 2 was refused (not_found).&quot;,
+      &quot;refusal&quot;: {
+        &quot;code&quot;: &quot;not_found&quot;,
+        &quot;id&quot;: &quot;20&quot;
+      },
+      &quot;revision&quot;: 6
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [
+          {
+            &quot;feature&quot;: &quot;Feature A&quot;,
+            &quot;seq_no&quot;: &quot;100&quot;
+          },
+          {
+            &quot;feature&quot;: &quot;Feature B&quot;,
+            &quot;seq_no&quot;: &quot;200&quot;
+          }
+        ],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;10&quot;,
+        &quot;title&quot;: &quot;Plan A&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      },
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  }
+]</pre></div><div><h3>After</h3><pre>[
+  {
+    &quot;name&quot;: &quot;two plan removals&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 3,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: []
+  },
+  {
+    &quot;name&quot;: &quot;two feature removals&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 5,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;10&quot;,
+        &quot;title&quot;: &quot;Plan A&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      },
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  },
+  {
+    &quot;name&quot;: &quot;remove then edit sibling&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 7,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20&quot;,
+        &quot;title&quot;: &quot;Renamed B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  }
+]</pre></div></div></section><section><h2>Screenshots</h2><figure><img src="browser/12-reloaded-canvas.png" alt="Hero and story text after reload."><figcaption>Hero and story text after reload. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/18-form-final.png" alt="Form with pointer-added and keyboard-added fields after reload."><figcaption>Form with pointer-added and keyboard-added fields after reload. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/19-pricing-final.png" alt="Pricing title, price and description after reload."><figcaption>Pricing title, price and description after reload. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/20-faq-final.png" alt="FAQ answer and reordered sections after reload."><figcaption>FAQ answer and reordered sections after reload. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/21-canvas-added-logos.png" alt="Section added from the canvas and persisted."><figcaption>Section added from the canvas and persisted. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/16-library.png" alt="Library lists the test draft."><figcaption>Library lists the test draft. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/17-settings.png" alt="Settings loaded."><figcaption>Settings loaded. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure><figure><img src="browser/22-cleanup-library.png" alt="Library after deletion of the test draft."><figcaption>Library after deletion of the test draft. Target: https://pr-1041.clarity-video.workers.dev.</figcaption></figure></section><section><h2>Console and network</h2><p>No browser console errors or failed HTTP responses. One draft creation returned 201, and 13 browser PUT saves returned 200. No publish requests occurred. API transcripts include intentional refusal probes and 404 readbacks after cleanup.</p><p>Live publication and prospect submission were not run because publishing was forbidden. Local tests cover existing-publication isolation, lead capture, contact creation and forced CAS retry. Public input names were inspected in the editor, which shares the public name conversion. Accepted concurrent-list and overlapping replay cases were excluded.</p><p><a href="VERDICT.md">Verdict</a> · <a href="browser/REPORT.md">Browser report</a> · <a href="browser/network.ndjson">Network log</a> · <a href="browser/console.ndjson">Console log</a></p></section></html>

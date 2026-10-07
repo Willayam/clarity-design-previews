@@ -1,0 +1,8 @@
+import {applyEdits,createBlock,defaultJourneyPageDocument} from './domain.mjs';
+const d=defaultJourneyPageDocument();const pricing=createBlock('pricing','pricing');const seed=pricing.fields.pricings[0];pricing.fields.pricings=[{...seed,title:'Plan A',seq_no:'10',features:[{feature:'Feature A',seq_no:'100'},{feature:'Feature B',seq_no:'200'}]},{...seed,title:'Plan B',seq_no:'20',features:[]}];d.blocks.push(pricing);
+const now=new Date('2026-10-07T21:00:00Z');
+for(const edits of [
+[{op:'remove_plan',blockId:'pricing',seqNo:'10'},{op:'remove_plan',blockId:'pricing',seqNo:'20'}],
+[{op:'remove_feature',blockId:'pricing',planSeqNo:'10',seqNo:'100'},{op:'remove_feature',blockId:'pricing',planSeqNo:'10',seqNo:'200'}],
+[{op:'remove_plan',blockId:'pricing',seqNo:'10'},{op:'set_plan_field',blockId:'pricing',seqNo:'20',field:'title',value:'Renamed B'}]
+]){const result=applyEdits(d,edits,{now});console.log(JSON.stringify({edits,result:result.ok?{ok:true,plans:result.document.blocks.find(b=>b.id==='pricing').fields.pricings}:result},null,2))}

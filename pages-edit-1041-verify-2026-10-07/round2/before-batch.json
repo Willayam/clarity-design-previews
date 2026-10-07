@@ -1,0 +1,99 @@
+[
+  {
+    "name": "two plan removals",
+    "answer": {
+      "revision": 3,
+      "changed": true
+    },
+    "plans": [
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [],
+        "price": "",
+        "seq_no": "20261007194956",
+        "title": "Plan B",
+        "unit_measure": ""
+      }
+    ]
+  },
+  {
+    "name": "two feature removals",
+    "answer": {
+      "revision": 5,
+      "changed": true
+    },
+    "plans": [
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [
+          {
+            "feature": "Feature B",
+            "seq_no": "20261007194958"
+          }
+        ],
+        "price": "",
+        "seq_no": "10",
+        "title": "Plan A",
+        "unit_measure": ""
+      },
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [],
+        "price": "",
+        "seq_no": "20",
+        "title": "Plan B",
+        "unit_measure": ""
+      }
+    ]
+  },
+  {
+    "name": "remove then edit sibling",
+    "answer": {
+      "code": "edit_refused",
+      "at": 1,
+      "message": "Edit 2 was refused (not_found).",
+      "refusal": {
+        "code": "not_found",
+        "id": "20"
+      },
+      "revision": 6
+    },
+    "plans": [
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [
+          {
+            "feature": "Feature A",
+            "seq_no": "100"
+          },
+          {
+            "feature": "Feature B",
+            "seq_no": "200"
+          }
+        ],
+        "price": "",
+        "seq_no": "10",
+        "title": "Plan A",
+        "unit_measure": ""
+      },
+      {
+        "cta": "",
+        "cta_link": "",
+        "description": "",
+        "features": [],
+        "price": "",
+        "seq_no": "20",
+        "title": "Plan B",
+        "unit_measure": ""
+      }
+    ]
+  }
+]

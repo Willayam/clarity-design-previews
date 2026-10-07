@@ -1,0 +1,1 @@
+The first bundle command used editor/node_modules/esbuild, which is absent in this hoisted install. Requiring root esbuild produced the domain bundle. No live requests ran before that correction. The round-one live harness was reused at the new SHA; its connection-cap check ran separately. All API fixture deletes and connection revokes were confirmed.

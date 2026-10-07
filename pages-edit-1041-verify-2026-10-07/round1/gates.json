@@ -1,0 +1,42 @@
+[
+  {
+    "check": "Frozen install",
+    "status": "PASS",
+    "evidence": "install.log"
+  },
+  {
+    "check": "Lint",
+    "status": "PASS",
+    "evidence": "lint.log"
+  },
+  {
+    "check": "Typecheck, 207 existing test-type errors at budget",
+    "status": "PASS",
+    "evidence": "typecheck.log"
+  },
+  {
+    "check": "Root tests, 4919 passed and 1 skipped",
+    "status": "PASS",
+    "evidence": "test.log"
+  },
+  {
+    "check": "Editor build",
+    "status": "PASS",
+    "evidence": "build.log"
+  },
+  {
+    "check": "LOC ratchet against fetched origin/main",
+    "status": "PASS",
+    "evidence": "loc.log"
+  },
+  {
+    "check": "Guards table",
+    "status": "PASS",
+    "evidence": "guards.log"
+  },
+  {
+    "check": "Canonical and legacy route coexistence, 2 passed",
+    "status": "PASS",
+    "evidence": "routes.log"
+  }
+]

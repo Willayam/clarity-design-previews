@@ -1,0 +1,67 @@
+[
+  {
+    "name": "GET /.well-known/oauth-protected-resource",
+    "status": "PASS",
+    "detail": "https://pr-1041.clarity-video.workers.dev"
+  },
+  {
+    "name": "GET /.well-known/oauth-protected-resource/mcp",
+    "status": "PASS",
+    "detail": "https://pr-1041.clarity-video.workers.dev"
+  },
+  {
+    "name": "bare POST /mcp is 401 with resource_metadata",
+    "status": "PASS",
+    "detail": "Bearer error=\"invalid_request\", error_description=\"missing bearer token\", resource_metadata=\"https://pr-1041.clarity-video.workers.dev/.well-known/oauth-protected-resource\""
+  },
+  {
+    "name": "a session cookie beside the bearer is 401",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "GET /mcp is 405",
+    "status": "PASS",
+    "detail": "Allow: POST, OPTIONS"
+  },
+  {
+    "name": "OPTIONS /mcp answers CORS for any origin",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "initialize",
+    "status": "PASS",
+    "detail": "clarity 0.1.0"
+  },
+  {
+    "name": "notifications/initialized is 202",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "tools/list names whoami with annotations",
+    "status": "PASS",
+    "detail": "whoami library_list videos_get pages_get pages_edit pages_stats pages_leads contacts_list approvals_get"
+  },
+  {
+    "name": "tools/list lists the eight read operations, each read-only",
+    "status": "PASS",
+    "detail": "9 tools"
+  },
+  {
+    "name": "tools/call whoami names the account and its connection",
+    "status": "PASS",
+    "detail": "user_01M3PV8N4H36ZZPHGXFXWCQPM3 allowed conn_c0ecc8ec-1b7a-4289-80ed-1eb6cbb88271"
+  },
+  {
+    "name": "tools/call pages_leads is refused with permission_required until the owner grants it",
+    "status": "PASS",
+    "detail": "https://pr-1041.clarity-video.workers.dev/settings/agents"
+  },
+  {
+    "name": "a batch array is -32600",
+    "status": "PASS",
+    "detail": ""
+  }
+]

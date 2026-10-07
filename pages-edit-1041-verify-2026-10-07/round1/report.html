@@ -1,0 +1,102 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>PR 1041 independent verification</title><style>body{font:16px/1.5 system-ui,sans-serif;margin:40px auto;max-width:1080px;padding:0 24px;color:#152033;background:#f8fafc}header{padding:24px;border-left:6px solid #b91c1c;background:#fee2e2}h1{margin:0}table{width:100%;border-collapse:collapse;margin:24px 0;background:white}td,th{text-align:left;padding:12px;border:1px solid #d9e2ec}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:20px;border:1px solid #d9e2ec}figure{margin:30px 0}img{width:100%;border:1px solid #d9e2ec}figcaption{padding:8px;color:#475569}a{color:#1d4ed8}</style><header><h1>NOT VERIFIED</h1><p>Independent preview verification, 7 October 2026. One blocker confirmed by local probe and real MCP calls.</p><p>https://pr-1041.clarity-video.workers.dev<br>68f6bdb1fed5a2222b9e78044b619beca00bf1f7</p></header><p><a href="VERDICT.md">Full verdict and acceptance matrix</a> · <a href="FINDINGS.md">Finding and expected fix</a> · <a href="browser/REPORT.md">Browser verifier report</a></p><table><thead><tr><th>Gate</th><th>Result</th><th>Evidence</th></tr></thead><tbody><tr><td>Frozen install</td><td>PASS</td><td><a href="install.log">install.log</a></td></tr><tr><td>Lint</td><td>PASS</td><td><a href="lint.log">lint.log</a></td></tr><tr><td>Typecheck, 207 existing test-type errors at budget</td><td>PASS</td><td><a href="typecheck.log">typecheck.log</a></td></tr><tr><td>Root tests, 4919 passed and 1 skipped</td><td>PASS</td><td><a href="test.log">test.log</a></td></tr><tr><td>Editor build</td><td>PASS</td><td><a href="build.log">build.log</a></td></tr><tr><td>LOC ratchet against fetched origin/main</td><td>PASS</td><td><a href="loc.log">loc.log</a></td></tr><tr><td>Guards table</td><td>PASS</td><td><a href="guards.log">guards.log</a></td></tr><tr><td>Canonical and legacy route coexistence, 2 passed</td><td>PASS</td><td><a href="routes.log">routes.log</a></td></tr><tr><td>MCP conformance</td><td>PASS, 13 checks</td><td><a href="conformance.json">conformance.json</a></td></tr><tr><td>Pricing batch targeting</td><td>FAIL</td><td><a href="batch-defect.json">batch-defect.json</a></td></tr></tbody></table><h2>Confirmed blocker</h2><p>Removing a pricing plan or feature renumbers its siblings. Two removals in one request return success while leaving the second target. A setter after a sibling removal refuses not_found. Preserve the surviving addresses on deletion.</p><p>The raw request and readback show the failure below. No product fix was made, so there is no after-fix screenshot.</p><pre>[
+  {
+    &quot;name&quot;: &quot;two plan removals&quot;,
+    &quot;status&quot;: &quot;REPRODUCED&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 3,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20261007194956&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  },
+  {
+    &quot;name&quot;: &quot;two feature removals&quot;,
+    &quot;status&quot;: &quot;REPRODUCED&quot;,
+    &quot;answer&quot;: {
+      &quot;revision&quot;: 5,
+      &quot;changed&quot;: true
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [
+          {
+            &quot;feature&quot;: &quot;Feature B&quot;,
+            &quot;seq_no&quot;: &quot;20261007194958&quot;
+          }
+        ],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;10&quot;,
+        &quot;title&quot;: &quot;Plan A&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      },
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  },
+  {
+    &quot;name&quot;: &quot;remove then edit sibling&quot;,
+    &quot;status&quot;: &quot;REPRODUCED&quot;,
+    &quot;answer&quot;: {
+      &quot;code&quot;: &quot;edit_refused&quot;,
+      &quot;at&quot;: 1,
+      &quot;message&quot;: &quot;Edit 2 was refused (not_found).&quot;,
+      &quot;refusal&quot;: {
+        &quot;code&quot;: &quot;not_found&quot;,
+        &quot;id&quot;: &quot;20&quot;
+      },
+      &quot;revision&quot;: 6
+    },
+    &quot;plans&quot;: [
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [
+          {
+            &quot;feature&quot;: &quot;Feature A&quot;,
+            &quot;seq_no&quot;: &quot;100&quot;
+          },
+          {
+            &quot;feature&quot;: &quot;Feature B&quot;,
+            &quot;seq_no&quot;: &quot;200&quot;
+          }
+        ],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;10&quot;,
+        &quot;title&quot;: &quot;Plan A&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      },
+      {
+        &quot;cta&quot;: &quot;&quot;,
+        &quot;cta_link&quot;: &quot;&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;features&quot;: [],
+        &quot;price&quot;: &quot;&quot;,
+        &quot;seq_no&quot;: &quot;20&quot;,
+        &quot;title&quot;: &quot;Plan B&quot;,
+        &quot;unit_measure&quot;: &quot;&quot;
+      }
+    ]
+  }
+]</pre><h2>Inspected browser evidence</h2><p>All screenshots show the PR preview at the verified head.</p><figure><img src="browser/18-faq-answer.png" alt="Hero and story edits, persisted FAQ question and answer, reordered FAQ section."><figcaption>Hero and story edits, persisted FAQ question and answer, reordered FAQ section.</figcaption></figure><figure><img src="browser/19-final-form.png" alt="Reloaded form with legacy-name collision fixtures and the required keyboard-added field."><figcaption>Reloaded form with legacy-name collision fixtures and the required keyboard-added field.</figcaption></figure><figure><img src="browser/16-library.png" alt="Library loads with the temporary draft before cleanup."><figcaption>Library loads with the temporary draft before cleanup.</figcaption></figure><figure><img src="browser/17-settings.png" alt="Settings loads on the exact-head preview."><figcaption>Settings loads on the exact-head preview.</figcaption></figure><h2>Console, network, and cleanup</h2><p>The browser run recorded 17 successful saves, no console errors or failed requests, and no publish calls. The API checks deliberately exercised typed refusals. The first cap probe hit the rate limiter; the separate cap run passed. See <a href="harness-notes.txt">harness notes</a>.</p><p><a href="browser/network.ndjson">Browser network log</a> · <a href="live-api.json">Live API transcript</a> · <a href="connections-cap.json">Connection-cap check and cleanup</a> · <a href="browser/cleanup.json">Browser page cleanup</a></p><p>New pages were deleted and new connections revoked. Public publication and prospect submissions were not exercised live because publication was forbidden; local dispatcher and submission tests passed.</p></html>
