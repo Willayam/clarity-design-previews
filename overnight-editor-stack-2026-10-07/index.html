@@ -57,13 +57,13 @@ claude &#39;Use the clarity-pr-1047 MCP server. Call pages_get with pageId b0fdd
 <td>6</td>
 <td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1046">https://github.com/Clarity-Video-HQ/clarity/pull/1046</a></td>
 <td>Deletes the right-hand panel, its toggle, the accordion and panel reorder; moves the e2e specs onto the canvas</td>
-<td>Not yet clean. Round 6 found typed text lost when a save conflict lands while you type in a pricing, form or legacy FAQ field (two writers on one page). Round 7 fixes the shared text field itself and is running</td>
+<td>Data-loss class fixed and verified over 12 rounds. Closed with the remaining two-writers-while-typing edge cases accepted. Last head 5d0125c passed local gates</td>
 </tr>
 <tr>
 <td>7</td>
 <td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1048">https://github.com/Clarity-Video-HQ/clarity/pull/1048</a></td>
-<td>One style for every ghost &quot;+ Add&quot; control in the page&#39;s own ink; pricing amounts wrap like the published page</td>
-<td>Clean, round 2</td>
+<td>One style for every ghost &quot;+ Add&quot; control in the page&#39;s own ink; pricing amounts wrap like the published page; review fixes (caret, Enter and Backspace for features, hover ring radius)</td>
+<td>Verified clean before its last rebase; the rebased head passed every local gate and the combined preview build</td>
 </tr>
 <tr>
 <td>MCP</td>
@@ -103,18 +103,22 @@ claude &#39;Use the clarity-pr-1047 MCP server. Call pages_get with pageId b0fdd
 <li>In the new agent write path, a form field named <code>journey_page_id</code> could have routed a prospect&#39;s lead into another workspace. Agents can no longer name fields, and the submission handler no longer lets a posted field override a server-owned value.</li>
 </ul>
 <h2>Not done, and follow-ups</h2>
+<p>Filed as GitHub issues:</p>
 <ul>
-<li><strong>#1024&#39;s dispatcher writes its replay record after the draft save.</strong> A retry that overlaps the first call can answer <code>stale_position</code> instead of replaying. This is in #1024, not in #1041.</li>
-<li><strong>Two helpers pick the next free form field name.</strong> They are <code>nextCustomFieldName</code> in the editor stack and <code>nextLeadFormFieldName</code> in #1041. The preview merge makes one delegate to the other. Whichever stack lands second should delete the duplicate.</li>
-<li><strong>On a short story image, the 80 px resize handle covers the Left alignment button.</strong> This is the same on main. Keyboard alignment works.</li>
-<li><strong>The rich-text link buttons are unreachable by keyboard.</strong> They behave the same in main&#39;s panel.</li>
-<li><strong>Form labels show an &quot;Enter &quot; prefix.</strong> A label stored as &quot;Your first name&quot; displays as &quot;Enter Your first name&quot; in the editor and on the public form. <code>leadFormFieldLabel</code> in <code>packages/journey-page-domain/src/lead-form-fields.ts</code> adds it. The behavior predates this work, but inline editing makes it visible.</li>
-<li><strong>A half-finished pricing button is hidden after a reload until it has a link.</strong> The label is kept, and adding the link brings it back. This follows the published page&#39;s rule.</li>
-<li><strong>Two Tab presses with no delay can skip the PDF buttons.</strong> Real key presses work.</li>
-<li><strong>The editor still saves whole documents.</strong> Next steps, in order: move the editor onto <code>applyEdits</code>, give list items durable ids and merge per item, then undo (WIL-3278). Folding <code>EditableText</code> into <code>InlineText</code> gives one text engine. The gallery drag and media resize should move onto <code>beginPointerDrag</code>.</li>
-<li><strong>Local <code>pnpm lint</code> does not run react-doctor.</strong> It prints a setup prompt, while CI runs it. Fix the local script so lanes see the same result CI does.</li>
-<li><strong>No usage data has been read yet.</strong> The rolling logos variant is the one cut I would consider after two weeks of usage counts on the new canvas controls.</li>
+<li>Undo, with today&#39;s decision: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1300">https://github.com/Clarity-Video-HQ/clarity/issues/1300</a></li>
+<li>Merge concurrent list edits per row instead of per list: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1369">https://github.com/Clarity-Video-HQ/clarity/issues/1369</a></li>
+<li>Move the editor onto the shared edit function (<code>applyEdits</code>): <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1370">https://github.com/Clarity-Video-HQ/clarity/issues/1370</a></li>
+<li>Fold <code>EditableText</code> into <code>InlineText</code> for one plain-text engine: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1371">https://github.com/Clarity-Video-HQ/clarity/issues/1371</a></li>
+<li>The agent dispatcher writes its replay record after the draft save (#1024): <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1372">https://github.com/Clarity-Video-HQ/clarity/issues/1372</a></li>
+<li>Deduplicate the next-free form field name helper: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1373">https://github.com/Clarity-Video-HQ/clarity/issues/1373</a></li>
+<li>Form labels display with an extra &quot;Enter &quot; prefix: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1374">https://github.com/Clarity-Video-HQ/clarity/issues/1374</a></li>
+<li>The story media resize handle covers the Left alignment button on short images: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1375">https://github.com/Clarity-Video-HQ/clarity/issues/1375</a></li>
+<li>Rich-text link buttons are not reachable by keyboard: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1376">https://github.com/Clarity-Video-HQ/clarity/issues/1376</a></li>
+<li>Local <code>pnpm lint</code> skips react-doctor while CI runs it: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1377">https://github.com/Clarity-Video-HQ/clarity/issues/1377</a></li>
+<li>Move the gallery drag and media resize onto <code>beginPointerDrag</code>: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1378">https://github.com/Clarity-Video-HQ/clarity/issues/1378</a></li>
+<li>Review usage of rarely used canvas controls after two weeks: <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1379">https://github.com/Clarity-Video-HQ/clarity/issues/1379</a></li>
 </ul>
+<p>Accepted, not filed: when two people type into the same page at once, a few caret and selection edge cases remain on #1046. William closed the run on that basis.</p>
 <h2>How it was built and checked</h2>
 <p>GPT-6 Sol built every PR in its own worktree, about 39 build and fix runs in all. GPT-6 Astra verified each PR independently about 36 times. It ran every gate, drove the editor on staging with real saves and reloads, compared it against a build of main, and audited the diff. Then three full end-to-end passes ran on the combined preview. A PR joined the stack only on a clean verdict, or a verdict with nits only. Verifiers found more than 60 blockers across the PRs. Each went back to a fresh owner with a failing test first.</p>
 <p>The last full preview pass, at <code>5c8a610</code>, passed 74 save-and-reload assertions across every block kind. It also passed the full MCP flow: token mint and conformance, <code>pages_get</code>, edits, same-<code>editId</code> replay, refusals, and an agent edit while the editor was open. Home, the Library and public pages were unaffected.</p>
