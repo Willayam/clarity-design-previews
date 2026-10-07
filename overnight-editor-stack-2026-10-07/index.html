@@ -1,0 +1,122 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Overnight editor stack</title><style>body{font:16px/1.6 -apple-system,system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1.2rem;color:#0f172a}h1{font-size:1.9rem;line-height:1.25}h2{margin-top:2.2rem;border-top:1px solid #e2e8f0;padding-top:1.1rem}p,li,td{overflow-wrap:anywhere}code{background:#f1f5f9;padding:.1em .3em;border-radius:4px;font-size:.88em}pre{background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:8px;overflow:auto;font-size:.85em}pre code{background:none;color:inherit;padding:0}table{border-collapse:collapse;width:100%;font-size:.9em;display:block;overflow:auto}th,td{border:1px solid #e2e8f0;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f8fafc}@media (prefers-color-scheme:dark){body{background:#0b1120;color:#e2e8f0}code{background:#1e293b}th{background:#111827}th,td{border-color:#334155}h2{border-color:#334155}a{color:#93c5fd}}</style></head><body><h1>Overnight editor stack: the right-hand panel is gone</h1>
+<p>Report for William, 2026-10-07 morning. Nothing merged and nothing deployed outside PR previews. Every PR below is open for your review.</p>
+<h2>Try it</h2>
+<p><strong>Preview:</strong> <a href="https://pr-1047.clarity-video.workers.dev">https://pr-1047.clarity-video.workers.dev</a>. PR #1047 combines the whole editor stack with the MCP work for testing only. Do not merge it. Sign in with the preview&#39;s seeded <code>userPro</code> account from <code>.env.e2e.local</code>. The &quot;Production shape fixtures&quot; folder holds a page with every block kind.</p>
+<p>Open any page in the editor. There is no right-hand panel and no panel toggle. Hover a section and use its handle to move it, add a section above or below, or remove it. The handle also works from the keyboard: Tab to it, Alt+Up or Alt+Down to move, Enter for its menu. Edit the lead form, pricing plans, logos, an attached PDF and FAQ rows directly on the page. Button links and other settings without a pixel open in the small card beside the button.</p>
+<p><strong>MCP, on the mini:</strong></p>
+<pre><code class="language-bash">cd ~/Development/clarity-overnight-1006/v-final
+claude mcp remove clarity-pr-1047 --scope local 2&gt;/dev/null || true
+AGENT_PREVIEW_SIGNING_KEY=&quot;$(security find-generic-password -a &quot;$USER&quot; -s clarity-agent-preview-signing-key -w | base64 -d)&quot; \
+  node scripts/agent-mcp.mjs connect \
+  --base https://pr-1047.clarity-video.workers.dev \
+  --sub user_01M3PV8N4H36ZZPHGXFXWCQPM3 \
+  --name clarity-pr-1047
+</code></pre>
+<p>Then start a fresh <code>claude</code> session and ask it to use the <code>clarity-pr-1047</code> server: call <code>pages_get</code> on a page, then <code>pages_edit</code> to change something, then <code>pages_get</code> again. Reload the page in the editor to see the change. The token lasts 12 hours. The connected account is the preview&#39;s seeded <code>userPro</code> account, so sign in to the preview as that account to see the same pages.</p>
+<h2>The stack, bottom to top</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>PR</th>
+<th>What it does</th>
+<th>Verification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1042">https://github.com/Clarity-Video-HQ/clarity/pull/1042</a></td>
+<td>A handle on every canvas section: drag, menu (move, add above or below, remove), Alt+arrow keys, one live region, hero protected, Escape cancels drags</td>
+<td>Clean, round 2</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1039">https://github.com/Clarity-Video-HQ/clarity/pull/1039</a></td>
+<td>Logos (add, remove, variant and colour card), attached PDF change and remove, FAQ delete by keyboard</td>
+<td>Clean except one nit, round 3</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1040">https://github.com/Clarity-Video-HQ/clarity/pull/1040</a></td>
+<td>One shared settings card for buttons; an emptied label keeps its link</td>
+<td>Clean (test-only follow-up), round 1</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1043">https://github.com/Clarity-Video-HQ/clarity/pull/1043</a></td>
+<td>The lead form on the canvas: title, description, field labels, Required, add and remove fields, Submit label and redirect</td>
+<td>Clean except one nit, round 2</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1045">https://github.com/Clarity-Video-HQ/clarity/pull/1045</a></td>
+<td>Pricing on the canvas: plan text, price, description, features, button and link, add, duplicate and delete plans</td>
+<td>Clean, round 8</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1046">https://github.com/Clarity-Video-HQ/clarity/pull/1046</a></td>
+<td>Deletes the right-hand panel, its toggle, the accordion and panel reorder; moves the e2e specs onto the canvas</td>
+<td>In its last fix round: a FAQ save-conflict could drop a typed answer</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1048">https://github.com/Clarity-Video-HQ/clarity/pull/1048</a></td>
+<td>One style for every ghost &quot;+ Add&quot; control in the page&#39;s own ink; pricing amounts wrap like the published page</td>
+<td>Two ghost controls joined the shared style; final round running</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1041">https://github.com/Clarity-Video-HQ/clarity/pull/1041</a> (on #1024)</td>
+<td><code>pages_edit</code>: agents make every edit the canvas can make, by stored ids, with replay, refusals, byte limits and an audit row</td>
+<td>Clean, round 14</td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1047">https://github.com/Clarity-Video-HQ/clarity/pull/1047</a></td>
+<td>The stack plus #1041 merged, for testing only</td>
+<td>Three full end-to-end passes</td>
+</tr>
+</tbody></table>
+<p>Land them bottom to top. #1041 sits on #1024, which is still open. Both change what agents can do, so they need your explicit approval to merge. #1024 adds the additive migration <code>0042_agent_access.sql</code>. The stacked PRs get no CI from GitHub because their base is not main. Every gate ran locally at each head, and PR #1047 ran the full CI and preview suites against the combined stack.</p>
+<h2>What changed from last night&#39;s design</h2>
+<p>Last night&#39;s design page (<a href="https://willayam.github.io/clarity-design-previews/editor-panel-removal-2026-10-06/">https://willayam.github.io/clarity-design-previews/editor-panel-removal-2026-10-06/</a>) proposed a typed edit core that the editor, the built-in AI and MCP all share. A Fable critique before the build changed the plan for tonight, and verification changed it further.</p>
+<ul>
+<li>The editor did not need the edit core to lose the panel. Every canvas control still writes through the existing <code>useEditorPage</code> commands. The typed core, <code>applyEdits</code> in <code>packages/journey-page-domain/src/page-edits.ts</code>, runs on the server for <code>pages_edit</code> only. Moving the editor onto it is the next step.</li>
+<li>Inverse edits were removed. Three verification rounds in a row found bugs in them, and nothing used them. Undo should be built on stored prior values instead.</li>
+<li>Replay rules are simple. A batch applies in order against the current draft. An edit to a missing target is refused. An edit that sets a value is a no-op when the value is already there. Retrying the same call goes through its <code>editId</code>.</li>
+<li>Existing data is never rewritten. A stored form field name, a stored <code>seq_no</code> and a stored block id each stay exactly as stored and stay addressable as stored. Only what an agent or a person creates gets fresh, unique values. Two early fixes had quietly renamed live form fields and reordered live pricing. The verifiers caught both and they were reversed.</li>
+<li>Nothing was cut. Every control the panel had now lives on the canvas, the logos variant and colour settings included.</li>
+</ul>
+<h2>Bugs fixed along the way</h2>
+<ul>
+<li>The hero could be deleted from the panel, and then nothing could add it back. The hook now refuses to remove the hero, and the hero has no handle.</li>
+<li>Canvas sections could not be moved, added or removed from the keyboard, and the only live region for move announcements sat inside the panel, which is inert when collapsed. The section handle fixes all three.</li>
+<li>The canvas drag never stored its session, so unmounting mid-drag could not cancel it. Escape now cancels every drag.</li>
+<li>Emptying a primary button&#39;s label also wiped its link (WIL-3295). The link and style now survive.</li>
+<li>&quot;+ Add field&quot; could give two form fields the same name, and lead capture then dropped one of the answers. New fields take the first unused name, and stored names are never changed.</li>
+<li>Duplicating a pricing plan could reverse its features, and an incomplete plan button could show on the page. Both fixed, and pricing order on the canvas now matches the published page.</li>
+<li>Removing a repeated logo removed every copy of it. Logos are now removed by position, and every stored logo has its own control, even past the six the page displays.</li>
+<li>The PDF frame, rolling logos and FAQ rows had controls a keyboard could not reach. All are reachable now.</li>
+<li>The button settings card trapped keyboard focus in several paths. It now follows document order, stays in the viewport, and allows one open card per page.</li>
+<li>Ghost &quot;+ Add&quot; controls were nearly invisible on dark themes. They now share one style in the page&#39;s own ink, measured at 13.9:1 to 17.9:1 contrast on the presets tested.</li>
+<li>In the new agent write path, a form field named <code>journey_page_id</code> could have routed a prospect&#39;s lead into another workspace. Agents can no longer name fields, and the submission handler no longer lets a posted field override a server-owned value.</li>
+</ul>
+<h2>Not done, and follow-ups</h2>
+<ul>
+<li><strong>#1024&#39;s dispatcher writes its replay record after the draft save.</strong> A retry that overlaps the first call can answer <code>stale_position</code> instead of replaying. This is in #1024, not in #1041.</li>
+<li><strong>Two helpers pick the next free form field name.</strong> They are <code>nextCustomFieldName</code> in the editor stack and <code>nextLeadFormFieldName</code> in #1041. The preview merge makes one delegate to the other. Whichever stack lands second should delete the duplicate.</li>
+<li><strong>On a short story image, the 80 px resize handle covers the Left alignment button.</strong> This is the same on main. Keyboard alignment works.</li>
+<li><strong>The rich-text link buttons are unreachable by keyboard.</strong> They behave the same in main&#39;s panel.</li>
+<li><strong>A half-finished pricing button is hidden after a reload until it has a link.</strong> The label is kept, and adding the link brings it back. This follows the published page&#39;s rule.</li>
+<li><strong>Two Tab presses with no delay can skip the PDF buttons.</strong> Real key presses work.</li>
+<li><strong>The editor still saves whole documents.</strong> Next steps, in order: move the editor onto <code>applyEdits</code>, give list items durable ids and merge per item, then undo (WIL-3278). Folding <code>EditableText</code> into <code>InlineText</code> gives one text engine. The gallery drag and media resize should move onto <code>beginPointerDrag</code>.</li>
+<li><strong>Local <code>pnpm lint</code> does not run react-doctor.</strong> It prints a setup prompt, while CI runs it. Fix the local script so lanes see the same result CI does.</li>
+<li><strong>No usage data has been read yet.</strong> The rolling logos variant is the one cut I would consider after two weeks of usage counts on the new canvas controls.</li>
+</ul>
+<h2>How it was built and checked</h2>
+<p>GPT-6 Sol built every PR in its own worktree, about 39 build and fix runs in all. GPT-6 Astra verified each PR independently about 36 times. It ran every gate, drove the editor on staging with real saves and reloads, compared it against a build of main, and audited the diff. Then three full end-to-end passes ran on the combined preview. A PR joined the stack only on a clean verdict, or a verdict with nits only. Verifiers found more than 60 blockers across the PRs. Each went back to a fresh owner with a failing test first.</p>
+<p>The last full preview pass, at <code>5c8a610</code>, passed 74 save-and-reload assertions across every block kind. It also passed the full MCP flow: token mint and conformance, <code>pages_get</code>, edits, same-<code>editId</code> replay, refusals, and an agent edit while the editor was open. Home, the Library and public pages were unaffected.</p>
+<p>Claude coordinated. A Fable critique shaped the plan, and Claude capacity ran low through the night, so most of the work ran on Codex.</p>
+<p>The decision trail is <code>~/Development/clarity-overnight-1006/decisions.tsv</code> on the mini, and every verdict with its evidence is under <code>~/Development/clarity-overnight-1006/verify/</code>.</p>
+</body></html>
