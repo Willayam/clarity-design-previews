@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Logo Edit verification</title>
+<style>body{font:16px/1.5 system-ui;margin:32px auto;max-width:1100px;padding:0 16px;color:#17223b}img{max-width:100%;border:1px solid #ccd3df;border-radius:8px}figure{margin:24px 0}figcaption{margin:8px 0}li{margin:8px 0}</style>
+<h1>Logo Edit verification</h1>
+<p><strong>VERIFIED</strong> on the PR #1033 preview at commit 1b815542a282f4b5d15060a1f019d76a204516ea. October 7, 2026. Screenshots use mock QA data.</p>
+<p>Edit opened the picker during mousedown. Its backdrop intercepted the release, so the resulting outside click closed it. Opening on click resolves that sequence. Main at 2006da6f6 has the same bug, reproduced with its editor code and read-only preview data.</p>
+<ul><li>One click opens the loaded picker. Cancel and reopen passed independently.</li><li>A selected logo persists after reload.</li><li>Unchecked preserves the account default. Checked updates it, and a new page inherits it.</li><li>The regression test failed with outside-press before the fix and passes after it.</li><li>Typecheck, lint and 3,233 editor tests passed.</li></ul>
+<figure><figcaption>Before: hover exposes the toolbar. The label and toolbar overlap the logo.</figcaption><img src="before.png" alt="Before click, logo toolbar is visible"></figure>
+<figure><figcaption>Before: one Edit click leaves the picker closed after it flashes. The event trace recorded the modal mounting before mouseup and unmounting after an outside click.</figcaption><img src="before-closed.png" alt="Picker closed after one Edit click"></figure>
+<figure><figcaption>After: one Edit click opens the loaded picker and it stays open.</figcaption><img src="after.png" alt="Open logo picker with loaded image cards and Set logo button"></figure>
+<figure><figcaption>Unchecked: the alternate logo applies only to this page.</figcaption><img src="checkbox-unchecked.png" alt="Use on new pages too unchecked"></figure>
+<figure><figcaption>Checked: the alternate logo becomes the default for new pages.</figcaption><img src="checkbox-checked.png" alt="Use on new pages too checked"></figure>
+<p>The QA default was restored and the scratch page deleted. No production changes. Follow-up: move the preview label and hover toolbar away from the logo. William's exact page returns Forbidden for the QA account; the same flow ran on a QA page.</p>
+<p>No browser page errors occurred during final verification. The authenticated doctor confirmed the preview head and session. An independent browser check confirmed the loaded picker, Cancel and reopen.</p>
+</html>
