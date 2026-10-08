@@ -6,7 +6,7 @@ body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:
 h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:32px 0 8px}p{margin:6px 0}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:700px){.pair{grid-template-columns:1fr}}
 figure{margin:0}img{width:100%;border:1px solid #e2e8f0;border-radius:8px}figcaption{font-size:13px;color:#475569;margin-top:4px}
-table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+table{min-width:560px;border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
 th{color:#475569;font-weight:600}.muted{color:#64748b}code{background:#f1f5f9;padding:1px 4px;border-radius:4px}
 </style></head><body>
 <h1>Automatic video titles, rebuilt on the transcript</h1>
@@ -20,7 +20,7 @@ th{color:#475569;font-weight:600}.muted{color:#64748b}code{background:#f1f5f9;pa
 <figure style="margin-top:16px"><img src="after-editor.png" alt="Editor showing the followed title in the heading and top bar"><figcaption>The editor shows the same followed title in the heading and the top bar without storing it, so a later video rename still flows through.</figcaption></figure>
 
 <h2>What each take ended as</h2>
-<table><tr><th>Take</th><th>Before</th><th>After</th><th>Why</th></tr>
+<div style="overflow-x:auto"><table><tr><th>Take</th><th>Before</th><th>After</th><th>Why</th></tr>
 <tr><td>Recording, pricing follow-up</td><td>Untitled Video</td><td>Pricing structure for team and business tiers</td><td>Titled, auto-trimmed</td></tr>
 <tr><td>Recording, Clarity test take</td><td>Untitled Video</td><td>How to record educational presentations with slides</td><td>Titled, auto-trimmed</td></tr>
 <tr><td>Recording, recruiting outreach (page saved early)</td><td>Untitled Video</td><td>Machine learning engineer role at Bright Line</td><td>Titled, page follows (shown above)</td></tr>
@@ -32,7 +32,7 @@ th{color:#475569;font-weight:600}.muted{color:#64748b}code{background:#f1f5f9;pa
 <tr><td>Upload IMG_4830.MOV (3-minute ramble)</td><td>IMG_4830</td><td>Warehouse migration project update</td><td>Titled, not trimmed</td></tr>
 <tr><td>Upload "Q3 analytics walkthrough.mp4"</td><td>Q3 analytics walkthrough</td><td>Q3 analytics walkthrough</td><td>A person's file name wins</td></tr>
 <tr><td>Upload in German</td><td>IMG_4831</td><td>IMG_4831</td><td>Not English, no model call</td></tr>
-</table>
+</table></div>
 <p class="muted">Also on the preview: four real-speech testimonial uploads, all titled and none trimmed.</p>
 
 <h2>Timing</h2>
@@ -40,10 +40,10 @@ th{color:#475569;font-weight:600}.muted{color:#64748b}code{background:#f1f5f9;pa
 <p>A public page cached before the title lands can keep the old render for up to 60 seconds, the existing page cache lifetime.</p>
 
 <h2>Model choice</h2>
-<table><tr><th>Model</th><th>Titles</th><th>p50 / p95 call</th><th>Cost per 1,000 takes</th><th>Blind quality score</th></tr>
+<div style="overflow-x:auto"><table><tr><th>Model</th><th>Titles</th><th>p50 / p95 call</th><th>Cost per 1,000 takes</th><th>Blind quality score</th></tr>
 <tr><td><b>Workers AI gemma-4-26b-a4b (picked)</b></td><td>13/13 on the preview, 15/15 and 14/14 locally</td><td>0.46 s / 2.1 s</td><td>about $0.04</td><td>48 / 65</td></tr>
 <tr><td>OpenAI gpt-6-luna via AI Gateway</td><td>11/13, two empty on real speech</td><td>2.3 s / 8.7 s</td><td>about $0.05</td><td>50 / 65</td></tr>
 <tr><td>Workers AI mistral-small-3.1-24b</td><td>15/15, Title Case against the prompt</td><td>0.53 s / 2.6 s</td><td>about $0.12</td><td>not judged</td></tr>
-</table>
+</table></div>
 <p>A blind judge scored the two finalists level overall: gpt-6-luna was a little more specific and won 7 of 13, gemma won 3, 3 tied. Gemma never came back empty, answers five times faster and keeps transcripts inside Cloudflare, so it is the route. Every call goes through the environment's AI Gateway, and each one leaves an <code>ai_call</code> point with the gateway id and its log id.</p>
 </body></html>
