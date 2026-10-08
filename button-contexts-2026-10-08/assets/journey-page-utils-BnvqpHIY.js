@@ -1,0 +1,1 @@
+import"./screen-Bs9uGL7f.js";function e(e,t,n){let r=[...e],[i]=r.splice(t,1);return r.splice(n,0,i),r}function t(e){return e===`middle`?`center`:e===`right`?`right`:`left`}export{e as n,t};
