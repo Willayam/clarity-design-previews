@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-fQtQTDHU.js";import{R as t}from"./screen-DIPrm0Af.js";var n=e();function r({attributes:e,block:r,children:i}){let{tag:a,attributes:o}=t[r.kind].skeleton;return(0,n.jsx)(a,{...Object.fromEntries(Object.entries(o).filter(([,e])=>typeof e==`string`)),"data-section-id":r.id,"data-surface-block":r.id,...e,children:i})}export{r as t};
