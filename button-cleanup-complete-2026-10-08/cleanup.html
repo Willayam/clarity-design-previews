@@ -1,0 +1,67 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clarity button cleanup</title><link rel="stylesheet" crossorigin href="./assets/button-CFk0f3Uo.css"><link rel="stylesheet" crossorigin href="./assets/index-D5_fI5kX.css"><link rel="stylesheet" href="./assets/index-D5_fI5kX.css"><style>main{max-width:52rem;margin:0 auto;padding:2rem 1rem;font-family:var(--font-sans);color:var(--foreground);background:var(--background)}h1{font-size:2rem;font-weight:600;margin:.5rem 0}h2{font-size:1.3rem;font-weight:600;margin:1.75rem 0 .5rem}p,li{line-height:1.6;margin:.5rem 0}ul{padding-left:1.25rem;list-style:disc}a{color:var(--primary);text-decoration:underline;text-underline-offset:3px}code{font-size:.85em;overflow-wrap:anywhere}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere}.status{color:var(--muted-foreground)}</style></head><body><main><p class="status">Clarity design system · October 8, 2026</p><h1>Button consolidation complete locally</h1><p>All seven approved patterns use shared defaults or approved variants. The remaining mechanical cleanup replaces six raw app buttons, consolidates contact sizing, and gives button-styled navigation its native link behavior.</p><p>Billing card removal reuses quiet danger. Upload cancellation and dismissal sit outside the card button. Editor controls have accessible names, work by keyboard, and preserve their mouse behavior.</p><p>Tab reveals the media toolbar. Alt+F10 reaches the floating text controls. Focus keeps those controls mounted until you leave.</p><h2>Check each affected UI</h2><ul><li><a href="./?case=delete">Seven approved patterns</a></li><li><a href="./?case=teams">Teams gold CTA</a></li><li><a href="./?case=contact-multiple">Contact field actions</a></li><li><a href="./?case=billing">Billing card removal</a></li><li><a href="./?case=library-uploading">Upload cancellation</a></li><li><a href="./?case=library-ready-card">Selectable media card</a></li><li><a href="./?case=library-failed-card">Failed upload dismissal</a></li><li><a href="./?case=auth-sso">Native SSO links</a></li><li><a href="./?case=auth-sso-disabled">Disabled SSO</a></li><li><a href="./?case=media-overlay">Media toolbar keyboard controls</a></li><li><a href="./?case=text-align">Text toolbar keyboard controls</a></li><li><a href="./?case=editor">Editor reorder grip</a></li></ul><p>These views mount actual app components with mock data. The atlas supports phone and desktop widths. All actions use fixture data.</p><h2>Validation recorded on October 8, 2026</h2><p>Full lint, editor typecheck, test-type budget, CSS budget and review build pass. Product regression checks pass 100 tests; inventory and review tooling pass 10 tests. Four new interaction tests fail with the previous source and pass with the cleanup. Independent source review has no remaining blockers.</p><p>Native browser checks cover keyboard actions, focus handoff, disabled SSO, contact add/remove, upload confirmation, and nested-button structure. Screenshot capture failed in the T3 preview, so this pass uses live DOM and computed-style checks. Signed-in API and PR preview parity remain unverified. Changes are uncommitted and have not been deployed.</p><h2>What stays</h2><p>Thirty-seven Button sites retain caller classes for layout, compact media geometry, or text presentation. They are recorded in the ledger. Two raw buttons remain in the customer-branded Journey Page form so the editor preview matches the published renderer. Existing hero, panel, bar and media faces stay in the shared primitive.</p><details><summary>Read the full cleanup ledger</summary><pre># Button cleanup ledger
+
+The approved consolidation and the remaining mechanical button cleanup are implemented locally. This records the completed scope and the remaining intentional geometry. It does not claim signed-in or production parity.
+
+## Completed
+
+- All seven approved patterns use shared defaults or approved variants.
+- Contact add and remove controls use xs and icon sizes instead of recreating their dimensions.
+- Billing card removal uses destructive-quiet, has an accessible name, and exposes pending work.
+- Six raw app button sites now use ButtonBase. Upload cards use a noninteractive shell around their own actions.
+- Four button-styled navigation sites use native anchors or router Links and buttonVariants. Disabled SSO has no destination and cannot start a handoff.
+- Icon controls have explicit names. Editor media alignment, sizing and removal work by keyboard and fire once for a mouse press.
+- Floating media controls reveal on focus. Alt+F10 reaches floating text controls; moving focus between them keeps the toolbar mounted.
+- Existing lint and CSS allowances only shrink. Raw app buttons and caller paint remain guarded.
+
+## What stays
+
+The existing hero, panel, bar and media faces stay in the shared primitive. Legacy destructive callers keep their reviewed context. Customer-branded Journey Page forms keep their reset and submit buttons so LivePreview matches the published renderer. ButtonBase owns no action face; editor overlay geometry stays with its feature. Its glass variant reuses the established shared material.
+
+## Remaining caller classes
+
+These are all current Button className sites. Keeping layout or text sizing at a caller does not create a new colored button. Any future change to their geometry still needs its actual context checked.
+
+| Source | Retained class | Purpose |
+| --- | --- | --- |
+| `editor/src/components/AnalyticsConsentBanner.tsx:57` | `pointer-coarse:min-h-11` | Context layout, width, alignment or positioning |
+| `editor/src/components/AnalyticsConsentBanner.tsx:60` | `pointer-coarse:min-h-11` | Context layout, width, alignment or positioning |
+| `editor/src/components/ProductAnalytics.tsx:51` | `fixed bottom-4 right-4 z-50` | Context layout, width, alignment or positioning |
+| `editor/src/components/VideoPlayer.tsx:507` | `px-1.5 @max-2xs/player:hidden` | Compact playback-speed label and narrow-player visibility |
+| `editor/src/routes/PublicHomeRoute.tsx:247` | `text-base` | Inline action matches the surrounding marketing text size |
+| `editor/src/components/ui/sidebar.tsx:320` | `{cn(&quot;shrink-0&quot;, className)}` | Context layout, width, alignment or positioning |
+| `editor/src/routes/auth-parts.tsx:91` | `size-9` | Password-field hit area |
+| `editor/src/routes/AuthRoute.tsx:744` | `mt-3.5 w-full` | Context layout, width, alignment or positioning |
+| `editor/src/routes/ForgotPasswordRoute.tsx:73` | `mt-1.5` | Context layout, width, alignment or positioning |
+| `editor/src/routes/ResetPasswordRoute.tsx:125` | `mt-1.5` | Context layout, width, alignment or positioning |
+| `editor/src/components/MediaCard.tsx:288` | `pointer-events-auto absolute top-3 right-3 z-2` | Context layout, width, alignment or positioning |
+| `editor/src/components/VideoEditConsole.tsx:136` | `min-w-20` | Context layout, width, alignment or positioning |
+| `editor/src/components/MediaPicker.tsx:118` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/CtaRowEditor.tsx:339` | `-mr-1.5` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/FaqListEditor.tsx:202` | `h-6 w-6.5 min-w-6.5 cursor-grab` | Narrow floating FAQ control geometry; drag cursor on the grip |
+| `editor/src/components/editor/FaqListEditor.tsx:213` | `h-6 w-6.5 min-w-6.5` | Narrow floating FAQ control geometry; drag cursor on the grip |
+| `editor/src/components/editor/EditorTopbar.tsx:335` | `relative overflow-hidden` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/EditorTopbar.tsx:415` | `relative overflow-hidden` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/ThemeStylePanel.tsx:95` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/DynamicList.tsx:52` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/block-editors.tsx:175` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/block-editors.tsx:405` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/components/editor/block-editors.tsx:481` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/routes/EditorWorkspace.tsx:359` | `w-full` | Context layout, width, alignment or positioning |
+| `editor/src/components/NewFolderButton.tsx:44` | `max-md:w-9 pointer-coarse:max-md:w-11` | Context layout, width, alignment or positioning |
+| `editor/src/routes/HomeTreeRoute.tsx:379` | `h-auto min-h-7 max-w-full shrink whitespace-normal break-words text-left` | Context layout, width, alignment or positioning |
+| `editor/src/routes/HomeTreeRoute.tsx:390` | `h-auto min-h-7 max-w-full shrink whitespace-normal break-words text-left` | Context layout, width, alignment or positioning |
+| `editor/src/routes/ContactsIndexRoute.tsx:267` | `-ml-3` | Context layout, width, alignment or positioning |
+| `editor/src/routes/ContactsIndexRoute.tsx:1258` | `-ml-3` | Context layout, width, alignment or positioning |
+| `editor/src/routes/ContactsIndexRoute.tsx:1273` | `-ml-3` | Context layout, width, alignment or positioning |
+| `editor/src/components/RecorderFinishActions.tsx:39` | `min-w-30` | Context layout, width, alignment or positioning |
+| `editor/src/components/RecorderFinishActions.tsx:51` | `min-w-30` | Context layout, width, alignment or positioning |
+| `editor/src/components/RecorderStatusZone.tsx:131` | `@max-md:col-start-2 @max-md:justify-self-start` | Context layout, width, alignment or positioning |
+| `editor/src/routes/RecordVideoRoute.tsx:142` | `{cn(&quot;w-full&quot;, children ? &quot;h-auto flex-col items-stretch&quot; : undefined)}` | Context layout, width, alignment or positioning |
+| `editor/src/routes/RecordVideoRoute.tsx:743` | `min-w-0 flex-1` | Context layout, width, alignment or positioning |
+| `editor/src/routes/RecordVideoRoute.tsx:754` | `min-w-0 flex-1` | Context layout, width, alignment or positioning |
+| `editor/src/routes/admin/SupportBillingDialog.tsx:74` | `underline` | Persistent underline makes the retry action visible inside error copy |
+
+## Current source counts
+
+177 Button sites, 48 ButtonBase sites, and 4 styled navigation sites. Two raw buttons remain outside ui/, both in the customer-branded LivePreview form. Counts are source sites, not runtime instances.
+</pre></details><p><a href="./">Open the complete button atlas</a></p></main></body></html>
