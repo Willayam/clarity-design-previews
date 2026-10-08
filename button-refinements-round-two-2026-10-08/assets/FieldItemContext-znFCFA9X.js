@@ -1,0 +1,1 @@
+import{r as e}from"./chunk-QTnfLwEv.js";import{i as t}from"./jsx-runtime-fQtQTDHU.js";var n=e(t(),1),r=n.createContext({disabled:!1});function i(){return n.useContext(r)}export{i as t};
