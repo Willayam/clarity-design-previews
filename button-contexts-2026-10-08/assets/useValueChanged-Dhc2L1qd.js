@@ -1,1 +1,0 @@
-import{r as e}from"./chunk-QTnfLwEv.js";import{nt as t,rt as n}from"./cases-CO7xURM7.js";import{i as r}from"./jsx-runtime-fQtQTDHU.js";var i=e(r(),1);function a(e,r){let a=i.useRef(e),o=n(r);t(()=>{a.current!==e&&o(a.current)},[e,o]),t(()=>{a.current=e},[e])}export{a as t};

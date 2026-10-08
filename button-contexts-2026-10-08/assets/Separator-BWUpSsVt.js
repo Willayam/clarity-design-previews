@@ -1,1 +1,0 @@
-import{r as e}from"./chunk-QTnfLwEv.js";import{W as t}from"./cases-CO7xURM7.js";import{i as n}from"./jsx-runtime-fQtQTDHU.js";var r=e(n(),1).forwardRef(function(e,n){let{className:r,render:i,orientation:a=`horizontal`,style:o,...s}=e;return t(`div`,e,{state:{orientation:a},ref:n,props:[{role:`separator`,"aria-orientation":a},s]})});export{r as t};
