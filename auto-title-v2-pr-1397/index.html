@@ -10,12 +10,12 @@ table{min-width:560px;border-collapse:collapse;width:100%;font-size:14px}th,td{t
 th{color:#475569;font-weight:600}.muted{color:#64748b}code{background:#f1f5f9;padding:1px 4px;border-radius:4px}
 </style></head><body>
 <h1>Automatic video titles, rebuilt on the transcript</h1>
-<p class="muted">PR <a href="https://github.com/Clarity-Video-HQ/clarity/pull/1397">#1397</a>, preview pr-1397 at commit c99485fa, 2026-10-08. Takes are synthetic sales scripts read by text-to-speech, plus Clarity's own internal test take.</p>
+<p class="muted">PR <a href="https://github.com/Clarity-Video-HQ/clarity/pull/1397">#1397</a>, preview pr-1397, 2026-10-08. Screenshots are from the final commit 53ddd3b6; the table is the first batch on c99485fa, rerun on 53ddd3b6 with the same outcomes. Takes are synthetic sales scripts read by text-to-speech, plus Clarity's own internal test take.</p>
 
 <h2>A recording's share page, saved in the editor before its title arrived</h2>
 <div class="pair">
 <figure><img src="before-share.png" alt="Share page with no headline"><figcaption>Before. The take is "Untitled Video", so the page has no headline, and its &lt;title&gt; and og:title read "Untitled Video".</figcaption></figure>
-<figure><img src="after-share.png" alt="Share page headed Machine learning engineer role at Bright Line"><figcaption>After. About a minute later the take is titled from its transcript and the empty headline follows it. The page was saved once in between (revision 2).</figcaption></figure>
+<figure><img src="after-share.png" alt="Share page headed Pricing structure for team and business plans"><figcaption>After. About 50 seconds after Stop the take is titled from its transcript and the empty headline follows it. The page was saved once in between (revision 2).</figcaption></figure>
 </div>
 <figure style="margin-top:16px"><img src="after-editor.png" alt="Editor showing the followed title in the heading and top bar"><figcaption>The editor shows the same followed title in the heading and the top bar without storing it, so a later video rename still flows through.</figcaption></figure>
 
@@ -23,7 +23,7 @@ th{color:#475569;font-weight:600}.muted{color:#64748b}code{background:#f1f5f9;pa
 <div style="overflow-x:auto"><table><tr><th>Take</th><th>Before</th><th>After</th><th>Why</th></tr>
 <tr><td>Recording, pricing follow-up</td><td>Untitled Video</td><td>Pricing structure for team and business tiers</td><td>Titled, auto-trimmed</td></tr>
 <tr><td>Recording, Clarity test take</td><td>Untitled Video</td><td>How to record educational presentations with slides</td><td>Titled, auto-trimmed</td></tr>
-<tr><td>Recording, recruiting outreach (page saved early)</td><td>Untitled Video</td><td>Machine learning engineer role at Bright Line</td><td>Titled, page follows (shown above)</td></tr>
+<tr><td>Recording, recruiting outreach (page saved early)</td><td>Untitled Video</td><td>Machine learning engineer role at Bright Line</td><td>Titled, page follows</td></tr>
 <tr><td>Recording renamed by the rep at Stop</td><td>Jenna intro, take 2</td><td>Jenna intro, take 2</td><td>Person's name wins</td></tr>
 <tr><td>Recording in Swedish</td><td>Untitled Video</td><td>Untitled Video</td><td>Not English, no model call</td></tr>
 <tr><td>Recording with no speech</td><td>Untitled Video</td><td>Untitled Video</td><td>Mux found no speech, no job</td></tr>
