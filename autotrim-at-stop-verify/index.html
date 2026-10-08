@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Auto-trim at Stop: verification</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800 p-8 max-w-5xl mx-auto">
+<div class="rounded-xl bg-emerald-600 text-white p-6 mb-8">
+<p class="text-3xl font-semibold">VERIFIED</p>
+<p class="mt-2">This is the preview pass on PR #1368 (https://pr-1368.clarity-video.workers.dev), rebased head <code>1deb5cefd</code>, 2026-10-08. The author's evidence run and the independent check both pass. The independent check (a fresh Opus agent with its own Playwright driver) ran on head <code>bc9d1ad0d</code>. The rebase onto main <code>db802e37e</code> left five of the six commits patch-identical. The sixth commit changed only a test-file conflict, and the author reran the evidence on <code>1deb5cefd</code>.</p></div>
+<h2 class="text-xl font-semibold mb-3">Checks</h2>
+<table class="w-full text-sm bg-white rounded-lg overflow-hidden mb-8"><thead class="bg-slate-100"><tr><th class="p-2 text-left">Check</th><th class="p-2">Result</th><th class="p-2 text-left">Note</th></tr></thead><tbody>
+<tr><td class="p-2">Auto at Stop, speech takes</td><td class="p-2 text-center">pass</td><td class="p-2">Independent: median 509 ms over 8 takes (449 to 1627 ms). Author, on the rebased head: 25 s take 644 ms, 20 s gap take 470 ms. Author, on bc9d1ad0d: 482 to 642 ms.</td></tr>
+<tr><td class="p-2">Persistence as a machine trim</td><td class="p-2 text-center">pass</td><td class="p-2">Gap take on the rebased head: D1 has <code>auto_trim</code> 2.56 to 11.556 s, <code>source: recorder</code>, and the job is <code>done: committed</code>. Independent: the library Edit modal opens with Auto pressed after a reload.</td></tr>
+<tr><td class="p-2">Human trim or None wins</td><td class="p-2 text-center">pass</td><td class="p-2">Independent, in three orders: None before ready, None after the machine commit, and a drag before Auto arrived. D1 has <code>human_trim_closed</code> and no machine overwrite.</td></tr>
+<tr><td class="p-2">Silent take</td><td class="p-2 text-center">pass</td><td class="p-2">Auto is never pressed, and the job settles as <code>no_evidence</code>.</td></tr>
+<tr><td class="p-2">Adjacent: Copy link, Open page, preview-only edit</td><td class="p-2 text-center">pass</td><td class="p-2">The link is copied, the page editor opens, and a Preview, then Still edit leaves the trim alone.</td></tr>
+<tr><td class="p-2">Eval, 45 production takes</td><td class="p-2 text-center">pass</td><td class="p-2">All 36 English takes get edges. Median error is 0.12 s at the start and 0.07 s at the end. 3 non-English takes abstain, and 0 of 6 silent takes give a false positive.</td></tr>
+<tr><td class="p-2">Root checks on the rebased head</td><td class="p-2 text-center">pass</td><td class="p-2">typecheck, lint, test (frontend-router 198, workspace-tree 542, editor 4027, scripts 348), and the LOC ratchet.</td></tr>
+<tr><td class="p-2">Slow cases</td><td class="p-2 text-center">warn</td><td class="p-2">2 of 8 independent takes took about 1.5 s of server time. Production RUM decides this, and #1359 stays open.</td></tr>
+<tr><td class="p-2">409 on the first human edit after a machine trim</td><td class="p-2 text-center">warn</td><td class="p-2">The finish screen's asset lookup sends a node id, the pre-existing <code>/tree/assets</code> lookup expects an asset id, and so it returns 404. A retry saves. Filed as a follow-up.</td></tr>
+</tbody></table>
+<h2 class="text-xl font-semibold mb-3">Screenshots</h2>
+<div class="grid grid-cols-2 gap-4 mb-8">
+<figure><img src="img/c1-gap20-2-finish-first.png" class="rounded border"><figcaption class="text-xs mt-1">Finish screen, first frame after Stop: full-length handles, no Auto yet.</figcaption></figure>
+<figure><img src="img/c1-gap20-3-after-auto.png" class="rounded border"><figcaption class="text-xs mt-1">484 ms after Stop: handles on the speech, Auto pressed.</figcaption></figure>
+<figure><img src="img/c1-gap20-library-8-library-edit-modal.png" class="rounded border"><figcaption class="text-xs mt-1">After ready and a reload: the library Edit modal opens on the persisted Auto trim.</figcaption></figure>
+<figure><img src="img/c3c-speech15-drag-before-auto-3-after-auto.png" class="rounded border"><figcaption class="text-xs mt-1">Handle dragged before Auto arrived: Auto stays unpressed and the rep's trim wins.</figcaption></figure>
+<figure><img src="img/c4-silence20-5-finish-after-ready.png" class="rounded border"><figcaption class="text-xs mt-1">Silent take: no Auto.</figcaption></figure>
+<figure><img src="img/c5-copied.png" class="rounded border"><figcaption class="text-xs mt-1">Adjacent flow: Copy link still works.</figcaption></figure>
+<figure><img src="img/r1-speech25-rebased.png" class="rounded border"><figcaption class="text-xs mt-1">Rebased head 1deb5cefd: 25 s take, Auto 644 ms after Stop.</figcaption></figure>
+<figure><img src="img/r3-gap20-rebased.png" class="rounded border"><figcaption class="text-xs mt-1">Rebased head 1deb5cefd: gap take, Auto 470 ms after Stop.</figcaption></figure>
+</div>
+<h2 class="text-xl font-semibold mb-3">Console and network</h2>
+<ul class="list-disc ml-6 text-sm"><li>No page errors.</li><li>A 404 on <code>GET /api/tree/assets/&lt;nodeId&gt;</code> after a machine trim saves. It comes from the pre-existing asset-node query; see the warning above.</li><li>Mux requests failed intermittently with <code>ERR_ADDRESS_UNREACHABLE</code> because the test machine's network kept dropping. Every take still reached ready.</li><li>Key requests: <code>POST .../speech/window?seek=first|last</code> 200, <code>POST .../speech/recorder</code> 202, and <code>GET .../speech</code> polls with <code>autoTrim</code> and <code>autoTrimPending</code>.</li></ul>
+</body></html>
