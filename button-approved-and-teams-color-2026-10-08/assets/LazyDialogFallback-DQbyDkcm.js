@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-fQtQTDHU.js";import{At as t,Ot as n,kt as r,wr as i,wt as a}from"./screen-DQIHV8zz.js";var o=e();function s({title:e,onClose:s}){return(0,o.jsx)(a,{open:!0,onOpenChange:e=>{e||s()},children:(0,o.jsxs)(r,{children:[(0,o.jsx)(n,{children:(0,o.jsx)(t,{children:e})}),(0,o.jsx)(i,{})]})})}export{s as t};
