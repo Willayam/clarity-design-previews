@@ -1,0 +1,1 @@
+var e=()=>{},t={init:()=>t,_send_request:e,capture:e,identify:e,reset:e,register:e,opt_in_capturing:e,opt_out_capturing:e,get_property:()=>void 0};export{t as default};

@@ -1,0 +1,1 @@
+import{r as e}from"./editor-api-hC15chw3.js";var t=1e3;async function n(){let n=[];for(let r=0;;r+=t){let i=await e(`/admin/organizations?limit=${t}&offset=${r}`),a=Array.isArray(i.data)?i.data:[];if(n.push(...a),a.length<t)return n}}export{n as t};
