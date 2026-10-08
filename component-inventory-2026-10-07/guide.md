@@ -10,7 +10,7 @@ Keep using shadcn Base UI. The shared primitives live in `editor/src/components/
 | --- | --- | --- |
 | Action that looks like a button | `Button` | Pick a role and size below. Add a missing repeated treatment to this primitive. |
 | Pressable thumbnail, drag handle, disclosure, or sortable heading | `ButtonBase` | Carries its own layout. Keep keyboard focus and an accessible name. Do not use it to create a second painted button system. |
-| Navigation styled as a button | `Button` with `render={<a ... />}` or a router link and `nativeButton={false}` | Preserve link semantics. Base UI uses `render`, not the Radix `asChild` pattern. |
+| Navigation styled as a button | An anchor or router `Link` with `buttonVariants` | Preserve native link semantics. Base UI Button applies button behavior to non-native elements. Do not use `Button render={<a ... />}` for navigation. |
 | Text, password, or numeric field | `Input` and `Label` | `default` for forms, `panel` for properties, `inline` for in-place edits, `glass` over the auth photograph. `InputAdornment` holds trailing controls. |
 | Search | `SearchInput` | Includes the icon and consistent toolbar sizing. |
 | Multiline text | `Textarea` | `default` or `panel`. |
@@ -28,6 +28,8 @@ Keep using shadcn Base UI. The shared primitives live in `editor/src/components/
 | Tabs | `Tabs` parts | Defined in the library but no direct app JSX usage was found. Do not treat that as proof it should be removed. |
 
 Import primitives from their existing files. A barrel, component registry, or second library is not needed to make them discoverable.
+
+For navigation, follow [shadcn's link guidance](https://ui.shadcn.com/docs/components/base/button#as-link) and apply the exported `buttonVariants` helper to the anchor or router Link. Use Base UI's `render` prop for action triggers and other supported compositions. Existing Button-based navigation callers need a separate migration and rendered semantics check.
 
 ## Buttons
 
