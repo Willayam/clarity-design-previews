@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>View notification emails</title>
+<style>
+body { font: 16px/1.5 system-ui, sans-serif; margin: 0 auto; max-width: 1100px; padding: 24px; color: #0f172a; }
+.shots { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+figure { margin: 0; } figcaption { color: #64748b; font-size: 14px; margin-bottom: 6px; }
+img { border: 1px solid #e2e8f0; border-radius: 8px; max-width: 100%; height: auto; }
+.note { color: #475569; } pre { white-space: pre-wrap; background: #f1f5f9; padding: 12px; border-radius: 8px; }
+section { border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px; }
+</style></head><body>
+<h1>View notification emails</h1>
+<p>Rendered with the real templates from the batching branch. Every name, page and place is made up.</p>
+<p>An owner gets at most one view email an hour. The first view after a quiet hour sends the instant email at once. Views in the hour after it wait, and the minute cron sends them as one summary when the hour is up. A summary that holds only one viewer uses the instant email.</p>
+<section>
+  <h2>Instant email</h2>
+  <p class="note">The first view after a quiet hour. Here a viewer in Malmo passed 60% of the video.</p>
+  <p><b>Subject.</b> Someone watched 60% of "Q4 walkthrough"</p>
+  <div class="shots">
+    <figure><figcaption>Desktop, 1024px</figcaption><img src="instant-desktop.png" width="512" alt="Instant email at desktop width"></figure>
+    <figure><figcaption>Phone, 390px</figcaption><img src="instant-phone.png" width="195" alt="Instant email at phone width"></figure>
+  </div>
+  <details><summary>Plain-text part</summary><pre>Someone watched 60% of "Q4 walkthrough"
+A visitor on your page "Northwind Traders: Q4 proposal" watched 60% of "Q4 walkthrough".
+So far they have watched 64% of the video.
+They watched from Malmo, Sweden.
+See page stats: https://clarity.video/home?stats=pg_northwind
+Choose which of these emails you get in Notification settings: https://clarity.video/settings/notifications</pre></details>
+  <p><a href="instant.html">Open the raw HTML email</a></p>
+</section>
+<section>
+  <h2>Hourly summary</h2>
+  <p class="note">Three viewers across two pages. The Copenhagen viewer crossed 0%, 60% and 100% within the hour and appears once, at 100%.</p>
+  <p><b>Subject.</b> 3 people watched videos on 2 of your pages</p>
+  <div class="shots">
+    <figure><figcaption>Desktop, 1024px</figcaption><img src="summary-desktop.png" width="512" alt="Hourly summary at desktop width"></figure>
+    <figure><figcaption>Phone, 390px</figcaption><img src="summary-phone.png" width="195" alt="Hourly summary at phone width"></figure>
+  </div>
+  <details><summary>Plain-text part</summary><pre>3 people watched videos on 2 of your pages
+Here is who watched since your last view email.
+Northwind Traders: Q4 proposal
+2 people
+Watched 100% of "Q4 walkthrough", from Copenhagen, Denmark
+Started watching "Q4 walkthrough"
+See page stats: https://clarity.video/home?stats=pg_northwind
+
+Globex renewal
+1 person
+Watched 60% of "Renewal walkthrough", from Oslo, Norway
+See page stats: https://clarity.video/home?stats=pg_globex
+Choose which of these emails you get in Notification settings: https://clarity.video/settings/notifications</pre></details>
+  <p><a href="summary.html">Open the raw HTML email</a></p>
+</section>
+</body></html>
