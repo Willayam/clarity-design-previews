@@ -1,0 +1,208 @@
+import { Button as ButtonPrimitive } from "@base-ui/react/button"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { useSurface } from "@/components/ui/surface"
+import { cn } from "@/lib/utils"
+
+/**
+ * Button: structure from upstream shadcn base-nova, faces from the surface it
+ * sits on ("Halo Glass").
+ *
+ * Roles in use: default = primary, outline = secondary, ghost = tertiary,
+ * destructive = the legacy danger tint; destructive-quiet = a danger trigger;
+ * destructive-filled = final confirmation; outline-flat = flat cancellation.
+ * link = inline, dashed = the
+ * placeholder "add" row in a panel, plain = an icon inside a field whose ink is
+ * its whole state (muted, primary when hovered or pressed) and never a fill,
+ * gold = a marketing page's trial call to action, ink = the site header's Get
+ * started, dark glass that reads on the light marketing field and on flat pages.
+ * `secondary` is defined upstream but unused here — on our near-white card it
+ * is indistinguishable from `outline`.
+ *
+ * The face depends on the surrounding Surface:
+ *
+ *   surface  read from the nearest <Surface> (ui/surface.tsx). Hero buttons wear
+ *            depth: the primary gradient and the frosted outline, both with a
+ *            halo. A panel is the elevated thing, so its controls stay flat. A
+ *            bar replaces every variant's fill with a transparent pill.
+ * The faces read tokens declared on the button itself in index.css
+ * (`--btn-gradient`, `--btn-shadow`, …), not on :root: a custom property
+ * resolves where it is declared, and `[data-record-action]` re-points
+ * `--btn-fill` on the element.
+ *
+ * `data-active` on an outline button tints it, on a hero or a panel surface: a toolbar menu holding a
+ * non-default choice, e.g. the Library type filter.
+ *
+ * Focus: the painted faces and the bar draw depth in box-shadow, which is where
+ * shadcn draws its ring, so they take a 2px outline outside the halo instead.
+ *
+ * Busy: a Button disabled while its own work runs (aria-busy) keeps full
+ * strength, because working is not unavailable. The selector carries both
+ * states, so it outranks any single-state dimming rule.
+ */
+const FOCUS_RING = "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+const INVALID_RING =
+  "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+/**
+ * The invalid state on a face that draws depth in box-shadow: the border turns
+ * destructive, and the halo stays where it is.
+ */
+const INVALID_BORDER =
+  "aria-invalid:border-destructive data-invalid:border-destructive dark:aria-invalid:border-destructive/50 dark:data-invalid:border-destructive/50"
+const FOCUS_OUTLINE =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
+
+const buttonVariants = cva(
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-disabled:pointer-events-none data-disabled:opacity-50 motion-reduce:transition-none",
+  {
+    variants: {
+      variant: {
+        default: "text-primary-foreground",
+        outline: "",
+        "outline-flat": `${FOCUS_OUTLINE} ${INVALID_BORDER} focus-visible:outline-offset-3 border-border bg-card text-foreground hover:bg-muted`,
+        secondary: `${FOCUS_RING} ${INVALID_RING} border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground`,
+        ghost: "border-transparent",
+        destructive: "border-transparent",
+        "destructive-quiet": `${FOCUS_OUTLINE} ${INVALID_BORDER} focus-visible:outline-offset-3 focus-visible:outline-destructive border-transparent bg-transparent text-muted-foreground hover:bg-(--btn-danger-quiet-hover) hover:text-destructive`,
+        "destructive-filled": `${FOCUS_OUTLINE} ${INVALID_BORDER} focus-visible:outline-offset-3 focus-visible:outline-destructive border-transparent bg-(--btn-danger-filled) text-white hover:bg-(--btn-danger-filled-hover)`,
+        link: `${FOCUS_RING} ${INVALID_RING} border-transparent text-primary underline-offset-4 hover:underline`,
+        dashed: `${FOCUS_OUTLINE} ${INVALID_BORDER} border-dashed border-border bg-transparent bg-clip-border text-xs text-muted-foreground hover:border-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-(--btn-panel-open) data-popup-open:bg-(--btn-panel-open)`,
+        plain: `${FOCUS_OUTLINE} border-transparent bg-transparent text-muted-foreground hover:text-primary aria-pressed:text-primary`,
+        gold: `${FOCUS_OUTLINE} border-(--cta-gold-edge) border-t-(--cta-gold-catch) bg-(image:--cta-gold) bg-clip-border font-semibold text-(--cta-gold-ink) shadow-(--cta-gold-shadow) hover:bg-(image:--cta-gold-lift) hover:shadow-(--cta-gold-shadow-lift)`,
+        ink: `${FOCUS_OUTLINE} border-(--cta-ink-edge) border-t-(--cta-ink-catch) bg-(--cta-ink) bg-clip-border text-white shadow-(--cta-ink-shadow) backdrop-blur-lg backdrop-saturate-140 hover:border-t-(--cta-ink-catch-hover) hover:bg-(--cta-ink-hover) hover:shadow-(--cta-ink-shadow-hover) no-backdrop-filter:bg-(--cta-ink-solid) no-backdrop-filter:hover:bg-(--cta-ink-solid-hover)`,
+      },
+      size: {
+        default:
+          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        // lg is 40px, not shadcn's 36px: it is the app's headline-action size
+        // (the home-tree "Record a video" / "New journey page" pair). Tuning
+        // this one value keeps every lg call site in step instead of each
+        // feature re-declaring a height — which is how we ended up with eight.
+        lg: "h-10 gap-1.5 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        // 36px, the height of the search field: for controls that share a toolbar row with it.
+        toolbar: "h-9 gap-1.5 px-3 pointer-coarse:min-h-11",
+        "icon-toolbar": "size-9 pointer-coarse:size-11",
+        // A labelled toolbar action that shrinks to the icon-toolbar square on a phone,
+        // where the search field in the same row needs the room. Hide the label below sm.
+        "toolbar-collapsing": "h-9 gap-1.5 px-3 pointer-coarse:min-h-11 max-sm:w-9 max-sm:px-0 max-sm:pointer-coarse:size-11",
+        // The sign-in door's full-width actions: the submit and the SSO tiles.
+        xl: "h-13 gap-2 rounded-xl px-5 text-base has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4",
+        // A marketing page's trial call to action.
+        cta: "h-12 gap-2 px-8 text-base has-data-[icon=inline-end]:pr-7 has-data-[icon=inline-start]:pl-7",
+        // Long marketing labels wrap without changing the existing fixed-height CTA.
+        "cta-wrap": "h-auto min-h-12 max-w-full gap-2 px-8 py-3 text-base whitespace-normal text-balance has-data-[icon=inline-end]:pr-7 has-data-[icon=inline-start]:pl-7",
+        // No box of its own, for an action that reads as part of a sentence.
+        inline: "h-auto gap-1 p-0",
+        icon: "size-8",
+        "icon-xs":
+          "size-6 rounded-[min(var(--radius-md),10px)] [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-7 rounded-[min(var(--radius-md),12px)]",
+        "icon-lg": "size-10",
+      },
+      surface: {
+        hero: "",
+        panel: "",
+        bar: "",
+        media: "",
+      },
+    },
+    compoundVariants: [
+      // default
+      {
+        variant: "default",
+        surface: ["hero", "panel"],
+        class: `${FOCUS_OUTLINE} ${INVALID_BORDER} border-(--btn-edge) bg-(image:--btn-gradient) bg-clip-border hover:bg-(image:--btn-gradient-lift)`,
+      },
+      {
+        variant: "default",
+        surface: "hero",
+        class: "shadow-(--btn-shadow) hover:shadow-(--btn-shadow-lift)",
+      },
+      // outline
+      {
+        variant: "outline",
+        surface: "hero",
+        class: `${FOCUS_OUTLINE} ${INVALID_BORDER} border-(--glass-border) border-t-(--glass-highlight) bg-(--glass-bg) bg-clip-border text-foreground shadow-(--btn-glass-shadow) backdrop-blur-md backdrop-saturate-140 hover:bg-(--glass-bg-elevated) hover:shadow-(--btn-glass-shadow-lift) aria-expanded:bg-(--btn-glass-open) data-popup-open:bg-(--btn-glass-open) data-active:border-primary/45 data-active:bg-primary/10 data-active:text-primary reduced-transparency:bg-card reduced-transparency:backdrop-filter-none no-backdrop-filter:bg-card`,
+      },
+      {
+        variant: "outline",
+        surface: "panel",
+        class: "border-border bg-transparent bg-clip-border hover:bg-muted aria-expanded:bg-(--btn-panel-open) data-popup-open:bg-(--btn-panel-open) data-active:border-primary/45 data-active:bg-primary/10 data-active:text-primary",
+      },
+      {
+        variant: "outline",
+        surface: "panel",
+        class: `${FOCUS_OUTLINE} ${INVALID_BORDER} bg-clip-border text-foreground`,
+      },
+      // ghost
+      {
+        variant: "ghost",
+        surface: ["hero", "panel"],
+        class:
+          "hover:bg-primary/10 hover:text-foreground aria-expanded:bg-primary/10 aria-expanded:text-foreground aria-pressed:bg-(--btn-tint) aria-pressed:bg-clip-border aria-pressed:text-foreground dark:hover:bg-primary/20 dark:aria-pressed:bg-(--btn-tint)",
+      },
+      { variant: "ghost", surface: ["hero", "panel"], class: `${FOCUS_RING} ${INVALID_RING}` },
+      // destructive
+      {
+        variant: "destructive",
+        surface: "hero",
+        class: `${FOCUS_RING} ${INVALID_RING} bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40`,
+      },
+      {
+        variant: "destructive",
+        surface: "panel",
+        class:
+          `${FOCUS_RING} ${INVALID_RING} bg-transparent bg-clip-border text-muted-foreground hover:bg-(--btn-panel-danger) hover:text-destructive focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40`,
+      },
+      {
+        variant: ["default", "outline", "secondary", "ghost", "destructive", "link", "dashed", "plain", "gold", "ink"],
+        surface: ["bar", "media"],
+        class: `${FOCUS_OUTLINE} h-8 min-w-8 border-0 border-none border-current bg-transparent bg-clip-border text-(--cg-ink) pointer-coarse:h-11 pointer-coarse:min-w-11`,
+      },
+      { surface: "bar", class: "rounded-full" },
+      { surface: "media", size: ["icon", "icon-xs", "icon-sm", "icon-lg", "icon-toolbar"], class: "rounded-full" },
+      {
+        variant: ["default", "outline", "secondary", "ghost", "link", "dashed"],
+        surface: ["bar", "media"],
+        class: "hover:bg-(--cg-btn-hover) aria-pressed:bg-(--cg-active) aria-pressed:text-(--cg-ink)",
+      },
+      {
+        variant: "destructive",
+        surface: ["bar", "media"],
+        class: "hover:bg-(--btn-bar-danger) hover:text-(--cg-danger)",
+      },
+    ],
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+      surface: "hero",
+    },
+  }
+)
+
+type ButtonProps = ButtonPrimitive.Props &
+  Omit<VariantProps<typeof buttonVariants>, "surface">
+
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}: ButtonProps) {
+  const surface = useSurface()
+  return (
+    <ButtonPrimitive
+      data-slot="button"
+      data-button-variant={variant}
+      data-button-size={size}
+      data-variant={variant}
+      data-size={size}
+      className={cn(buttonVariants({ variant, size, surface, className }))}
+      {...props}
+    />
+  )
+}
+
+export { Button, buttonVariants }
