@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live transcript and title at Stop: design</title>
+<style>
+  :root { --ink:#1b1d22; --muted:#5d6370; --line:#e3e5ea; --bg:#fbfbfc; --card:#fff; --a:#2f6fdf; --b:#d9822b; --c:#3a9a5b; --d:#8a5cd1; --e:#9aa1ad; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:28px 18px 80px; }
+  h1 { font-size:1.6rem; line-height:1.25; margin:0 0 6px; }
+  h2 { font-size:1.2rem; margin:40px 0 10px; padding-top:12px; border-top:1px solid var(--line); }
+  h3 { font-size:1rem; margin:22px 0 6px; }
+  p, li { margin:0 0 10px; }
+  .meta { color:var(--muted); font-size:.9rem; margin-bottom:22px; }
+  .answer { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--a); border-radius:8px; padding:16px 18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin:10px 0; background:var(--card); }
+  th, td { text-align:left; vertical-align:top; padding:7px 8px; border-bottom:1px solid var(--line); }
+  th { font-weight:600; color:var(--muted); font-size:.8rem; }
+  .scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  code { font:.85em ui-monospace, SFMono-Regular, Menlo, monospace; background:#f0f1f4; padding:1px 4px; border-radius:4px; }
+  .tag { display:inline-block; font-size:.7rem; padding:0 6px; border-radius:10px; border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+  .tag.m { border-color:#9cc2a8; color:#2d7a47; }
+  .tag.i { border-color:#a9bde6; color:#2f5fb8; }
+  .tag.g { border-color:#e3c09a; color:#a8621c; }
+  .lane { margin:16px 0 24px; }
+  .lane-title { font-weight:600; margin-bottom:6px; }
+  .bar { display:flex; height:30px; border-radius:6px; overflow:hidden; border:1px solid var(--line); background:#f4f5f7; }
+  .seg { height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.72rem; white-space:nowrap; overflow:hidden; }
+  .axis { display:flex; justify-content:space-between; font-size:.72rem; color:var(--muted); margin-top:3px; }
+  .hops { font-size:.88rem; margin-top:8px; }
+  .hops td:first-child { width:14px; padding-right:0; }
+  .sw { width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .boxes { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:10px; margin:12px 0; }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:.9rem; }
+  .box b { display:block; margin-bottom:4px; }
+  .arrow { text-align:center; color:var(--muted); font-size:.85rem; margin:4px 0; }
+  ol.prs > li { margin-bottom:12px; }
+  .small { font-size:.85rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Live transcript and title at Stop</h1>
+<div class="meta">Design for Clarity recordings. 2026-10-08. Covers what PR #1397 should do now. No code was written and nothing was deployed. Probes hit Workers AI on the Clarity account and never a prod Worker.</div>
+
+<div class="answer">
+<p><b>The answer.</b> Transcribe the take while it is being recorded, in short HTTP chunks cut at pauses. Store the words on the server against the take, not against the Mux asset. Then everything that needs words (the speech bar, Auto trim, the title, and later captions) reads one set of words that is already on the server at Stop. The 60 s wait goes away because it was never transcription time. It was Mux making the asset ready, then Robots, then a 20 s poll.</p>
+<p>Sub-second title is real when the rep stops talking before clicking Stop. In that case the server already titled the full transcript during the pause, and Stop only commits it, in about 0.2 to 0.3 s (inferred). When the rep talks right through the click, the title takes about 1.0 to 1.5 s at p50 and about 2 to 2.6 s at p90 (sums of measured hops). The title model sets that floor whatever the transport. A streaming socket would save about 0.3 to 0.5 s in that one case, but it costs 1.77x per minute and would be the codebase's first Durable Object. It isn't worth it yet.</p>
+<p><b>#1397.</b> Merge it now, unchanged, as the slow path and backstop. The fast path builds on it.</p>
+</div>
+
+<h2>What you will see at Stop</h2>
+<div class="card"><b>You finish a sentence, pause, then click Stop.</b> The finish screen opens with the speech bar and Auto trim already drawn. The header that says "Finish your video" today becomes an editable title field, and the title is already in it. Nothing loads and nothing changes after it appears.</div>
+<div class="card"><b>You are still talking when you click.</b> The speech bar and trim appear after about 0.3 to 0.9 s. The title field shows a quiet placeholder and the title fades in after about 1 to 1.5 s. If you start typing first, your text is the title and the automatic one never replaces it. Preview, Copy link and Open page never wait on any of this.</div>
+<p class="small">Titles are never shown before the server has committed them, so the finish screen, the share page and the editor always agree. That keeps WIL-3494's rule that the server owns the take.</p>
+
+<h2>Stop to title, per hop</h2>
+<p>Both lanes use the same 2.5 s scale. Bars show p50. The tables give the range and say where each number came from.</p>
+
+<div class="lane">
+  <div class="lane-title">Quiet tail: draft title already covers the whole take</div>
+  <div class="bar">
+    <div class="seg" style="width:2%;background:var(--e)"></div>
+    <div class="seg" style="width:6%;background:var(--c)">commit</div>
+    <div class="seg" style="width:1%;background:var(--e)"></div>
+  </div>
+  <div class="axis"><span>Stop</span><span>0.5 s</span><span>1.0 s</span><span>1.5 s</span><span>2.0 s</span><span>2.5 s</span></div>
+  <table class="hops">
+    <tr><th></th><th>Hop</th><th>Time</th><th>Basis</th></tr>
+    <tr><td><span class="sw" style="background:var(--e)"></span></td><td>Flush the last 100 ms tap block, see the tail is silent</td><td>0 to 0.1 s</td><td><span class="tag i">inferred</span> block size</td></tr>
+    <tr><td><span class="sw" style="background:var(--c)"></span></td><td>Finish intent with the seal. The server applies the stored draft through #1397's title reducer and answers with it</td><td>0.1 to 0.2 s</td><td><span class="tag g">guess</span> one round trip and two D1 writes</td></tr>
+    <tr><td><span class="sw" style="background:var(--e)"></span></td><td>Render the title in the header</td><td>about 0.02 s</td><td><span class="tag g">guess</span></td></tr>
+    <tr><td></td><td><b>Title visible</b></td><td><b>about 0.15 to 0.3 s</b></td><td><span class="tag i">inferred</span> sum</td></tr>
+  </table>
+</div>
+
+<div class="lane">
+  <div class="lane-title">Talked through the click: the tail has speech</div>
+  <div class="bar">
+    <div class="seg" style="width:2%;background:var(--e)"></div>
+    <div class="seg" style="width:4%;background:var(--d)"></div>
+    <div class="seg" style="width:20%;background:var(--a)">nova-3 tail</div>
+    <div class="seg" style="width:21%;background:var(--b)">title</div>
+    <div class="seg" style="width:3%;background:var(--c)"></div>
+  </div>
+  <div class="axis"><span>Stop</span><span>0.5 s</span><span>1.0 s</span><span>1.5 s</span><span>2.0 s</span><span>2.5 s</span></div>
+  <table class="hops">
+    <tr><th></th><th>Hop</th><th>Time</th><th>Basis</th></tr>
+    <tr><td><span class="sw" style="background:var(--e)"></span></td><td>Flush the tap, cut the final chunk</td><td>0 to 0.1 s</td><td><span class="tag i">inferred</span></td></tr>
+    <tr><td><span class="sw" style="background:var(--d)"></span></td><td>Upload the tail (a few seconds, never over 20 s, at 32 KB per second)</td><td>0.05 to 0.15 s</td><td><span class="tag i">inferred</span> home uplink</td></tr>
+    <tr><td><span class="sw" style="background:var(--a)"></span></td><td>nova-3 on the tail</td><td>0.23 to 0.27 s p50 from a laptop, 0.44 to 0.93 s end to end through the Worker</td><td><span class="tag m">measured</span> laptop n=30, #1368 prod receipt</td></tr>
+    <tr><td></td><td><b>Speech bar and trim visible</b></td><td><b>about 0.3 to 0.9 s</b></td><td><span class="tag i">inferred</span> sum</td></tr>
+    <tr><td><span class="sw" style="background:var(--b)"></span></td><td>Title on gemma-4-26b through the AI Gateway, same request</td><td>0.45 to 0.54 s p50, about 1.6 s p90</td><td><span class="tag m">measured</span> n=28 and n=60</td></tr>
+    <tr><td><span class="sw" style="background:var(--c)"></span></td><td>Commit through the reducer, answer, render</td><td>0.05 to 0.1 s</td><td><span class="tag g">guess</span></td></tr>
+    <tr><td></td><td><b>Title visible</b></td><td><b>about 1.0 to 1.5 s p50, 2 to 2.6 s p90</b></td><td><span class="tag i">inferred</span> sum</td></tr>
+  </table>
+  <p class="small">The p50 bar uses the Worker figure for nova-3, because prod will sit near it rather than near the laptop figure. With a streaming socket, the blue segment becomes a Finalize of 70 to 121 ms (measured, n=8). That saves 0.3 to 0.5 s here and nothing in the quiet lane.</p>
+</div>
+
+<p>How often each lane happens is unknown. Only one prod take carries #1368's speech edges so far (read-only query, 9.2 s of silence before Stop on a 20 s take). The client PR adds a <code>stop_silence_s</code> RUM point, and its histogram will say how often the instant path fires.</p>
+
+<h2>Architecture</h2>
+
+<div class="boxes">
+  <div class="box"><b>Browser (recorder)</b>The existing 16 kHz tap feeds a pure reducer that cuts chunks. Cuts land at a 400 ms pause once 6 s have passed, at 20 s on the quietest 100 ms, and at pause, mic change and Stop. One chunk in flight. Unacked PCM sits in the IndexedDB journal next to the video timeslices. The leave guard counts unacked speech.</div>
+  <div class="box"><b>Chunk route</b><code>PUT .../speech/chunks/:seq</code> replaces <code>/speech/window</code> and keeps its checks (session, owner, recording, not discarded, inside the grant window). It runs nova-3 through the binding, then stores the words. A replayed seq with the same audio digest gets the stored answer back with no model call. Chunks that run past wall time since the grant are refused, which caps spend per take.</div>
+  <div class="box"><b>Words, one reader</b>Chunk rows <code>(workspace, node, seq)</code> hold <code>[start, end, text]</code> in take seconds, with pauses excluded. The finish intent writes a seal (chunk count, end sample, captured samples). <code>cover()</code> answers complete, gap, abstained or unsealed. <code>readTakeWords</code> is the only reader. It returns live words when the cover is complete and within 1 s of Mux's duration, and Robots words otherwise.</div>
+  <div class="box"><b>Title</b>#1397's rules stand unchanged: <code>title_source</code>, a person always wins, and the share page follows the title. <code>autoTitled</code> gains a basis, either the asset (Robots path) or the live seal's chunk count. Drafts are made at pause cuts and stored on one per-take row. The finish intent commits a draft whose chunk count equals the seal's.</div>
+</div>
+<div class="arrow">Robots becomes a fallback producer. It never reconciles with live words.</div>
+<div class="card">At asset ready, <code>mux_speech</code> is queued only when the live cover is not complete. That covers a gap, a non-English abstain, a browser that refused 16 kHz, a lost journal and every upload. Two stores with a fixed precedence and one reader is the same pattern <code>settleAutoTrim</code> already uses (recorder before Robots). Auto trim derives its edges from the live words, so <code>/speech/recorder</code> and <code>recorder_speech_edges</code> are deleted.</div>
+
+<h3>Lifecycle cases</h3>
+<div class="scroll"><table>
+<tr><th>Case</th><th>What happens</th></tr>
+<tr><td>Pause and resume</td><td>Pause cuts a chunk. HTTP holds no connection, so there is no KeepAlive to manage. PCM time stays media time.</td></tr>
+<tr><td>Network drops mid-take</td><td>Chunks queue and retry with backoff. A 429 or 503 never ends the take. A backlog drains several chunks at once, about 0.25 to 0.6 s each (measured).</td></tr>
+<tr><td>Tab closed, then recovered</td><td>The journal holds unacked PCM. Recovery replays it and seals. Recovered takes get live words, which they cannot get today.</td></tr>
+<tr><td>Retake or discard</td><td>Discard deletes the chunk rows. A late chunk gets a 404 from the existing <code>discarded_at</code> check.</td></tr>
+<tr><td>Mic switch</td><td>A switch cuts a chunk. Separately, a mic switch today silences both video audio and the tap, because nothing calls <code>replaceTrack</code>. That existing bug is a follow-up and is not fixed here. Until it is, the duration check sends those takes to Robots.</td></tr>
+<tr><td>12 h take</td><td>About 2,200 chunk rows. One row per chunk stays under D1's row size limit. The title reads only head and tail lines, as #1397 already does.</td></tr>
+<tr><td>Non-English</td><td>Language detection runs alongside English until a chunk has 3 detected words. On an abstain the client stops sending and Robots takes over.</td></tr>
+</table></div>
+
+<h3>Cost, limits, privacy</h3>
+<ul>
+<li><b>Cost.</b> nova-3 over HTTP costs $0.0052 per audio minute (Cloudflare pricing page), about $0.026 for a 5 minute take. The WebSocket price is $0.0092. Title drafts are a few hundred input tokens each at $0.10 per million (inferred, well under a cent per take). Recordings with complete live words stop paying for Robots.</li>
+<li><b>Limits.</b> Workers AI allows 720 speech requests and 300 text requests per minute per account. At 3 to 6 chunks a minute per recorder that is about 120 to 240 concurrent recorders (inferred). Drafts are debounced to at most one per 15 s. The router's rate key moves from 10 per minute per owner to 60 per minute per video, so a backlog can drain.</li>
+<li><b>Privacy.</b> The whole take's audio now reaches Workers AI during recording, including takes the rep later discards. Today only head windows and the last 10 s do, and Robots hears every kept take. Audio stays in Cloudflare and is not stored. Cloudflare says it does not train on Workers AI content. Every call sets <code>mip_opt_out</code>. Audio never crosses the gateway, so the catalog's typed exception stays. Title calls cross the gateway with payload logging off, as in #1397. No transcript or title text reaches RUM, logs or Sentry. The privacy page needs one sentence saying spoken words are transcribed during recording to name and caption the video.</li>
+</ul>
+
+<h2>Measured numbers</h2>
+<p class="small">Measured 2026-10-08 from a laptop in Sweden to Cloudflare (ARN) on the Clarity account. Corpus: 14 English clips from 13 s to 390 s, made up of four real testimonial clips, one real take and nine synthetic TTS clips. Mux Robots words for the same media came from #1397's preview.</p>
+<div class="scroll"><table>
+<tr><th>What</th><th>Result</th><th>n</th></tr>
+<tr><td>nova-3 batch wall time by window length (REST, including upload)</td><td>10 s about 1.3 s on cold first calls; 60 s 0.77 s; 120 s 0.99 s; 300 s 1.89 s median. The time is mostly fixed overhead, not audio length.</td><td>4 per length</td></tr>
+<tr><td>nova-3 on short chunks</td><td>2 s 232 ms, 3 s 274 ms, 5 s 258 ms p50. 20 s chunks 350 to 580 ms median.</td><td>10 each; 47 chunks</td></tr>
+<tr><td>Stop to Auto trim in prod, through the Worker (#1368 receipt)</td><td>0.44 to 0.93 s</td><td>#1368</td></tr>
+<tr><td>nova-3 words compared with Robots words</td><td>Text match 0.87 to 1.00. Start difference p50 0.07 to 0.135 s, p90 at most 0.255 s. nova runs 0.07 to 0.13 s earlier, a near-constant offset that the trim padding absorbs. Speech-span overlap 0.80 to 0.996.</td><td>14 clips</td></tr>
+<tr><td>20 s chunks cut at the quietest point compared with the whole take</td><td>The same on every metric. Chunked-vs-whole word match 0.962 to 1.000.</td><td>14 clips</td></tr>
+<tr><td>nova-3 WebSocket, direct to Workers AI, real time</td><td>Finalize to final words 70 to 121 ms. Streamed words vs Robots p50 0.07 to 0.10 s. Text match 0.84 to 0.99, against 0.90 to 0.98 for batch.</td><td>8 runs, 4 clips</td></tr>
+<tr><td>WebSocket backlog bursts</td><td>30 s of audio drained in 1.1 s and 60 s in 2.2 s, about 27x real time. A run paced at a steady 3x lagged 12 to 19 s instead. That contradiction is unexplained.</td><td>1 per size</td></tr>
+<tr><td>WebSocket audio lost at connection start</td><td>No loss on 4 sequential connections. With 12 at once, up to 7 lost 0.4 to 1.0 s (up to 5 words). Holding audio for 1.5 s after open helped, but that was tested only on the clip that barely loses.</td><td>24 sessions</td></tr>
+<tr><td>WebSocket handshake</td><td>283 to 804 ms</td><td>11</td></tr>
+<tr><td>AI Gateway realtime WebSocket for Workers AI nova-3</td><td>401 (code 2009) with the wrangler OAuth token in every header combination. Unproven either way.</td><td>3</td></tr>
+<tr><td>Title models through the <code>clarity-preview</code> gateway, 2 min transcript</td><td>gemma-4-26b 520 ms, llama-3.2-3b 264 ms, granite-4.0-h-micro 624 ms, mistral-small-3.1 655 ms (medians). gemma over 28 more calls had p50 543 ms and p90 1,604 ms.</td><td>6 each; 28</td></tr>
+<tr><td>Firing a second title call at 700 ms</td><td>Run 1 cut p90 from 1.55 s to 0.66 s. Run 2 changed nothing. Not adopted.</td><td>20; 40</td></tr>
+<tr><td>Title from the transcript minus its last 10 s, compared with the full transcript</td><td>On takes over 60 s, as close as two full runs are to each other. On takes of 35 s or less, often a different subject. One synthetic example gave "Real time risk scoring for card payments" against "Machine learning engineer role for payments fraud detection". So a title made before the last words land is wrong on short takes.</td><td>14 clips</td></tr>
+</table></div>
+
+<h2>Alternatives considered</h2>
+<div class="scroll"><table>
+<tr><th>Option</th><th>Why it lost</th></tr>
+<tr><td>Streaming session: browser to a per-take Durable Object holding a nova-3 WebSocket</td><td>It wins only when the rep talks through the click, by 0.3 to 0.5 s, and ties at p90 because the title model dominates. It costs 1.77x per minute and would be the first Durable Object in the repo. It also needs a segment machine, KeepAlive through pauses, checkpoints for audio lost at connection start, and a batch repair path, and every deploy restarts live sessions. Streamed text matches Robots a little worse. The chunk transport sits behind one function, so a socket for only the open chunk can be added later if the census says talk-through is common.</td></tr>
+<tr><td>AI Gateway realtime route for audio</td><td>Returned 401. Whether it logs audio or honours payload-off on a socket is undocumented. It needs a proper API token probe before it can carry anything.</td></tr>
+<tr><td>Deepgram native through the gateway</td><td>Needs a Deepgram key and moves audio out of Cloudflare.</td></tr>
+<tr><td>Keep Robots and poll faster</td><td>Robots cannot hear the take until Mux has an asset, which takes tens of seconds. It cannot reach the target.</td></tr>
+<tr><td>One whole-take POST at Stop</td><td>300 s of audio took 1.9 s plus a 9.6 MB upload, and long takes would fail outright.</td></tr>
+<tr><td>Progressive title shown during or at Stop regardless of tail</td><td>Wrong subject on short takes (measured). A title that visibly swaps after Stop is worse than a placeholder.</td></tr>
+<tr><td>Browser computes and sends the title</td><td>Splits title ownership and breaks the server-owned take.</td></tr>
+<tr><td>Faster title model (llama-3.2-3b, 264 ms)</td><td>Possible later. #1397's title eval has to show equal quality first.</td></tr>
+</table></div>
+
+<h2>Risks</h2>
+<ul>
+<li>Talking through the click may turn out to be common on short takes. The headline would then be about 1.2 s. The census RUM point measures it, and a socket for the open chunk is the measured fallback.</li>
+<li>The energy gate could judge a quiet real word as silence and skip the tail. The eval PR measures false skips on the corpus.</li>
+<li>The account limits are 720 speech and 300 text requests per minute. They are fine today but have a ceiling (about 120 to 240 concurrent recorders, inferred).</li>
+<li>Discarded takes are now transcribed too. That is a privacy copy question, not a technical one.</li>
+<li>What <code>mip_opt_out</code> means under Cloudflare's no-training statement is undocumented.</li>
+<li>The mic-switch bug means a switched take loses audio entirely. It is reported as a follow-up and not fixed here.</li>
+</ul>
+
+<h2>PR sequence</h2>
+<ol class="prs" start="0">
+<li><b>Merge #1397.</b> Receipt: its eval and its 12-take artifact. In prod, Finish-to-title RUM sits around 58 s, which is the baseline.</li>
+<li><b>Live-speech eval, no runtime change.</b> <code>scripts/ai.mjs eval live-speech</code> replays the corpus (kept outside Git) through the pure chunker, nova-3 and the title task. It reports word match and span overlap against Robots, cover math, energy-gate false skips, and confirms that a replayed chunk makes zero model calls. Gate: within the whole-take bands above.</li>
+<li><b>Server.</b> Migration 0045 (chunk rows, per-take summary row, seal columns), the chunk route with the existing checks, <code>cover</code>, <code>readTakeWords</code>, and the speech GET built on it. Receipt: a script replays a corpus clip chunk by chunk against a PR preview, reads back complete words, and shows a replayed seq producing no <code>ai_call</code> point.</li>
+<li><b>Client.</b> Feed reducer, PCM journal, seal on finish, Auto trim from live words, leave guard covering unacked speech, and the <code>stop_silence_s</code> census point. The same PR deletes the window search, <code>/speech/window</code>, <code>/speech/recorder</code> and <code>recorder_speech_edges</code>. Receipt: verify-loop on a preview covering Stop, a 60 s offline window, a killed tab that recovers with live words, and discard.</li>
+<li><b>Title at Stop.</b> <code>autoTitled</code> with the live basis, the final chunk answering with the committed title, the editable title field, and <code>stop_to_title_ms</code> RUM. Receipt: p50 and p90 over 20 scripted preview takes, and #1397's title eval rerun on live words compared with Robots words.</li>
+<li><b>Instant path.</b> Title drafts at pause cuts, committed by the finish intent when the seal matches. The long-take rule (take of 60 s or more and tail of 10 s or less) is included only if the eval keeps it inside full-vs-full noise. Receipt: <code>stop_to_title_ms</code> split by path, and the share of takes on the instant path.</li>
+<li><b>Robots as fallback for recordings.</b> Skip <code>mux_speech</code> when the live cover is complete. Receipt: preview D1 shows no Robots job on live-complete takes and Robots words on a forced gap.</li>
+<li><b>Captions from live words</b> (your call). Publish the live words as a Mux text track at asset ready and drop <code>generated_subtitles</code>. Then captions, transcript, title and speech bar are one set of words. Receipt: the share page plays captions built from live words.</li>
+<li><b>Uploads through the same chunks.</b> Decode upload audio in the browser with WebCodecs and a demuxer while the file uploads, and post the same chunks, admitted for <code>kind='upload'</code>. Target (guess): title within about 2 s of the upload finishing for files under 30 minutes. Until then uploads keep Robots, with words about 20 to 60 s after asset ready. Receipt: words present at asset ready on a 10 minute upload.</li>
+</ol>
+
+<h2>What #1397 should do now</h2>
+<p>Merge it unchanged. Its ownership rules, follow rule, text task with gateway reach, title eval, <code>video_title</code> job and migration 0044 are all independent of the trigger, and the fast path needs every one of them. It gives every take a title in about a minute today, where there is none, and stays the backstop for takes the live path cannot cover. The fast path changes two things on top of it. <code>autoTitled</code> gains a live basis next to the asset basis, and <code>mux_speech</code> becomes conditional for recordings. Reworking it first would delay a working title by the whole stack and save no migration. All three design runners and the judge reached this independently.</p>
+
+<h2>Decisions for you</h2>
+<ol>
+<li>Is about 1.2 s acceptable when the rep talks through the click? The alternative is a Durable Object streaming session at 1.77x per minute to save 0.3 to 0.5 s. The recommendation is to accept for now and let the census decide.</li>
+<li>Privacy copy. Whole takes, including discarded ones, now reach Workers AI while recording. Do you want an in-recorder notice, or only the privacy-page sentence?</li>
+<li>Captions. Keep Mux's auto-generated English captions, or replace them with a track built from the live words, which gives one transcript and supports nova's 10 languages?</li>
+<li>Editing the title on the finish screen makes it a person's title (<code>title_source = 'user'</code>). Yes?</li>
+<li>Raise the speech rate limit from 10 per minute per owner to 60 per minute per video?</li>
+<li>Merge #1397 now. Its migration rebuilds <code>jobs</code>, so it needs a night-window deploy.</li>
+</ol>
+
+<h2>Method</h2>
+<p class="small">Three architect runners ran in parallel. Fable designed freely, one Opus seat argued the strongest case for chunked HTTP, and another Opus seat argued the strongest case for streaming. A Fable judge scored them on six criteria and picked the chunked-HTTP design as the base (25 points against 23 and 21). The parent then grafted parts of the other two onto it. The Fable synthesis seat hit its usage limit, so the parent wrote this page from the judge's verdict. Grounding came from two read-only code traces of main and #1397 and a docs survey. Probe scripts and raw results live in /tmp on the build machine and are not committed.</p>
+
+</main>
+</body>
+</html>
