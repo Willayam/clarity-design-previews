@@ -3,41 +3,31 @@
 <style>
 body{font:15px/1.5 -apple-system,system-ui,sans-serif;margin:0;padding:24px;color:#0f172a;background:#f8fafc}
 h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:36px 0 8px}p{max-width:760px;margin:6px 0}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.row.m{grid-template-columns:repeat(4,minmax(0,220px))}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.row.m{grid-template-columns:repeat(3,minmax(0,260px))}.row.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 figure{margin:0}figure img{width:100%;border:1px solid #e2e8f0;border-radius:8px;background:#fff}
 figcaption{font-size:13px;color:#475569;margin-top:4px}.tag{font-weight:600;color:#0f172a}
-@media(max-width:800px){.row,.row.m{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.row,.row.m,.row.two{grid-template-columns:1fr}}
 </style></head><body>
 <h1>PR 1417: make section delete visible</h1>
-<p>Before: deleting a section means finding the hover-only grip, opening its menu, picking "Remove section" (last item, grey) and then "Confirm remove" in a submenu.</p>
-<p>After: a trash button sits in the same left gutter, right under the grip, and shows up whenever the grip does. Click it, then "Remove Gallery". Undo still brings the section back. Nothing is added to the published layout.</p>
-<p>All shots come from the PR preview, with throwaway pages that were deleted afterwards. Before is commit a578e6fd and after is commit 78efb1d8.</p>
-
-<h2>Desktop 1440: hovering a section</h2>
-<div class="row">
-<figure><img src="img/before-desktop-1-hover.png"><figcaption><span class="tag">Before.</span> Only the grip appears. Nothing says delete.</figcaption></figure>
-<figure><img src="img/after-desktop-1-hover.png"><figcaption><span class="tag">After.</span> The trash appears under the grip.</figcaption></figure>
-</div>
-
-<h2>Desktop 1440: the delete step</h2>
-<div class="row">
-<figure><img src="img/before-desktop-2-menu.png"><figcaption><span class="tag">Before.</span> The grip menu, with "Remove section" at the bottom and a submenu still to go. The headless browser does not paint the menu's blur, so it looks more see-through here than it does in Chrome.</figcaption></figure>
-<figure><img src="img/after-desktop-3-confirm.png"><figcaption><span class="tag">After.</span> Clicking the trash opens one red confirm, "Remove Gallery".</figcaption></figure>
-</div>
-
-<h2>Desktop 1440: trash hover, removed, undo, keyboard</h2>
-<div class="row">
-<figure><img src="img/after-desktop-2-trash-hover.png"><figcaption>Hovering the trash turns it red.</figcaption></figure>
-<figure><img src="img/after-desktop-4-removed.png"><figcaption>After confirming, Gallery is gone and FAQ moves up.</figcaption></figure>
-<figure><img src="img/after-desktop-5-undone.png"><figcaption>Undo in the top bar brings Gallery back.</figcaption></figure>
-<figure><img src="img/after-desktop-6-keyboard-confirm.png"><figcaption>Keyboard: Tab from the grip lands on the trash and Enter opens the confirm. Escape leaves the section in place.</figcaption></figure>
-</div>
-
-<h2>Mobile 390</h2>
-<div class="row m">
-<figure><img src="img/before-mobile-1-hover.png"><figcaption><span class="tag">Before.</span> Grip only.</figcaption></figure>
-<figure><img src="img/before-mobile-2-menu.png"><figcaption><span class="tag">Before.</span> The menu covers the section.</figcaption></figure>
-<figure><img src="img/after-mobile-1-hover.png"><figcaption><span class="tag">After.</span> Trash under the grip.</figcaption></figure>
-<figure><img src="img/after-mobile-3-confirm.png"><figcaption><span class="tag">After.</span> The confirm briefly covers the heading.</figcaption></figure>
-</div>
-</body></html>
+<p>Three versions side by side. In the first, delete is hidden in the grip menu. The second had a separate floating trash button. The third, which is current, joins the grip and trash into one group with a shared surface and a hairline between them.</p>
+<p>The group is vertical because it lives in the section's left gutter, the same way the summary table's row grips stand upright. When a section is shorter than the stack, the group lays out side by side so it never reaches the next section's group.</p>
+<p>All shots come from the PR preview, using throwaway pages that were deleted afterwards. The commits are a578e6fd (before), 78efb1d8 (two buttons) and fe90aaf3 (group).</p>
+<h2>Desktop 1440: hovering a section</h2><div class="row">
+<figure><img src="img/before-desktop-1-hover.png" loading="lazy"><figcaption><span class="tag">Before.</span> Only the grip appears.</figcaption></figure>
+<figure><img src="img/after-v1-desktop-1-hover.png" loading="lazy"><figcaption><span class="tag">Two buttons.</span> A separate trash floats below the grip.</figcaption></figure>
+<figure><img src="img/after-desktop-1-hover.png" loading="lazy"><figcaption><span class="tag">Group.</span> Grip and trash as one toolbar.</figcaption></figure>
+</div><h2>Desktop 1440: the delete step</h2><div class="row">
+<figure><img src="img/before-desktop-2-menu.png" loading="lazy"><figcaption><span class="tag">Before.</span> Grip menu with Remove section last and a submenu to go. Headless Chrome skips the menu blur, so it looks more see-through than it really is.</figcaption></figure>
+<figure><img src="img/after-v1-desktop-3-confirm.png" loading="lazy"><figcaption><span class="tag">Two buttons.</span> The confirm opened to the right.</figcaption></figure>
+<figure><img src="img/after-desktop-3-confirm.png" loading="lazy"><figcaption><span class="tag">Group.</span> Trash turns red and the one-item confirm opens below.</figcaption></figure>
+</div><h2>Mobile 390</h2><div class="row m">
+<figure><img src="img/before-mobile-1-hover.png" loading="lazy"><figcaption><span class="tag">Before.</span> Grip only.</figcaption></figure>
+<figure><img src="img/after-v1-mobile-3-confirm.png" loading="lazy"><figcaption><span class="tag">Two buttons.</span> The confirm covered the Gallery heading.</figcaption></figure>
+<figure><img src="img/after-mobile-3-confirm.png" loading="lazy"><figcaption><span class="tag">Group.</span> The confirm opens below, so the heading stays readable.</figcaption></figure>
+</div><h2>Group: short section, removed, undo, keyboard</h2><div class="row two">
+<figure><img src="img/after-desktop-7-short-section.png" loading="lazy"><figcaption><span class="tag">Short section, desktop.</span> A section forced to 60px tall gets a side-by-side group that ends 28px above the next one.</figcaption></figure>
+<figure><img src="img/after-mobile-7-short-section.png" loading="lazy"><figcaption><span class="tag">Short section, mobile.</span> The same case at 390 wide.</figcaption></figure>
+<figure><img src="img/after-desktop-4-removed.png" loading="lazy"><figcaption><span class="tag">Removed.</span> Gallery is gone and FAQ moves up.</figcaption></figure>
+<figure><img src="img/after-desktop-5-undone.png" loading="lazy"><figcaption><span class="tag">Undo.</span> Undo brings Gallery back.</figcaption></figure>
+<figure><img src="img/after-desktop-6-keyboard-confirm.png" loading="lazy"><figcaption><span class="tag">Keyboard.</span> Tab from the grip lands on the trash and Enter opens the confirm. Escape keeps the section.</figcaption></figure>
+</div></body></html>
