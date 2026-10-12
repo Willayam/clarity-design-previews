@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live title at Stop, measured on the PR preview</title>
+<style>
+:root{
+  --surface:#fcfcfb;--surface-2:#f1f0ed;--line:#e3e2de;
+  --ink:#0b0b0b;--ink-2:#52514e;--ink-3:#77766f;
+  --series:#2a78d6;--band:rgba(42,120,214,.12);--redact:#0f172a;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --surface:#1a1a19;--surface-2:#262624;--line:#363633;
+    --ink:#f0efec;--ink-2:#c3c2b7;--ink-3:#9a998f;
+    --series:#3987e5;--band:rgba(57,135,229,.18);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--ink);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:28px 18px 56px}
+h1{font-size:1.6rem;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+h2{font-size:1.1rem;margin:40px 0 10px}
+p{margin:8px 0}
+a{color:var(--series)}
+.meta{color:var(--ink-2);font-size:.9rem}
+.lead{font-size:1.15rem;margin:20px 0 4px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-2);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sub{display:block;color:var(--ink-2);font-size:.85rem;margin-top:2px}
+table.ba td:first-child{font-weight:600}
+table.ba td.n{font-weight:400}
+table.ba .sub{font-weight:400}
+table.ba tr.group td{font-weight:600}
+tr.group td{color:var(--ink-3);font-size:.8rem;text-transform:none;font-weight:600;padding-top:14px;border-bottom:none}
+.note{color:var(--ink-2);font-size:.88rem}
+.chart{position:relative;margin-top:8px}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font-size:12px;fill:var(--ink-2)}
+.chart .row-label{fill:var(--ink);font-weight:600;font-size:13px}
+.chart .p50-label{fill:var(--ink);font-weight:600}
+.chart .tick{font-variant-numeric:tabular-nums}
+.chart circle{fill:var(--series);stroke:var(--surface);stroke-width:2}
+.chart circle:focus{outline:none;stroke:var(--ink)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);
+  font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-130%);display:none}
+.baseline{margin-top:14px;padding:12px 14px;background:var(--surface-2);border-radius:10px;font-size:.92rem}
+details{margin-top:12px;font-size:.9rem}
+summary{cursor:pointer;color:var(--ink-2)}
+figure{margin:0 0 20px}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px}
+figcaption{font-size:.88rem;color:var(--ink-2);margin-top:6px}
+code{font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<main>
+<h1>Live title at Stop, measured on the PR preview</h1>
+<p class="meta"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1423">PR #1423</a>, head <code>fa45249c9</code>, measured 12 October 2026. <a href="https://willayam.github.io/clarity-design-previews/live-transcript-title-at-stop/">The approved design</a>.</p>
+
+<p class="lead">At Stop, the finish screen now shows a title written from what the rep said. The median wait was about half a second when the rep stopped in a pause, and 1.4 seconds when they stopped mid-sentence.</p>
+
+<h2>Before and after</h2>
+<table class="ba">
+<thead><tr><th>Version</th><th class="n">p50</th><th class="n">p90</th></tr></thead>
+<tbody>
+<tr class="group"><td colspan="3">Before</td></tr>
+<tr><td>main today<span class="sub">The header says "Finish your video". The take stays "Untitled Video" until someone renames it.</span></td><td class="n">no title</td><td class="n">no title</td></tr>
+<tr><td>PR #1397 path<span class="sub">Mux Robots transcribes the asset, then a title job names it. Measured from Finish, 47 to 81&nbsp;s over 12 takes.</span></td><td class="n">about 58&nbsp;s</td><td class="n">not reported</td></tr>
+<tr class="group"><td colspan="3">After, PR #1423, Stop to title, 10 takes each</td></tr>
+<tr><td>Stop 1.5&nbsp;s into a pause</td><td class="n">544&nbsp;ms</td><td class="n">1,473&nbsp;ms</td></tr>
+<tr><td>Stop 3&nbsp;s into a pause</td><td class="n">438&nbsp;ms</td><td class="n">834&nbsp;ms</td></tr>
+<tr><td>Stop while talking</td><td class="n">1,431&nbsp;ms</td><td class="n">1,719&nbsp;ms</td></tr>
+</tbody>
+</table>
+<p class="note">A p90 over 10 takes is rough. One slow take moves it a lot. Every one of the 30 timed takes got a title.</p>
+
+<h2>Stop to title, every take</h2>
+<p class="note">One dot per take. The dark line is the median. The shaded band is what the design guessed for that case.</p>
+<div class="chart" id="chart" role="img" aria-label="Dot plot of Stop to title in seconds for three cases. Stop 1.5 s into a pause, median 544 ms. Stop 3 s into a pause, median 438 ms. Stop while talking, median 1,431 ms. Values are in the table below."></div>
+<div class="baseline">For scale, the PR #1397 path took about 58 s from Finish to title. On this axis that would sit about 23 chart widths to the right.</div>
+<details>
+<summary>Every take, in ms</summary>
+<div class="scroll">
+<table>
+<thead><tr><th>Case</th><th>Takes, sorted</th><th class="n">min</th><th class="n">p50</th><th class="n">p90</th><th class="n">max</th></tr></thead>
+<tbody id="takes-table"></tbody>
+</table>
+</div>
+</details>
+
+<h2>What the finish screen shows</h2>
+<p class="note">Screenshots from the harness at 1280 by 800, cropped to the main column. A solid box covers the title text, because the title came from a real production take. The video is the fake camera's green test pattern.</p>
+<figure>
+<img src="after-pause-finish.png" width="860" height="744" alt="Finish screen after Stop in a pause. The title line at the top is covered by a dark box. Below it are the test-pattern video, the trim strip, and Re-record, Open page and Copy link.">
+<figcaption>Stop 1.5 s into a pause. This take's title painted 671&nbsp;ms after Stop.</figcaption>
+</figure>
+<figure>
+<img src="after-talk-finish.png" width="860" height="744" alt="Finish screen after Stop while talking. The title line is covered by a dark box. The trim strip shows the auto trim from the live words.">
+<figcaption>Stop while talking. This take's title painted 1,457&nbsp;ms after Stop.</figcaption>
+</figure>
+
+<h2>Design against measurement</h2>
+<p>The design guessed 0.15 to 0.3 s for a Stop in a pause. The build missed that. The measured median was 0.54&nbsp;s at 1.5&nbsp;s into a pause and 0.44&nbsp;s at 3&nbsp;s.</p>
+<p>The seal request at Stop still makes two database round trips before it answers. The fastest seal across all 30 takes took 276&nbsp;ms. In the paused cases the seal starts a median 34&nbsp;ms after Stop and the title paints 10 to 11&nbsp;ms after it returns, so even the fastest seal lands past 0.3&nbsp;s. The database share of the seal is inferred from the code, not traced per take.</p>
+<p>Three of the 20 paused takes took over a second. Their timestamps line up with slow calls to the title model. That match is inferred from timestamps, not traced.</p>
+<p>The design said 1 to 1.5&nbsp;s for a Stop while talking. The measured median was 1.43&nbsp;s, inside that range. The p90 was 1.72&nbsp;s, outside it.</p>
+<p>The first run, at <code>c6c678a1c</code> before two latency fixes, had medians of 2,350, 1,160 and 3,184 ms for the same three cases over 6 takes each.</p>
+
+<h2>Method</h2>
+<p class="note">Preview <code>pr-1423.clarity-video.workers.dev</code> serving head <code>fa45249c9</code>. Playwright with a fake microphone that plays one real production take. 10 takes per case, 30 in all. Stop to title runs from the Stop click to the title painted in the field. Percentiles use linear interpolation.</p>
+</main>
+
+<div class="tip" id="tip"></div>
+<script>
+const CASES = [
+  {name: "Stop 1.5 s into a pause", takes: [663, 671, 446, 346, 453, 2238, 479, 608, 431, 1388], p50: 544, p90: 1473, design: [150, 300], designLabel: "design 0.15 to 0.3 s"},
+  {name: "Stop 3 s into a pause", takes: [321, 329, 337, 346, 429, 447, 454, 479, 657, 2432], p50: 438, p90: 834, design: [150, 300], designLabel: "design 0.15 to 0.3 s"},
+  {name: "Stop while talking", takes: [1405, 1589, 1289, 1457, 1647, 1215, 2363, 1622, 1283, 1338], p50: 1431, p90: 1719, design: [1000, 1500], designLabel: "design 1 to 1.5 s"}
+];
+const fmt = n => n.toLocaleString("en-US");
+
+const tbody = document.getElementById("takes-table");
+for (const c of CASES) {
+  const s = [...c.takes].sort((a, b) => a - b);
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td>${c.name}</td><td style="font-variant-numeric:tabular-nums">${s.map(fmt).join(", ")}</td>` +
+    `<td class="n">${fmt(s[0])}</td><td class="n">${fmt(c.p50)}</td><td class="n">${fmt(c.p90)}</td><td class="n">${fmt(s[s.length - 1])}</td>`;
+  tbody.appendChild(tr);
+}
+
+const host = document.getElementById("chart");
+const tip = document.getElementById("tip");
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  parent.appendChild(e);
+  return e;
+};
+
+function draw() {
+  host.innerHTML = "";
+  const W = host.clientWidth, padL = 6, padR = 14, plotW = W - padL - padR;
+  const maxMs = 2500, R = 5, laneGap = 2 * R + 3;
+  const x = ms => padL + (ms / maxMs) * plotW;
+  const svg = el("svg", {}, host);
+  let y = 0;
+
+  for (const c of CASES) {
+    const sorted = [...c.takes].sort((a, b) => a - b);
+    const lanes = [];
+    const placed = sorted.map(ms => {
+      const px = x(ms);
+      for (let i = 0; ; i++) {
+        const lane = i === 0 ? 0 : (i % 2 ? (i + 1) / 2 : -i / 2);
+        const used = lanes.filter(p => p.lane === lane);
+        if (used.every(p => Math.abs(p.px - px) >= 2 * R + 2)) {
+          const p = {ms, px, lane};
+          lanes.push(p);
+          return p;
+        }
+      }
+    });
+    const maxLane = Math.max(...placed.map(p => Math.abs(p.lane)));
+    const half = Math.max(maxLane * laneGap + R + 4, 18);
+
+    el("text", {x: padL, y: y + 14, class: "row-label"}, svg).textContent = c.name;
+    const top = y + 40, mid = top + half, bottom = mid + half;
+
+    el("rect", {x: x(c.design[0]), y: top, width: x(c.design[1]) - x(c.design[0]), height: bottom - top, fill: "var(--band)", rx: 3}, svg);
+    el("text", {x: x(c.design[0]), y: bottom + 14}, svg).textContent = c.designLabel;
+
+    el("line", {x1: padL, x2: padL + plotW, y1: mid, y2: mid, stroke: "var(--line)", "stroke-width": 1}, svg);
+    el("line", {x1: x(c.p50), x2: x(c.p50), y1: top - 4, y2: bottom + 2, stroke: "var(--ink)", "stroke-width": 2, "stroke-linecap": "round"}, svg);
+    const lbl = el("text", {x: x(c.p50), y: top - 9, class: "p50-label", "text-anchor": "middle"}, svg);
+    lbl.textContent = `p50 ${fmt(c.p50)} ms`;
+
+    for (const p of placed) {
+      const dot = el("circle", {cx: p.px, cy: mid + p.lane * laneGap, r: R, tabindex: 0, "aria-label": `${c.name}, ${fmt(p.ms)} ms`}, svg);
+      const show = () => {
+        tip.textContent = `${fmt(p.ms)} ms`;
+        const b = host.getBoundingClientRect();
+        tip.style.left = `${b.left + window.scrollX + p.px}px`;
+        tip.style.top = `${b.top + window.scrollY + mid + p.lane * laneGap - R}px`;
+        tip.style.display = "block";
+      };
+      const hide = () => { tip.style.display = "none"; };
+      dot.addEventListener("pointerenter", show);
+      dot.addEventListener("pointerleave", hide);
+      dot.addEventListener("focus", show);
+      dot.addEventListener("blur", hide);
+    }
+    y = bottom + 30;
+  }
+
+  el("line", {x1: padL, x2: padL + plotW, y1: y, y2: y, stroke: "var(--ink-3)", "stroke-width": 1}, svg);
+  for (let s = 0; s <= 2.5; s += 0.5) {
+    const px = x(s * 1000);
+    el("line", {x1: px, x2: px, y1: y, y2: y + 4, stroke: "var(--ink-3)", "stroke-width": 1}, svg);
+    el("text", {x: px, y: y + 18, "text-anchor": s === 0 ? "start" : s === 2.5 ? "end" : "middle", class: "tick"}, svg).textContent = s === 0 ? "0 s" : `${s} s`;
+  }
+  el("text", {x: padL + plotW, y: y + 36, "text-anchor": "end"}, svg).textContent = "Seconds from Stop to the title painted";
+  svg.setAttribute("height", y + 44);
+  svg.setAttribute("viewBox", `0 0 ${W} ${y + 44}`);
+}
+draw();
+let pending;
+window.addEventListener("resize", () => { cancelAnimationFrame(pending); pending = requestAnimationFrame(draw); });
+</script>
+</body>
+</html>
