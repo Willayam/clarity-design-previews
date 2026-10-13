@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #1423 and #1418, before and after</title>
+<style>
+body{font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0f172a;background:#f8fafc;margin:0}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 80px}
+h1{font-size:24px;margin:8px 0 4px}h2{font-size:20px;margin:40px 0 8px;padding-top:16px;border-top:1px solid #e2e8f0}
+h3{font-size:16px;margin:28px 0 6px}h4{font-size:13px;color:#475569;margin:22px 0 6px;font-weight:600}
+.meta{color:#475569;font-size:13px}
+.verdict{background:#fff;border:1px solid #e2e8f0;border-left:4px solid #d97706;border-radius:8px;padding:12px 14px;margin:12px 0}
+.verdict b{color:#b45309}
+table{border-collapse:collapse;background:#fff;font-size:14px;margin:8px 0}td,th{border:1px solid #e2e8f0;padding:6px 10px;text-align:left}th{background:#f1f5f9}
+.pair{margin:0 0 8px}.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sides img{width:100%;height:auto;border:1px solid #cbd5e1;border-radius:6px;background:#fff;display:block}
+.tag{font-size:12px;color:#64748b;margin-bottom:3px}.tag.after{color:#1d4ed8}
+figcaption{font-size:14px;margin-top:6px}
+details{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;margin:8px 0}summary{cursor:pointer;font-weight:600}
+code{font-size:13px;background:#e2e8f0;padding:1px 4px;border-radius:4px}
+ul{padding-left:20px}
+</style></head><body><main>
+<h1>PR #1423 and #1418, before and after</h1>
+<p class="meta">Captured 2026-10-13 at 390 and 1440 wide. PR #1423 head <code>0727e21c</code>, PR #1418 head <code>4359000e</code>, both merged with main <code>02cafa93</code>. Tap any image for full size.</p>
+
+<div class="verdict"><p><b>Both PRs now conflict with main.</b> PR #1429 (responsive library, sharing and recorder controls) merged and reached production at <code>13e17381</code> while these captures ran. It touches 9 of #1418's files, including <code>button.tsx</code> and the delete dialog. It also touches 7 of #1423's files, including <code>recorder-take.ts</code> and <code>RecordVideoRoute.tsx</code>. Everything below shows each PR on its own base, <code>02cafa93</code>. Each one needs main merged in, its conflicts resolved, and a fresh capture before it can land.</p>
+<p><b>Why the "before" side is not production.</b> Production moved to <code>13e17381</code> mid-run, so it would mix #1429's changes into the comparison. Each before image comes from the other PR's preview instead, which sits on the same base. #1423's preview stands in for main on #1418's screens, because #1423 only changes recorder and speech files. #1418's preview stands in for main on the recorder, because #1418 changes no recorder or worker file. Recording never touched production or staging.</p></div>
+
+<h2>PR #1423: live transcript and title at Stop</h2>
+<div class="verdict"><b>Needs work.</b> The core works and the gain is large. At a pause, the title is in the field 0.4 s after Stop, compared with 34 s on main. Before it lands:
+<ul><li>Resolve the conflicts with #1429.</li>
+<li>Find out why chunk uploads returned 503. In 1 of 16 takes, one chunk upload got HTTP 503 three times. That take showed no title at Stop and fell back to the slow path, which titled it 64 s later.</li>
+<li>Stop the title field cutting long titles mid-word at 390 wide.</li></ul></div>
+
+<h3>Stop to title</h3>
+<table><tr><th>Target</th><th>Stop point</th><th>Takes</th><th>Median</th><th>Range</th></tr>
+<tr><td>PR #1423</td><td>1.5 s into a pause</td><td>5</td><td>435 ms</td><td>292 to 449 ms</td></tr>
+<tr><td>PR #1423</td><td>mid-sentence</td><td>7 titled, 1 untitled</td><td>1,839 ms</td><td>1,227 to 2,672 ms</td></tr>
+<tr><td>main</td><td>1.5 s into a pause</td><td>2</td><td>34.2 s</td><td>34.1 to 34.2 s</td></tr>
+<tr><td>main</td><td>mid-sentence</td><td>2</td><td>34.2 s</td><td>34.1 to 34.2 s</td></tr></table>
+<ul>
+<li>The take is a synthetic 33 s English voice (macOS <code>say</code>) about a made-up product, played into a fake mic. The same file and Stop points were used on both targets.</li>
+<li>On the PR, the clock stops when the title field becomes visible. The app's own <code>recorder_stop_to_title</code> event agrees within about 20 ms. At a pause, the server already drafted the title, so one seal request of about 390 ms is the floor. Mid-sentence, the last chunk upload (about 0.5 s) and the title call (1.3 to 2.1 s) add up. Times rose over the session, which points at the title model's latency (a guess, not isolated).</li>
+<li>On main, the finish screen has no title, so the clock stops when the Library name changes. Names were polled every 2 s. 34 s is lower than the 60 s in the PR body, probably because these takes are only 30 to 33 s long (a guess).</li>
+<li>The field never swapped a title it had already shown. The saved names still matched 5 to 50 minutes later.</li>
+<li>The title wording varies between takes of the same audio: "How Harbour Line automates crew scheduling" on 12 of 16 takes, plus three other phrasings. nova-3 hears the product "Harborline" as "Harbour Line". Mux Robots on main spelled it right on all 4 takes.</li>
+</ul>
+<h4>finish, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">main (pr-1418 preview)</div><a href="img/1423-finish-390-before.webp"><img loading="lazy" src="img/1423-finish-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1423 preview</div><a href="img/1423-finish-390-after.webp"><img loading="lazy" src="img/1423-finish-390-after.webp" alt="after"></a></div>
+</div><figcaption>Right after Stop. Main heads the screen &quot;Finish your video&quot;; the PR shows the editable title field with its &quot;Untitled video&quot; placeholder, the Auto/Custom/None trim row, and the video still loading.</figcaption></figure>
+<h4>finish, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">main (pr-1418 preview)</div><a href="img/1423-finish-1440-before.webp"><img loading="lazy" src="img/1423-finish-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1423 preview</div><a href="img/1423-finish-1440-after.webp"><img loading="lazy" src="img/1423-finish-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Right after Stop. Main: &quot;Finish your video&quot; header, no trim-mode row. PR: &quot;Untitled video&quot; placeholder in the title field and Auto trim selected; the PR shot was taken a few hundred ms earlier in the screen load, so its player and filmstrip are still black.</figcaption></figure>
+<h4>finish-title-landed, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">main (pr-1418 preview)</div><a href="img/1423-finish-title-landed-390-before.webp"><img loading="lazy" src="img/1423-finish-title-landed-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1423 preview</div><a href="img/1423-finish-title-landed-390-after.webp"><img loading="lazy" src="img/1423-finish-title-landed-390-after.webp" alt="after"></a></div>
+</div><figcaption>After the title exists. Main took the shot 34 s after Stop when the Library name changed; the finish screen still reads &quot;Finish your video&quot; because it has no title field. PR took it about 0.9 s after Stop with the title in the field; at 390 the field clips the title mid-word (&quot;...crew sche&quot;) with no ellipsis.</figcaption></figure>
+<h4>finish-title-landed, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">main (pr-1418 preview)</div><a href="img/1423-finish-title-landed-1440-before.webp"><img loading="lazy" src="img/1423-finish-title-landed-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1423 preview</div><a href="img/1423-finish-title-landed-1440-after.webp"><img loading="lazy" src="img/1423-finish-title-landed-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Main at 34 s: header unchanged. PR at about 0.8 s: &quot;How Harbour Line automates crew scheduling&quot; in the header field.</figcaption></figure>
+<h4>library, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">main (pr-1418 preview)</div><a href="img/1423-library-390-before.webp"><img loading="lazy" src="img/1423-library-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1423 preview</div><a href="img/1423-library-390-after.webp"><img loading="lazy" src="img/1423-library-390-after.webp" alt="after"></a></div>
+</div><figcaption>Library card for the take. Main opened about 35 s after Stop, card reads &quot;How Harborline automates crew scheduling&quot;. PR opened about 1.5 min after Stop (after the 90 s name watch), card reads &quot;How Harbour Line automates crew scheduling&quot;. Other cards are the test account&#x27;s seeded fixtures and earlier takes from this run.</figcaption></figure>
+<h4>library, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">main (pr-1418 preview)</div><a href="img/1423-library-1440-before.webp"><img loading="lazy" src="img/1423-library-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1423 preview</div><a href="img/1423-library-1440-after.webp"><img loading="lazy" src="img/1423-library-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Same as 390. Main spells the product &quot;Harborline&quot; (Mux Robots words); the PR spells it &quot;Harbour Line&quot; (nova-3 live words).</figcaption></figure>
+<h4>Defect: no title at Stop after three 503s on one chunk upload, 390 wide</h4>
+<figure class="pair"><a href="img/1423-defect-untitled-after-chunk-503-390-after.webp"><img loading="lazy" src="img/1423-defect-untitled-after-chunk-503-390-after.webp" alt="untitled after 503" style="max-width:390px;width:100%;border:1px solid #cbd5e1;border-radius:6px"></a><figcaption>The field keeps the "Untitled video" placeholder and Auto trim stays pending. The take was titled about 64 s after Stop through the slow path.</figcaption></figure>
+
+<h2>PR #1418: unify approved button treatments</h2>
+<div class="verdict"><b>Needs work, mostly from the conflicts.</b> The visible changes are deliberate and look right. Nothing is broken or misaligned.
+<ul><li>The delete confirmation is a deeper filled red.</li>
+<li>Both Teams "Schedule a Call" buttons turn gold.</li>
+<li>Alt+F10 now reaches the hero text toolbar.</li></ul>
+One taste call: the disabled "Send message" on the contact page turns from flat grey to faded blue with white text, so it reads close to enabled. It does match the disabled "Save changes" on Profile. The real blocker is #1429: it changed <code>button.tsx</code>, the delete dialog and the library in parallel, so this PR needs main merged in and a fresh capture of the same screens.</div>
+<p>Not captured, with the reason:</p>
+<ul>
+<li>Recorder finish screen. No recorder file is in the diff.</li>
+<li>Upload-in-progress cancel button. It only appears during a real upload.</li>
+<li>Billing "Remove card". The test account has no saved card.</li>
+<li>Admin table headers. The test account is not an admin.</li>
+<li>Logo hover toolbar. Neither test page has a hero logo, so the video hover toolbar is shown instead.</li>
+</ul>
+
+<h3>Screens the PR changes</h3>
+<h4>delete-dialog-el, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-delete-dialog-el-1440-before.webp"><img loading="lazy" src="img/1418-delete-dialog-el-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-delete-dialog-el-1440-after.webp"><img loading="lazy" src="img/1418-delete-dialog-el-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Delete confirm turns from bright coral red to a deeper filled red. Cancel, icon, title and copy are unchanged.</figcaption></figure>
+<h4>delete-dialog-el, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-delete-dialog-el-390-before.webp"><img loading="lazy" src="img/1418-delete-dialog-el-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-delete-dialog-el-390-after.webp"><img loading="lazy" src="img/1418-delete-dialog-el-390-after.webp" alt="after"></a></div>
+</div><figcaption>Delete confirm turns from bright coral red to a deeper filled red. Cancel, icon, title and copy are unchanged.</figcaption></figure>
+<h4>delete-dialog, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-delete-dialog-1440-before.webp"><img loading="lazy" src="img/1418-delete-dialog-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-delete-dialog-1440-after.webp"><img loading="lazy" src="img/1418-delete-dialog-1440-after.webp" alt="after"></a></div>
+</div><figcaption>The &quot;Delete Journey page&quot; confirm changes from a bright coral red (red-500) to a deeper, more saturated filled red. Cancel looks the same (white with a thin border). The cards behind the dialog differ only because of seeded content.</figcaption></figure>
+<h4>delete-dialog, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-delete-dialog-390-before.webp"><img loading="lazy" src="img/1418-delete-dialog-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-delete-dialog-390-after.webp"><img loading="lazy" src="img/1418-delete-dialog-390-after.webp" alt="after"></a></div>
+</div><figcaption>The &quot;Delete Journey page&quot; confirm changes from a bright coral red (red-500) to a deeper, more saturated filled red. Cancel looks the same (white with a thin border). The cards behind the dialog differ only because of seeded content.</figcaption></figure>
+<h4>teams-cta-hero, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-teams-cta-hero-1440-before.webp"><img loading="lazy" src="img/1418-teams-cta-hero-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-teams-cta-hero-1440-after.webp"><img loading="lazy" src="img/1418-teams-cta-hero-1440-after.webp" alt="after"></a></div>
+</div><figcaption>White pill with blue text becomes a gold gradient button with dark text, slightly shorter (90px vs 96px clip at 1440).</figcaption></figure>
+<h4>teams-cta-hero, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-teams-cta-hero-390-before.webp"><img loading="lazy" src="img/1418-teams-cta-hero-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-teams-cta-hero-390-after.webp"><img loading="lazy" src="img/1418-teams-cta-hero-390-after.webp" alt="after"></a></div>
+</div><figcaption>White pill with blue text becomes a gold gradient button with dark text, slightly shorter (90px vs 96px clip at 1440).</figcaption></figure>
+<h4>teams-cta-footer, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-teams-cta-footer-1440-before.webp"><img loading="lazy" src="img/1418-teams-cta-footer-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-teams-cta-footer-1440-after.webp"><img loading="lazy" src="img/1418-teams-cta-footer-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Solid blue button with white text becomes a gold gradient button with dark text. At 390 the two-line label breaks at a different word.</figcaption></figure>
+<h4>teams-cta-footer, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-teams-cta-footer-390-before.webp"><img loading="lazy" src="img/1418-teams-cta-footer-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-teams-cta-footer-390-after.webp"><img loading="lazy" src="img/1418-teams-cta-footer-390-after.webp" alt="after"></a></div>
+</div><figcaption>Solid blue button with white text becomes a gold gradient button with dark text. At 390 the two-line label breaks at a different word.</figcaption></figure>
+<h4>teams, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-teams-1440-before.webp"><img loading="lazy" src="img/1418-teams-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-teams-1440-after.webp"><img loading="lazy" src="img/1418-teams-1440-after.webp" alt="after"></a></div>
+</div><figcaption>The hero &quot;Schedule a Call&quot; CTA changes from a white pill with blue text to the gold gradient button with dark text. The header Sign in and Get started buttons are unchanged. The testimonial video is blurred on both.</figcaption></figure>
+<h4>teams, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-teams-390-before.webp"><img loading="lazy" src="img/1418-teams-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-teams-390-after.webp"><img loading="lazy" src="img/1418-teams-390-after.webp" alt="after"></a></div>
+</div><figcaption>The hero &quot;Schedule a Call&quot; CTA changes from a white pill with blue text to the gold gradient button with dark text. The header Sign in and Get started buttons are unchanged. The testimonial video is blurred on both.</figcaption></figure>
+<h4>contact-us-submit, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contact-us-submit-1440-before.webp"><img loading="lazy" src="img/1418-contact-us-submit-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contact-us-submit-1440-after.webp"><img loading="lazy" src="img/1418-contact-us-submit-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Disabled Send message turns from flat grey to faded blue, and is 16px narrower at 1440 because the extra side padding was dropped.</figcaption></figure>
+<h4>contact-us-submit, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contact-us-submit-390-before.webp"><img loading="lazy" src="img/1418-contact-us-submit-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contact-us-submit-390-after.webp"><img loading="lazy" src="img/1418-contact-us-submit-390-after.webp" alt="after"></a></div>
+</div><figcaption>Disabled Send message turns from flat grey to faded blue, and is 16px narrower at 1440 because the extra side padding was dropped.</figcaption></figure>
+<h4>contact-us, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contact-us-1440-before.webp"><img loading="lazy" src="img/1418-contact-us-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contact-us-1440-after.webp"><img loading="lazy" src="img/1418-contact-us-1440-after.webp" alt="after"></a></div>
+</div><figcaption>The disabled &quot;Send message&quot; button changes from flat grey with grey text to a faded blue primary gradient with white text. The header buttons are unchanged.</figcaption></figure>
+<h4>contact-us, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contact-us-390-before.webp"><img loading="lazy" src="img/1418-contact-us-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contact-us-390-after.webp"><img loading="lazy" src="img/1418-contact-us-390-after.webp" alt="after"></a></div>
+</div><figcaption>The disabled &quot;Send message&quot; button changes from flat grey with grey text to a faded blue primary gradient with white text. The header buttons are unchanged.</figcaption></figure>
+<h4>editor-hero-toolbar-altf10, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-hero-toolbar-altf10-1440-before.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-altf10-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-hero-toolbar-altf10-1440-after.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-altf10-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Behaviour change with almost no visual change. Alt+F10 now moves focus from the title to the toolbar Left button (confirmed via document.activeElement), and at 1440 the title shows its hover tint once it loses focus. Before, focus stayed in the title. No focus ring shows on Left because Chrome does not mark it :focus-visible after a mouse click into the title; the next Tab shows the ring.</figcaption></figure>
+<h4>editor-hero-toolbar-altf10, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-hero-toolbar-altf10-390-before.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-altf10-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-hero-toolbar-altf10-390-after.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-altf10-390-after.webp" alt="after"></a></div>
+</div><figcaption>Behaviour change with almost no visual change. Alt+F10 now moves focus from the title to the toolbar Left button (confirmed via document.activeElement), and at 1440 the title shows its hover tint once it loses focus. Before, focus stayed in the title. No focus ring shows on Left because Chrome does not mark it :focus-visible after a mouse click into the title; the next Tab shows the ring.</figcaption></figure>
+
+<h3>Screens with no visible change from the PR</h3>
+<p>Each pair is either pixel-identical or differs only in seeded test content, which differs between the two previews. Open a group to check.</p>
+<details><summary>Home and library</summary><h4>home, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-home-1440-before.webp"><img loading="lazy" src="img/1418-home-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-home-1440-after.webp"><img loading="lazy" src="img/1418-home-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No button difference. The shelves hold different seeded and test content (control 5 pages, 100 videos and a Preparing video card; preview 2 pages, 7 videos).</figcaption></figure>
+<h4>home, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-home-390-before.webp"><img loading="lazy" src="img/1418-home-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-home-390-after.webp"><img loading="lazy" src="img/1418-home-390-after.webp" alt="after"></a></div>
+</div><figcaption>No button difference. The shelves hold different seeded and test content (control 5 pages, 100 videos and a Preparing video card; preview 2 pages, 7 videos).</figcaption></figure>
+<h4>library, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-library-1440-before.webp"><img loading="lazy" src="img/1418-library-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-library-1440-after.webp"><img loading="lazy" src="img/1418-library-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No button difference. The control lists 5 Smoke Journey pages and the preview lists 2.</figcaption></figure>
+<h4>library, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-library-390-before.webp"><img loading="lazy" src="img/1418-library-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-library-390-after.webp"><img loading="lazy" src="img/1418-library-390-after.webp" alt="after"></a></div>
+</div><figcaption>No button difference. The control lists 5 Smoke Journey pages and the preview lists 2.</figcaption></figure></details>
+<details><summary>Editor header and toolbars</summary><h4>editor, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-1440-before.webp"><img loading="lazy" src="img/1418-editor-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-1440-after.webp"><img loading="lazy" src="img/1418-editor-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No button difference. Page title and hero video poster differ because the two previews hold different smoke pages.</figcaption></figure>
+<h4>editor, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-390-before.webp"><img loading="lazy" src="img/1418-editor-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-390-after.webp"><img loading="lazy" src="img/1418-editor-390-after.webp" alt="after"></a></div>
+</div><figcaption>No button difference. Page title and hero video poster differ because the two previews hold different smoke pages.</figcaption></figure>
+<h4>editor-topbar, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-topbar-1440-before.webp"><img loading="lazy" src="img/1418-editor-topbar-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-topbar-1440-after.webp"><img loading="lazy" src="img/1418-editor-topbar-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The only changed pixels are the animated AI Generate sparkle icon.</figcaption></figure>
+<h4>editor-topbar, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-topbar-390-before.webp"><img loading="lazy" src="img/1418-editor-topbar-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-topbar-390-after.webp"><img loading="lazy" src="img/1418-editor-topbar-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The only changed pixels are the animated AI Generate sparkle icon.</figcaption></figure>
+<h4>editor-hero-toolbar, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-hero-toolbar-1440-before.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-hero-toolbar-1440-after.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference in the alignment toolbar. The media behind it differs (blue vs dark poster).</figcaption></figure>
+<h4>editor-hero-toolbar, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-hero-toolbar-390-before.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-hero-toolbar-390-after.webp"><img loading="lazy" src="img/1418-editor-hero-toolbar-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference in the alignment toolbar. The media behind it differs (blue vs dark poster).</figcaption></figure>
+<h4>editor-media-toolbar, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-media-toolbar-1440-before.webp"><img loading="lazy" src="img/1418-editor-media-toolbar-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-media-toolbar-1440-after.webp"><img loading="lazy" src="img/1418-editor-media-toolbar-1440-after.webp" alt="after"></a></div>
+</div><figcaption>The Edit/Replace/Remove pill is unchanged. The video poster differs because of seeded content.</figcaption></figure>
+<h4>editor-media-toolbar, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-media-toolbar-390-before.webp"><img loading="lazy" src="img/1418-editor-media-toolbar-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-media-toolbar-390-after.webp"><img loading="lazy" src="img/1418-editor-media-toolbar-390-after.webp" alt="after"></a></div>
+</div><figcaption>The Edit/Replace/Remove pill is unchanged. The video poster differs because of seeded content.</figcaption></figure>
+<h4>editor-add-section, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-add-section-1440-before.webp"><img loading="lazy" src="img/1418-editor-add-section-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-add-section-1440-after.webp"><img loading="lazy" src="img/1418-editor-add-section-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The Add section glass pill is pixel identical after moving to ButtonBase glass.</figcaption></figure>
+<h4>editor-add-section, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-add-section-390-before.webp"><img loading="lazy" src="img/1418-editor-add-section-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-add-section-390-after.webp"><img loading="lazy" src="img/1418-editor-add-section-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The Add section glass pill is pixel identical after moving to ButtonBase glass.</figcaption></figure>
+<h4>editor-add-section-hover, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-add-section-hover-1440-before.webp"><img loading="lazy" src="img/1418-editor-add-section-hover-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-add-section-hover-1440-after.webp"><img loading="lazy" src="img/1418-editor-add-section-hover-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference in the hovered pill.</figcaption></figure>
+<h4>editor-add-section-hover, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-add-section-hover-390-before.webp"><img loading="lazy" src="img/1418-editor-add-section-hover-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-add-section-hover-390-after.webp"><img loading="lazy" src="img/1418-editor-add-section-hover-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference in the hovered pill.</figcaption></figure>
+<h4>editor-cta-row, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-cta-row-1440-before.webp"><img loading="lazy" src="img/1418-editor-cta-row-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-cta-row-1440-after.webp"><img loading="lazy" src="img/1418-editor-cta-row-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The CTA card with link field, primary switch and remove button is pixel identical.</figcaption></figure>
+<h4>editor-cta-row, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-cta-row-390-before.webp"><img loading="lazy" src="img/1418-editor-cta-row-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-cta-row-390-after.webp"><img loading="lazy" src="img/1418-editor-cta-row-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The CTA card with link field, primary switch and remove button is pixel identical.</figcaption></figure>
+<h4>editor-faq, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-faq-1440-before.webp"><img loading="lazy" src="img/1418-editor-faq-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-faq-1440-after.webp"><img loading="lazy" src="img/1418-editor-faq-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The grip and delete controls are pixel identical.</figcaption></figure>
+<h4>editor-faq, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-faq-390-before.webp"><img loading="lazy" src="img/1418-editor-faq-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-faq-390-after.webp"><img loading="lazy" src="img/1418-editor-faq-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The grip and delete controls are pixel identical.</figcaption></figure>
+<h4>editor-faq-focused, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-faq-focused-1440-before.webp"><img loading="lazy" src="img/1418-editor-faq-focused-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-faq-focused-1440-after.webp"><img loading="lazy" src="img/1418-editor-faq-focused-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference.</figcaption></figure>
+<h4>editor-faq-focused, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-editor-faq-focused-390-before.webp"><img loading="lazy" src="img/1418-editor-faq-focused-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-editor-faq-focused-390-after.webp"><img loading="lazy" src="img/1418-editor-faq-focused-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference.</figcaption></figure></details>
+<details><summary>Share</summary><h4>share-dialog-el, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-share-dialog-el-1440-before.webp"><img loading="lazy" src="img/1418-share-dialog-el-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-share-dialog-el-1440-after.webp"><img loading="lazy" src="img/1418-share-dialog-el-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the share link host and id.</figcaption></figure>
+<h4>share-dialog-el, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-share-dialog-el-390-before.webp"><img loading="lazy" src="img/1418-share-dialog-el-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-share-dialog-el-390-after.webp"><img loading="lazy" src="img/1418-share-dialog-el-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the share link host and id.</figcaption></figure>
+<h4>share-dialog, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-share-dialog-1440-before.webp"><img loading="lazy" src="img/1418-share-dialog-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-share-dialog-1440-after.webp"><img loading="lazy" src="img/1418-share-dialog-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the share link host and id.</figcaption></figure>
+<h4>share-dialog, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-share-dialog-390-before.webp"><img loading="lazy" src="img/1418-share-dialog-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-share-dialog-390-after.webp"><img loading="lazy" src="img/1418-share-dialog-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the share link host and id.</figcaption></figure>
+<h4>library-share-dialog-el, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-library-share-dialog-el-1440-before.webp"><img loading="lazy" src="img/1418-library-share-dialog-el-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-library-share-dialog-el-1440-after.webp"><img loading="lazy" src="img/1418-library-share-dialog-el-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the preview host name and share id in the link.</figcaption></figure>
+<h4>library-share-dialog-el, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-library-share-dialog-el-390-before.webp"><img loading="lazy" src="img/1418-library-share-dialog-el-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-library-share-dialog-el-390-after.webp"><img loading="lazy" src="img/1418-library-share-dialog-el-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the preview host name and share id in the link.</figcaption></figure>
+<h4>library-share-dialog, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-library-share-dialog-1440-before.webp"><img loading="lazy" src="img/1418-library-share-dialog-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-library-share-dialog-1440-after.webp"><img loading="lazy" src="img/1418-library-share-dialog-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the preview host name and share id in the link.</figcaption></figure>
+<h4>library-share-dialog, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-library-share-dialog-390-before.webp"><img loading="lazy" src="img/1418-library-share-dialog-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-library-share-dialog-390-after.webp"><img loading="lazy" src="img/1418-library-share-dialog-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference apart from the preview host name and share id in the link.</figcaption></figure></details>
+<details><summary>Auth and login</summary><h4>login, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-login-1440-before.webp"><img loading="lazy" src="img/1418-login-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-login-1440-after.webp"><img loading="lazy" src="img/1418-login-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference.</figcaption></figure>
+<h4>login, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-login-390-before.webp"><img loading="lazy" src="img/1418-login-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-login-390-after.webp"><img loading="lazy" src="img/1418-login-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference.</figcaption></figure>
+<h4>login-sso, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-login-sso-1440-before.webp"><img loading="lazy" src="img/1418-login-sso-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-login-sso-1440-after.webp"><img loading="lazy" src="img/1418-login-sso-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The Google and Microsoft tiles look the same after moving to native links.</figcaption></figure>
+<h4>login-sso, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-login-sso-390-before.webp"><img loading="lazy" src="img/1418-login-sso-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-login-sso-390-after.webp"><img loading="lazy" src="img/1418-login-sso-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The Google and Microsoft tiles look the same after moving to native links.</figcaption></figure></details>
+<details><summary>Settings</summary><h4>settings-profile, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-settings-profile-1440-before.webp"><img loading="lazy" src="img/1418-settings-profile-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-settings-profile-1440-after.webp"><img loading="lazy" src="img/1418-settings-profile-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The email is blurred on both.</figcaption></figure>
+<h4>settings-profile, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-settings-profile-390-before.webp"><img loading="lazy" src="img/1418-settings-profile-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-settings-profile-390-after.webp"><img loading="lazy" src="img/1418-settings-profile-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The email is blurred on both.</figcaption></figure>
+<h4>settings-branding, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-settings-branding-1440-before.webp"><img loading="lazy" src="img/1418-settings-branding-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-settings-branding-1440-after.webp"><img loading="lazy" src="img/1418-settings-branding-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference.</figcaption></figure>
+<h4>settings-branding, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-settings-branding-390-before.webp"><img loading="lazy" src="img/1418-settings-branding-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-settings-branding-390-after.webp"><img loading="lazy" src="img/1418-settings-branding-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference.</figcaption></figure>
+<h4>settings-billing, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-settings-billing-1440-before.webp"><img loading="lazy" src="img/1418-settings-billing-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-settings-billing-1440-after.webp"><img loading="lazy" src="img/1418-settings-billing-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. Both accounts have no saved card, so the changed Remove card button does not render.</figcaption></figure>
+<h4>settings-billing, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-settings-billing-390-before.webp"><img loading="lazy" src="img/1418-settings-billing-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-settings-billing-390-after.webp"><img loading="lazy" src="img/1418-settings-billing-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. Both accounts have no saved card, so the changed Remove card button does not render.</figcaption></figure></details>
+<details><summary>Dialogs</summary><h4>media-picker-el, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-media-picker-el-1440-before.webp"><img loading="lazy" src="img/1418-media-picker-el-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-media-picker-el-1440-after.webp"><img loading="lazy" src="img/1418-media-picker-el-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Dialog chrome and buttons look the same. Only the video grid content differs.</figcaption></figure>
+<h4>media-picker-el, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-media-picker-el-390-before.webp"><img loading="lazy" src="img/1418-media-picker-el-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-media-picker-el-390-after.webp"><img loading="lazy" src="img/1418-media-picker-el-390-after.webp" alt="after"></a></div>
+</div><figcaption>Dialog chrome and buttons look the same. Only the video grid content differs.</figcaption></figure>
+<h4>media-picker, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-media-picker-1440-before.webp"><img loading="lazy" src="img/1418-media-picker-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-media-picker-1440-after.webp"><img loading="lazy" src="img/1418-media-picker-1440-after.webp" alt="after"></a></div>
+</div><figcaption>Dialog chrome, toolbar, Upload, Cancel and Select look the same. The video grid differs because of seeded and test content.</figcaption></figure>
+<h4>media-picker, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-media-picker-390-before.webp"><img loading="lazy" src="img/1418-media-picker-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-media-picker-390-after.webp"><img loading="lazy" src="img/1418-media-picker-390-after.webp" alt="after"></a></div>
+</div><figcaption>Dialog chrome, toolbar, Upload, Cancel and Select look the same. The video grid differs because of seeded and test content.</figcaption></figure></details>
+<details><summary>Contacts</summary><h4>contacts, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contacts-1440-before.webp"><img loading="lazy" src="img/1418-contacts-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contacts-1440-after.webp"><img loading="lazy" src="img/1418-contacts-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The contact row is blurred on both.</figcaption></figure>
+<h4>contacts, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contacts-390-before.webp"><img loading="lazy" src="img/1418-contacts-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contacts-390-after.webp"><img loading="lazy" src="img/1418-contacts-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The contact row is blurred on both.</figcaption></figure>
+<h4>contacts-form, 1440 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contacts-form-1440-before.webp"><img loading="lazy" src="img/1418-contacts-form-1440-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contacts-form-1440-after.webp"><img loading="lazy" src="img/1418-contacts-form-1440-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The new xs add and icon remove controls render at the same size and position as the old hand-sized ones.</figcaption></figure>
+<h4>contacts-form, 390 wide</h4><figure class="pair"><div class="sides">
+<div><div class="tag">before (main base)</div><a href="img/1418-contacts-form-390-before.webp"><img loading="lazy" src="img/1418-contacts-form-390-before.webp" alt="before"></a></div>
+<div><div class="tag after">PR #1418 preview</div><a href="img/1418-contacts-form-390-after.webp"><img loading="lazy" src="img/1418-contacts-form-390-after.webp" alt="after"></a></div>
+</div><figcaption>No visible difference. The new xs add and icon remove controls render at the same size and position as the old hand-sized ones.</figcaption></figure></details>
+
+<p class="meta">Emails, contact rows, the Teams testimonial video and the names around it are blurred on both sides. All other content is seeded test data or synthetic recordings.</p>
+</main></body></html>
