@@ -1,0 +1,52 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity MCP: fresh-agent run and landing page</title>
+<style>
+body{font:16px/1.55 system-ui,-apple-system,sans-serif;max-width:860px;margin:2rem auto;padding:0 1rem;color:#111}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:1rem 0}th,td{border:1px solid #ddd;padding:.35rem .5rem;text-align:left;vertical-align:top}
+code{background:#f3f3f3;padding:0 .25rem;border-radius:4px;font-size:.92em}h2{margin-top:2.2rem}
+.shots{display:grid;grid-template-columns:2fr 1fr;gap:1rem;align-items:start}.shots img{width:100%;border:1px solid #ddd;border-radius:8px}
+@media (max-width:640px){.shots{grid-template-columns:1fr}}
+</style></head><body>
+<h1>Clarity MCP: fresh-agent run and landing page</h1>
+<p>Five agents with no Clarity context, eight ordinary requests each, against isolated staging accounts. The full per-task record with every answer, tool call and agent feedback is in the <a href="./run-report.html">run report</a>. Account emails are redacted.</p>
+<h2>Findings</h2>
+<p>Five fresh agents (Claude fable, opus and sonnet through <code>claude -p</code>; gpt-6-sol and gpt-6-astra through <code>codex exec</code>) each ran eight tasks against the staging MCP connector on their own accounts. Measured: 39 of 40 cells passed. The count is high because every task was winnable with the nine tools, or was a gap task where saying "I cannot" counts as a pass. The signal is what each model family paid in calls, errors and seconds, and what the agents said afterwards. Every number is measured from <code>report.json</code> and the raw call logs unless marked as inference.</p>
+<table><thead><tr><th>Seat</th><th>Passed</th><th>Tool calls</th><th>Errored calls</th><th>Wall seconds</th></tr></thead><tbody><tr><td>fable</td><td>8/8</td><td>35</td><td>1</td><td>130</td></tr><tr><td>opus</td><td>8/8</td><td>35</td><td>1</td><td>98</td></tr><tr><td>sonnet</td><td>8/8</td><td>27</td><td>1</td><td>67</td></tr><tr><td>gpt-6-sol</td><td>7/8</td><td>65</td><td>21</td><td>256</td></tr><tr><td>gpt-6-astra</td><td>8/8</td><td>50</td><td>7</td><td>247</td></tr></tbody></table>
+<p>The three Claude errors are the expected <code>pages_leads</code> permission refusals. 27 of the 31 errors are <code>pages_edit</code> calls, all from Codex seats. On the three write tasks, Codex cells averaged 12.3 calls and 46 seconds; Claude cells averaged 4.9 calls and 15 seconds.</p>
+<h3>Friction, ranked by cost</h3>
+<h4>1. Codex hosts cannot see the pages_edit schema, so they guess op names</h4>
+<p>The served <code>edits</code> schema is an anyOf of 38 variants, 15,601 bytes. Codex renders it as <code>Array&lt;unknown | ...&gt;</code>. The first <code>pages_edit</code> call in all 6 Codex write cells failed with <code>invalid_input</code> on an invented op such as <code>set</code>, <code>set_block_fields</code> or <code>set_media</code>, and the refusal lists the mismatch against every variant. 8 of 16 Codex cells named the <code>unknown</code> type and 6 named the error dump. Claude seats, which see the schema, made 10 <code>pages_edit</code> calls with 0 errors.</p>
+<p>Evidence: "<code>pages_edit.edits</code> exposed only <code>unknown</code> types, hiding the supported operations and required fields." (gpt-6-astra, edit-headline)</p>
+<p>Smallest fix: discriminate the union on <code>op</code> so <code>invalid_input</code> reports one variant, and add a one-line example for <code>set_field</code>, <code>insert_item</code> and <code>assign_media</code>.</p>
+<h4>2. insert_item cannot append to an empty FAQ the way agents try</h4>
+<p><code>before: null</code> appends, and the description never says so. Codex seats sent strings instead ("", "end", "$end", "append", "null", "-1" and six more). 16 refusals came back as "Edit 1 was refused (not_found)" with <code>{"id": ""}</code> and no field name (sol 13, astra 3). <code>position: 0</code> refused twice with <code>stale_position</code> because the seats sent an empty <code>expect</code> where the schema wants null. sol never tried null in 15 attempts and failed the cell; astra found it after 5 errors. Inference from the schema source: sol also put <code>question</code> and <code>answer</code> outside <code>value</code>, which the non-strict object would have dropped.</p>
+<p>Evidence: "<code>pages_edit</code> requires <code>before</code> to name an existing FAQ row, which an empty FAQ has none of." (gpt-6-sol, add-faq)</p>
+<p>Smallest fix: say "null appends" in the description, and make the <code>not_found</code> refusal name the field and value.</p>
+<h4>3. insert_block silently drops a <code>fields</code> payload</h4>
+<p>Measured once. gpt-6-sol sent <code>insert_block</code> with <code>fields: {title, questions: [2 rows]}</code>, got <code>{"revision":4,"changed":true}</code>, and the next <code>pages_get</code> showed <code>questions: []</code>. It then deleted its blocks and reported failure.</p>
+<p>Evidence: "Clarity's editor refused every attempt to add the first row to an empty FAQ." (gpt-6-sol, add-faq answer)</p>
+<p>Smallest fix: <code>z.strictObject</code> on the insert variants, as <code>insert_plan</code> already uses.</p>
+<h4>4. pages_edit answers <code>{revision, changed}</code> and nothing else</h4>
+<p>11 of 15 successful write cells re-read the page afterwards. 9 of 9 Claude write cells asked for the touched blocks or the publication state in the reply. All 5 edit-headline cells had to compare <code>revision</code> with <code>publishedRevision</code> to learn the live page was now behind the draft.</p>
+<p>Evidence: "I had to call <code>pages_get</code> again and compare <code>revision</code> with <code>publication.publishedRevision</code>." (opus, edit-headline)</p>
+<p>Smallest fix: return <code>publishedRevision</code> and <code>stage</code> with every edit, plus the touched blocks.</p>
+<h4>5. Every permission refusal points at a page that answers 404</h4>
+<p>4 of 5 form-leads cells called <code>pages_leads</code> and got <code>settingsUrl: https://staging.clarity.video/settings/agents</code>; 4 of 5 answers passed that URL to the user. The lead verified the page answers 404 and the editor has no agent-connections settings, so no user can grant the permission today. Cheap for agents, total for the user. Two seats noted the name is <code>leadsContacts</code> in <code>whoami</code> and <code>leads_contacts</code> in refusals.</p>
+<p>Evidence: "The <code>permission_required</code> refusal gave a <code>settingsUrl</code> but no wording I could pass on." (opus, form-leads)</p>
+<p>Smallest fix: ship the settings page the URL names, and use one permission name.</p>
+<h4>6. library_list cannot answer "ready to share", and nothing returns a video share URL</h4>
+<p>All 5 list-videos cells fanned out to <code>videos_get</code> once per video (15 calls for 3 videos) because list items carry only <code>state</code>. <code>videos_get</code> then reports <code>shareLinkLive: true</code> with only Mux playback and poster URLs; 5 of 5 seats said they could not hand the user a link.</p>
+<p>Evidence: "<code>playbackUrl</code> is a raw HLS stream, not something to send a prospect." (sonnet, list-videos)</p>
+<p>Smallest fix: add <code>shareLinkLive</code>, <code>durationSeconds</code> and <code>shareUrl</code> to list items and <code>shareUrl</code> to <code>videos_get</code>.</p>
+<h4>7. pages_stats cannot count form submissions, and its zeros are unexplained</h4>
+<p>5 of 5 form-leads cells asked for a submission count that needs no leads permission. 5 of 5 page-views cells said <code>visits</code> and <code>totalVisits</code> differ without explanation and that there is no "as of" timestamp.</p>
+<p>Evidence: "If they had disagreed, I wouldn't have known which one to report." (opus, page-views)</p>
+<p>Smallest fix: a per-form submission count, a <code>lastVisitAt</code>, and one sentence defining the two visit fields.</p>
+<p>Lower cost: 4 Claude cells guessed the <code>set_field</code> name <code>title</code> from the document dump with 0 errors, and 7 cells said <code>pages_get</code> documents are mostly empty media fields.</p>
+<h3>What worked</h3>
+<p>All 15 gap cells passed the blind judge; every answer said plainly that upload, publishing or page creation was unavailable and pointed to the editor. The one failed cell was honest: sol said the FAQ still needed adding and removed the empty blocks it had created. Claude seats finished every write in 3 to 6 calls with no <code>pages_edit</code> errors. Median latency per tool was 41 to 194 ms; the one outlier was a 20.4 second <code>whoami</code> (gpt-6-sol, form-leads).</p>
+<p>Harness artifact: 12 of 24 Claude cells said the <code>whoami</code> email did not match the user's email. Claude seats saw the operator's account email in their system prompt, so this is excluded above.</p>
+<h2>Landing page draft (/agents)</h2>
+<p>Rendered from the branch on a local dev server. Not linked from navigation, not deployed.</p>
+<div class="shots"><a href="./landing-desktop.png"><img src="./landing-desktop.png" alt="Landing page at desktop width"></a><a href="./landing-phone.png"><img src="./landing-phone.png" alt="Landing page at phone width"></a></div>
+</body></html>
