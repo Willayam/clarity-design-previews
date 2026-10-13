@@ -1,0 +1,167 @@
+/* Mock-only styles. Everything the app's CSS already has stays in app.css;
+   this file holds the document layout, the frames, and the handful of new
+   pieces (banner tints, meter segments, the public-page badge). */
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+.mk-doc { max-width: 76rem; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+@media (max-width: 640px) { .mk-doc { padding: 1.5rem 1rem 4rem; } }
+
+.mk-eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); margin: 0 0 0.75rem; }
+.mk-intro { max-width: 62ch; margin: 1rem 0 0; font-size: 1.0625rem; line-height: 1.55; color: var(--muted-foreground); }
+.mk-toc { display: flex; flex-wrap: wrap; gap: 0.375rem 0.75rem; margin: 1.5rem 0 0; font-size: 0.8125rem; }
+.mk-toc a { color: var(--muted-foreground); text-decoration: none; padding: 0.25rem 0.625rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card); }
+.mk-toc a:hover { color: var(--foreground); border-color: var(--muted-foreground); }
+
+.mk-section { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+.mk-section h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin: 0; }
+.mk-section h2 small { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; color: var(--muted-foreground); margin-left: 0.5rem; }
+.mk-section h3 { font-size: 1rem; font-weight: 600; margin: 2rem 0 0.5rem; }
+.mk-note { max-width: 70ch; margin: 0.75rem 0 0; font-size: 0.9375rem; line-height: 1.55; color: var(--muted-foreground); }
+.mk-note b { color: var(--foreground); font-weight: 600; }
+.mk-note + .mk-note { margin-top: 0.5rem; }
+.mk-note[hidden] { display: none; }
+
+/* Surfaces table */
+.mk-table { width: 100%; border-collapse: collapse; margin-top: 1.25rem; font-size: 0.875rem; }
+.mk-table th, .mk-table td { text-align: left; padding: 0.5rem 0.75rem 0.5rem 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.mk-table th { font-size: 0.75rem; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; }
+.mk-table td:first-child a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--muted-foreground); }
+.mk-table td:first-child a:hover { border-bottom-style: solid; }
+.mk-table .mk-when, .mk-table .mk-needs { white-space: nowrap; }
+.mk-pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; background: var(--muted); color: var(--foreground); }
+.mk-pill.visual { background: color-mix(in oklab, var(--primary) 12%, transparent); color: var(--primary); }
+.mk-pill.copy { background: color-mix(in oklab, var(--warning) 22%, transparent); color: oklch(0.45 0.12 70); }
+.mk-pill.logic { background: var(--muted); color: var(--muted-foreground); }
+.mk-pill.launch { background: color-mix(in oklab, var(--success) 14%, transparent); color: oklch(0.45 0.12 163); }
+@media (max-width: 640px) { .mk-table td:nth-child(2), .mk-table th:nth-child(2) { display: none; } }
+
+/* Variant controls */
+.mk-controls { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0 0; position: sticky; top: 0; z-index: 20; padding: 0.625rem 0; background: color-mix(in oklab, var(--background) 86%, transparent); backdrop-filter: blur(10px); }
+.mk-seg-control { display: inline-flex; gap: 0.125rem; padding: 0.1875rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card); }
+.mk-seg-control button { appearance: none; border: 0; background: transparent; font: inherit; font-size: 0.8125rem; font-weight: 500; color: var(--muted-foreground); padding: 0.375rem 0.75rem; border-radius: 999px; cursor: pointer; }
+.mk-seg-control button[aria-selected="true"] { background: var(--foreground); color: var(--background); }
+.mk-seg-control button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+/* Frames: a shell drawn at its design width, scaled to fit the column. */
+.mk-frames { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); gap: 1.5rem; align-items: start; margin-top: 1.25rem; }
+@media (max-width: 900px) { .mk-frames { grid-template-columns: minmax(0, 1fr); } .mk-fig-phone { max-width: 24rem; } }
+.mk-fig { margin: 0; min-width: 0; }
+.mk-frame { position: relative; width: 100%; overflow: hidden; border-radius: 0.875rem; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 18px 48px -24px rgb(15 23 42 / 0.25); }
+.mk-frame-inner { transform-origin: top left; position: absolute; top: 0; left: 0; }
+.mk-cap { margin-top: 0.5rem; font-size: 0.75rem; color: var(--muted-foreground); }
+.mk-shell { font-size: 16px; line-height: 1.5; }
+
+/* The four states of a banner, each drawn on its own at full size. */
+.mk-states { display: grid; gap: 1rem; margin-top: 1rem; }
+.mk-state { min-width: 0; }
+.mk-state-label { margin: 0 0 0.375rem; font-size: 0.75rem; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; }
+.mk-strip-bar { border-radius: 0.75rem; overflow: hidden; border: 1px solid var(--border); background: var(--card); }
+.mk-strip-bar .mk-bar { border-bottom: 0; }
+.mk-strip-side { max-width: 17rem; }
+.mk-strip-side > div { padding: 0; }
+.mk-strip-meter { padding: 0.5rem; border-radius: 0.875rem; border: 1px solid var(--border); background: var(--sidebar); }
+.mk-strip-home .mk-home-card { margin-bottom: 0; background: var(--card); }
+.mk-states-side { grid-template-columns: repeat(auto-fit, minmax(14rem, 17rem)); }
+
+/* Banner tints. Quiet is the brand wash; amber is the last three days; red is
+   reserved for a failed payment. Text stays in the foreground tokens. */
+.mk-bar { background: var(--card); }
+.mk-bar-icon { background: color-mix(in oklab, var(--primary) 12%, transparent); color: var(--primary); }
+.mk-bar-line { color: var(--muted-foreground); }
+.mk-tone-quiet.mk-bar { background: color-mix(in oklab, var(--primary) 5%, var(--card)); }
+.mk-tone-amber, .mk-tone-amber-strong { background: oklch(0.97 0.05 85); }
+.mk-tone-amber-strong { background: oklch(0.94 0.09 85); }
+.mk-tone-amber .mk-bar-icon, .mk-tone-amber-strong .mk-bar-icon { background: oklch(0.85 0.14 80); color: oklch(0.4 0.11 60); }
+.mk-tone-amber .mk-bar-line, .mk-tone-amber-strong .mk-bar-line { color: oklch(0.42 0.08 60); }
+.mk-tone-red { background: color-mix(in oklab, var(--destructive) 9%, var(--card)); }
+.mk-tone-red .mk-bar-icon { background: color-mix(in oklab, var(--destructive) 16%, transparent); color: var(--destructive); }
+.mk-tone-red .mk-bar-line { color: color-mix(in oklab, var(--destructive) 70%, var(--foreground)); }
+.mk-side-card.mk-tone-amber, .mk-side-card.mk-tone-amber-strong, .mk-home-card.mk-tone-amber, .mk-home-card.mk-tone-amber-strong { background: oklch(0.975 0.04 85); }
+.mk-home-card.mk-tone-amber-strong, .mk-side-card.mk-tone-amber-strong { background: oklch(0.95 0.08 85); }
+.mk-side-card.mk-tone-red, .mk-home-card.mk-tone-red { background: color-mix(in oklab, var(--destructive) 8%, var(--card)); }
+
+/* Usage meter: three segments because the limit is three. */
+.mk-meter { background: color-mix(in oklab, var(--foreground) 3%, transparent); }
+.mk-seg { display: block; height: 0.3125rem; flex: 1 1 0; border-radius: 999px; background: color-mix(in oklab, var(--primary) 18%, transparent); }
+.mk-seg.on { background: var(--primary); }
+.mk-meter-full .mk-seg.on, .mk-meter-over .mk-seg.on { background: oklch(0.72 0.17 70); }
+.mk-meter-full .mk-seg, .mk-meter-over .mk-seg { background: oklch(0.72 0.17 70 / 0.22); }
+.mk-seg-over { font-size: 0.6875rem; font-weight: 600; line-height: 1; color: oklch(0.5 0.13 60); padding-left: 0.125rem; }
+
+/* Thumbnail page: an abstract Journey Page at card scale. */
+.mk-mini { display: flex; flex-direction: column; gap: 0.35em; padding: 0.9em 0.9em 0; font-size: 6px; height: 100%; width: 100%; background: #fff; }
+.mk-mini-sm { font-size: 3px; padding: 0.6em 0.6em 0; gap: 0.25em; }
+.mk-mini-lg { font-size: 9px; }
+.mk-mini i { display: block; border-radius: 0.4em; background: rgb(15 23 42 / 0.2); }
+.mk-mini .mk-mini-h1 { height: 1.3em; width: 78%; background: rgb(15 23 42 / 0.55); }
+.mk-mini .mk-mini-h1.short { width: 52%; margin-top: -0.1em; }
+.mk-mini .mk-mini-poster { position: relative; margin-top: 0.3em; aspect-ratio: 16 / 9; width: 100%; border-radius: 0.8em; background: linear-gradient(135deg, #334155, #0f172a); }
+.mk-mini .mk-mini-poster b { position: absolute; left: 50%; top: 50%; width: 2.6em; height: 2.6em; margin: -1.3em 0 0 -1.3em; border-radius: 999px; background: rgb(255 255 255 / 0.85); }
+.mk-mini .mk-mini-poster b::after { content: ""; position: absolute; left: 1.05em; top: 0.75em; border-left: 0.9em solid #0f172a; border-top: 0.55em solid transparent; border-bottom: 0.55em solid transparent; }
+.mk-mini .mk-mini-cta { margin-top: 0.5em; height: 1.4em; width: 36%; align-self: center; border-radius: 0.7em; background: #2563eb; }
+.mk-mini .mk-mini-line { height: 0.7em; width: 92%; margin-top: 0.4em; }
+.mk-mini .mk-mini-line.short { width: 60%; margin-top: 0; }
+.mk-tone-b .mk-mini-poster { background: linear-gradient(135deg, #0f766e, #134e4a); }
+.mk-tone-c .mk-mini-poster { background: linear-gradient(135deg, #7c3aed, #312e81); }
+.mk-tone-d .mk-mini-poster { background: linear-gradient(135deg, #b45309, #7c2d12); }
+.mk-poster { background: linear-gradient(135deg, #334155, #0f172a); }
+.mk-poster.mk-tone-b { background: linear-gradient(135deg, #0f766e, #134e4a); }
+.mk-poster.mk-tone-c { background: linear-gradient(135deg, #7c3aed, #312e81); }
+
+/* Dialogs drawn on their own, on a scrim-coloured stage. */
+.mk-dialogs { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); margin-top: 1.25rem; }
+.mk-dialog-stage { display: grid; justify-items: center; gap: 0.5rem; padding: 1.25rem; border-radius: 0.875rem; background: color-mix(in oklab, var(--foreground) 14%, var(--background)); }
+.mk-dialog-stage .mk-state-label { justify-self: start; }
+@media (max-width: 640px) { .mk-dialog-stage { padding: 0.75rem; } }
+
+/* Locked analytics */
+.mk-locked { filter: blur(5px); pointer-events: none; user-select: none; opacity: 0.9; }
+.mk-lock-panel { box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 24px 64px -16px rgb(15 23 42 / 0.3); }
+
+/* Public page frames: the real journey-page stylesheet inside a viewport. */
+.mk-page-frame { border-radius: 0.875rem; border: 1px solid var(--border); overflow: hidden; background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 18px 48px -24px rgb(15 23 42 / 0.25); }
+.mk-page-desktop { width: 100%; }
+.mk-page-phone { width: 100%; max-width: 390px; }
+.mk-page-frame .jp-theme { min-height: 0; }
+.jp-theme [data-clarity-badge] { display: flex; justify-content: center; padding: 28px var(--jp-page-x-padding) 36px; }
+.jp-theme [data-clarity-badge] a { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; border: 1px solid var(--jp-border); background: var(--jp-card); color: var(--jp-muted-foreground); font-size: 0.8125rem; line-height: 1.2; text-decoration: none; font-family: var(--jp-font-body); }
+.jp-theme [data-clarity-badge] a:hover { color: var(--jp-foreground); }
+.jp-theme [data-clarity-badge] a:focus-visible { outline: 2px solid var(--jp-primary); outline-offset: 2px; }
+.jp-theme [data-clarity-badge] .mk-badge-mark { display: inline-flex; width: 16px; height: 16px; color: #2563eb; }
+.jp-theme [data-clarity-badge] .mk-badge-mark svg { width: 100%; height: 100%; }
+.jp-theme [data-clarity-badge] .sep { opacity: 0.5; }
+.jp-theme [data-clarity-badge] u { text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* Decisions */
+.mk-decisions { counter-reset: d; display: grid; gap: 1rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
+.mk-decisions li { position: relative; padding: 1rem 1.25rem 1rem 3.25rem; border-radius: 0.875rem; background: var(--card); border: 1px solid var(--border); }
+.mk-decisions li::before { counter-increment: d; content: counter(d); position: absolute; left: 1.125rem; top: 1rem; width: 1.5rem; height: 1.5rem; border-radius: 999px; display: grid; place-items: center; background: var(--foreground); color: var(--background); font-size: 0.75rem; font-weight: 600; }
+.mk-decisions b { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+.mk-decisions p { margin: 0; font-size: 0.9375rem; line-height: 1.5; color: var(--muted-foreground); }
+.mk-decisions p + p { margin-top: 0.375rem; }
+
+/* Utilities the app's build does not emit (they are not used in its source). */
+.mk-ok { color: var(--success); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Tailwind utilities used here that the app's build does not emit. Same names,
+   so the markup reads like the components it copies. */
+.-mx-4 { margin-inline: -1rem; }
+.basis-4\/5 { flex-basis: 80%; }
+.basis-56 { flex-basis: 14rem; }
+.bg-background\/95 { background-color: color-mix(in oklab, var(--background) 95%, transparent); }
+.bg-input { background-color: var(--input); }
+.h-96 { height: 24rem; }
+.h-\[18\.4px\] { height: 18.4px; }
+.w-\[32px\] { width: 32px; }
+.justify-start { justify-content: flex-start; }
+.last\:border-0:last-child { border-width: 0; }
+.max-w-32 { max-width: 8rem; }
+.max-w-4\/5 { max-width: 80%; }
+.w-4\/5 { width: 80%; }
+.w-72 { width: 18rem; }
+.opacity-80 { opacity: 0.8; }
+.rotate-180 { rotate: 180deg; }
+.\[\&\>button\]\:flex-auto > button { flex: 1 1 auto; }
+.\[\&\>button\]\:px-3 > button { padding-inline: 0.75rem; }

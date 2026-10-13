@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Free plan: what needs designing</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./jp.css">
+<link rel="stylesheet" href="./mock.css">
+</head>
+<body class="bg-background text-foreground">
+<div class="mk-doc">
+
+<header>
+  <p class="mk-eyebrow">Clarity · design review · 13 Oct 2026</p>
+  <h1 class="text-4xl leading-none font-semibold tracking-tight">Free plan: what needs designing</h1>
+  <p class="mk-intro">When a trial ends the account moves to Free instead of hitting the wall: unlimited recording, up to 3 live pages, a small Clarity badge on each page. Below is every screen that changes, drawn with the app's own CSS and buttons, with mock data only.</p>
+  <p class="mk-note"><b>Round 2 is up:</b> <a class="underline underline-offset-2" href="./round-2/">banner treatments, trial-ended concepts and badge variants</a>. The meter, the limit dialog, the locked analytics and the subscription screen below stay as approved.</p>
+  <nav class="mk-toc" aria-label="Sections">
+    <a href="./round-2/">Round 2 →</a>
+    <a href="#surfaces">Surfaces</a>
+    <a href="#banner">1 Trial banner</a>
+    <a href="#ended">2 Trial ended</a>
+    <a href="#meter">3 Usage meter</a>
+    <a href="#limit">4 Limit hit</a>
+    <a href="#badge">5 Page badge</a>
+    <a href="#stats">6 Locked analytics</a>
+    <a href="#settings">7 Subscription</a>
+    <a href="#small">Small pieces</a>
+    <a href="#decisions">Decisions for William</a>
+  </nav>
+</header>
+
+<section class="mk-section" id="surfaces">
+  <h2>Surfaces</h2>
+  <p class="mk-note">Everything the Free plan touches. The first seven are mocked below. "Launch" means it ships with the plan; "soon after" can follow in the first week.</p>
+  <table class="mk-table">
+    <thead><tr><th>Surface</th><th>Where</th><th>Needs</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><a href="#banner">Trial countdown banner</a></td><td>App shell</td><td class="mk-needs"><span class="mk-pill visual">visual design</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#ended">Trial-ended dialog</a></td><td>First visit after the trial</td><td class="mk-needs"><span class="mk-pill visual">visual design</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#meter">Free usage meter</a></td><td>Sidebar footer, More drawer</td><td class="mk-needs"><span class="mk-pill visual">visual design</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#limit">Limit-hit dialog</a></td><td>Share dialog, on Publish</td><td class="mk-needs"><span class="mk-pill visual">visual design</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#badge">Made with Clarity badge</a></td><td>Every Free page, as the prospect sees it</td><td class="mk-needs"><span class="mk-pill visual">visual design</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#stats">Locked who-watched analytics</a></td><td>Page statistics</td><td class="mk-needs"><span class="mk-pill visual">visual design</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#settings">Settings › Subscription on Free, and the Pro cancel confirmation</a></td><td>Settings</td><td class="mk-needs"><span class="mk-pill visual">visual design</span> <span class="mk-pill copy">copy</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td>Trial reminder emails: 3 days before, 1 day before, on the end day</td><td>Email (send lane TBD)</td><td class="mk-needs"><span class="mk-pill copy">copy only</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td>Payment-failed email</td><td>Email</td><td class="mk-needs"><span class="mk-pill copy">copy only</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td>/trial-expired wall, kept for suspended accounts only</td><td>Router</td><td class="mk-needs"><span class="mk-pill logic">logic only</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td>Server-side limit check on publish and share</td><td>API</td><td class="mk-needs"><span class="mk-pill logic">logic only</span></td><td class="mk-when"><span class="mk-pill launch">launch</span></td></tr>
+      <tr><td><a href="#small">Post-upgrade confirmation, "Badge removed from your 5 pages"</a></td><td>Toast after checkout</td><td class="mk-needs"><span class="mk-pill visual">small visual</span></td><td class="mk-when"><span class="mk-pill">soon after</span></td></tr>
+      <tr><td><a href="#small">Pro badge on locked settings, Customer Brand first</a></td><td>Settings › Branding</td><td class="mk-needs"><span class="mk-pill visual">small visual</span></td><td class="mk-when"><span class="mk-pill">soon after</span></td></tr>
+      <tr><td>Admin account panel shows Free plan and usage</td><td>Admin</td><td class="mk-needs"><span class="mk-pill copy">copy only</span></td><td class="mk-when"><span class="mk-pill">soon after</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="mk-section" id="banner">
+  <h2>1. Trial countdown banner <small>in the app shell</small></h2>
+  <p class="mk-note">One banner, four states, three places it could live. Pick a place and a state below. The states are the same whichever place you pick: the early trial stays quiet, the last three days turn amber, the last day says so plainly, and a failed payment is the only red state. The button label never changes while it works; a spinner carries the busy state.</p>
+  <p class="mk-note"><b>Dismiss.</b> The early state has an X that hides the banner until three days are left. The last-three-days state hides for the rest of the day. The last day and payment failed have no X.</p>
+  <div class="mk-controls" id="banner-controls"></div>
+  <p class="mk-note" id="banner-variant-note"></p>
+  <div class="mk-frames" id="banner-frames"></div>
+  <p class="mk-note" data-variant-note="a"><b>A, top bar.</b> One strip across the top of the content on every app screen. It is the only variant that works the same on a phone, where the sidebar is a drawer. Open question: at 14 days it is visible for two weeks, so the early state has to stay this quiet.</p>
+  <p class="mk-note" data-variant-note="b" hidden><b>B, sidebar card.</b> Sits above the account row, out of the content, and escalates by tint rather than by moving. On a phone the sidebar is behind More, so it can go unseen for days; the phone frame shows the drawer open. Open question: whether the last day and payment failed also need the top bar on phones.</p>
+  <p class="mk-note" data-variant-note="c" hidden><b>C, Home card.</b> A card between the toolbar and the shelves, on Home only. It has room for the whole sentence (what stays, what changes) and never shows while recording or editing. Open question: a rep with no pages, which is 78% of expiring trials, may rarely open Home.</p>
+  <h3>All four states of the selected variant</h3>
+  <div class="mk-states" id="banner-states"></div>
+</section>
+
+<section class="mk-section" id="ended">
+  <h2>2. Trial-ended moment <small>the first visit after the trial ends</small></h2>
+  <p class="mk-note">Shown once, over the rep's own Home, in place of the wall. What stays comes before what changes, and the first line uses the rep's own count. With no live pages it reads "Everything you recorded stays in your library"; with five it reads "All 5 live pages stay live, even past the Free limit". Continue on Free closes the dialog and nothing else happens; the usage meter in the sidebar takes over from there.</p>
+  <div class="mk-frames" id="ended-frames"></div>
+</section>
+
+<section class="mk-section" id="meter">
+  <h2>3. Free usage meter <small>steady state in the app shell</small></h2>
+  <p class="mk-note">Lives above the account row in the sidebar, and in the More drawer on a phone. Three segments because the limit is three. The fill turns amber at full and stays amber when a trial left the account over the limit, with a line that says nothing breaks. Upgrade is a text link so the sidebar keeps one button, the account row. About 2% of expiring trials are over the limit, so the over state is rare, but it must not read as an error.</p>
+  <div class="mk-states mk-states-side" id="meter-states"></div>
+  <div class="mk-frames" id="meter-frames"></div>
+</section>
+
+<section class="mk-section" id="limit">
+  <h2>4. Limit-hit dialog <small>publishing or sharing a fourth page</small></h2>
+  <p class="mk-note">This is today's Share dialog, which already disables Publish and prints the reason in the status band; the limit is one more reason. The page stays a saved draft either way. Below the band, the rep's live pages are listed with title, thumbnail and last view so the choice is informed; Unpublish on a row frees the slot and Publish enables in the same dialog. Upgrade to Pro is the other way out. Open question: whether Unpublish here should also publish this page in one step.</p>
+  <div class="mk-dialogs" id="limit-dialogs"></div>
+</section>
+
+<section class="mk-section" id="badge">
+  <h2>5. Made with Clarity badge <small>a Journey Page as the prospect sees it</small></h2>
+  <p class="mk-note">Sits after the last block, centered, in the page's muted text at 13px with the Clarity mark. Nothing on the video. "Make your own" is the only link in it, underlined, not in the brand blue, so the rep's own call to action stays the brightest thing on the page. Free pages use Clarity's default colors; a logo and brand color are Pro. Upgrading removes the badge from every page at once.</p>
+  <div class="mk-frames" id="badge-frames"></div>
+</section>
+
+<section class="mk-section" id="stats">
+  <h2>6. Locked who-watched analytics <small>page statistics on Free</small></h2>
+  <p class="mk-note">The counts the rep already had (visits, plays, clicks) stay. The viewer table and the retention curve are drawn with mock rows and blurred, with the upgrade panel over them, so the rep sees the shape of what Pro adds rather than an empty box. Open question: whether the page preview on the left should also mark the video as locked.</p>
+  <div class="mk-frames" id="stats-frames"></div>
+</section>
+
+<section class="mk-section" id="settings">
+  <h2>7. Settings › Subscription <small>a Free account, and cancelling Pro</small></h2>
+  <p class="mk-note">The same card as today's subscription screen, with Free as the plan. Live pages repeats the meter, the comparison is five rows, and the two Upgrade buttons keep the existing cadence pair, since this is the one screen where the rep picks monthly or yearly. Everywhere else the button is "Upgrade to Pro" and opens checkout.</p>
+  <div class="mk-frames" id="settings-frames"></div>
+  <h3>Cancelling Pro</h3>
+  <p class="mk-note">The confirmation says the date and what Free means on that date. It never says you lose access, because you do not. The reason is optional and the comment box is gone; the two buttons keep their labels while the cancel runs.</p>
+  <div class="mk-dialogs" id="cancel-dialog"></div>
+</section>
+
+<section class="mk-section" id="small">
+  <h2>Small pieces <small>soon after launch</small></h2>
+  <p class="mk-note">The confirmation after checkout names the count, because the badge coming off is the visible change. Locked settings keep their controls, dimmed, with a Pro badge in the card header and one upgrade button, so the rep sees what Pro unlocks where it would live.</p>
+  <div class="mk-states mk-states-side" id="small-bits"></div>
+</section>
+
+<section class="mk-section" id="decisions">
+  <h2>Decisions for William</h2>
+  <ol class="mk-decisions">
+    <li><b>The limit</b><p>Three live pages with unlimited recording (recommended), or also cap recordings. Recording is the habit we want. 78% of expiring trials never published a page, so a live-page limit touches few accounts; a recording cap would touch every one.</p></li>
+    <li><b>The badge on pages published during the trial</b><p>Recommended yes: when the trial ends, every live page gets the badge, and Loom does the same. The alternative, keeping trial pages badge-free, means two kinds of Free page forever and a reason to publish everything in week two.</p></li>
+    <li><b>How much analytics Free keeps</b><p>Recommended: that a page was viewed, how many times, and plays and clicks per element. Who watched, when, and how far is Pro. The alternative is full detail for the first seven days of each page, which is more to build and explain.</p></li>
+    <li><b>Which banner</b><p>Recommended A, the top bar: one component that works on desktop and phone, and all four states get seen. B keeps the content untouched but can go unseen on a phone. C carries the whole sentence but only on Home.</p></li>
+  </ol>
+</section>
+
+</div>
+<script src="./icons.js"></script>
+<script src="./variants.js"></script>
+<script src="./mock.js"></script>
+</body>
+</html>
