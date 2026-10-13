@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity simplicity audit</title>
+<style>
+  :root { --ink:#0f172a; --dim:#475569; --line:#e2e8f0; --blue:#1d4ed8; --soft:#f1f5f9; --red:#b91c1c; --green:#15803d; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; color:var(--ink); background:#fff; }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:30px; line-height:1.2; margin:0 0 8px; }
+  h2 { font-size:22px; margin:48px 0 12px; padding-top:16px; border-top:1px solid var(--line); }
+  h3 { font-size:17px; margin:28px 0 8px; }
+  p, li { color:var(--ink); }
+  .dim { color:var(--dim); font-size:14px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:12px 0; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:var(--soft); font-weight:600; }
+  td.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  ol.rank > li { margin:0 0 14px; }
+  ol.rank b { display:block; }
+  .tag { display:inline-block; font-size:12px; font-weight:600; padding:1px 8px; border-radius:99px; margin-right:6px; vertical-align:1px; }
+  .del { background:#fee2e2; color:var(--red); }
+  .mrg { background:#e0e7ff; color:#3730a3; }
+  .hid { background:#f1f5f9; color:#334155; }
+  .rw  { background:#dcfce7; color:var(--green); }
+  .fix { background:#fef3c7; color:#92400e; }
+  .pol { background:#fae8ff; color:#86198f; }
+  code { font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--soft); padding:1px 5px; border-radius:4px; }
+  ul.cuts { padding-left:0; list-style:none; }
+  ul.cuts li { padding:8px 0; border-bottom:1px solid var(--line); }
+  .path { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .path div { background:var(--soft); border-radius:10px; padding:14px 16px; }
+  .path ol { margin:6px 0 0; padding-left:20px; }
+  .shots { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
+  .shots figure { margin:0; }
+  .shots img { width:100%; border:1px solid var(--line); border-radius:8px; display:block; }
+  .shots figcaption { font-size:13px; color:var(--dim); margin-top:4px; }
+  @media (max-width:640px) { .path { grid-template-columns:1fr; } h1 { font-size:25px; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Clarity simplicity audit</h1>
+<p class="dim">14 October 2026 · Six code audits (shell and library, editor, blocks and prospect page, recorder, share and stats, settings) plus a read-only pull of production usage. Nothing was changed.</p>
+
+<p>The test for every control was whether it helps a client record, build a page, send it, or act on what the prospect did. Most of the product passes. The surface that fails falls into three groups. Some choices almost nobody makes, like themes, fonts, corners, four layouts and four button types. Some actions are reachable three or four ways. And one thing often has three or four names.</p>
+
+<p>Three problems matter more than any button. They break the promise itself.</p>
+<ol>
+  <li><b>The page is not built around the video.</b> Clarity transcribes every recording, but the transcript only feeds auto-titles and auto-trim. Page generation never reads it (<code>workers/frontend-router/src/journey-page-generation.ts</code>). A rep who records and clicks "Open page" gets a blank composer and has to type the context they just said out loud.</li>
+  <li><b>The rep can't see a prospect who clicks "buy".</b> Pricing buttons are rendered without a tracking id (<code>render-values.ts:77</code>), so the click is never recorded. Every one of the 1,138 tracked clicks in production came from a hero button.</li>
+  <li><b>The "call now" signal is off by default.</b> Of the four view-email toggles, only "watched 60%" is on. "Started watching" is off, and clicking a button sends no email at all. Stats rows also say "Today" with no hour.</li>
+</ol>
+
+<h2>What customers actually use</h2>
+<p class="dim">Production database, read-only. Customer pages created in the last 90 days: 290 pages by 108 owners. Internal and test accounts were excluded; they made 500 of the 791 recent pages, and one test account alone made 231.</p>
+<table>
+  <tr><th>Signal</th><th class="n">Number</th><th>What it says</th></tr>
+  <tr><td>Pages that are a single block (the video and its button)</td><td class="n">146 of 290 (50%)</td><td>Half of customers use Clarity as a video with a button. 70% of pages have one or two blocks. The page builder serves the other 30%.</td></tr>
+  <tr><td>Pages with no theme chosen</td><td class="n">270 of 290 (93%)</td><td>The style panel's 29 choices go almost unused. Defaults decide how pages look.</td></tr>
+  <tr><td>Hero / story present</td><td class="n">283 / 142</td><td>Video first, then some text and media.</td></tr>
+  <tr><td>FAQ / logos / pricing present</td><td class="n">53 / 33 / 21</td><td>The add-ons people actually choose.</td></tr>
+  <tr><td>Document / gallery / form / summary present</td><td class="n">16 / 13 / 12 / 9</td><td>Each is on 3 to 6% of pages. They belong in the add menu, not in default pages or prompts.</td></tr>
+  <tr><td>CTA clicks by button, all accounts</td><td class="n">811 / 209 / 87 / 31</td><td>Primary, custom, sign, payment. A second button earns its place. The third and fourth barely do.</td></tr>
+  <tr><td>Users who ever trimmed / clipped a video</td><td class="n">6 / 4</td><td>Trimming should be automatic and silent, not a three-way toggle.</td></tr>
+  <tr><td>Users who ever added a document</td><td class="n">28</td><td>Keep it, but it is not a primary action.</td></tr>
+  <tr><td>Section views, scroll depth, return visits</td><td class="n">0 rows ever</td><td>These analytics events are defined but never fire. They are either dead code or a broken feature.</td></tr>
+</table>
+<p>The single-block number changes the priorities. The fastest win is making the one-block page great. That means a strong default look, one clear button, and a link copied right after recording. Most of the editor can then sit behind "Add section" without slowing anyone down.</p>
+
+<h2>The ten changes that matter most</h2>
+<ol class="rank">
+  <li><b>Feed the video's transcript into page generation, and open the composer automatically.</b> After recording, "Open page" should become "Build page". The editor opens with the composer showing and the transcript attached, and the rep answers one question: who is this for? This is the "under two minutes" promise. <span class="tag fix">Fix</span></li>
+  <li><b>Track every button on the prospect page.</b> Give pricing and document buttons their own ids so "clicked Choose this plan" reaches the rep. <span class="tag fix">Fix</span></li>
+  <li><b>One notification switch, on by default:</b> "Email me when a prospect watches", fired on start, with how far they got in the body. Add "clicked a button" as a trigger. It replaces four toggles. <span class="tag mrg">Merge</span></li>
+  <li><b>Cut the style panel to presets plus "More".</b> Delete Size and Corners because the preset sets them. Put Fonts, Background and the custom color picker behind "More". Brand color comes from Settings. Logo lives on the canvas only. 93% of customer pages never set a theme. <span class="tag del">Delete</span><span class="tag hid">Hide</span></li>
+  <li><b>Two hero buttons, no button types.</b> Delete the "Primary" switch and the Sign / Payment / Custom slots. The first button is the main one. Default labels become "Book a call" and "Learn more"; today "Custom" and "Calendar" can show up on a prospect's page. <span class="tag del">Delete</span><span class="tag rw">Rewrite</span></li>
+  <li><b>One Settings page instead of five pages plus Profile.</b> Brand, Notifications, Plan, Your account. Delete Address, Timezone, Work and Home phone (nothing reads them), the read-only Email field and the duplicate Company field. Replace the Password page with a reset-email button. <span class="tag mrg">Merge</span><span class="tag del">Delete</span></li>
+  <li><b>One stats view with one vocabulary.</b> Video stats is a separate 583-line modal that sorts differently from page stats. Merge it into the page stats table, newest first, with "12m ago" instead of "Today". Use "visits" for pages and "plays" for video, everywhere. Delete the clickable mini-page preview, the "3 of 5 watching" scrub readout and the retention curve under five plays. <span class="tag mrg">Merge</span><span class="tag del">Delete</span></li>
+  <li><b>Make Record the first action on Home.</b> Today the button order is Upload, Record video, New Journey Page, and the filled button is New Journey Page. Record goes first and filled. The empty state "Your workspace is empty" becomes "Record your first video". <span class="tag rw">Rewrite</span></li>
+  <li><b>Take Learn and Contacts out of the main nav.</b> Learn is nine static videos in four tabs, and some predate the current editor; move it to "Help" in the account menu. Contacts is a mini CRM (Department, Industry, Import CSV) that never shows which page a lead came from. Replace it with per-page "Leads" showing source page and date. <span class="tag hid">Hide</span><span class="tag mrg">Merge</span></li>
+  <li><b>Replace the trim toggles with automatic trim.</b> The finish screen shows seven toggles above three buttons. Auto-trim applies silently. The handles stay, and one "Restore full video" link appears only when a trim is set. "Preview" becomes "Thumbnail". Four recording layouts become three: Camera, Screen, Camera + screen. <span class="tag del">Delete</span><span class="tag mrg">Merge</span></li>
+</ol>
+
+<h2>Proposed path from record to sent</h2>
+<div class="path">
+  <div><b>Today: personal page</b>
+    <ol>
+      <li>Record video</li><li>Record camera</li><li>Stop</li><li>Look at 7 trim and thumbnail toggles</li><li>Open page</li><li>AI Generate</li><li>Type the context again or pick a chip</li><li>AI Generate, wait</li><li>Share</li><li>Publish</li><li>Copy link</li>
+    </ol>
+    <p class="dim">About 12 clicks and 4 decisions. The page knows nothing the rep said.</p>
+  </div>
+  <div><b>Proposed</b>
+    <ol>
+      <li>Record video</li><li>Start recording, with the last layout and devices remembered</li><li>Stop</li><li>Build page, with the transcript attached</li><li>Answer "Who is this for?"</li><li>Share, which publishes and copies in one click</li>
+    </ol>
+    <p class="dim">6 clicks, 1 decision. Style, logo and button defaults come from Settings.</p>
+  </div>
+</div>
+
+<h2>One name per thing</h2>
+<table>
+  <tr><th>Today</th><th>Use</th></tr>
+  <tr><td>"N prospects", "Form submissions", "&lt;page&gt; - Contacts", Contacts</td><td>Leads</td></tr>
+  <tr><td>"plays", "views", "Page visits", "visitor"</td><td>visits (page), plays (video)</td></tr>
+  <tr><td>"Statistics" on two different modals</td><td>Activity</td></tr>
+  <tr><td>"Unpublished changes", "Changes not published"</td><td>Changes not published</td></tr>
+  <tr><td>Video card "Share", which opens the editor</td><td>Make page</td></tr>
+  <tr><td>"AI Generate"</td><td>"Write page" on a new page, "Edit with AI" after</td></tr>
+  <tr><td>"Open page" after recording</td><td>Build page</td></tr>
+  <tr><td>"Record camera", "Record split", "Record inset", "Record screen"</td><td>Start recording</td></tr>
+  <tr><td>Video edit tab "Preview"</td><td>Thumbnail</td></tr>
+  <tr><td>Add-section tiles "Story", "Document", "Form"</td><td>Text and media, PDF, Lead form</td></tr>
+  <tr><td>Image "Edit", which opens the picker</td><td>Replace</td></tr>
+  <tr><td>"Overview media", "Add media" on the hero</td><td>Your video, Add video</td></tr>
+  <tr><td>"Search this workspace", "Your workspace is empty"</td><td>Search, Record your first video</td></tr>
+  <tr><td>"Calendar link" in Profile</td><td>Booking link, in Brand settings</td></tr>
+  <tr><td>Title Case buttons ("Cancel Subscription", "Brand Color", "Create Contact")</td><td>Sentence case</td></tr>
+</table>
+
+<h2>Full cut list by surface</h2>
+
+<h3>Home and library</h3>
+<ul class="cuts">
+  <li><span class="tag del">Delete</span>Sidebar folder tree under Home. It's a fourth way into folders after folder cards, breadcrumbs and Move. <code>AppSidebar.tsx:190</code></li>
+  <li><span class="tag del">Delete</span>The <code>?cards=classic</code> card branch, a dead A/B flag whose own comment says "drop once settled". Move "Cancel upload" to the frost card first. <code>use-frost-cards.ts:9</code></li>
+  <li><span class="tag del">Delete</span>Shelf "Show all" links. The shelf heading and the type tab already go there. <code>HomeDashboardShelves.tsx:124</code></li>
+  <li><span class="tag del">Delete</span>"Share" and "Edit" in the page card menu. The card click edits and the Share button is always visible. Keep Edit on phones. <code>TreeNodeCardMenu.tsx:84,115</code></li>
+  <li><span class="tag mrg">Merge</span>The Images and Documents tabs into "Files". They are page ingredients, not things a rep sends. <code>HomeTreeRoute.tsx:150</code></li>
+  <li><span class="tag mrg">Merge</span>The phone header "Record" into the center Record tab. <code>HomeTreeRoute.tsx:1615</code></li>
+  <li><span class="tag del">Delete</span>The four Learn sub-tabs over nine videos ("Todd's Tips" holds one). <code>LearnIndexRoute.tsx:159</code></li>
+  <li><span class="tag rw">Rewrite</span>The page title stays "Home" inside a folder; show the folder name. 404 "Go to your library" becomes "Go to Home". "Untitled Folder" becomes "New folder".</li>
+</ul>
+
+<h3>Page editor</h3>
+<ul class="cuts">
+  <li><span class="tag mrg">Merge</span>Remove section is offered twice, in the grip menu with a confirm and as a trash button. Keep the trash. <code>CanvasReorder.tsx:285</code></li>
+  <li><span class="tag mrg">Merge</span>Logos inside a story get their own move and remove controls, a third path. Fold them into the grip. <code>LogosRowEditor.tsx:111</code></li>
+  <li><span class="tag mrg">Merge</span>The default logo is asked about three times, in the style panel, a canvas prompt and Settings. Keep the one checkbox. <code>ThemeStylePanel.tsx:101</code>, <code>LogoDefaultChoice.tsx:22</code></li>
+  <li><span class="tag mrg">Merge</span>Media size has S/M/L plus a drag grip. Keep S/M/L. <code>JourneyMediaResizer.tsx</code></li>
+  <li><span class="tag del">Delete</span>"Wrap text" on story media. <code>MediaPicker.tsx:361</code></li>
+  <li><span class="tag hid">Hide</span>The left, center and right align bar on every heading. Let the preset decide. <code>EditableText.tsx:278</code></li>
+  <li><span class="tag del">Delete</span>The starter chips "Webinar invite", "Welcome page", "Product demo", "Pricing page", "Case study". Keep Follow-up, Proposal, Prospect journey. <code>page-tweaks.ts:22</code></li>
+  <li><span class="tag del">Delete</span>The "Describe the offer" chip. It writes a description no renderer shows on the page. <code>page-tweaks.ts:42</code></li>
+  <li><span class="tag rw">Rewrite</span>The "Add a three-tier pricing section" chip contradicts the AI rule to add pricing only when asked. <code>page-tweaks.ts:44</code></li>
+  <li><span class="tag fix">Fix</span>The hero's "+ Add" button inserts a "Get Started" button with one click, no menu and no confirm. The screenshot browser added three by accident while looking around. Show a small menu, or insert and focus the label so the rep sees what happened.</li>
+  <li><span class="tag rw">Rewrite</span>Add a visible "Live" or "Draft" label. Today the save and publish state only shows in Share's tooltip.</li>
+  <li><span class="tag rw">Rewrite</span>The icon-only paintbrush becomes a labelled "Style" button. The preset and the font pair both named "Editorial" need different names.</li>
+</ul>
+
+<h3>Blocks and the prospect page</h3>
+<ul class="cuts">
+  <li><span class="tag hid">Hide</span>Summary table column insert, drag and remove, up to four. The AI only writes two columns. <code>SummaryTableEditor.tsx:338</code></li>
+  <li><span class="tag hid">Hide</span>The gallery column stepper; derive the column count from the number of images. And the logos "Auto / Muted / Full color" switch, since Auto covers it.</li>
+  <li><span class="tag del">Delete</span>The form's "Cancel" button. One mis-click wipes what the prospect typed. <code>render-blocks.ts:562</code></li>
+  <li><span class="tag rw">Rewrite</span>Form defaults. "Enter First Name" becomes "First name". Phone becomes optional. The consent line becomes "I agree to be contacted about this proposal." "Form submitted successfully" becomes "Thanks, we'll be in touch.", with a link back to the page.</li>
+  <li><span class="tag rw">Rewrite</span>Pricing button default "Learn more" becomes "Choose this plan". <code>PricingEditor.tsx:314</code></li>
+  <li><span class="tag fix">Fix</span>Hero contact email and phone render as plain text you can't click. Make them mailto and tel links. <code>render-blocks.ts:392</code></li>
+  <li><span class="tag mrg">Merge</span>The hero button row repeats under a document with the same tracking ids. Make it one closing button at the end of the page.</li>
+  <li><span class="tag del">Delete</span>The story <code>subtitle</code> field, which is stored but never rendered or edited.</li>
+</ul>
+
+<h3>Recorder and video editing</h3>
+<ul class="cuts">
+  <li><span class="tag mrg">Merge</span>"Camera inset" and "1/3 split" into "Camera + screen". <code>RecorderLayoutPicker.tsx:23</code></li>
+  <li><span class="tag del">Delete</span>The <code>CTA_WORD</code> map that makes the button read "Record split". Use one "Start recording" button. <code>RecordVideoRoute.tsx:78</code></li>
+  <li><span class="tag mrg">Merge</span>Remember the last layout, camera and microphone between visits. Today every visit starts at Camera only with no stored device. <code>use-canvas-compositor.ts:72</code></li>
+  <li><span class="tag mrg">Merge</span>The library opens the same video edit modal three ways: card click, pencil and menu Edit. A video card click opens a trim tool, not playback.</li>
+  <li><span class="tag rw">Rewrite</span>Save works differently in two places. The recorder autosaves; the modal saves only on Done and drops the draft on Cancel. Make both autosave.</li>
+  <li><span class="tag rw">Rewrite</span>The recovery card drops megabytes and shows "Today 3:04 PM". "Retry save" becomes "Try again". "Preparing trim" becomes "Saving trim".</li>
+</ul>
+
+<h3>Sharing and stats</h3>
+<ul class="cuts">
+  <li><span class="tag del">Delete</span>"Draft version 3 · Published version 2" in the share dialog. <code>JourneyPageShareDialog.tsx:174</code></li>
+  <li><span class="tag hid">Hide</span>"Unpublish" and the password switch under "More options". They sit beside the copy button and most reps never use them.</li>
+  <li><span class="tag del">Delete</span>The legacy locations view, "No location or session detail for these views" and "Totals come from a stored summary". <code>VideoStatsModal.tsx:244</code></li>
+  <li><span class="tag rw">Rewrite</span>Lead page stats with "Last visit 12m ago". Email CTA "See page stats" becomes "See what they watched".</li>
+</ul>
+
+<h3>Settings, plan and sign-in</h3>
+<ul class="cuts">
+  <li><span class="tag fix">Fix</span>"Upgrade to Pro to keep your pages, videos and links after the trial ends." This is false, because sent pages stay live. Use "Upgrade to keep recording and editing. Pages you've sent stay live." <code>SubscriptionRoute.tsx:423</code></li>
+  <li><span class="tag mrg">Merge</span><span class="tag pol">Policy</span>Billing and Subscription into one Plan section with a "Manage billing" button to the Stripe portal. The portal link code already exists. The card list's "Add a payment method" empty state has no add button.</li>
+  <li><span class="tag del">Delete</span><span class="tag pol">Policy</span>The cancel dialog's required reason and "Would you consider re-subscribing in the future?"</li>
+  <li><span class="tag mrg">Merge</span>"Time left" and "Trial ends" into "Trial ends Oct 28 (14 days)". Delete "Started".</li>
+  <li><span class="tag rw">Rewrite</span>Brand helper: "New pages start with your logo and color." Settings opens on Notifications, not Branding.</li>
+  <li><span class="tag rw">Rewrite</span>There are two support addresses, hello@ on sign-in and support@ on the trial wall; pick one. "Your trial has expired" becomes "Your trial has ended".</li>
+  <li><span class="tag rw">Rewrite</span>Sign-in rail "Close 2-3x More Deals by Giving Your Prospects Clarity" becomes "Send a personal video page in two minutes."</li>
+</ul>
+
+<h2>Decisions that are yours</h2>
+<ul>
+  <li><b>Billing UI.</b> Should the Stripe portal replace the in-app card list, and should the cancel survey go?</li>
+  <li><b>Pricing and summary.</b> Pricing is on 7% of customer pages and summary on 3%. Fold them into one "Pricing and scope" block, or keep both? I'd keep pricing, fold summary into it, and drop the three-tier chip.</li>
+  <li><b>Contacts.</b> Replace it with per-page Leads, or keep the CRM for the few who import CSVs?</li>
+  <li><b>Notifications.</b> One switch fired on "started watching", or keep "started" and "finished" as two? The auditors split. I'd ship one switch with depth in the email.</li>
+</ul>
+
+<h2>Bugs found along the way, not fixed</h2>
+<ul>
+  <li>Billing never loads the default card id, so the real default shows no badge and can be deleted like any other card. <code>BillingRoute.tsx:92</code></li>
+  <li>Branding save failures are swallowed with no message. <code>BrandingRoute.tsx:80</code></li>
+  <li>The trial wall sells monthly only; the Subscription page sells monthly and annual.</li>
+  <li>401 stored form submissions against 65 <code>page_form_submit</code> events, so submit tracking undercounts.</li>
+  <li>A notification preference, "someone shared my video", defaults to on and has no UI.</li>
+  <li>Stale comments: <code>AddSection.tsx</code> says six tiles and no repeats (there are eight, and repeats are allowed). <code>CtaRowEditor.tsx</code> refers to a side panel that no longer exists. <code>CONTEXT.md</code> puts title, description and button on video Edit metadata, but they live on the hero block.</li>
+</ul>
+
+<h2>Screens</h2>
+<p class="dim">Staging, test account with fixture data, 14 October 2026. A face, an email address and a location are blurred. Tap a shot to open it full size.</p>
+<div class="shots">
+<figure><a href="shots/02-home.png"><img src="shots/02-home.png" alt="" loading="lazy"></a><figcaption>Home. Three header buttons, and the filled one is New Journey Page, not Record. The sidebar repeats every folder.</figcaption></figure>
+<figure><a href="shots/50-phone-home.png"><img src="shots/50-phone-home.png" alt="" loading="lazy"></a><figcaption>Home on a phone. Record shows twice, and Contacts and Learn take two of five tab slots.</figcaption></figure>
+<figure><a href="shots/04-home-page-card-menu.png"><img src="shots/04-home-page-card-menu.png" alt="" loading="lazy"></a><figcaption>Page card menu. Edit and Share repeat the card click and the Share button.</figcaption></figure>
+<figure><a href="shots/29-editor-page-style.png"><img src="shots/29-editor-page-style.png" alt="" loading="lazy"></a><figcaption>Style panel. 29 choices; 93% of customer pages never set a theme.</figcaption></figure>
+<figure><a href="shots/33-editor-add-section-menu.png"><img src="shots/33-editor-add-section-menu.png" alt="" loading="lazy"></a><figcaption>Add section menu. "Story", "Document" and "Form" need plainer names.</figcaption></figure>
+<figure><a href="shots/35-editor-section-options-menu.png"><img src="shots/35-editor-section-options-menu.png" alt="" loading="lazy"></a><figcaption>Section menu. A second remove path and a second add path.</figcaption></figure>
+<figure><a href="shots/14-share-dialog-library.png"><img src="shots/14-share-dialog-library.png" alt="" loading="lazy"></a><figcaption>Share dialog. Version numbers and the password switch sit beside the link.</figcaption></figure>
+<figure><a href="shots/10-page-stats-modal.png"><img src="shots/10-page-stats-modal.png" alt="" loading="lazy"></a><figcaption>Page stats. The mini-page preview takes a third of the modal. "When" shows a date with no hour.</figcaption></figure>
+<figure><a href="shots/24-settings-notifications.png"><img src="shots/24-settings-notifications.png" alt="" loading="lazy"></a><figcaption>Four email toggles. "Someone starts watching" is off.</figcaption></figure>
+<figure><a href="shots/19-profile.png"><img src="shots/19-profile.png" alt="" loading="lazy"></a><figcaption>Profile. Nothing reads the address, timezone, work phone or home phone.</figcaption></figure>
+<figure><a href="shots/22-settings-subscription.png"><img src="shots/22-settings-subscription.png" alt="" loading="lazy"></a><figcaption>Subscription, one of five settings tabs.</figcaption></figure>
+<figure><a href="shots/18-contacts.png"><img src="shots/18-contacts.png" alt="" loading="lazy"></a><figcaption>Contacts, a CRM with no link to the page a lead came from.</figcaption></figure>
+<figure><a href="shots/36-record.png"><img src="shots/36-record.png" alt="" loading="lazy"></a><figcaption>Recorder. Four layouts, and the button wording changes to match ("Record camera").</figcaption></figure>
+<figure><a href="shots/13-video-edit-modal.png"><img src="shots/13-video-edit-modal.png" alt="" loading="lazy"></a><figcaption>Video edit modal. Trim and Preview tabs, with Cancel dropping changes.</figcaption></figure>
+<figure><a href="shots/41-public-page-full.png"><img src="shots/41-public-page-full.png" alt="" loading="lazy"></a><figcaption>Prospect page. The form has Cancel next to Submit. Labels read "Enter First Name".</figcaption></figure>
+</div>
+</main>
+</body>
+</html>
