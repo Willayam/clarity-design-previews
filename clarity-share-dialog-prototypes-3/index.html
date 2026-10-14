@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: round three</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · round three · prototype, throwaway, mock data</p>
+    <h1>Share dialog: five places for Unpublish</h1>
+    <p>Every dialog is live. Pick a state above each one, then press the controls inside. Nothing talks to a server. All five start from round two's option 4 and share the same bones: the link row with its open and copy icons, Password protected as its own switch row, and the tinted status band at the bottom next to the one primary button. The primary follows the state: Publish, then Copy link once the page is live, Publish changes when visitors see an older version, Publish again after the link is turned off. They differ only in where Unpublish lives. It is never red at rest, and every placement asks first. Round two's option 4 is at the end, unchanged.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set every option to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+  <section class="x-grid" id="options"></section>
+  <footer class="x-outro">
+    <h2>What stays fixed in all five</h2>
+    <ul>
+      <li>The link row is the original chip: URL, open-in-new-tab arrow, copy icon. Off or never published, the chip dims and the copy icon disables.</li>
+      <li>Password protected is its own row: lock, label, switch, and the password input under it when on.</li>
+      <li>The status band sits bottom left, next to the primary button. Green "Live" with nothing pending, amber "Live · Visitors see the version from 2h ago", grey "Off" after Unpublish, neutral "Not published" before the first publish. On a phone the band takes the full row and the button drops under it.</li>
+      <li>One primary button, bottom right. Never published: Publish. Live and current: Copy link, which reads "Copied" for a moment. Live with changes: Publish changes. Off: Publish, which turns the same link back on.</li>
+      <li>Unpublish is out of the footer, neutral at rest, and always asks first. The confirm says the link stops working and that Publish turns the same link back on.</li>
+    </ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>
