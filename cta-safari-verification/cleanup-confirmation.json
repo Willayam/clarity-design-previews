@@ -1,0 +1,134 @@
+{
+  "verdict": "VERIFIED",
+  "checkedAt": "2026-10-14T19:35:29.041847+00:00",
+  "checks": {
+    "authenticatedGet200": true,
+    "dataExactMatch": true,
+    "revisionExactMatch": true,
+    "previewHeadExactMatch": true,
+    "priorMandatoryBehaviorPassed": true,
+    "fixture-beforeArtifactPresent": true,
+    "fixture-afterArtifactPresent": true,
+    "chromium-openArtifactPresent": true,
+    "chromium-persistedArtifactPresent": true,
+    "chromium-restored-reopenArtifactPresent": true,
+    "chromium-edgeArtifactPresent": true,
+    "chromium-mobileArtifactPresent": true,
+    "webkit-openArtifactPresent": true,
+    "webkit-persistedArtifactPresent": true,
+    "webkit-restored-reopenArtifactPresent": true,
+    "webkit-edgeArtifactPresent": true,
+    "webkit-mobileArtifactPresent": true,
+    "chromiumMeasurementsSubstantive": true,
+    "chromiumPersistenceEvidencePresent": true,
+    "webkitMeasurementsSubstantive": true,
+    "webkitPersistenceEvidencePresent": true,
+    "d1EvidenceConsistent": true,
+    "historicalReportUnchanged": true
+  },
+  "unresolvedGaps": [],
+  "historicalReportSha256": "0d13028b818404067428d12709e02bbd39ba84b513a768c199d8919e6505a943",
+  "artifacts": {
+    "fixture-before": {
+      "bytes": 28850,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "fixture-after": {
+      "bytes": 26551,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "chromium-open": {
+      "bytes": 137641,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "chromium-persisted": {
+      "bytes": 142875,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "chromium-restored-reopen": {
+      "bytes": 138571,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "chromium-edge": {
+      "bytes": 110101,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "chromium-mobile": {
+      "bytes": 46745,
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    "webkit-open": {
+      "bytes": 340223,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "webkit-persisted": {
+      "bytes": 345335,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "webkit-restored-reopen": {
+      "bytes": 340130,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "webkit-edge": {
+      "bytes": 301310,
+      "dimensions": [
+        1280,
+        800
+      ]
+    },
+    "webkit-mobile": {
+      "bytes": 93401,
+      "dimensions": [
+        390,
+        844
+      ]
+    }
+  },
+  "limitationsRetained": [
+    "No actual Safari or iPhone run.",
+    "No full editor baseline deployment; before evidence is isolated component footage.",
+    "Only mobile viewport resize was tested, not touch or virtual keyboard behavior.",
+    "Old mobile Chromium fixture failed on both variants; this full editor viewport check passes, but does not explain the old failure.",
+    "No T3 browser tool was exposed.",
+    "No product code edits, commits, deploys, merges or artifact publication."
+  ],
+  "notes": [
+    "Read-only HTTP requests. Initial request omitted the cookie name and returned 401; subsequent requests used clarity_session.",
+    "D1 evidence reviewed without database access.",
+    "No UI run, delegation, publication, or remote mutation.",
+    "Existing console warnings remain nonblocking.",
+    "Original negative report retained unchanged.",
+    "Caption correction supplied by parent and present in local public/index.html. Public page fetched during preceding evidence pass."
+  ],
+  "expectedHeadSha": "06261465ff4e744136a1714411dc1d90637d9d30"
+}
