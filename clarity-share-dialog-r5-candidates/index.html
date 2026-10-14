@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: round five candidates (draft)</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · round five · draft for critique · prototype, throwaway, mock data</p>
+    <h1>Share dialog: eight candidates from round four's #5 and #6</h1>
+    <p>Every dialog is live. Pick a state above each one, then press the controls inside. Nothing talks to a server. C1 to C4 and C6 are variations of round four's access row (#5), each changing one thing about the "General access" block. C5 and C8 keep round four's clean #6 body and give the link-off choice a dropdown home instead of the header menu. C7 folds the password into the access menu and says so.</p>
+    <p>Every card follows the round-five rules: a Live word with a green dot, amber "Visitors see the version from 2h ago" when edits are pending, one primary bottom right whose label follows the state, the tinted band beside it, the URL underlined with one copy icon and no open arrow, turning the link off never red at rest and always asked first, no "Link on", no "More options", no "General access". <a href="../clarity-share-dialog-prototypes-4/">Round four</a> holds the Framer, Figma and Google Docs research these build on.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set every candidate to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+
+  <section class="x-grid" id="options"></section>
+
+  <footer class="x-outro">
+    <h2>What every card shares</h2>
+    <ul>
+      <li>The link row has the URL, underlined and opening in a new tab, and one copy icon. Off or never published, the row dims and the copy icon disables.</li>
+      <li>The band is bottom left beside the primary. Green Live when up to date, amber Live with the freshness line when edits are pending, grey Not published or Off otherwise.</li>
+      <li>Choosing "No one" or "Off" asks first. The confirm says the link stops working for everyone you sent it to, and that Publish turns the same link back on.</li>
+      <li>Choosing "Anyone with the link" while off or never published does the same as the Publish button.</li>
+      <li>Password protected is its own switch row with a lock, and the password input under it when on. C7 is the one exception and is labelled.</li>
+    </ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>

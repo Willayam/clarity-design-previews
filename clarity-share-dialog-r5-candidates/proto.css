@@ -1,0 +1,191 @@
+/* Page shell for the prototype gallery. Dialog internals reuse the app's
+   tokens and utility classes; x- is gallery chrome, d- shared dialog bits,
+   f- the footer band and menus, g- the big-app adaptations, r- the research table. */
+body { font-family: var(--font-sans); }
+.x-page { max-width: 1480px; margin: 0 auto; padding: 24px 16px 64px; }
+.x-intro { max-width: 760px; margin-bottom: 28px; }
+.x-intro h1 { font-size: 1.5rem; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -0.01em; }
+.x-intro p { font-size: 0.9375rem; color: var(--muted-foreground); margin: 0 0 12px; line-height: 1.5; }
+.x-kicker { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; color: var(--muted-foreground); }
+.x-global { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; }
+.x-global-label { font-size: 0.875rem; font-weight: 500; }
+.x-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+@media (max-width: 440px) { .x-grid { grid-template-columns: 1fr; } }
+.x-opt { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.x-opt-head { display: flex; flex-direction: column; gap: 4px; }
+.x-opt-title { display: flex; align-items: baseline; gap: 8px; font-size: 1rem; font-weight: 600; flex-wrap: wrap; }
+.x-opt-num { font-variant-numeric: tabular-nums; color: var(--muted-foreground); font-weight: 500; }
+.x-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.x-tag--rec { background: color-mix(in oklab, var(--primary) 12%, transparent); color: var(--primary); }
+.x-tag--app { background: var(--muted); color: var(--muted-foreground); }
+.x-opt-note { font-size: 0.8125rem; color: var(--muted-foreground); line-height: 1.45; margin: 0; }
+.x-opt-tradeoff { font-size: 0.8125rem; line-height: 1.45; margin: 0; }
+.x-opt-tradeoff::before { content: 'Tradeoff. '; font-weight: 600; }
+.x-opt-differs { font-size: 0.8125rem; line-height: 1.45; margin: 0; color: var(--muted-foreground); }
+.x-opt-differs::before { content: 'Differs from the earlier brief. '; font-weight: 600; color: var(--foreground); }
+.x-opt-why { font-size: 0.8125rem; line-height: 1.45; margin: 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in oklab, var(--primary) 7%, transparent); }
+.x-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.x-preset { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font: inherit; font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground); cursor: pointer; }
+.x-preset:hover { color: var(--foreground); }
+.x-preset[aria-pressed="true"] { background: var(--foreground); border-color: var(--foreground); color: var(--background); }
+.x-stage { background: oklch(0.5 0 0 / 0.35); border-radius: 14px; padding: 20px 14px 24px; min-height: 340px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; }
+.x-dialog { position: relative; width: 100%; max-width: 448px; }
+.x-anchor { align-self: flex-end; margin-right: max(0px, calc((100% - 448px) / 2)); }
+.x-outro { max-width: 760px; margin-top: 40px; }
+.x-outro h2 { font-size: 1.125rem; margin-bottom: 8px; }
+.x-outro ul { padding-left: 18px; font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.5; }
+.x-outro li { margin-bottom: 6px; }
+
+/* Research table */
+.r-wrap { margin: 0 0 32px; overflow-x: auto; }
+.r-wrap h2 { font-size: 1.125rem; margin: 0 0 4px; }
+.r-wrap > p { font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 12px; max-width: 760px; line-height: 1.5; }
+.r-table { border-collapse: collapse; width: 100%; font-size: 0.8125rem; line-height: 1.4; min-width: 900px; }
+.r-table th, .r-table td { text-align: left; vertical-align: top; padding: 8px 10px; border-top: 1px solid var(--border); }
+.r-table th { font-weight: 600; color: var(--muted-foreground); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; border-top: 0; }
+.r-table td:first-child { font-weight: 600; white-space: nowrap; }
+.r-table a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.r-mark { display: inline-block; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted-foreground); margin-left: 4px; }
+.r-mark--inferred { color: #b45309; }
+
+/* Shared dialog bits */
+.d-title-row { display: flex; align-items: center; gap: 8px; min-height: 28px; }
+.d-title { font-size: 1.25rem; font-weight: 600; line-height: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-title-end { margin-left: auto; display: flex; align-items: center; gap: 2px; flex: none; }
+.d-close { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; opacity: 0.7; color: var(--foreground); background: none; border: 0; cursor: default; }
+.d-close:hover { opacity: 1; background: var(--muted); }
+.d-chip { display: flex; min-width: 0; align-items: center; gap: 4px; border-radius: 8px; background: var(--muted); padding: 4px; }
+.d-chip-url, .d-chip-inert { display: flex; min-width: 0; flex: 1; align-items: center; gap: 8px; border-radius: 6px; padding: 8px; font-size: 0.875rem; color: inherit; text-decoration: none; }
+.d-chip .mono { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
+.d-chip--off .d-chip-inert { opacity: 0.5; }
+a.d-chip-url { text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent); text-underline-offset: 3px; cursor: pointer; }
+a.d-chip-url:hover { text-decoration-color: currentColor; background: color-mix(in oklab, var(--muted) 70%, var(--background)); }
+a.d-chip-url:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.d-chip-open { display: inline-flex; flex: none; }
+.d-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.d-label { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 500; }
+.d-label svg { color: var(--muted-foreground); }
+.d-muted { color: var(--muted-foreground); }
+.d-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.d-confirm { border-radius: 12px; border: 1px solid color-mix(in oklab, var(--destructive) 30%, transparent); background: color-mix(in oklab, var(--destructive) 5%, transparent); padding: 14px; display: grid; gap: 10px; }
+.d-confirm p { margin: 0; font-size: 0.875rem; }
+.d-confirm .d-footer { margin-top: 2px; }
+.d-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--muted-foreground); flex: none; }
+.d-dot--off { background: var(--muted-foreground); opacity: 0.6; }
+.d-dot--live { background: var(--success); box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 18%, transparent); }
+.d-dot--changes { background: var(--warning); box-shadow: 0 0 0 3px color-mix(in oklab, var(--warning) 22%, transparent); }
+.d-pw { margin-top: 10px; }
+.d-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.spin { animation: d-spin 0.8s linear infinite; }
+@keyframes d-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+.v-copy-wrap { position: relative; display: inline-flex; flex: none; }
+.v-tip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 4px 8px; border-radius: 6px; background: var(--foreground); color: var(--background); font-size: 0.75rem; font-weight: 500; white-space: nowrap; pointer-events: none; z-index: 2; }
+.v-tip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -4px; border: 4px solid transparent; border-top-color: var(--foreground); }
+.v-status-word { font-weight: 600; color: var(--foreground); }
+
+/* Footer band next to the primary. Amber ink is amber-700 for contrast. */
+.f-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 8px; }
+.f-band { position: relative; display: flex; flex: 1 1 200px; min-width: 0; align-items: center; gap: 10px; min-height: 40px; border-radius: 10px; padding: 7px 12px; background: var(--muted); }
+.f-band .d-dot { flex: none; }
+.f-band-body { min-width: 0; flex: 1; display: grid; gap: 1px; }
+.f-band p { margin: 0; }
+.f-band-head { font-size: 0.875rem; font-weight: 600; line-height: 1.25; }
+.f-band-text { font-size: 0.75rem; color: var(--muted-foreground); line-height: 1.3; }
+.f-band[data-tone="live"] { background: color-mix(in oklab, var(--success) 9%, transparent); }
+.f-band[data-tone="live"] .v-status-word { color: var(--success); }
+.f-band[data-tone="changes"] { background: color-mix(in oklab, var(--warning) 16%, transparent); }
+.f-band[data-tone="changes"] .v-status-word, .f-band[data-tone="changes"] .f-band-text { color: #b45309; }
+.f-band[data-tone="off"] .v-status-word { color: var(--muted-foreground); }
+.f-band-trigger { margin-right: -6px; }
+.f-primary { flex: none; }
+@media (max-width: 440px) { .f-band { flex-basis: 100%; } .f-primary { flex: 1 1 100%; } }
+
+/* Menus imitate the app's DropdownMenuContent and DropdownMenuItem faces. */
+.f-menu-wrap { position: relative; display: inline-flex; flex: none; }
+.f-menu-wrap--grow { display: flex; flex: 1; min-width: 0; }
+.f-menu { position: absolute; z-index: 20; min-width: 176px; border-radius: 8px; background: var(--popover); color: var(--popover-foreground); padding: 4px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent); }
+.f-menu--down { top: calc(100% + 4px); right: 0; }
+.f-menu--down-left { top: calc(100% + 4px); left: 0; }
+.f-menu--up { bottom: calc(100% + 6px); right: 0; }
+.f-menu--select { top: calc(100% + 4px); left: 0; min-width: 240px; }
+.f-item { display: flex; width: 100%; align-items: center; gap: 8px; border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 0.875rem; color: inherit; background: none; border: 0; cursor: default; text-align: left; text-decoration: none; }
+.f-item:hover, .f-item:focus-visible { background: color-mix(in oklab, var(--primary) 10%, transparent); outline: none; }
+.f-item svg { flex: none; color: var(--muted-foreground); }
+.f-item[aria-checked="true"] { font-weight: 500; }
+.f-item .f-check { margin-left: auto; color: var(--primary); }
+.f-item-body { display: grid; gap: 1px; min-width: 0; }
+.f-item-sub { font-size: 0.75rem; color: var(--muted-foreground); font-weight: 400; }
+.f-sep { height: 1px; margin: 4px 0; background: var(--border); }
+.f-select { max-width: 100%; justify-content: space-between; }
+.f-select svg:last-child { color: var(--muted-foreground); }
+.f-select-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Access row: avatar circle, select, description line. Docs and Figma shape. */
+.g-access { display: flex; align-items: flex-start; gap: 12px; }
+.g-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); flex: none; }
+.g-avatar--live { background: color-mix(in oklab, var(--success) 12%, transparent); color: var(--success); }
+.g-access-body { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.g-access-desc { margin: 0; font-size: 0.75rem; color: var(--muted-foreground); line-height: 1.35; }
+.g-access-desc[data-tone="changes"] { color: #b45309; }
+.g-heading { margin: 0; font-size: 0.875rem; font-weight: 600; }
+.g-text-select { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 6px 0 8px; margin-left: -8px; border-radius: 6px; border: 0; background: none; font: inherit; font-size: 0.875rem; font-weight: 500; color: inherit; cursor: default; max-width: 100%; }
+.g-text-select:hover { background: var(--muted); }
+.g-text-select svg { color: var(--muted-foreground); flex: none; }
+
+/* Framer-shaped popover: trigger above, URL row, meta line, actions. */
+.g-trigger { display: inline-flex; align-items: center; gap: 6px; }
+.g-pop { position: relative; width: 100%; max-width: 448px; }
+.g-pop-url { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.g-meta { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.8125rem; color: var(--muted-foreground); line-height: 1.4; }
+.g-meta svg { flex: none; }
+.g-meta[data-tone="changes"] { color: #b45309; }
+.g-meta[data-tone="live"] .g-meta-dot { color: var(--success); }
+.g-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.g-actions .g-left { margin-right: auto; }
+.g-pill-link { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Docs-shaped bits: section heading, pill copy link, Done. */
+.g-section { display: grid; gap: 8px; }
+.g-people { display: flex; align-items: center; gap: 12px; }
+.g-people-body { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.g-people-name { margin: 0; font-size: 0.875rem; font-weight: 500; }
+.g-people-sub { margin: 0; font-size: 0.75rem; color: var(--muted-foreground); }
+.g-people-role { font-size: 0.8125rem; color: var(--muted-foreground); flex: none; }
+.g-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+/* Figma-shaped bits: segmented top, link settings. */
+.g-tabs { display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--muted); align-self: flex-start; }
+.g-tab { height: 28px; padding: 0 12px; border-radius: 6px; border: 0; background: none; font: inherit; font-size: 0.8125rem; font-weight: 500; color: var(--muted-foreground); cursor: default; }
+.g-tab[aria-selected="true"] { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
+.g-hr { height: 1px; background: var(--border); margin: 0 -24px; }
+
+/* Figma invite row and Sites status fields; Framer meta separator. */
+.g-invite { display: flex; gap: 8px; align-items: center; }
+.g-invite input { flex: 1; }
+.g-fields { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; font-size: 0.875rem; }
+.g-fields dt { color: var(--muted-foreground); }
+.g-fields dd { margin: 0; font-weight: 500; }
+.g-fields dd[data-tone="live"] { color: var(--success); }
+.g-fields dd[data-tone="changes"] { color: #b45309; }
+.g-meta-sep { margin: 0 2px; }
+
+/* Round five additions. Three across from 1200px, one column on a phone. */
+@media (min-width: 1200px) { .x-grid { grid-template-columns: repeat(3, 1fr); } }
+.x-opt-bends { font-size: 0.8125rem; line-height: 1.45; margin: 0; padding: 6px 10px; border-radius: 8px; background: color-mix(in oklab, var(--warning) 14%, transparent); color: #b45309; }
+.f-menu--up-left { bottom: calc(100% + 6px); left: 0; min-width: 240px; }
+.f-menu--down { min-width: 240px; }
+.g-text-select--end { margin-left: 0; margin-right: -6px; max-width: none; }
+.f-menu-wrap--end { margin-left: auto; flex: none; }
+.d-row--wrap { flex-wrap: wrap; row-gap: 8px; }
+.d-row--wrap .g-segs { margin-left: auto; }
+.g-text-select--head { margin-left: 0; height: 28px; font-size: 0.8125rem; max-width: 220px; }
+.d-title-end .f-menu-wrap { flex: none; }
+.g-band-select { height: 20px; margin-left: -6px; padding: 0 4px 0 6px; gap: 2px; }
+.g-band-select .v-status-word { font-size: 0.875rem; }
+.f-band[data-tone="live"] .g-band-select:hover { background: color-mix(in oklab, var(--success) 14%, transparent); }
+.f-band[data-tone="changes"] .g-band-select:hover { background: color-mix(in oklab, var(--warning) 26%, transparent); }
+.g-segs { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--muted); flex: none; max-width: 100%; }
+.g-seg { height: 26px; padding: 0 10px; border-radius: 6px; border: 0; background: none; font: inherit; font-size: 0.8125rem; font-weight: 500; color: var(--muted-foreground); cursor: default; white-space: nowrap; }
+.g-seg--on { background: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); }
+details.d-row summary { font-size: 0.875rem; font-weight: 500; cursor: default; }
