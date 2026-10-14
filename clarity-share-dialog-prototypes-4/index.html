@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: round four, big-app patterns</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · round four · prototype, throwaway, mock data</p>
+    <h1>Share dialog: what Framer, Figma and Google Docs do</h1>
+    <p>Every dialog is live. Pick a state above each one, then press the controls inside. Nothing talks to a server. The first three copy one app each as closely as Clarity's needs allow (one page, one public link, publish and publish changes, unpublish, optional password). The last three are round three's band menu, access row and header menu, fixed with this round's lessons. Where an app's pattern overrides an earlier decision (password as its own row, the band next to the primary, Copy link as the primary while current) the card says what differs and why.</p>
+    <p>Lessons applied to every card: one icon in the link row, never the open arrow next to the copy icon; a clickable URL is underlined; no "Link on" switch; nothing red at rest; no separate off section; every confirm says the link stops working and that Publish turns the same link back on.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set every option to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+
+  <section class="r-wrap" aria-labelledby="research">
+    <h2 id="research">What the big apps do</h2>
+    <p>Read from each app's own help pages on 2026-10-14. "Confirmed" means the help page or a dated article says it; "inferred" means recollection of the live product that no fetched page states. Button colour and exact confirm wording were not verifiable from docs alone.</p>
+    <table class="r-table">
+      <thead><tr><th>App</th><th>Visitors vs unpublished edits</th><th>Primary action</th><th>Copy link</th><th>Turning access off</th><th>Password or restricted</th><th>Sources</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Framer<br><small>Publish popover</small></td>
+          <td>"View Changes" lists edits with the editor's avatar and who last published<span class="r-mark">confirmed</span>. A relative time such as "2h ago" next to the publisher<span class="r-mark r-mark--inferred">inferred</span>. No status badge found.</td>
+          <td>"Publish" before the first publish, "Update" after it<span class="r-mark">confirmed</span>. Update greys out when nothing changed<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>The domain row is a link that opens the site<span class="r-mark">confirmed</span>. No copy button<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>Not in the popover. "Unpublish" near the bottom of Site Settings, with a confirm<span class="r-mark">confirmed, third-party guides</span>.</td>
+          <td>Site Settings › General › "Password Protection" toggle, no republish needed<span class="r-mark">confirmed</span>.</td>
+          <td><a href="https://www.framer.com/help/articles/publishing-your-framer-website/">Publishing</a>, <a href="https://www.framer.com/updates/publishing-update">2024 update</a>, <a href="https://www.framer.com/academy/lessons/password-protection">Password</a>, <a href="https://unhost.dev/guides/how-to-unpublish-a-framer-site/">Unpublish guide</a></td>
+        </tr>
+        <tr>
+          <td>Figma<br><small>Share dialog</small></td>
+          <td>Not applicable, a file is always live.</td>
+          <td>"Invite" next to the email field<span class="r-mark r-mark--inferred">inferred</span>. No Done or Publish button.</td>
+          <td>"Copy link" and "Get embed code" are share options in the modal<span class="r-mark">confirmed</span>, bottom-left as text buttons<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>Audience select: "Anyone" or "Only invited people", with "can view" / "can edit" beside it<span class="r-mark">confirmed</span>. No confirm<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>"Password protect files" under Additional security, paid plans<span class="r-mark">confirmed</span>.</td>
+          <td><a href="https://help.figma.com/hc/en-us/articles/360040531773-Share-files-and-prototypes">Share files</a>, <a href="https://help.figma.com/hc/en-us/articles/1500007609322-Guide-to-sharing-and-permissions">Permissions</a></td>
+        </tr>
+        <tr>
+          <td>Figma Sites<br><small>Publish modal</small></td>
+          <td>Fields "Status: Not published / Published" and a last-published date<span class="r-mark">confirmed</span>. Edits stay off the live site until the next publish<span class="r-mark">confirmed</span>.</td>
+          <td>"Publish" in every state, never "Update"<span class="r-mark">confirmed</span>.</td>
+          <td>The site URL shows as a link<span class="r-mark">confirmed</span>. No copy button documented.</td>
+          <td>Site settings › General › "Unpublish"; the same domain comes back on republish<span class="r-mark">confirmed</span>. Confirm not documented.</td>
+          <td>Site settings, whole site or per page, your own or a generated password<span class="r-mark">confirmed</span>.</td>
+          <td><a href="https://help.figma.com/hc/en-us/articles/31242845959703-Publish-update-or-unpublish-a-site">Publish a site</a>, <a href="https://help.figma.com/hc/en-us/articles/31242875661591-Edit-website-settings">Site settings</a></td>
+        </tr>
+        <tr>
+          <td>Google Docs<br><small>Share dialog</small></td>
+          <td>Not applicable, a doc is always live.</td>
+          <td>"Done" bottom-right<span class="r-mark">confirmed label</span>, filled blue pill<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>"Copy link" bottom-left, opposite Done<span class="r-mark">confirmed, 2022</span>, as an outlined pill with a link icon<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>"General access" select: "Restricted" ("Only people with access can open the file") or "Anyone with the link", with a Viewer / Commenter / Editor select beside it<span class="r-mark">confirmed</span>. No confirm<span class="r-mark r-mark--inferred">inferred</span>.</td>
+          <td>No password. Restricted vs Anyone with the link, plus the role<span class="r-mark">confirmed</span>.</td>
+          <td><a href="https://support.google.com/docs/answer/2494822?hl=en&amp;co=GENIE.Platform%3DDesktop">Share files</a>, <a href="https://workspaceupdates.googleblog.com/2020/04/new-file-sharing-dialog-google-drive.html">2020 dialog</a>, <a href="https://9to5google.com/?p=507155">2022 Copy link move</a></td>
+        </tr>
+        <tr>
+          <td>Google Docs<br><small>Publish to the web</small></td>
+          <td>None. "Automatically republish when changes are made" is on by default, edits reach the copy within minutes<span class="r-mark">confirmed</span>.</td>
+          <td>"Publish" before publishing<span class="r-mark">confirmed</span>. After, the dialog shows the URL under Link and Embed tabs<span class="r-mark">confirmed</span>.</td>
+          <td>The URL in the dialog, to copy by hand<span class="r-mark">confirmed</span>.</td>
+          <td>"Stop publishing" inside the "Published content &amp; settings" accordion<span class="r-mark">confirmed</span>. Confirm wording not verified.</td>
+          <td>None.</td>
+          <td><a href="https://support.google.com/docs/answer/183965?hl=en&amp;co=GENIE.Platform%3DDesktop">Publish to the web</a></td>
+        </tr>
+        <tr>
+          <td>Notion<br><small>Share › Publish tab</small></td>
+          <td>None. Edits sync to the live site<span class="r-mark">confirmed</span>.</td>
+          <td>"Publish" before, "View site" after<span class="r-mark">confirmed</span>.</td>
+          <td>A copy icon on the URL row inside the Publish tab<span class="r-mark">confirmed</span>.</td>
+          <td>"Unpublish" in the same Publish tab<span class="r-mark">confirmed</span>.</td>
+          <td>No password<span class="r-mark">confirmed</span>. Invite-only via the Share tab.</td>
+          <td><a href="https://www.notion.com/help/public-pages-and-web-publishing">Public pages</a>, <a href="https://www.notion.com/help/manage-your-notion-sites">Notion Sites</a></td>
+        </tr>
+        <tr>
+          <td>Webflow<br><small>Publish popover</small></td>
+          <td>Last-published time per domain and, on Team and Enterprise, a summary of unpublished changes<span class="r-mark">confirmed</span>.</td>
+          <td>"Publish to selected domains"<span class="r-mark">confirmed</span>.</td>
+          <td>An arrow beside each domain opens the live site<span class="r-mark">confirmed</span>. No copy button found.</td>
+          <td>Per domain, an "Unpublish" link in the popover; whole site, Site settings "Unpublish"<span class="r-mark">confirmed</span>. No confirm documented.</td>
+          <td>Site settings › General › Website password toggle, then publish<span class="r-mark">confirmed</span>.</td>
+          <td><a href="https://help.webflow.com/hc/en-us/articles/33961351954579-How-do-I-publish-or-unpublish-a-Webflow-site">Publish or unpublish</a>, <a href="https://help.webflow.com/hc/en-us/articles/33961298873235-Password-protect-your-site-or-web-pages">Password</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Patterns that repeat. One primary whose label follows the state (Framer's Publish then Update, Figma Sites' Publish). Site builders show when the site was last published; doc tools that sync edits show nothing. Turning the site off lives away from the primary, either in settings (Framer, Figma Sites, Webflow) or as a secondary control in the same panel (Notion, Google). Copy link sits apart from the primary (Docs bottom-left, Figma text button, Notion icon on the URL). Password is a settings toggle in every builder that has one; none puts it in the publish popover.</p>
+  </section>
+
+  <section class="x-grid" id="options"></section>
+
+  <footer class="x-outro">
+    <h2>What every card shares</h2>
+    <ul>
+      <li>The link row has the URL and at most one icon. Either the URL is plain and one arrow opens it, or the URL is underlined and opens itself and one copy icon sits beside it. Never both icons. Off or never published, the row dims and the copy icon disables.</li>
+      <li>Password protected is a switch row with a lock, and the password input under it when on. The Framer card keeps it behind the gear, as Framer does.</li>
+      <li>Unpublish is never red at rest, never a text link, and always asks first. The confirm says the link stops working for everyone you sent it to, and that Publish turns the same link back on.</li>
+      <li>Turned off is a state of the same controls (the band word, the access select, the status field), not a separate captioned section.</li>
+    </ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>
