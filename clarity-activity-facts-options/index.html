@@ -31,7 +31,7 @@
   .stage { background: #94a3b8; border-radius: 12px; overflow: hidden; display: grid; }
   .frame.desktop .stage { padding: 28px; min-height: 0; }
   .frame.phone .stage { height: 760px; align-content: end; padding-top: 48px; }
-  @media (max-width: 1000px) { .frame.desktop { zoom: .4; } }
+  @media (max-width: 1000px) { .frame.desktop { zoom: .36; } .page { padding-left: 14px; padding-right: 14px; } }
 
   /* The real popup is fixed and centred; in a frame it sits in flow. */
   .stage [data-slot=dialog-popup] { position: relative; inset: auto; transform: none; width: 100%; max-width: none; height: auto; }
