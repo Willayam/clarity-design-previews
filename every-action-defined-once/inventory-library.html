@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory: Library, webhooks, cron, scripts</title><style>
+:root { color-scheme: light dark; --fg:#1b1b1f; --muted:#5f6368; --bg:#ffffff; --code:#f4f4f6; --line:#e3e3e8; --accent:#2f5bd3; }
+@media (prefers-color-scheme: dark) { :root { --fg:#e9e9ee; --muted:#a0a3ab; --bg:#121216; --code:#1d1d23; --line:#2c2c35; --accent:#8fb0ff; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 32px 20px 96px; }
+h1 { font-size: 2rem; line-height:1.2; margin: 0 0 8px; }
+h2 { font-size: 1.45rem; margin-top: 2.4em; padding-top: .6em; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; margin-top: 1.8em; }
+p, li { max-width: 72ch; }
+a { color: var(--accent); }
+code { font: 0.86em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 1em 0; }
+table { border-collapse: collapse; font-size: 0.88rem; min-width: 640px; }
+th, td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+th { background: var(--code); }
+nav.toc { font-size: .95rem; background: var(--code); border-radius: 8px; padding: 12px 18px; margin: 20px 0; }
+nav.toc a { text-decoration: none; }
+.meta { color: var(--muted); }
+</style></head>
+<body><main><p><a href="index.html">Back to the design</a></p>
+<h1 id="inventory-library-webhooks-cron-scripts">Inventory: Library, webhooks, cron, scripts</h1>
+<p>Explorer report, gpt-6-sol, read-only, main <code>e839a6bd5</code>. Unedited except that local paths are made repo-relative.</p>
+<h2 id="inventory">Inventory</h2>
+<p>I read the checkout identified in the question. The counts below use an <strong>action</strong> to mean one Library HTTP method and path, one recognized webhook event type, one scheduled task, one admin command type, one data-writing script, or one r2-media entry point. I did not run network calls or change files.</p>
+<p>For Library rows, <strong>session + workspace + wall</strong> means the router enforces the app trial wall at <code>workers/frontend-router/src/routes.ts:384-390</code>, resolves the session and passes its identity at <code>workers/frontend-router/src/router-endpoints.ts:431-455</code>, and the Library scopes its D1 access by <code>user.workspaceId</code>. Library JSON responses are built in handlers rather than from a shared runtime output schema. The editor maintains separate TypeScript response types at <code>editor/src/lib/tree-api.ts:40-155</code>; <code>TakeView</code> is also separately declared and parsed at <code>editor/src/lib/take-api.ts:10-31,140-158</code>.</p>
+<h3 id="library-http-door">Library HTTP door</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door and definition</th>
+<th>Input validation</th>
+<th>Auth, ownership, entitlement</th>
+<th>Side effects</th>
+<th>Analytics event</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write <code>POST /api/tree/nodes/:id/move</code></td>
+<td><code>workers/workspace-tree/src/index.ts:166-170</code></td>
+<td>JSON object and <code>parentId</code> type at <code>index.ts:991-1025</code>; move rules at <code>workspace-tree-core.ts:304-334</code></td>
+<td>Session + workspace + wall; source, parent and ancestors are read in workspace at <code>index.ts:562-589</code></td>
+<td>Updates <code>workspace_nodes</code> parent and position at <code>index.ts:604-617</code></td>
+<td>None found</td>
+<td><code>{data:{node}}</code>, <code>index.ts:628-632</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/nodes/:id/thumbnail</code></td>
+<td><code>index.ts:171</code></td>
+<td>Hand parsed JSON at <code>workers/workspace-tree/src/document-thumbnail.ts:116-129</code></td>
+<td>Session + workspace + wall; PDF owner, source key and thumbnail key checks at <code>document-thumbnail.ts:63-81</code></td>
+<td>CAS update of document metadata in <code>workspace_nodes</code>, <code>document-thumbnail.ts:90-103</code></td>
+<td>None found</td>
+<td><code>{data:{attached,node}}</code>, <code>document-thumbnail.ts:139-142</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/nodes</code></td>
+<td><code>index.ts:172-176</code></td>
+<td>Hand checks at <code>index.ts:640-661</code>; repeated and extended in <code>workspace-tree-core.ts:107-150</code></td>
+<td>Session + workspace + wall; parent lookup uses workspace at <code>index.ts:664-674</code>; uploaded file URL must resolve to this owner’s Library storage at <code>workspace-tree-core.ts:142-150</code></td>
+<td>Inserts <code>workspace_nodes</code>, <code>workspace-tree-store.ts:304-330</code></td>
+<td>D1 trigger emits <code>folder_created</code>, <code>image_added</code> or <code>document_added</code>, <code>workers/frontend-router/migrations-auth/0023_move_triggers.sql:22-35</code></td>
+<td><code>{data:{node}}</code>, <code>index.ts:704</code>; editor type is separate</td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/mux/uploads</code></td>
+<td><code>index.ts:177-181</code></td>
+<td>Hand parser from <code>packages/mux/src/domain.ts:377</code>; size limited at <code>workers/workspace-tree/src/mux-video-routes.ts:105-112</code></td>
+<td>Session + workspace + wall; owner/workspace are put into Mux passthrough at <code>mux-video-routes.ts:114-148</code></td>
+<td>Mux direct upload; keyed path also creates or replays take state in D1 via <code>grantKeyedTake</code>, <code>mux-video-routes.ts:114-125</code></td>
+<td>No product event at grant found</td>
+<td><code>{data:ticket}</code> or <code>{data:outcome}</code>, <code>mux-video-routes.ts:125-149</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/videos/mux-original</code></td>
+<td><code>index.ts:182-191</code></td>
+<td>Mux parser plus manually read extras, <code>mux-video-routes.ts:174-203</code>; parser at <code>packages/mux/src/domain.ts:445</code></td>
+<td>Session + workspace + wall; create receives pinned owner/workspace at <code>mux-video-routes.ts:203-211</code></td>
+<td>Creates or replays video node and <code>videos</code> lifecycle row through <code>createMuxVideoNode</code>, <code>mux-video-routes.ts:196-218</code></td>
+<td>On finish, <code>video_added</code> is inserted by <code>video-row.ts:475-500</code>; not necessarily at this request</td>
+<td><code>{data:{node}}</code>, <code>mux-video-routes.ts:218</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/videos/:id/speech/window</code></td>
+<td><code>video-read-routes.ts:9</code></td>
+<td><code>seek</code>, content length and bounded PCM stream checked at <code>video-speech-window.ts:19-35,43-65</code></td>
+<td>Session + workspace + wall; router also applies owner rate limit at <code>router-endpoints.ts:422-428</code>; recent live recording must match owner at <code>video-speech-window.ts:25-31</code></td>
+<td>AI transcription call; no D1 write in this handler</td>
+<td>None found</td>
+<td><code>WindowAnswer</code> JSON, <code>video-speech-window.ts:36</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/videos/:id/speech/recorder</code></td>
+<td><code>video-read-routes.ts:10</code></td>
+<td>Hand parsed report, <code>video-auto-trim.ts:68-71</code></td>
+<td>Session + workspace + wall; node and take match workspace and owner at <code>video-auto-trim.ts:72-76</code></td>
+<td>CAS metadata write of recorder speech edges and <code>auto_trim</code> job enqueue, <code>video-auto-trim.ts:78-93</code></td>
+<td>RUM verdict at <code>video-auto-trim.ts:77</code>; no product outbox event found</td>
+<td><code>{accepted:true}</code>, <code>video-auto-trim.ts:78-89</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/media/videos/:id/take</code></td>
+<td><code>video-read-routes.ts:11</code></td>
+<td>Path ID only</td>
+<td>Session + workspace + wall; <code>readVideo</code> scopes workspace at <code>mux-video-routes.ts:64-66</code></td>
+<td>May settle Mux facts into D1 before answering, <code>mux-video-routes.ts:68-75</code></td>
+<td>None found</td>
+<td><code>{data:takeView}</code>, <code>mux-video-routes.ts:77-80</code>; client has a separate parser</td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/media/videos/:id/speech</code></td>
+<td><code>video-read-routes.ts:12</code></td>
+<td>Path ID only</td>
+<td>Session + workspace + wall; workspace-scoped node and joined take, <code>video-speech-routes.ts:27-45</code></td>
+<td>May settle Mux facts and run due speech, trim or clip jobs, <code>video-speech-routes.ts:48-53,70-85</code></td>
+<td>None found</td>
+<td><code>{data:{status,words,autoTrim,autoTrimPending}}</code>, <code>video-speech-routes.ts:87</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/videos/:id/download</code></td>
+<td><code>video-read-routes.ts:13-18</code></td>
+<td>Path ID only</td>
+<td>Session + workspace + wall; node lookup and Mux identity owner check at <code>mux-video-download.ts:45-60</code></td>
+<td>May request a Mux static rendition, <code>mux-video-download.ts:69-95</code></td>
+<td>None found</td>
+<td><code>{data:MuxVideoDownload}</code>; type shared from <code>packages/mux</code>, <code>editor/src/lib/tree-api.ts:2,343-348</code></td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/videos/:id/edit</code></td>
+<td><code>index.ts:193-198</code></td>
+<td>Hand parsed digest and edit intent, <code>video-edit-routes.ts:83-103,433-440</code></td>
+<td>Session + workspace + wall; workspace lookup, video type, Mux identity and digest CAS at <code>video-edit-routes.ts:123-157</code></td>
+<td>Atomic <code>videos</code> and <code>workspace_nodes</code> writes, clip job, outbox for trim, <code>video-edit-routes.ts:188-251</code></td>
+<td><code>video_trimmed</code> only for trim/reset, <code>video-edit-routes.ts:304-338</code></td>
+<td>Flat manifest, node and playback JSON, <code>video-edit-routes.ts:370-394</code>; separate editor type</td>
+</tr>
+<tr>
+<td>Write <code>POST /api/tree/media/videos/:id/edit/reset</code></td>
+<td><code>index.ts:193-198</code></td>
+<td>Same handler; reset intent selected at <code>video-edit-routes.ts:97</code></td>
+<td>Same checks as edit</td>
+<td>Same write path and clip job</td>
+<td><code>video_trimmed</code>, <code>video-edit-routes.ts:220-229,304-338</code></td>
+<td>Same flat response</td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/brand</code></td>
+<td><code>index.ts:199-203,745-747</code></td>
+<td>None</td>
+<td>Session + workspace + wall; workspace-scoped brand read at <code>index.ts:806-808</code></td>
+<td>None</td>
+<td>None found</td>
+<td><code>{data:{settings}}</code></td>
+</tr>
+<tr>
+<td>Write <code>PUT /api/tree/brand</code></td>
+<td><code>index.ts:199-203,762-804</code></td>
+<td>Hand parsed union and hex colors, <code>index.ts:1054-1095</code></td>
+<td>Session + workspace + wall; brand store scopes workspace and validates logo asset at <code>workspace-brand-store.ts:72-85</code></td>
+<td>Upsert <code>workspace_brand_settings</code>, <code>workspace-brand-store.ts:198-258</code></td>
+<td>None found</td>
+<td><code>{data:{settings}}</code>, <code>index.ts:793-797</code></td>
+</tr>
+<tr>
+<td>Write <code>DELETE /api/tree/brand</code></td>
+<td><code>index.ts:199-203,749-760</code></td>
+<td>None</td>
+<td>Session + workspace + wall</td>
+<td>Clears brand logo in <code>workspace_brand_settings</code>, <code>index.ts:751-754</code></td>
+<td>None found</td>
+<td><code>{data:{settings}}</code></td>
+</tr>
+<tr>
+<td>Write <code>DELETE /api/tree/nodes/:id</code></td>
+<td><code>index.ts:204-208</code></td>
+<td>Path ID only</td>
+<td>Session + workspace + wall; refuses page card at <code>index.ts:713-725</code></td>
+<td>Batched subtree delete, video tombstones, Mux discard jobs, brand logo cleanup at <code>workspace-tree-store.ts:333-410</code>; best-effort Mux discard call at <code>index.ts:727-734</code></td>
+<td>None found</td>
+<td><code>{data:{deleted,nodeId}}</code>, <code>index.ts:735</code></td>
+</tr>
+<tr>
+<td>Write <code>PATCH /api/tree/nodes/:id</code></td>
+<td><code>index.ts:209-213</code></td>
+<td>JSON plus hand applied update policy, <code>index.ts:819-850</code>, <code>workspace-tree-core.ts:197-287</code></td>
+<td>Session + workspace + wall; workspace lookup and page-card refusal at <code>index.ts:826-837</code></td>
+<td>CAS writes video/document metadata and <code>videos</code> row; other nodes update <code>workspace_nodes</code>, <code>index.ts:839-911</code>, <code>workspace-tree-store.ts:790-839</code></td>
+<td>None found</td>
+<td><code>{data:{node}}</code>, <code>index.ts:911</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree</code></td>
+<td><code>index.ts:214-218</code></td>
+<td>Hand parsed <code>type</code>, <code>sort</code>, include flag, <code>index.ts:318-330,1027-1047</code></td>
+<td>Session + workspace + wall; listing scoped at <code>index.ts:332-339</code></td>
+<td>May settle Mux facts while reading, <code>index.ts:333-339</code></td>
+<td>None found</td>
+<td><code>{data:{nodes,parentId,scope,sort,type,...}}</code>, <code>index.ts:368-380</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/root</code></td>
+<td><code>index.ts:214-218</code></td>
+<td>Same as <code>GET /api/tree</code></td>
+<td>Same</td>
+<td>Same</td>
+<td>None found</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/search</code></td>
+<td><code>index.ts:219-223</code></td>
+<td>Required <code>q</code>, <code>type</code>, <code>sort</code> hand checked at <code>index.ts:435-449</code></td>
+<td>Session + workspace + wall; search scoped at <code>index.ts:450-456</code></td>
+<td>Node mapping may query Mux, <code>index.ts:457-462</code></td>
+<td>None found</td>
+<td><code>{data:{nodes,query,scope,sort,type}}</code>, <code>index.ts:464-475</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/decorations</code></td>
+<td><code>index.ts:224-228</code></td>
+<td>IDs capped at 50 and sort checked, <code>index.ts:383-402,483-492</code></td>
+<td>Session + workspace + wall; IDs queried within workspace at <code>index.ts:494-499</code></td>
+<td>May settle Mux facts, <code>index.ts:499</code></td>
+<td>None found</td>
+<td><code>{data:{cardDecorations,scope,sort}}</code>, <code>index.ts:516-525</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/folders</code></td>
+<td><code>index.ts:229-233</code></td>
+<td>None</td>
+<td>Session + workspace + wall; scoped at <code>index.ts:532-534</code></td>
+<td>None found</td>
+<td>None found</td>
+<td><code>{data:{nodes,scope}}</code>, <code>index.ts:535-547</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/assets/:id</code></td>
+<td><code>index.ts:234-238</code></td>
+<td>Path ID only</td>
+<td>Session + workspace + wall; asset lookup scoped at <code>index.ts:951-959</code></td>
+<td>May settle Mux video on mapping, <code>index.ts:961</code></td>
+<td>None found</td>
+<td><code>{data:{node}}</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/nodes/:id/path</code></td>
+<td><code>index.ts:239-243</code></td>
+<td>Path ID only</td>
+<td>Session + workspace + wall; path query scoped at <code>index.ts:410-417</code></td>
+<td>None found</td>
+<td>None found</td>
+<td><code>{data:{path,scope}}</code>, <code>index.ts:419-427</code></td>
+</tr>
+<tr>
+<td>Read <code>GET /api/tree/nodes/:id/children</code></td>
+<td><code>index.ts:244-248</code></td>
+<td><code>type</code>, <code>sort</code>, include flag hand parsed at <code>index.ts:318-330</code></td>
+<td>Session + workspace + wall; scoped at <code>index.ts:332-339</code></td>
+<td>May settle Mux facts</td>
+<td>None found</td>
+<td>Same listing shape as root</td>
+</tr>
+</tbody>
+</table></div>
+<p>The Library in-process API is a second entry surface, though most methods reuse the handlers above. Its identity is passed as a value at <code>workers/workspace-tree/src/library.ts:47-67</code>. The methods are <code>assetNode</code>, <code>brandSettings</code>, <code>contentCounts</code>, <code>muxEvent</code>, <code>publicMedia</code>, <code>runClipJob</code>, <code>advanceMuxInventory</code>, <code>readTitleInput</code>, <code>applyAutoTitle</code>, <code>discardMuxObject</code>, <code>planMuxUnshare</code>, <code>stepMuxUnshare</code>, <code>postMuxUnshareCopy</code>, <code>readMuxAsset</code>, and <code>updateNode</code>, at <code>library.ts:61-113</code>. <code>contentCounts</code> checks <code>user.isSystemAdmin</code> at <code>library.ts:63-64</code>; <code>publicMedia</code> uses a published owner workspace pin or the legacy watch exception at <code>index.ts:251-264</code>. The MCP <code>library_list</code> operation synthesizes a Library GET rather than calling a shared capability definition, <code>workers/frontend-router/src/agent/ops-library.ts:46-82</code>.</p>
+<h3 id="provider-and-identity-callbacks">Provider and identity callbacks</h3>
+<p>All seven recognized Mux types enter signed <code>POST /api/mux/webhook</code>, <code>workers/frontend-router/src/mux-webhook.ts:44-74</code>. The parser selects them at <code>packages/mux/src/webhook.ts:123-160</code>. The webhook checks <code>workspaceId === "user:" + ownerId</code> from passthrough at <code>mux-webhook.ts:79-88</code>, then passes that identity into the Library. No trial wall applies. Responses are bare HTTP 200, 401, 502 or 503; there is no client response type.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Validation and ownership</th>
+<th>Writes and reuse</th>
+<th>Analytics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write <code>video.asset.ready</code></td>
+<td>Mux signature, parsed facts and passthrough</td>
+<td><code>handleMuxIngestEventRoute</code> applies asset facts to the workspace-scoped node, resets settle backoff and nudges clip job, <code>mux-video-routes.ts:232-306</code>; the read-settlement path also uses <code>settleMuxVideos</code>, <code>mux-video-ingest.ts:368</code></td>
+<td>Operational <code>mux_webhook_unrouted</code> log on missing node, <code>mux-video-routes.ts:276-277</code>; no product event found</td>
+</tr>
+<tr>
+<td>Write <code>video.asset.errored</code></td>
+<td>Same</td>
+<td>Same asset-facts path, <code>mux-video-routes.ts:247-261</code></td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Write <code>video.upload.asset_created</code></td>
+<td>Same</td>
+<td>Same asset-facts path</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Write <code>video.upload.errored</code></td>
+<td>Same</td>
+<td><code>markMuxUploadDead</code>, <code>mux-video-routes.ts:247-255</code></td>
+<td>None found</td>
+</tr>
+<tr>
+<td>Write <code>video.upload.cancelled</code></td>
+<td>Same</td>
+<td>Same <code>upload.failed</code> domain path</td>
+<td>None found</td>
+</tr>
+<tr>
+<td>Write <code>robots.job.generate_premium_captions.completed</code></td>
+<td>Signature and parsed job/node passthrough, <code>webhook.ts:124-130</code></td>
+<td>Runs Mux speech job immediately and then video title job, <code>mux-webhook.ts:90-97</code>; same job runners cron uses</td>
+<td>Job operational logs; no product event found</td>
+</tr>
+<tr>
+<td>Write <code>robots.job.generate_premium_captions.errored</code></td>
+<td>Same</td>
+<td>Same runner receives the errored Mux job</td>
+<td>Same</td>
+</tr>
+</tbody>
+</table></div>
+<p>Mux deliberately has <strong>no event inbox</strong>. The comment states replay safety comes from monotonic fact writes; a contended write returns 503 for redelivery, <code>mux-webhook.ts:30-42</code>, <code>mux-video-routes.ts:262-269</code>.</p>
+<p>Stripe’s signed <code>POST /api/billing/stripe/webhook</code> validates raw-body signature, parses ID and type by hand, and inserts every verified event into <code>provider_events</code> before returning 200, <code>workers/frontend-router/src/stripe-billing.ts:541-597</code>, <code>provider-event-inbox.ts:46-51</code>. The initial handler and cron claim the same inbox row, <code>stripe-billing.ts:600-625</code>. No trial wall or user session applies.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Application after inbox claim</th>
+<th>Analytics event</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write <code>invoice.paid</code></td>
+<td><code>recordPaidInvoice</code> identifies exactly one customer owner and inserts outbox row, <code>stripe-billing.ts:636-640</code>, <code>product-analytics-billing.ts:8-28</code></td>
+<td><code>invoice_paid</code>, <code>product-analytics-billing.ts:22-26</code></td>
+<td>Webhook <code>{received:true}</code></td>
+</tr>
+<tr>
+<td>Write <code>checkout.session.completed</code></td>
+<td>Parses account metadata and links <code>users.stripe_customer_id</code>, <code>stripe-billing.ts:641-646</code>, <code>stripe-checkout.ts:319-335</code></td>
+<td>None found</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Write <code>customer.subscription.created</code></td>
+<td>Parses facts and calls <code>applyStripeSubscription</code>, <code>stripe-billing.ts:648-663</code></td>
+<td>Subscription/account spine events may enqueue analytics; exact event attribution not traced</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Write <code>customer.subscription.updated</code></td>
+<td>Same</td>
+<td>Same</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Write <code>customer.subscription.deleted</code></td>
+<td>Same</td>
+<td>Same</td>
+<td>Same</td>
+</tr>
+</tbody>
+</table></div>
+<p>The subscription write function is shared with Checkout return and the trial-wall reconciliation path, <code>stripe-billing.ts:219</code>, <code>stripe-subscription-sync.ts:30-76</code>, <code>stripe-checkout.ts:184-200,230-282</code>. The inbox claims, retries, marks outcomes, abandons after its limit, and prunes old payloads at <code>provider-event-inbox.ts:64-141</code>.</p>
+<p>I found no WorkOS webhook route in the inspected router or <code>workos-*.ts</code> files. The provider callback is <code>GET /auth/callback</code>, declared at <code>workers/frontend-router/src/auth-session.ts:133-137</code>. It hand checks signed state, code and WorkOS configuration, exchanges the code, links or provisions a D1 account, may set WorkOS <code>external_id</code>, records last login, may apply an offer, and sets a session cookie before a 302 redirect, <code>auth-session.ts:1079-1207</code>. It sits above the trial wall. Auth telemetry records <code>oauth_callback</code> at <code>auth-session.ts:1192-1203</code>.</p>
+<h3 id="scheduled-admin-script-and-r2-doors">Scheduled, admin, script and R2 doors</h3>
+<p>The router runs these 13 independent tasks each minute at <code>workers/frontend-router/src/index.ts:27-43</code>. They have no session or trial-wall check. The job runners read workspace and subject IDs from D1 job rows, then use leases and attempt fencing defined at <code>jobs-store.ts:6-27,94-169</code>. Their response is <code>Promise&lt;void&gt;</code>, not an HTTP schema.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Definition and input check</th>
+<th>Side effects and analytics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write <code>journey_page_generation</code> resume</td>
+<td><code>index.ts:30</code>; <code>journey-page-generation.ts:284</code></td>
+<td>Resumes generation, writes page/job result and prunes finished jobs. Full model and page write path not traced in this angle</td>
+</tr>
+<tr>
+<td>Write Stripe inbox retry</td>
+<td><code>index.ts:31</code>, <code>stripe-billing.ts:600-609</code></td>
+<td>Claims and applies <code>provider_events</code>; can update subscriptions/users and <code>invoice_paid</code> outbox</td>
+</tr>
+<tr>
+<td>Write <code>mux_clip</code></td>
+<td><code>index.ts:32</code>, <code>mux-clip-jobs.ts:17-74</code>; payload checked by Library step</td>
+<td>Mux clip creation and D1 video/job/discard state through <code>library.ts:69-73</code>; operational <code>mux_clip_job</code> log, <code>mux-clip-jobs.ts:54</code></td>
+</tr>
+<tr>
+<td>Write <code>mux_speech</code></td>
+<td><code>index.ts:33</code>, <code>mux-speech-jobs.ts:19-25,53-59</code></td>
+<td>Mux speech request/read; inserts <code>video_speech</code> and queues <code>auto_trim</code> and <code>video_title</code>, <code>mux-speech-jobs.ts:85-119</code></td>
+</tr>
+<tr>
+<td>Write <code>auto_trim</code></td>
+<td><code>index.ts:34</code>, <code>auto-trim-jobs.ts:15-64</code>; hand parsed payload</td>
+<td>Calls the same <code>commitVideoEdit</code> write path as the browser, <code>video-auto-trim.ts:96-133</code>; machine edits do not emit the human <code>video_trimmed</code> event</td>
+</tr>
+<tr>
+<td>Write <code>video_title</code></td>
+<td><code>index.ts:35</code>, <code>video-title-jobs.ts:36-113</code>; hand parsed asset ID</td>
+<td>AI title call, CAS title write via Library <code>applyAutoTitle</code>, and job result; operational <code>video_title_job</code> log</td>
+</tr>
+<tr>
+<td>Write Mux inventory</td>
+<td><code>index.ts:36</code>, <code>library.ts:74-83</code></td>
+<td>Reads Mux inventory; writes <code>mux_inventory_objects</code> and <code>mux_inventory_scans</code>, <code>mux-inventory.ts:210-231</code>; operational <code>mux_inventory</code> log</td>
+</tr>
+<tr>
+<td>Write <code>mux_discard</code></td>
+<td><code>index.ts:37</code>, <code>mux-discard-jobs.ts:27-49</code></td>
+<td>Mux delete through Library and job result; operational <code>mux_discard_job</code> log</td>
+</tr>
+<tr>
+<td>Write <code>mux_unshare</code></td>
+<td><code>index.ts:38</code>, <code>mux-unshare-jobs.ts:142-205</code>; hand parsed job payload</td>
+<td>Mux asset copy and D1 job/asset repair; explicitly records a posted state before its single Mux POST, <code>mux-unshare-jobs.ts:166-189</code></td>
+</tr>
+<tr>
+<td>Write analytics outbox drain</td>
+<td><code>index.ts:39</code>, <code>product-analytics.ts:36-57</code></td>
+<td>Sends PostHog events and updates two outboxes, merged <code>AUTH_DB</code> and <code>VIDEO_STATS_DB</code>; emits the queued event names</td>
+</tr>
+<tr>
+<td>Write GoHighLevel sync</td>
+<td><code>index.ts:40</code>, <code>gohighlevel-sync.ts:255-345</code></td>
+<td>Pushes contacts and upserts <code>gohighlevel_contact_sync</code>; no product event found</td>
+</tr>
+<tr>
+<td>Write agent audit sweep</td>
+<td><code>index.ts:41</code>, <code>agent/sweep.ts:3-12</code></td>
+<td>Deletes <code>agent_actions</code> older than 90 days</td>
+</tr>
+<tr>
+<td>Write due view emails</td>
+<td><code>index.ts:42</code>, <code>view-notifications.ts:214-261</code></td>
+<td>Updates view notification and digest rows, sends email; no product event found</td>
+</tr>
+</tbody>
+</table></div>
+<p>Admin account commands are a closed, <strong>hand-parsed</strong> union at <code>workers/frontend-router/src/admin-commands.ts:40-59,100-109,121-223</code>. Each successful D1 command is batched with an <code>admin_actions</code> audit row, <code>admin-commands.ts:19-30,508-533</code>. The admin route gate is outside this file and was assigned to another explorer.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Write path and response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write <code>grant_access</code></td>
+<td>Adds <code>access_grants</code>, <code>admin-commands.ts:193-196,748-767</code>; command response includes action plus refreshed panel, <code>admin-commands.ts:140-159</code></td>
+</tr>
+<tr>
+<td>Write <code>change_grant_end</code></td>
+<td>Updates <code>access_grants.ends_at</code>, <code>admin-commands.ts:197-203,714-717</code>; same response</td>
+</tr>
+<tr>
+<td>Write <code>end_grant</code></td>
+<td>Ends grant through command statements, <code>admin-commands.ts:204-209,714-717</code>; same response</td>
+</tr>
+<tr>
+<td>Write <code>suspend</code></td>
+<td>Updates <code>users</code> suspension fields, <code>admin-commands.ts:210-212,719-722</code>; same response</td>
+</tr>
+<tr>
+<td>Write <code>unsuspend</code></td>
+<td>Clears suspension fields, <code>admin-commands.ts:212-213,724-727</code>; same response</td>
+</tr>
+<tr>
+<td>Write <code>set_staff</code></td>
+<td>Updates <code>users.system_role</code>, <code>admin-commands.ts:214-217,729-732</code>; same response</td>
+</tr>
+<tr>
+<td>Write <code>resend_password_email</code></td>
+<td>Sends email through <code>AccountEffects</code>, then records the command, <code>admin-commands.ts:26-30,407</code>; same response</td>
+</tr>
+<tr>
+<td>Write <code>create_account</code></td>
+<td>Creates WorkOS user, D1 account and optional grant/membership, links external ID and sends set-password email, <code>admin-commands.ts:26-30,450-508</code>; same response can report partial email failure</td>
+</tr>
+</tbody>
+</table></div>
+<p>These are the data-writing scripts found in the requested script search. Their input is CLI flags or hand-built SQL, with no Zod or user entitlement. They return process output rather than a typed API response.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Definition, checks and side effects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write access grant for E2E accounts</td>
+<td><code>scripts/entitle-e2e-accounts.mjs:40-90,110-119</code>; environment and <code>--apply</code> checked, then remote <code>AUTH_DB.access_grants</code> upsert</td>
+</tr>
+<tr>
+<td>Write Stripe customer links</td>
+<td><code>scripts/stripe-link-customers.mjs:37-97,184-194</code>; reviewed proposal plus <code>--apply</code>, then remote <code>AUTH_DB.users</code> updates</td>
+</tr>
+<tr>
+<td>Write WorkOS external IDs</td>
+<td><code>scripts/workos-backfill-external-id.mjs:1-9,67-109,147-184</code>; reads D1, then <code>--apply</code> PATCHes WorkOS users</td>
+</tr>
+<tr>
+<td>Write legacy logos</td>
+<td><code>scripts/backfill-legacy-logos.mjs:3-4,235-269</code>; R2 copy, direct Library node creation and brand adoption; reuses Library draft/store functions, not its HTTP route</td>
+</tr>
+<tr>
+<td>Write document thumbnails</td>
+<td><code>scripts/backfill-document-thumbnails.mjs:205-275</code>; R2 image put and direct call to the <strong>same</strong> <code>attachDocumentThumbnail</code> function as HTTP, followed by R2 removal if unreferenced</td>
+</tr>
+<tr>
+<td>Write derived block media backfill</td>
+<td><code>scripts/backfill-block-media-derived-fields.mjs:69-105</code>; <code>--apply</code> directly updates <code>journey_pages</code> and <code>journey_page_publications</code> with revision guard</td>
+</tr>
+<tr>
+<td>Write staging analytics verification fixture</td>
+<td><code>scripts/verify-product-analytics-staging.mjs:18-36</code>; inserts and deletes staging <code>workspace_nodes</code> and outbox test row</td>
+</tr>
+<tr>
+<td>Write staging shape fixtures</td>
+<td><code>scripts/staging-shape-fixtures.mjs:2-8,178-325</code>; direct staging/preview D1 inserts and upserts across users, subscriptions, Library, videos, pages and jobs; explicitly refuses production target at <code>staging-shape-fixtures.mjs:67-86</code></td>
+</tr>
+<tr>
+<td>Write preview accounts</td>
+<td><code>scripts/seed-preview-accounts.mjs:6-24,83-98</code>; direct preview D1 account rows; preview database guard described at <code>seed-preview-accounts.mjs:160-190</code></td>
+</tr>
+<tr>
+<td>Write D1 migrations</td>
+<td><code>scripts/cloudflare-ops.sh:9-19,204-214</code>; environment checked, production migrations listed first, then remote migration apply</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>r2-media</code> is a separate Worker. It has no browser session or trial wall. Its public HTTP fallback for upload actions was removed, <code>workers/r2-media/src/index.ts:164-170</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Validation and authority</th>
+<th>Side effects and response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read <code>GET /files/*</code></td>
+<td>Media path parser and asset-type map, <code>r2-media/src/index.ts:136-160</code>; signed URL required for gated originals at <code>index.ts:686-697</code></td>
+<td>R2 read and possible edge-cache fill, <code>index.ts:176-260,335-405</code>; streams bytes, range or 304</td>
+</tr>
+<tr>
+<td>Read <code>HEAD /files/*</code></td>
+<td>Same path and signature gate</td>
+<td>R2 head, <code>index.ts:236-256</code>; headers only</td>
+</tr>
+<tr>
+<td>Read <code>/healthz</code> (method unrestricted in handler)</td>
+<td><code>index.ts:118-134</code></td>
+<td>JSON health/config response</td>
+</tr>
+<tr>
+<td>Write-capability RPC <code>createUploadSession</code></td>
+<td>Called through service binding, <code>index.ts:90-99</code>; hand validates type, owner segment, filename and client UUID at <code>index.ts:547-574</code></td>
+<td>Signs an R2 PUT URL without writing bytes yet, <code>index.ts:576-619</code>; plain <code>{status,body}</code> result</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="duplicated-rules">Duplicated rules</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Locations and state of copies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node creation validates kind, name and asset URL twice.</td>
+<td>HTTP checks at <code>workers/workspace-tree/src/index.ts:647-661</code>; core repeats them at <code>workspace-tree-core.ts:111-129</code>. The core adds UUID, storage ownership and MIME checks at <code>workspace-tree-core.ts:131-150</code>; the copies are already different in scope.</td>
+</tr>
+<tr>
+<td>A video write must protect server-owned lifecycle facts.</td>
+<td>PATCH filters fields at <code>workspace-tree-core.ts:267-301</code>; edit commits use Mux identity, digest and row/node CAS at <code>video-edit-routes.ts:123-157,188-232</code>; ingest uses lifecycle transitions through <code>video-row.ts:278-330</code>. These are related invariants implemented through separate write paths, not one schema.</td>
+</tr>
+<tr>
+<td>An action addresses the signed-in owner’s workspace.</td>
+<td>Router pins identity at <code>router-endpoints.ts:443-455</code>; most Library queries bind workspace, for example <code>index.ts:562-589,826-829</code>, <code>workspace-tree-store.ts:495-502</code>; Mux webhook trusts signed passthrough only after owner/workspace relationship check at <code>mux-webhook.ts:79-88</code>; scripts derive owner from stored workspace at <code>backfill-document-thumbnails.mjs:210-216</code>. The proofs differ by door.</td>
+</tr>
+<tr>
+<td>Uploaded media must belong to the owner.</td>
+<td>Node creation uses <code>libraryStorageFromUpload</code> at <code>workspace-tree-core.ts:142-150</code>; document thumbnail uses source and target key checks at <code>document-thumbnail.ts:68-81</code>; thumbnail backfill repeats source-owner checks at <code>scripts/backfill-document-thumbnails.mjs:210-217</code>. The backfill calls the shared attach function for the final write.</td>
+</tr>
+<tr>
+<td>Library response shape is restated in the client.</td>
+<td>Server maps <code>{data:{nodes,...}}</code> at <code>index.ts:368-380,464-475</code>; editor declares corresponding types at <code>editor/src/lib/tree-api.ts:40-126</code>; take view is generated at <code>video-lifecycle.ts:768-791</code> and re-declared and parsed at <code>editor/src/lib/take-api.ts:10-31,140-158</code>. These are compile-time client assumptions, not one runtime output schema.</td>
+</tr>
+<tr>
+<td>Subscription facts can arrive by more than one door.</td>
+<td>Webhook at <code>stripe-billing.ts:648-663</code>, Checkout return at <code>stripe-billing.ts:219</code>, and trial-wall reconciliation at <code>stripe-subscription-sync.ts:30-76</code> all call <code>applyStripeSubscription</code> at <code>stripe-checkout.ts:184-200</code>. The write rule is shared; reconciliation has an extra <code>wouldGrantAccess</code> filter at <code>stripe-subscription-sync.ts:59-92</code>, so admission differs.</td>
+</tr>
+<tr>
+<td>Video edits can be human or machine initiated.</td>
+<td>Browser path at <code>video-edit-routes.ts:75-103</code>; auto-trim calls the same <code>commitVideoEdit</code> at <code>video-auto-trim.ts:118-120</code>. The machine branch stamps <code>auto_trim</code>; the human branch closes trim automation and emits <code>video_trimmed</code>, <code>video-edit-routes.ts:165-169,220-229</code>. This is intentional behavioral divergence inside one write function.</td>
+</tr>
+<tr>
+<td>Mux facts can be applied by webhook or read repair.</td>
+<td>Webhook path at <code>mux-video-routes.ts:232-306</code>; Library listing, take and speech reads call <code>settleMuxVideos</code> at <code>index.ts:333-339</code>, <code>mux-video-routes.ts:68-75</code>, <code>video-speech-routes.ts:48-53</code>. They share lifecycle machinery but have different triggers and responses.</td>
+</tr>
+<tr>
+<td>Library listing has an MCP wrapper schema.</td>
+<td>Agent Zod input and result mapping at <code>agent/ops-library.ts:58-82</code>; Library query parsing and response at <code>index.ts:312-380,430-475</code>. The agent has a narrower sort vocabulary and applies its own limit after fetching nodes, <code>ops-library.ts:31,77-81</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="counts">Counts</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scope</th>
+<th style="text-align: right;">Actions</th>
+<th style="text-align: right;">Primary reads</th>
+<th style="text-align: right;">Writes or side effects</th>
+<th style="text-align: right;">Zod input</th>
+<th style="text-align: right;">Hand parsed or checked</th>
+<th style="text-align: right;">No action input schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Library HTTP methods and paths</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td>Recognized Mux and Stripe webhook types</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>WorkOS OAuth callback</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Router scheduled tasks</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>Admin command types</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Data-writing scripts listed above</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>r2-media entries listed above</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><strong>Total in this inventory</strong></td>
+<td style="text-align: right;"><strong>73</strong></td>
+<td style="text-align: right;"><strong>14</strong></td>
+<td style="text-align: right;"><strong>59</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>57</strong></td>
+<td style="text-align: right;"><strong>16</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>“Primary read” follows the requested action, so <code>GET take</code> and <code>GET speech</code> count as reads even though they can repair D1 state or run due jobs. “Hand parsed” includes bounded body parsing, manual field checks, webhook signature and event parsing, job payload checks, and CLI argument checks. It is <strong>not</strong> a count of complete input schemas. All 25 Library HTTP actions inherit the router’s implicit trial wall. The 12 provider event actions, OAuth callback, 13 scheduled tasks, eight admin command implementations, ten scripts and four r2-media entries do not use that wall. Admin command authorization is enforced at its HTTP route, outside the command implementation.</p>
+<h2 id="non-obvious-things">Non-obvious things</h2>
+<ul>
+<li>The Library has no separate Worker or database. <code>createLibrary</code> runs in the frontend router process, <code>workers/workspace-tree/src/library.ts:47-60</code>. <code>PAGE_LIBRARY_DB</code> and <code>AUTH_DB</code> name the same D1 database per <code>ARCHITECTURE.md</code>.</li>
+<li>The router transforms successful Library JSON after the Library responds. It signs image and document access URLs and adds stats counts in <code>workers/frontend-router/src/library-media.ts:33-81,97-167</code>. A single output schema inside the Library would not describe the final browser response without that adapter.</li>
+<li>A read can write. The take, speech and listing paths can settle Mux facts; the speech GET can also start due jobs. These effects are explicit at <code>mux-video-routes.ts:68-75</code>, <code>video-speech-routes.ts:48-85</code> and <code>index.ts:333-339</code>.</li>
+<li>Uploads are multi-step. The R2 RPC grants a presigned PUT, then the browser writes bytes directly to R2, <code>r2-media/src/index.ts:547-619</code>. Mux direct uploads likewise grant a Mux ticket, while asset readiness arrives later by webhook or read repair, <code>mux-video-routes.ts:83-149,221-306</code>.</li>
+<li>Mux and Stripe have different idempotency models. Mux uses monotonic lifecycle writes and provider redelivery on contention, <code>mux-webhook.ts:30-42</code>. Stripe captures an immutable event receipt before acknowledgment, then claims and retries it from D1, <code>stripe-billing.ts:576-625</code>, <code>provider-event-inbox.ts:78-141</code>.</li>
+<li>Mux unshare deliberately allows at most one external copy POST per recorded job. It persists <code>posted</code> before the call and leaves an uncertain result for an operator rather than issuing an automatic second POST, <code>mux-unshare-jobs.ts:166-189</code>.</li>
+<li><code>r2-media</code> media reads stream bytes, handle ranges, conditional GETs, signatures and cache fills, <code>r2-media/src/index.ts:136-160,176-260</code>. These are materially different response and effect shapes from JSON CRUD actions.</li>
+<li>I found no Convex directory, <code>convex.json</code>, or textual <code>convex</code> reference in the tracked source search (<code>rg --files</code> and <code>rg -n</code> over this checkout, excluding lock and snapshot files). No Convex function on main was found.</li>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>I did not trace every SQL statement and provider call inside <code>mux-clip-job.ts</code>, <code>mux-discard.ts</code>, <code>mux-unshare.ts</code>, <code>mux-video-ingest.ts</code>, or Journey Page generation. The entry points and principal tables are mapped above; a statement-level effect inventory for those engines remains open.</li>
+<li>I did not trace the admin HTTP gate and every admin sibling endpoint because the assignment says another explorer covers those routes. The command parser, policy and write paths are included here.</li>
+<li>I did not compare <code>/tmp/clarity-stack-tip</code> against main. The requested inventory is for main; the unmerged operation and approval stack needs its own diff analysis.</li>
+<li>The script search is exhaustive for the requested D1 SQL, Mux API and direct R2 mutation patterns, plus the identified WorkOS write script. A script that mutates data only through an unrelated CLI or HTTP endpoint could evade those patterns.</li>
+</ul></main></body></html>

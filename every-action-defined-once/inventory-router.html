@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory: Router HTTP doors</title><style>
+:root { color-scheme: light dark; --fg:#1b1b1f; --muted:#5f6368; --bg:#ffffff; --code:#f4f4f6; --line:#e3e3e8; --accent:#2f5bd3; }
+@media (prefers-color-scheme: dark) { :root { --fg:#e9e9ee; --muted:#a0a3ab; --bg:#121216; --code:#1d1d23; --line:#2c2c35; --accent:#8fb0ff; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 32px 20px 96px; }
+h1 { font-size: 2rem; line-height:1.2; margin: 0 0 8px; }
+h2 { font-size: 1.45rem; margin-top: 2.4em; padding-top: .6em; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; margin-top: 1.8em; }
+p, li { max-width: 72ch; }
+a { color: var(--accent); }
+code { font: 0.86em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 1em 0; }
+table { border-collapse: collapse; font-size: 0.88rem; min-width: 640px; }
+th, td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+th { background: var(--code); }
+nav.toc { font-size: .95rem; background: var(--code); border-radius: 8px; padding: 12px 18px; margin: 20px 0; }
+nav.toc a { text-decoration: none; }
+.meta { color: var(--muted); }
+</style></head>
+<body><main><p><a href="index.html">Back to the design</a></p>
+<h1 id="inventory-router-http-doors">Inventory: Router HTTP doors</h1>
+<p>Explorer report, gpt-6-sol, read-only, main <code>e839a6bd5</code>. Unedited except that local paths are made repo-relative.</p>
+<h2 id="inventory">Inventory</h2>
+<p>This inventory is for <strong>main at e839a6bd5</strong>. I counted a successful method and path pair once. <code>HEAD</code> variants, <code>OPTIONS</code> preflights, rejected methods, and query variants are shown but excluded from the counts below.</p>
+<p>The route table is a policy declaration, not the auth implementation. It dispatches public rows, then the trial wall, then app rows. Handlers perform session and ownership checks after dispatch (<code>workers/frontend-router/src/route-table.ts:143</code>, <code>workers/frontend-router/src/routes.ts:384</code>). The global origin guard runs before dispatch (<code>workers/frontend-router/src/security-headers.ts:57</code>).</p>
+<p>Table shorthand: <strong>A/P/V</strong> mean <code>AUTH_DB</code>/<code>PAGE_LIBRARY_DB</code>/<code>VIDEO_STATS_DB</code>; <strong>S</strong> means cookie session; <strong>SA</strong> means acting System Admin; <strong>O</strong> means a stored owner or workspace check; <strong>H</strong> means hand parsed; <strong>J</strong> means an ad hoc JSON response. <strong>Wall</strong> means the trial wall checks a mutation; <strong>exit</strong> means a lapsed account may perform it; <strong>read</strong> means GET/HEAD passes the wall unless suspended; <strong>bypass</strong> means the public row or telemetry exception avoids it. <code>None</code> in the event column means no named analytics event was found on that action path, not that the Worker has no logs.</p>
+<h3 id="router-owned-api-actions">Router-owned <code>/api</code> actions</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door</th>
+<th>Defined at</th>
+<th>Input validation</th>
+<th>Auth and ownership</th>
+<th>Entitlement</th>
+<th>Side effects</th>
+<th>Analytics event</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET/HEAD and other methods <code>/api/analytics/config</code></td>
+<td>Public HTTP</td>
+<td><code>workers/frontend-router/src/routes.ts:79</code>; <code>product-analytics.ts:29</code></td>
+<td>None</td>
+<td>Public</td>
+<td>Bypass</td>
+<td>None</td>
+<td>None</td>
+<td>J; all methods receive the configuration</td>
+</tr>
+<tr>
+<td>POST <code>/api/mux/webhook</code></td>
+<td>Mux</td>
+<td><code>routes.ts:145</code>; <code>mux-webhook.ts:44</code></td>
+<td>H: signed raw body, then Mux parser</td>
+<td>Mux signature; passthrough must match <code>user:&lt;ownerId&gt;</code></td>
+<td>Bypass</td>
+<td>Library Mux ingest, speech/title jobs</td>
+<td>Logs, no product event here</td>
+<td>Empty 200, or refusal</td>
+</tr>
+<tr>
+<td>POST <code>/api/contact_us_landing_page</code></td>
+<td>Public HTTP</td>
+<td><code>routes.ts:164</code>; <code>contact-form.ts:20</code></td>
+<td>H: JSON, text limits, email; strict IP limit</td>
+<td>Public</td>
+<td>Bypass via telemetry exception</td>
+<td>Email send and mail log</td>
+<td>Mail event <code>contact_form_v1</code>, <code>contact-form.ts:59</code></td>
+<td>J <code>{data:{submitted:true}}</code></td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/trial-offer</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:171</code>; <code>trial-offer.ts:13</code></td>
+<td>None</td>
+<td>S</td>
+<td>Read</td>
+<td>May reconcile Stripe subscription into A</td>
+<td>None</td>
+<td>J <code>{data: TrialOffer}</code>; client has a separate partial type</td>
+</tr>
+<tr>
+<td>POST <code>/api/journey-pages</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:177</code>; <code>journey-pages-native.ts:306</code></td>
+<td>H: JSON or form, document validator</td>
+<td>S; creator pinned as owner</td>
+<td>Wall</td>
+<td>P <code>journey_pages</code>, Library card in one batch</td>
+<td>Trigger <code>journey_page_created</code>, <code>migrations-auth/0023_move_triggers.sql:13</code></td>
+<td>Shared <code>JourneyPageWriteResponse</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/journey-pages/:id/duplicate</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:523</code></td>
+<td>H: optional JSON <code>parentId</code></td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Wall</td>
+<td>P draft and card</td>
+<td><code>journey_page_created</code> trigger</td>
+<td>J <code>{data:document}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/journey-pages/:id</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:237</code></td>
+<td>H: path decode</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Read</td>
+<td>P reads, generation lookup</td>
+<td>None</td>
+<td>Shared <code>JourneyPageGetResponse</code></td>
+</tr>
+<tr>
+<td>PUT <code>/api/journey-pages/:id</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:376</code></td>
+<td>H: JSON/form, document validator, revision</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Wall</td>
+<td>P revision guarded draft save</td>
+<td>None</td>
+<td>Shared <code>JourneyPageWriteResponse</code> or rejection</td>
+</tr>
+<tr>
+<td>PATCH <code>/api/journey-pages/:id</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:477</code></td>
+<td>H: <code>rename.name</code>, document validator</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Wall</td>
+<td>P revision guarded rename</td>
+<td>None</td>
+<td>Shared <code>JourneyPageRenameResponse</code></td>
+</tr>
+<tr>
+<td>DELETE <code>/api/journey-pages/:id</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:597</code></td>
+<td>Path only</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Exit</td>
+<td>P tombstone, card, routes, publication</td>
+<td>None</td>
+<td>Shared <code>JourneyPageDeleteResponse</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/journey-pages/:id/access</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:114</code></td>
+<td>Path only</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Read</td>
+<td>P read</td>
+<td>None</td>
+<td>J <code>{data: JourneyPageSharingWire}</code></td>
+</tr>
+<tr>
+<td>PATCH <code>/api/journey-pages/:id/access</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-page-access.ts:103</code></td>
+<td>H: password fields</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Wall</td>
+<td>P draft and publication password</td>
+<td>None</td>
+<td>J <code>{data: JourneyPageSharingWire}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/journey-pages/:id/publish</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:431</code></td>
+<td>H: integer revision, nonempty prospect content</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Wall</td>
+<td>P publication and public route</td>
+<td>None</td>
+<td>J <code>{data: JourneyPageSharingWire}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/journey-pages/:id/unpublish</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-pages-native.ts:114</code>; <code>journey-page-access.ts:87</code></td>
+<td>Path only</td>
+<td>S; <code>canAccessJourneyPage</code></td>
+<td>Exit</td>
+<td>P disables route</td>
+<td>None</td>
+<td>J <code>{data: JourneyPageSharingWire}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/journey-pages/:id/generate</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:180</code>; <code>journey-page-generation.ts:81</code></td>
+<td>H: bounded JSON and <code>parseGenerateRequest</code></td>
+<td>S; page access</td>
+<td>Wall</td>
+<td>P <code>jobs</code>, OpenAI, draft write</td>
+<td>RUM <code>ai_generate</code>, <code>journey-page-generation.ts:379</code></td>
+<td>Shared <code>JourneyPageGenerateResponse</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/journey-pages/:id/generation</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:182</code>; <code>journey-page-generation.ts:149</code></td>
+<td>Path only</td>
+<td>S; page access</td>
+<td>Read</td>
+<td>P jobs read</td>
+<td>None</td>
+<td>Shared <code>JourneyPageGenerationResponse</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/journey-pages/:id/stats</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:182</code>; <code>journey-pages-native.ts:154</code></td>
+<td>Path only</td>
+<td>S; page access and each video ownership</td>
+<td>Read</td>
+<td>P and V reads</td>
+<td>None</td>
+<td>J <code>{data: JourneyPageStats}</code>; stats type shared</td>
+</tr>
+<tr>
+<td>GET <code>/api/journey-pages/:id/submissions</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:182</code>; <code>journey-pages-native.ts:284</code></td>
+<td>Path only</td>
+<td>S; page access</td>
+<td>Read</td>
+<td>P submissions read</td>
+<td>None</td>
+<td>J <code>{data:{count,submissions,title}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/videos/:id/share-page</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:195</code>; <code>video-share-page.ts:82</code></td>
+<td>H: path ID</td>
+<td>S; Library video ownership, then page access</td>
+<td>Wall</td>
+<td>P draft, publication, route</td>
+<td><code>journey_page_created</code> trigger on new page</td>
+<td>J <code>{data:{page,share_id,url}}</code></td>
+</tr>
+<tr>
+<td>PUT <code>/api/media/videos/:id</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:201</code>; <code>media-videos-native.ts:39</code></td>
+<td>H: bounded JSON; metadata normalization</td>
+<td>S; Library workspace check</td>
+<td>Wall</td>
+<td>Library node metadata</td>
+<td>None traced</td>
+<td>J <code>{data:metadata}</code></td>
+</tr>
+<tr>
+<td>PATCH <code>/api/media/videos/:id</code></td>
+<td>Editor HTTP</td>
+<td>Same as PUT, <code>media-videos-native.ts:24</code></td>
+<td>Same</td>
+<td>Same</td>
+<td>Wall</td>
+<td>Same</td>
+<td>None traced</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>GET <code>/api/agent/connections</code></td>
+<td>Settings HTTP</td>
+<td><code>routes.ts:214</code>; <code>agent/connections-api.ts:140</code></td>
+<td>None</td>
+<td>S; <code>user_id</code> scope</td>
+<td>Read</td>
+<td>A connections/actions read</td>
+<td>None</td>
+<td>J <code>{data:{connections}}</code></td>
+</tr>
+<tr>
+<td>PATCH <code>/api/agent/connections/:id</code></td>
+<td>Settings HTTP</td>
+<td><code>routes.ts:217</code>; <code>agent/connections-api.ts:166</code></td>
+<td>H: bounded JSON boolean</td>
+<td>S, no impersonation, owner scoped SQL</td>
+<td>Wall</td>
+<td>A permission update</td>
+<td>None</td>
+<td>J <code>{data:connection}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/agent/connections/:id/revoke</code></td>
+<td>Settings HTTP</td>
+<td><code>routes.ts:217</code>; <code>agent/connections-api.ts:148</code></td>
+<td>H: path ID</td>
+<td>S, no impersonation, owner scoped SQL</td>
+<td>Exit</td>
+<td>A status/revocation time</td>
+<td>None</td>
+<td>J <code>{data:connection}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/agent/connections/:id/enable</code></td>
+<td>Settings HTTP</td>
+<td><code>routes.ts:217</code>; <code>agent/connections-api.ts:158</code></td>
+<td>H: path ID; cap in SQL</td>
+<td>S, no impersonation, owner scoped SQL</td>
+<td>Wall</td>
+<td>A status/enabled time</td>
+<td>None</td>
+<td>J <code>{data:connection}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/preview-ticks/mux-inventory</code></td>
+<td>Preview admin</td>
+<td><code>routes.ts:229</code>; <code>preview-ticks.ts:26</code></td>
+<td>None</td>
+<td>SA; <code>PREVIEW_TICKS=on</code></td>
+<td>Wall</td>
+<td>Library inventory tick</td>
+<td>Logs; none traced</td>
+<td>J <code>{data}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/preview-ticks/mux-speech</code></td>
+<td>Preview admin</td>
+<td>Same, <code>preview-ticks.ts:29</code></td>
+<td>None</td>
+<td>SA; preview flag</td>
+<td>Wall</td>
+<td>Speech jobs</td>
+<td>Logs; none traced</td>
+<td>J <code>{data}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/preview-ticks/auto-trim</code></td>
+<td>Preview admin</td>
+<td>Same, <code>preview-ticks.ts:28</code></td>
+<td>None</td>
+<td>SA; preview flag</td>
+<td>Wall</td>
+<td>Auto trim jobs</td>
+<td>Logs; none traced</td>
+<td>J <code>{data}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/preview-ticks/view-emails</code></td>
+<td>Preview admin</td>
+<td>Same, <code>preview-ticks.ts:30</code></td>
+<td>None</td>
+<td>SA; preview flag</td>
+<td>Wall</td>
+<td>Email jobs</td>
+<td>Mail events</td>
+<td>J <code>{data}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/preview-ticks/video-title</code></td>
+<td>Preview admin</td>
+<td>Same, <code>preview-ticks.ts:31</code></td>
+<td>None</td>
+<td>SA; preview flag</td>
+<td>Wall</td>
+<td>Title jobs</td>
+<td>Logs; none traced</td>
+<td>J <code>{data}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/organizations</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:240</code>; <code>admin-organizations.ts:16</code></td>
+<td>H: limit/offset</td>
+<td>SA</td>
+<td>Read</td>
+<td>A read</td>
+<td>None</td>
+<td>J <code>{data:rows}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/session</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:247</code>; <code>admin-accounts-native.ts:109</code></td>
+<td>None</td>
+<td>S only; intentionally not SA</td>
+<td>Read</td>
+<td>None</td>
+<td>None</td>
+<td>J <code>{data:{id,role}}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/accounts/search</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:256</code>; <code>admin-account-search.ts:63</code></td>
+<td>H: query/filter/cursor</td>
+<td>SA</td>
+<td>Read</td>
+<td>A read; <code>format=csv</code> also writes <code>admin_actions</code>, line 284</td>
+<td>Export audit for CSV; no product event</td>
+<td>J page or CSV stream</td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/accounts/:id/billing</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:256</code>; <code>account-billing.ts:170</code></td>
+<td>H: path ID</td>
+<td>SA</td>
+<td>Read</td>
+<td>A subscriptions/invitations read</td>
+<td>None</td>
+<td>J <code>{data}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/accounts/:id/checkout-links</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:256</code>; <code>account-billing.ts:170</code></td>
+<td>H: cadence</td>
+<td>SA</td>
+<td>Wall</td>
+<td>Stripe customer/session; A customer link</td>
+<td>None</td>
+<td>J <code>{data:{url}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/accounts/:id/portal-links</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:257</code>; <code>account-billing.ts:170</code></td>
+<td>Path ID</td>
+<td>SA</td>
+<td>Wall</td>
+<td>Stripe portal session</td>
+<td>None</td>
+<td>J <code>{data:{url}}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/accounts/:id/panel</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:257</code>; <code>admin-accounts-native.ts:146</code></td>
+<td>Path ID</td>
+<td>SA</td>
+<td>Read</td>
+<td>A/P reads</td>
+<td>None</td>
+<td>J <code>{data:panel}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/accounts/:id/impersonation</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:257</code>; <code>admin-accounts-native.ts:154</code></td>
+<td>H: path ID, exact Origin</td>
+<td>SA</td>
+<td>Wall</td>
+<td>Signed launch cookie/URL</td>
+<td>None</td>
+<td>J <code>{data:{url}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/accounts/:id/email</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:258</code>; <code>admin-accounts-native.ts:300</code></td>
+<td>H: email</td>
+<td>SA</td>
+<td>Wall</td>
+<td>WorkOS email, A user, notification email</td>
+<td>Mail event <code>login_email_changed_v1</code>, line 373</td>
+<td>J <code>{data:account}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/commands</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:258</code>; <code>admin-commands.ts:121</code></td>
+<td>H: closed eight-command union, line 165</td>
+<td>SA; command policy</td>
+<td>Wall</td>
+<td>A users/grants/memberships/<code>admin_actions</code>; WorkOS/email for some</td>
+<td>Audit <code>admin_actions</code>, no product event</td>
+<td>J <code>{action,data}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/gohighlevel/sync</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:258</code>; <code>gohighlevel-sync.ts:517</code></td>
+<td>None</td>
+<td>SA</td>
+<td>Read</td>
+<td>A sync status read</td>
+<td>None</td>
+<td>J summary</td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/gohighlevel/sync</code></td>
+<td>Admin HTTP</td>
+<td>Same, line 522</td>
+<td>H: optional email query</td>
+<td>SA</td>
+<td>Wall</td>
+<td>GoHighLevel, A sync state</td>
+<td>None traced</td>
+<td>J summary</td>
+</tr>
+<tr>
+<td>GET <code>/api/admin/mux-unshare</code></td>
+<td>Admin HTTP</td>
+<td><code>routes.ts:258</code>; <code>mux-unshare-jobs.ts:283</code></td>
+<td>None</td>
+<td>SA</td>
+<td>Read</td>
+<td>Library plan, P jobs read</td>
+<td>None</td>
+<td>J <code>{data:{jobs,mode,plan}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/admin/mux-unshare</code></td>
+<td>Admin HTTP</td>
+<td>Same, line 292</td>
+<td>H: <code>{mode:"apply"}</code>, exact Origin</td>
+<td>SA</td>
+<td>Wall</td>
+<td>P <code>mux_unshare</code> jobs</td>
+<td>Logs</td>
+<td>J <code>{data:{enqueued,mode,plan}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/media/upload-session</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:282</code>; <code>media-recording-sessions.ts:45</code></td>
+<td>H: JSON; UUID client ID</td>
+<td>S; requested owner must match unless SA</td>
+<td>Wall</td>
+<td>R2 media service creates upload grant</td>
+<td>None traced</td>
+<td>Broker body/status, untyped</td>
+</tr>
+<tr>
+<td>PUT <code>/api/media/upload</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:287</code>; <code>router-endpoints.ts:497</code></td>
+<td>H: length, presigned R2 URL allowlist</td>
+<td>S</td>
+<td>Wall</td>
+<td>Streams bytes to R2 URL</td>
+<td>None</td>
+<td>Upstream body/status/ETag</td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/videos/:id/speech/window</code></td>
+<td>Editor to Library</td>
+<td><code>routes.ts:292</code>; <code>router-endpoints.ts:422</code></td>
+<td>Library parser</td>
+<td>S; Library workspace</td>
+<td>Wall</td>
+<td>Strict limit; Library speech operation</td>
+<td>None traced</td>
+<td>Library response</td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/checkout-sessions</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:352</code>; <code>stripe-billing.ts:115</code></td>
+<td>H: cadence</td>
+<td>S, no impersonation, own billing account</td>
+<td>Exit</td>
+<td>Stripe customer/session; A link</td>
+<td>None</td>
+<td>J <code>{data:{url}}</code></td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/billing/stripe/checkout-sessions/return</code></td>
+<td>Stripe return navigation</td>
+<td><code>routes.ts:352</code>; <code>stripe-billing.ts:161</code></td>
+<td>H: session ID and Stripe response</td>
+<td>S; Stripe session owner match</td>
+<td>Read by method</td>
+<td>Stripe read; A customer/subscription reconciliation</td>
+<td>None</td>
+<td>302 redirects or J error</td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/setup-intents</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:352</code>; <code>stripe-billing.ts:232</code></td>
+<td>No body</td>
+<td>S; own Stripe customer, no impersonation</td>
+<td>Wall</td>
+<td>Stripe setup intent</td>
+<td>None</td>
+<td>Raw Stripe JSON</td>
+</tr>
+<tr>
+<td>GET <code>/api/billing/stripe/payment-methods</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:353</code>; <code>stripe-billing.ts:269</code></td>
+<td>H: scope</td>
+<td>S; own Stripe customer; organization scope returns 501</td>
+<td>Read</td>
+<td>Stripe read</td>
+<td>None</td>
+<td>Raw Stripe JSON</td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/default-payment-method</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:353</code>; <code>stripe-billing.ts:420</code></td>
+<td>H: form or JSON payment method ID</td>
+<td>S; Stripe method customer match</td>
+<td>Wall</td>
+<td>Stripe customer update</td>
+<td>None</td>
+<td>Raw Stripe JSON</td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/subscription/cancel</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:353</code>; <code>stripe-billing.ts:470</code></td>
+<td>H: optional form/JSON reasons</td>
+<td>S; own subscription</td>
+<td>Wall</td>
+<td>Stripe subscription; A best-effort mirror</td>
+<td>None</td>
+<td>J <code>{data:{ok:true}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/subscription/reactivate</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:354</code>; <code>stripe-billing.ts:478</code></td>
+<td>No required body</td>
+<td>S; own subscription</td>
+<td>Wall</td>
+<td>Stripe subscription; A best-effort mirror</td>
+<td>None</td>
+<td>J <code>{data:{ok:true}}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/payment-methods/:id/attach</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:354</code>; <code>stripe-billing.ts:308</code></td>
+<td>H: path ID, Stripe customer comparison</td>
+<td>S; own customer</td>
+<td>Wall</td>
+<td>Stripe attach</td>
+<td>None</td>
+<td>Raw Stripe JSON</td>
+</tr>
+<tr>
+<td>POST <code>/api/billing/stripe/payment-methods/:id/detach</code></td>
+<td>Billing HTTP</td>
+<td><code>routes.ts:355</code>; <code>stripe-billing.ts:370</code></td>
+<td>Same</td>
+<td>S; own customer</td>
+<td>Wall</td>
+<td>Stripe detach</td>
+<td>None</td>
+<td>Raw Stripe JSON</td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/me</code></td>
+<td>Account HTTP</td>
+<td><code>routes.ts:365</code>; <code>router-endpoints.ts:329</code></td>
+<td>None</td>
+<td>S; own profile</td>
+<td>Read</td>
+<td>A read</td>
+<td>None</td>
+<td>J <code>{data:account}</code></td>
+</tr>
+<tr>
+<td>PUT <code>/api/me</code></td>
+<td>Account HTTP</td>
+<td>Same, <code>router-endpoints.ts:384</code></td>
+<td>H: JSON <code>user</code>, string fields only</td>
+<td>S; own profile</td>
+<td>Wall</td>
+<td>A account spine/profile</td>
+<td>None</td>
+<td>J <code>{data:account}</code></td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/get_user_subscription</code></td>
+<td>Account HTTP</td>
+<td><code>routes.ts:365</code>; <code>router-endpoints.ts:398</code></td>
+<td>None</td>
+<td>S; own subscriptions</td>
+<td>Read</td>
+<td>A read</td>
+<td>None</td>
+<td>J <code>{data:subscriptions}</code></td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/folder/public_training_video</code></td>
+<td>Account HTTP</td>
+<td><code>routes.ts:365</code>; <code>router-endpoints.ts:405</code></td>
+<td>None</td>
+<td>S</td>
+<td>Read</td>
+<td>A legacy folder read</td>
+<td>None</td>
+<td>J <code>{data:folders}</code></td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/notifications</code></td>
+<td>Account HTTP</td>
+<td><code>routes.ts:365</code>; <code>account-profile.ts:385</code></td>
+<td>None</td>
+<td>S; own preferences</td>
+<td>Read</td>
+<td>A read</td>
+<td>None</td>
+<td>J preferences without <code>data</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/notifications</code></td>
+<td>Account HTTP</td>
+<td>Same, <code>account-profile.ts:412</code></td>
+<td>H: form toggle/value</td>
+<td>S; own preferences</td>
+<td>Wall</td>
+<td>A account spine</td>
+<td>None</td>
+<td>J <code>{[field]:enabled}</code></td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/api/contacts</code></td>
+<td>Account HTTP</td>
+<td><code>routes.ts:365</code>; <code>contacts-api.ts:55</code></td>
+<td>None</td>
+<td>S; own plus permitted shared customer contacts</td>
+<td>Read</td>
+<td>A read</td>
+<td>None</td>
+<td>J <code>{data:contacts}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/contacts</code></td>
+<td>Account HTTP</td>
+<td>Same, <code>contacts-api.ts:63</code></td>
+<td>H: nested form fields</td>
+<td>S; owner pinned to caller</td>
+<td>Wall</td>
+<td>A contact and child rows</td>
+<td>None</td>
+<td>J <code>{data:contact}</code>, Location</td>
+</tr>
+<tr>
+<td>PUT <code>/api/contacts/:id</code></td>
+<td>Account HTTP</td>
+<td><code>routes.ts:366</code>; <code>contacts-api.ts:105</code></td>
+<td>H: nested form fields</td>
+<td>S; owner scoped lookup</td>
+<td>Wall</td>
+<td>A contact and child rows</td>
+<td>None</td>
+<td>J <code>{data:contact}</code></td>
+</tr>
+<tr>
+<td>DELETE <code>/api/contacts/:id</code></td>
+<td>Account HTTP</td>
+<td>Same, <code>contacts-api.ts:140</code></td>
+<td>Path ID</td>
+<td>S; owner scoped SQL</td>
+<td>Wall</td>
+<td>A soft delete</td>
+<td>None</td>
+<td>Empty 204</td>
+</tr>
+<tr>
+<td>GET <code>/api/videos/stats/:id</code></td>
+<td>Editor HTTP</td>
+<td><code>routes.ts:324</code>; <code>video-stats.ts:96</code></td>
+<td>H: path ID</td>
+<td>S; Library asset ownership</td>
+<td>Read; telemetry exception also matches</td>
+<td>V read and summary</td>
+<td>None</td>
+<td><code>{stats: VideoStatsSummary}</code>, shared domain type</td>
+</tr>
+<tr>
+<td>POST <code>/api/videos/stats/:id/events</code></td>
+<td>Prospect telemetry</td>
+<td><code>routes.ts:318</code>; <code>video-stats.ts:147</code></td>
+<td>H: event parser</td>
+<td>Public</td>
+<td>Bypass</td>
+<td>V playback event; threshold email scheduling</td>
+<td>Event types <code>loaded</code>, <code>progress</code>, <code>ended</code></td>
+<td>J <code>{accepted:true}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/pages/events</code></td>
+<td>Prospect telemetry</td>
+<td><code>routes.ts:330</code>; <code>page-events.ts:51</code></td>
+<td>H: bounded batch parser</td>
+<td>Public</td>
+<td>Bypass</td>
+<td>V <code>page_event</code></td>
+<td>Seven <code>page_*</code> event types, <code>page-events.ts:35</code></td>
+<td>J <code>{accepted:n}</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/rum/events</code></td>
+<td>RUM telemetry</td>
+<td><code>routes.ts:339</code>; <code>rum-events.ts:221</code></td>
+<td>H: bounded batch parser and Origin</td>
+<td>Public</td>
+<td>Bypass</td>
+<td>Analytics Engine dataset</td>
+<td>Payload <code>event_type</code>, <code>rum-events.ts:285</code></td>
+<td>J <code>{accepted,stored}</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>OPTIONS</code> is answered by many handlers before auth. Other methods usually get 405 or 404, but the route table often declares <code>every-method</code> so its handler decides. The separate <code>*-unrouted</code> rows prevent hidden handler branches from becoming callable (<code>workers/frontend-router/src/routes.ts:190</code>, <code>workers/frontend-router/src/route-table.ts:102</code>). <code>/editor/api/*</code> and remaining legacy <code>/api/*</code> paths answer 410 (<code>workers/frontend-router/src/routes.ts:270</code>, <code>workers/frontend-router/src/routes.ts:378</code>).</p>
+<h3 id="apitree-forwarding-boundary"><code>/api/tree</code> forwarding boundary</h3>
+<p>These are <strong>26 router-reachable method and path pairs</strong>, separate from the 70 router-owned API pairs above. All pass through <code>handleWorkspaceTreeProxy</code>, which resolves S, strips browser credentials, and supplies identity as a value (<code>workers/frontend-router/src/router-endpoints.ts:431</code>). Library input checks, writes, analytics, and response shapes are outside this angle. The router declares all listed paths at <code>workers/frontend-router/src/routes.ts:298</code>. I used the Library route table only to identify methods (<code>workers/workspace-tree/src/index.ts:165</code>, <code>workers/workspace-tree/src/video-read-routes.ts:8</code>).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Effect and wall</th>
+<th>Library route definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET <code>/api/tree</code>, <code>/api/tree/</code>, <code>/api/tree/root</code></td>
+<td>Three reads</td>
+<td><code>workers/workspace-tree/src/index.ts:215</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/search</code></td>
+<td>Read</td>
+<td><code>index.ts:220</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/decorations</code></td>
+<td>Read</td>
+<td><code>index.ts:225</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/folders</code></td>
+<td>Read</td>
+<td><code>index.ts:230</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/brand</code></td>
+<td>Read</td>
+<td><code>index.ts:200</code>; <code>index.ts:745</code></td>
+</tr>
+<tr>
+<td>PUT <code>/api/tree/brand</code></td>
+<td>Wall write</td>
+<td><code>index.ts:200</code>; <code>index.ts:762</code></td>
+</tr>
+<tr>
+<td>DELETE <code>/api/tree/brand</code></td>
+<td>Wall write</td>
+<td><code>index.ts:200</code>; <code>index.ts:749</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/assets/:id</code></td>
+<td>Read</td>
+<td><code>index.ts:235</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/nodes</code></td>
+<td>Wall write</td>
+<td><code>index.ts:172</code></td>
+</tr>
+<tr>
+<td>PATCH <code>/api/tree/nodes/:id</code></td>
+<td>Wall write</td>
+<td><code>index.ts:209</code></td>
+</tr>
+<tr>
+<td>DELETE <code>/api/tree/nodes/:id</code></td>
+<td>Exit write</td>
+<td><code>index.ts:204</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/nodes/:id/move</code></td>
+<td>Wall write</td>
+<td><code>index.ts:166</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/nodes/:id/thumbnail</code></td>
+<td>Wall write</td>
+<td><code>index.ts:171</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/nodes/:id/path</code></td>
+<td>Read</td>
+<td><code>index.ts:239</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/nodes/:id/children</code></td>
+<td>Read</td>
+<td><code>index.ts:244</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/mux/uploads</code></td>
+<td>Wall write</td>
+<td><code>index.ts:177</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/videos/mux-original</code></td>
+<td>Wall write; router may attach a share page</td>
+<td><code>index.ts:182</code>; <code>video-share-page.ts:171</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/videos/:id/speech/recorder</code></td>
+<td>Wall write</td>
+<td><code>video-read-routes.ts:10</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/media/videos/:id/take</code></td>
+<td>Read</td>
+<td><code>video-read-routes.ts:11</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/tree/media/videos/:id/speech</code></td>
+<td>Read</td>
+<td><code>video-read-routes.ts:12</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/videos/:id/download</code></td>
+<td>Wall write by method; effect needs Library trace</td>
+<td><code>video-read-routes.ts:15</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/videos/:id/edit</code></td>
+<td>Wall write</td>
+<td><code>index.ts:193</code>; <code>video-edit-routes.ts:75</code></td>
+</tr>
+<tr>
+<td>POST <code>/api/tree/media/videos/:id/edit/reset</code></td>
+<td>Wall write</td>
+<td>Same</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="nine-main-mcp-operations-and-browser-parity">Nine main MCP operations and browser parity</h3>
+<p>Every operation uses a Zod mini input schema. The MCP dispatcher parses it, checks optional connection permission, rate limits by effect, checks entitlement for writes, and audits non-reads (<code>workers/frontend-router/src/agent/dispatch.ts:145</code>). Outputs are returned as JSON text and <code>structuredContent</code>; <code>Operation</code> defines no output schema (<code>workers/frontend-router/src/agent/operation.ts:36</code>, <code>workers/frontend-router/src/agent/mcp.ts:117</code>).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Effect; definition</th>
+<th>Domain call and ownership</th>
+<th>Browser match; shared logic</th>
+<th>Entitlement; effects; event; response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>whoami</code></td>
+<td>Read; <code>agent/ops-account.ts:15</code></td>
+<td><code>readWindowTrialOffer</code>, account email</td>
+<td><code>/auth/me</code> and <code>/api/trial-offer</code> use different projections</td>
+<td>Read; A reads; none; untyped object</td>
+</tr>
+<tr>
+<td><code>library_list</code></td>
+<td>Read; <code>agent/ops-library.ts:58</code></td>
+<td>Synthesized Library browser GET with agent identity</td>
+<td><code>/api/tree/root</code>, <code>/search</code>, <code>/:id/children</code> reach same Library handler</td>
+<td>Read; Library reads; none; custom <code>items</code> projection</td>
+</tr>
+<tr>
+<td><code>videos_get</code></td>
+<td>Read; <code>agent/ops-videos.ts:98</code></td>
+<td>Library <code>assetNode</code>, V delivery row, <code>resolvePlayback</code></td>
+<td><code>/api/tree/assets/:id</code> uses Library asset read; MCP adds its own <code>VideoView</code> and polling</td>
+<td>Read; may settle Mux on asset read; none; custom object</td>
+</tr>
+<tr>
+<td><code>pages_get</code></td>
+<td>Read; <code>agent/ops-pages.ts:91</code></td>
+<td><code>findStoredJourneyPage</code>, shared <code>canAccessJourneyPage</code>, sharing, generation</td>
+<td>GET <code>/api/journey-pages/:id</code> shares storage/document helpers, restates projection</td>
+<td>Read; P reads; none; custom object</td>
+</tr>
+<tr>
+<td><code>pages_edit</code></td>
+<td>Write; <code>agent/ops-pages.ts:134</code></td>
+<td><code>applyEditsToDraft</code>, Library asset checks</td>
+<td>PUT <code>/api/journey-pages/:id</code> uses full-document <code>saveDraft</code>; different input and semantics</td>
+<td>Explicit MCP entitlement; P draft; audited <code>agent_actions</code>; <code>{revision,changed}</code></td>
+</tr>
+<tr>
+<td><code>pages_stats</code></td>
+<td>Read; <code>agent/ops-pages.ts:189</code></td>
+<td>Shared <code>readJourneyPageStatsFor</code>; Library video ownership</td>
+<td>GET <code>/api/journey-pages/:id/stats</code> calls same stats helper</td>
+<td>Read; P/V reads; none; <code>{stats}</code> versus browser <code>{data}</code></td>
+</tr>
+<tr>
+<td><code>pages_leads</code></td>
+<td>Read; <code>agent/ops-pages.ts:214</code></td>
+<td>Shared <code>listJourneyPageSubmissions</code>; <code>leads_contacts</code> permission</td>
+<td>GET <code>/api/journey-pages/:id/submissions</code> calls same store</td>
+<td>Read; P read; none; custom <code>count,submissions</code>, with untrusted wrapper</td>
+</tr>
+<tr>
+<td><code>contacts_list</code></td>
+<td>Read; <code>agent/ops-library.ts:101</code></td>
+<td>Shared <code>fetchLegacyContactSnapshots</code>; <code>leads_contacts</code> permission</td>
+<td>GET <code>/api/contacts</code> calls same reader, but browser can include shared customer contacts</td>
+<td>Read; A read; none; custom filtered response</td>
+</tr>
+<tr>
+<td><code>approvals_get</code></td>
+<td>Read; <code>agent/ops-account.ts:69</code></td>
+<td>A <code>agent_approvals</code> scoped by connection ID</td>
+<td>No matching editor operation; Settings manages connections</td>
+<td>Read; A read; none; custom approval view</td>
+</tr>
+</tbody>
+</table></div>
+<p>The registry contains precisely these nine (<code>workers/frontend-router/src/agent/registry.ts:12</code>). Main has one write operation and no MCP publish, retract, or destroy operation.</p>
+<h3 id="other-router-http-doors">Other router HTTP doors</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Defined at</th>
+<th>Validation, authorization, effect, response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST <code>/mcp</code>; GET/HEAD <code>/.well-known/oauth-protected-resource</code> and <code>/.../mcp</code></td>
+<td><code>routes.ts:92</code>; <code>agent/mcp.ts:50</code></td>
+<td>Bearer-only JSON-RPC and OAuth metadata; issuer controls availability</td>
+</tr>
+<tr>
+<td>POST <code>/auth/password</code>, <code>/auth/register</code>, <code>/auth/lookup</code>, <code>/auth/change-password</code>, <code>/auth/forgot</code>, <code>/auth/reset-password</code></td>
+<td><code>auth-session.ts:115</code> to <code>132</code></td>
+<td>Hand parsed JSON; WorkOS and A, plus email for forgot; auth telemetry actions at <code>auth-session.ts:81</code></td>
+</tr>
+<tr>
+<td>GET <code>/auth/initiate</code>, <code>/auth/google</code>, <code>/auth/microsoft</code>, <code>/auth/callback</code></td>
+<td><code>auth-session.ts:118</code>, <code>133</code>, <code>136</code></td>
+<td>Signed OAuth state/callback, WorkOS, cookies and redirects</td>
+</tr>
+<tr>
+<td>GET <code>/auth/me</code>; GET/POST <code>/logout</code></td>
+<td><code>auth-session.ts:137</code>, <code>114</code></td>
+<td>Session read or cookie deletion; auth telemetry</td>
+</tr>
+<tr>
+<td>GET/HEAD/POST <code>/auth/impersonation-return</code>; GET <code>/auth/impersonation-return/continue</code></td>
+<td><code>auth-session.ts:109</code>; <code>impersonation-return.ts:103</code></td>
+<td>Signed preview intent, cookie, HTML or redirects; method behavior depends on host</td>
+</tr>
+<tr>
+<td>GET/POST <code>/auth/impersonate</code>; <code>/auth/invite</code> and <code>/login?invitation_token</code></td>
+<td><code>auth-session.ts:122</code>, <code>129</code></td>
+<td>Retired routes, 410 or redirect</td>
+</tr>
+<tr>
+<td>GET <code>/join/boardroom</code></td>
+<td><code>routes.ts:121</code>; <code>boardroom-offer.ts:33</code></td>
+<td>Can add A access grant and membership on GET; otherwise sets signed offer cookie; 302</td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/watch/:id</code></td>
+<td><code>routes.ts:140</code>; <code>public-video-watch.ts:54</code></td>
+<td>Public legacy link; first GET can create and publish a P page, then redirect</td>
+</tr>
+<tr>
+<td>GET <code>/page/:id</code>; GET <code>?media=1</code>, <code>?ready=1</code>; POST lead or password intent</td>
+<td><code>routes.ts:151</code>; <code>public-page-delivery/index.ts:98</code>, <code>219</code>, <code>235</code>, <code>267</code></td>
+<td>Public HTML/JSON; signed media, edge cache, lead submission and contact upsert, password cookie. The row claims every method</td>
+</tr>
+<tr>
+<td>GET/HEAD <code>/robots.txt</code>, <code>/sitemap.xml</code>; GET/HEAD legacy landing redirects; asset fallback</td>
+<td><code>routes.ts:109</code>, <code>115</code>, <code>275</code>, <code>391</code></td>
+<td>Public text/XML, redirects, SPA/static HTML; no operation schema</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="webhook-and-scheduled-boundary-visible-from-this-router">Webhook and scheduled boundary visible from this router</h3>
+<p>The Mux parser recognizes six provider types: <code>video.asset.errored</code>, <code>video.asset.ready</code>, <code>video.upload.asset_created</code>, <code>video.upload.errored</code>, <code>video.upload.cancelled</code>, and the two premium-caption outcomes, making <strong>seven</strong> provider types. It converts the last two to speech domain events (<code>packages/mux/src/webhook.ts:123</code>). Stripe applies <code>invoice.paid</code>, <code>checkout.session.completed</code>, and three <code>customer.subscription.*</code> types, and receipts unknown signed types without applying state (<code>workers/frontend-router/src/stripe-billing.ts:627</code>). Stripe captures a verified event in <code>provider_events</code> before acknowledgment (<code>workers/frontend-router/src/stripe-billing.ts:541</code>); <code>invoice.paid</code> adds <code>invoice_paid</code> to the analytics outbox (<code>workers/frontend-router/src/product-analytics-billing.ts:8</code>).</p>
+<p>The minute scheduler calls twelve independent tasks: generation resume, Stripe inbox retry, Mux clip, speech, auto trim, video title, Mux inventory, Mux discard, Mux unshare, analytics outbox delivery, GoHighLevel sync, agent sweep, and view emails. That is <strong>thirteen calls</strong> in <code>workers/frontend-router/src/index.ts:27</code>. I identified their entry points here; I did not inventory each job kind’s internal effects because this angle was the router’s HTTP doors.</p>
+<h2 id="duplicated-rules">Duplicated rules</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Locations and observed difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entitlement for a browser mutation and an MCP write</td>
+<td><code>trial-wall.ts:47</code>, <code>trial-offer-with-stripe-sync.ts:22</code>, <code>agent/policy.ts:9</code>, <code>agent/dispatch.ts:178</code>. Both use the same underlying offer decision. Browser access can pass through a failed reconciliation; MCP answers 503. Browser GETs pass unless suspended; MCP effect classes encode read/retract/destroy separately.</td>
+</tr>
+<tr>
+<td>Page access</td>
+<td><code>journey-pages-native.ts:617</code>, <code>journey-pages-native.ts:747</code>, <code>agent/ops-pages.ts:25</code>. MCP reuses <code>canAccessJourneyPage</code> but reconstructs the fetch/parse path and answers inaccessible pages as <code>not_found</code>; browser can return 403.</td>
+</tr>
+<tr>
+<td>Video ownership through Library asset lookup</td>
+<td><code>router-endpoints.ts:470</code> for stats, <code>video-share-page.ts:108</code> and <code>414</code> for share pages, <code>agent/ops-videos.ts:77</code>, <code>agent/ops-pages.ts:159</code> and <code>203</code>. All delegate to Library ownership, but each adapts errors and response shape independently.</td>
+</tr>
+<tr>
+<td>Page statistics</td>
+<td><code>journey-pages-native.ts:154</code>, <code>journey-pages-native.ts:208</code>, <code>agent/ops-pages.ts:189</code>. The calculation is shared; response envelopes differ, <code>{data}</code> versus <code>{stats}</code>.</td>
+</tr>
+<tr>
+<td>Page leads and contacts</td>
+<td><code>journey-pages-native.ts:284</code> versus <code>agent/ops-pages.ts:214</code>; <code>contacts-api.ts:172</code> versus <code>agent/ops-library.ts:101</code>. Stores are shared. MCP adds permission and untrusted wrappers; contacts scope differs because its identity has no customer membership.</td>
+</tr>
+<tr>
+<td>Page edits</td>
+<td><code>journey-pages-native.ts:376</code> and <code>agent/ops-pages.ts:134</code>. They mutate the same draft through different contracts: whole document plus base revision for browser, ordered edits plus <code>editId</code> for MCP.</td>
+</tr>
+<tr>
+<td>Video metadata update</td>
+<td><code>media-videos-native.ts:39</code> and <code>/api/tree/nodes/:id</code> at <code>workers/workspace-tree/src/index.ts:209</code>. The former rewrites input to a Library PATCH and returns flattened metadata; the latter exposes the Library node response.</td>
+</tr>
+<tr>
+<td>Checkout rules</td>
+<td><code>stripe-billing.ts:115</code>, <code>account-billing.ts:170</code>, and shared <code>account-billing.ts:66</code>. Admin and payer share session creation and duplicate-subscription checks, but auth and error text differ.</td>
+</tr>
+<tr>
+<td>Share-page creation</td>
+<td><code>video-share-page.ts:82</code>, <code>video-share-page.ts:182</code>, <code>public-video-watch.ts:109</code>. They share <code>findOrCreateVideoSharePage</code>. Direct share, recorder claim, and legacy first-hit migration apply different publication and error rules.</td>
+</tr>
+<tr>
+<td>Origin checks</td>
+<td>Global <code>security-headers.ts:57</code>, plus <code>admin-accounts-native.ts:155</code>, <code>mux-unshare-jobs.ts:293</code>, and <code>rum-events.ts:236</code>. The local checks are stricter for the admin writes: they require an explicit matching <code>Origin</code>; the global guard also permits an absent Origin unless Fetch Metadata says cross-site.</td>
+</tr>
+<tr>
+<td>Password minimum length</td>
+<td>Worker constant and checks at <code>auth-session.ts:64</code>, <code>1358</code>, <code>1460</code>; the comment explicitly says it mirrors the editor PasswordRoute. This is a maintained copy.</td>
+</tr>
+<tr>
+<td>Account search and entitlement response types</td>
+<td>Server <code>admin-account-search.ts:28</code>, client <code>editor/src/lib/admin-user-accounts-api.ts:37</code>; server trial offer <code>trial-offer-store.ts</code> and client <code>editor/src/lib/trial-access.ts:7</code>. These are separate types. The client trial type deliberately contains only <code>access</code>, so it omits wall-cause detail.</td>
+</tr>
+<tr>
+<td>Page event <code>page_id</code> bound</td>
+<td><code>page-events.ts:160</code> truncates through <code>limitedText</code>; <code>video-stats.ts:238</code> drops an overlong page ID. The rules already differ.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="counts">Counts</h2>
+<p>For a reproducible count, I counted the router’s <strong>70 successful <code>/api</code> method and path pairs</strong> in the first table, excluding <code>HEAD</code> as a representation of GET and excluding <code>OPTIONS</code>. That set has <strong>22 primarily read</strong> and <strong>48 primarily write</strong> actions. It includes the two webhook entry paths. It does not split <code>/api/admin/commands</code> into its eight command variants or split public page intents by form/query value.</p>
+<p>The router exposes <strong>26 additional <code>/api/tree</code> forwarding pairs</strong>, of which <strong>12 are reads</strong> and <strong>14 are writes by HTTP method</strong>. MCP adds <strong>9 operations</strong>, <strong>8 reads</strong> and <strong>1 write</strong>. These sets total <strong>105 entries</strong>, <strong>42 reads</strong> and <strong>63 writes</strong>, under that counting rule. A GET can still write as a secondary effect: checkout return, trial-offer Stripe reconciliation, CSV export audit, and legacy <code>/watch</code> migration are examples.</p>
+<p>All <strong>9 MCP operations</strong> have Zod mini input schemas. I found <strong>0 Zod input schemas in the 70 router-owned API actions</strong> examined. Body-bearing router actions use hand parsing, package validators, or provider verification. Exact hand-parsed versus no-input counts are not reliable at method and path granularity: several rows accept optional bodies, and the two proxy boundaries hand validation to another service. The meaningful measured split is <strong>9 Zod MCP definitions versus 0 Zod router HTTP definitions</strong>.</p>
+<p>The trial wall is implicit for app HTTP paths, not attached to each capability. Of the <strong>48 primarily writing router-owned <code>/api</code> pairs</strong>, <strong>39 are ordinarily gated by the wall</strong>, <strong>4 are explicit lapsed-account exits</strong> (checkout start, page delete, unpublish, agent revoke), and <strong>5 bypass it as public/provider/telemetry writes</strong>. Among the 14 Library-forwarded writes, node DELETE is an exit and the other 13 are ordinarily gated. These counts follow the exact exceptions in <code>workers/frontend-router/src/trial-wall.ts:191</code> and <code>workers/frontend-router/src/trial-wall.ts:210</code>.</p>
+<h2 id="non-obvious-things">Non-obvious things</h2>
+<ul>
+<li><code>GET /api/billing/stripe/checkout-sessions/return</code> is a state-changing reconciliation path, including under <code>HEAD</code> (<code>workers/frontend-router/src/stripe-billing.ts:161</code>). The wall treats it as a read.</li>
+<li>A first visit to an old <code>/watch/:id</code> can create a page, publish it, enable its route, and redirect (<code>workers/frontend-router/src/public-video-watch.ts:109</code>).</li>
+<li><code>/page/:id</code> is several actions behind one row: cached HTML, signed media JSON, readiness JSON, lead submission, and password unlock. The row claims every method; an unrecognized method can still render HTML (<code>workers/frontend-router/src/public-page-delivery/index.ts:305</code>).</li>
+<li><code>/api/admin/accounts/search?format=csv</code> streams CSV and writes an export audit row on GET (<code>workers/frontend-router/src/admin-account-search.ts:76</code>).</li>
+<li>Uploads cannot be represented as an ordinary JSON operation alone. <code>/api/media/upload-session</code> brokers an R2 grant, <code>/api/media/upload</code> relays a byte stream and ETag, and new video bytes go directly from browser to Mux (<code>workers/frontend-router/src/media-recording-sessions.ts:1</code>, <code>workers/frontend-router/src/router-endpoints.ts:497</code>).</li>
+<li>Provider signature verification needs the original body bytes before any JSON parse. Stripe then uses a durable inbox and cron retry; Mux intentionally has no dedupe table because its state patch is monotonic (<code>workers/frontend-router/src/stripe-billing.ts:549</code>, <code>workers/frontend-router/src/mux-webhook.ts:30</code>).</li>
+<li>Product events often come from D1 triggers rather than handlers. Inserting a page emits <code>journey_page_created</code>; inserting a Library node emits <code>folder_created</code> or <code>&lt;kind&gt;_added</code> (<code>workers/frontend-router/migrations-auth/0023_move_triggers.sql:13</code>). Self-serve user insertion emits <code>signup_completed</code> (<code>workers/frontend-router/migrations-auth/0013_native_accounts.sql:23</code>).</li>
+<li><code>defineOperation</code> is currently an identity wrapper around an input schema and <code>run</code>. It has no output schema, HTTP mapping, side-effect declaration, or analytics field (<code>workers/frontend-router/src/agent/operation.ts:36</code>, <code>workers/frontend-router/src/agent/operation.ts:63</code>).</li>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>I did not trace Library handler internals for the 26 forwarded pairs. Their input validation, exact D1/Mux/R2 writes, and response contracts belong to the separate Library exploration.</li>
+<li>I identified the scheduler entry points and webhook event dispatch, but did not trace each job runner or every webhook application branch through its store.</li>
+<li>I did not enumerate every RUM payload event subtype or every database trigger outside the page, Library, and signup triggers shown above.</li>
+<li>The unmerged <code>/tmp/clarity-stack-tip</code> was outside this main-branch inventory. None of its added operations, approvals, parity file, or CLI are included in these counts.</li>
+</ul></main></body></html>

@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory: Parity stack</title><style>
+:root { color-scheme: light dark; --fg:#1b1b1f; --muted:#5f6368; --bg:#ffffff; --code:#f4f4f6; --line:#e3e3e8; --accent:#2f5bd3; }
+@media (prefers-color-scheme: dark) { :root { --fg:#e9e9ee; --muted:#a0a3ab; --bg:#121216; --code:#1d1d23; --line:#2c2c35; --accent:#8fb0ff; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 32px 20px 96px; }
+h1 { font-size: 2rem; line-height:1.2; margin: 0 0 8px; }
+h2 { font-size: 1.45rem; margin-top: 2.4em; padding-top: .6em; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; margin-top: 1.8em; }
+p, li { max-width: 72ch; }
+a { color: var(--accent); }
+code { font: 0.86em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 1em 0; }
+table { border-collapse: collapse; font-size: 0.88rem; min-width: 640px; }
+th, td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+th { background: var(--code); }
+nav.toc { font-size: .95rem; background: var(--code); border-radius: 8px; padding: 12px 18px; margin: 20px 0; }
+nav.toc a { text-decoration: none; }
+.meta { color: var(--muted); }
+</style></head>
+<body><main><p><a href="index.html">Back to the design</a></p>
+<h1 id="inventory-parity-stack">Inventory: Parity stack</h1>
+<p>Explorer report, gpt-6-sol, read-only, main <code>e839a6bd5</code> and the parity stack tip <code>64d30da0b</code>. Unedited except that local paths are made repo-relative.</p>
+<h2 id="inventory">Inventory</h2>
+<p>Scope: the unmerged stack at <code>/tmp/clarity-stack-tip</code>. I read the short architecture and domain documents in the main worktree first. The stack registers <strong>34 MCP operations</strong> in <code>stack/workers/frontend-router/src/agent/registry.ts:17</code>. The table below treats each operation as one action and identifies its matching browser entry point. This is an inventory of the assigned stack, not a claim that its operations cover every server route.</p>
+<p>Every operation has a Zod input schema. <code>stack/workers/frontend-router/src/agent/dispatch.ts:55</code> parses it. Every operation uses the bearer caller in <code>stack/workers/frontend-router/src/agent/caller.ts:150</code>; that caller acts in the owner’s workspace without an admin or organization role. Browser routes use a cookie session and their own parsing. The operation type has <strong>no output schema or analytics event field</strong>. <code>run()</code> returns <code>Record&lt;string, unknown&gt;</code> (<code>stack/workers/frontend-router/src/agent/operation.ts:54</code>). “Audit” below means a non-read <code>agent_actions</code> row, not a product analytics event (<code>stack/workers/frontend-router/src/agent/audit.ts:61</code>). Unless a row says otherwise, browser and operation response shapes are separate.</p>
+<p>For entitlement, <strong>E</strong> means the dispatcher explicitly checks writes, spends, and publishes (<code>stack/workers/frontend-router/src/agent/policy.ts:9</code>, <code>stack/workers/frontend-router/src/agent/dispatch.ts:97</code>). <strong>Open</strong> means an agent read, retract, or destroy skips that check. The browser instead gets the method and path based trial wall (<code>stack/workers/frontend-router/src/trial-wall.ts:47</code>). Ownership and authorization listed in each row are checks after the common door authentication.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door and definition</th>
+<th>Input validation</th>
+<th>Ownership and entitlement</th>
+<th><code>run()</code> target, browser counterpart, and side effects</th>
+<th>Analytics and response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R <code>whoami</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-account.ts:16</code>; browser <code>GET /auth/me</code>, <code>GET /api/trial-offer</code> in <code>stack/workers/frontend-router/src/agent/parity.json:127</code></td>
+<td>Zod empty object; browser contract separate</td>
+<td>Bearer identity; Open</td>
+<td>Calls <code>readWindowTrialOffer</code> and reads <code>users.email</code> (<code>stack/workers/frontend-router/src/agent/ops-account.ts:27</code>). Browser does not call this operation. No write.</td>
+<td>No audit or operation event. Agent account, access, connection object.</td>
+</tr>
+<tr>
+<td>R <code>approvals_get</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-account.ts:75</code>; owner’s <code>GET /api/agent/approvals/:id</code> is <code>stack/workers/frontend-router/src/agent/approvals-api.ts:43</code></td>
+<td>Zod ID and 0–45 second wait; owner API hand parses path ID</td>
+<td>Agent SQL filters <code>connection_id</code> (<code>stack/workers/frontend-router/src/agent/ops-account.ts:91</code>); owner API filters <code>user_id</code>; Open</td>
+<td>Reads <code>agent_approvals</code>; agent may poll. Owner API uses <code>readApproval</code> and returns a fuller card.</td>
+<td>No audit. Agent approval view and owner card are distinct shapes.</td>
+</tr>
+<tr>
+<td>R <code>library_list</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:199</code>; browser <code>GET /api/tree/root</code>, <code>/search</code>, <code>/:id/children</code>, <code>/folders</code> in <code>stack/workers/workspace-tree/src/index.ts:201</code></td>
+<td>Zod filters, sort, cursor; browser query parsers in <code>stack/workers/workspace-tree/src/tree-query.ts:1</code></td>
+<td>Library handlers scope workspace; Open</td>
+<td>Calls <code>LIBRARY.handleBrowserRequest</code> for root, search, or children, then separately reads page stages and live video share URLs (<code>stack/workers/frontend-router/src/agent/ops-library.ts:219</code>). No write. It does not call the browser’s folders route.</td>
+<td>No audit. Agent paged <code>items</code> shape differs from Library <code>nodes</code>.</td>
+</tr>
+<tr>
+<td>R <code>library_get</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:246</code>; browser asset/path reads in <code>stack/workers/workspace-tree/src/index.ts:221</code></td>
+<td>Zod ID; browser path decode</td>
+<td><code>assetNode</code> or Library path scopes workspace; Open</td>
+<td>Calls those Library reads and adapts image/document signed URLs (<code>stack/workers/frontend-router/src/agent/ops-library.ts:257</code>). No write.</td>
+<td>No audit. Agent item plus optional URL, separate from browser <code>node</code>.</td>
+</tr>
+<tr>
+<td>W <code>folders_create</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:269</code>; browser <code>POST /api/tree/nodes</code> <code>stack/workers/workspace-tree/src/index.ts:626</code></td>
+<td>Zod name, parent ID, optional replay key; browser hand parses JSON</td>
+<td>Library verifies parent in workspace (<code>stack/workers/workspace-tree/src/index.ts:655</code>); E</td>
+<td>Synthesizes the <strong>same Library route request</strong> (<code>stack/workers/frontend-router/src/agent/ops-library.ts:287</code>); inserts <code>workspace_nodes</code>.</td>
+<td>Audit; no operation event. Agent <code>{folderId,name,parentId}</code> versus browser node envelope.</td>
+</tr>
+<tr>
+<td>W <code>library_rename</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:296</code>; browser <code>PATCH /api/tree/nodes/:id</code> <code>stack/workers/workspace-tree/src/index.ts:195</code>, page card <code>PATCH /api/journey-pages/:id</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:189</code></td>
+<td>Zod ID/name; both browser handlers hand parse</td>
+<td>Library or page handler checks ownership; E</td>
+<td>Media/folder uses the Library route. Page uses the exported <strong>browser handler</strong> <code>renameJourneyPage</code> (<code>stack/workers/frontend-router/src/agent/ops-library.ts:307</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:501</code>). Writes node metadata or page draft.</td>
+<td>Audit; no operation event. Agent returns <code>LibraryItem</code>; browser returns node or page document.</td>
+</tr>
+<tr>
+<td>W <code>library_move</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:328</code>; browser <code>POST /api/tree/nodes/:id/move</code> <code>stack/workers/workspace-tree/src/index.ts:541</code></td>
+<td>Zod IDs; browser hand parses</td>
+<td>Route finds item and parent in workspace; E</td>
+<td>Calls same Library route (<code>stack/workers/frontend-router/src/agent/ops-library.ts:339</code>); writes tree parent and position.</td>
+<td>Audit; no operation event. Agent item versus browser node envelope.</td>
+</tr>
+<tr>
+<td>R <code>contacts_list</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:365</code>; browser <code>GET /api/contacts</code> <code>stack/workers/frontend-router/src/contacts-api.ts:55</code></td>
+<td>Zod query/limit; browser has no equivalent server query</td>
+<td><code>leads_contacts</code> permission plus owner-only identity; browser may use its own account/organization identity; Open</td>
+<td>Both call <code>fetchLegacyContactSnapshots</code>, but agent filters and limits the returned array itself (<code>stack/workers/frontend-router/src/agent/ops-library.ts:381</code>).</td>
+<td>No audit. Agent wraps contacts as <code>untrusted</code> and returns <code>{contacts}</code>; browser returns <code>{data}</code>.</td>
+</tr>
+<tr>
+<td>W <code>contacts_save</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-library.ts:393</code>; browser <code>POST/PUT /api/contacts</code> <code>stack/workers/frontend-router/src/contacts-api.ts:63</code></td>
+<td>Zod fields; browser hand parses form data (<code>stack/workers/frontend-router/src/contacts-api.ts:483</code>)</td>
+<td><code>leads_contacts</code>; shared <code>saveContact</code> checks owner on edit (<code>stack/workers/frontend-router/src/contacts-api.ts:124</code>); E</td>
+<td>Both call extracted <code>saveContact</code> (<code>stack/workers/frontend-router/src/agent/ops-library.ts:424</code>). Writes contact and child email/phone snapshots. Agent maps camel case input and requests <code>keepSharing</code>.</td>
+<td>Audit; no operation event. Agent untrusted contact versus browser <code>{data}</code>.</td>
+</tr>
+<tr>
+<td>R <code>pages_edit_help</code></td>
+<td>MCP only <code>stack/workers/frontend-router/src/agent/ops-pages.ts:259</code>; parity associates it with editor actions <code>stack/workers/frontend-router/src/agent/parity.json:58</code></td>
+<td>Zod block kind</td>
+<td>Bearer; Open</td>
+<td>Calls domain <code>pageEditHelp</code>/<code>blockEditHelp</code> and derives examples from edit variants (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:271</code>). No matching HTTP capability.</td>
+<td>No audit. Agent help object.</td>
+</tr>
+<tr>
+<td>R <code>pages_get</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-pages.ts:285</code>; browser <code>GET /api/journey-pages/:id</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:180</code></td>
+<td>Zod ID/flag; browser path ID</td>
+<td>Agent <code>accessiblePage</code> repeats a stored read and calls shared <code>canAccessJourneyPage</code> (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:35</code>); browser uses <code>readStoredJourneyPageForRead</code> (<code>stack/workers/frontend-router/src/journey-pages-native.ts:722</code>); Open</td>
+<td>Reads page, sharing, recent generation. Agent builds outline and omits empty document fields (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:297</code>); browser sends its document.</td>
+<td>No audit. Distinct shapes.</td>
+</tr>
+<tr>
+<td>W <code>pages_edit</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-pages.ts:315</code>; browser <code>PUT /api/journey-pages/:id</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:186</code></td>
+<td>Large strict Zod edit union (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:175</code>); browser validates full page document and base revision</td>
+<td>Agent <code>accessiblePage</code> and media ownership check; browser page access and document checks; E</td>
+<td>Agent calls <code>applyEditsToDraft</code> (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:337</code>), which uses page domain edits and draft save. Browser directly saves a full document. Both reach the draft store, through different write paths.</td>
+<td>Audit; no operation event. Agent revision, publication, touched blocks; browser document/revision.</td>
+</tr>
+<tr>
+<td>R <code>pages_stats</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-pages.ts:365</code>; browser <code>GET /api/journey-pages/:id/stats</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:154</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Separate page access checks; shared video access callback; Open</td>
+<td>Both call extracted <code>readJourneyPageStatsFor</code> (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:377</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:208</code>). Reads page and video stats D1.</td>
+<td>No audit. Same stats value, different envelope.</td>
+</tr>
+<tr>
+<td>R <code>pages_leads</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-pages.ts:392</code>; browser <code>GET /api/journey-pages/:id/submissions</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:172</code></td>
+<td>Zod ID; browser path ID</td>
+<td><code>leads_contacts</code>, page owner check; browser session/page access; Open</td>
+<td>Both reach <code>listJourneyPageSubmissions</code>; no write (<code>stack/workers/frontend-router/src/agent/ops-pages.ts:404</code>).</td>
+<td>No audit. Agent count and untrusted values versus browser envelope.</td>
+</tr>
+<tr>
+<td>W <code>pages_create</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:50</code>; browser <code>POST /api/journey-pages</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:105</code></td>
+<td>Zod fields/UUID; browser document validator</td>
+<td>Agent checks folder and video ownership before call; shared create pins owner/workspace; E</td>
+<td>Agent constructs a document and calls extracted <code>createJourneyPageDraft</code> (<code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:71</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:340</code>). Inserts <code>journey_pages</code> and page card together.</td>
+<td>Audit; no operation event found. Agent summary versus browser document/revision.</td>
+</tr>
+<tr>
+<td>W <code>pages_duplicate</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:98</code>; browser <code>POST /api/journey-pages/:id/duplicate</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:109</code></td>
+<td>Zod ID/title; browser hand parses parent ID</td>
+<td>Separate source access checks; E</td>
+<td>Both call extracted <code>duplicateJourneyPageDraft</code> after their own source read (<code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:113</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:547</code>). Inserts new page and card.</td>
+<td>Audit; no operation event found. Agent summary versus browser document.</td>
+</tr>
+<tr>
+<td>S <code>pages_generate</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:143</code>; browser <code>POST /api/journey-pages/:id/generate</code> <code>stack/workers/frontend-router/src/journey-page-generation.ts:81</code></td>
+<td>Zod prompt/sources/attachments; browser <code>parseGenerateRequest</code></td>
+<td>Agent page and attachment ownership; browser page route access; E</td>
+<td>Both call <code>startGeneration</code> (<code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:163</code>, <code>stack/workers/frontend-router/src/journey-page-generation.ts:150</code>). Writes <code>jobs</code> and eventually page draft; calls OpenAI. Agent waits at most 45 seconds, browser awaits run.</td>
+<td>Audit; shared generation RUM at <code>stack/workers/frontend-router/src/journey-page-generation.ts:216</code>. Different result/status contracts.</td>
+</tr>
+<tr>
+<td>R <code>pages_generation_status</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:228</code>; browser <code>GET /api/journey-pages/:id/generation</code> <code>stack/workers/frontend-router/src/journey-page-generation.ts:175</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Separate page access checks; Open</td>
+<td>Both call <code>recentGeneration</code>; agent adds page state when done (<code>stack/workers/frontend-router/src/agent/ops-page-drafts.ts:238</code>). Reads jobs/page.</td>
+<td>No audit. Different status shapes.</td>
+</tr>
+<tr>
+<td>R <code>settings_get</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-settings.ts:109</code>; browser <code>GET /api/me</code>, <code>/api/notifications</code>, <code>/api/tree/brand</code> <code>stack/workers/frontend-router/src/router-endpoints.ts:357</code></td>
+<td>Zod empty; browser route inputs separate</td>
+<td>Owner identity; Library brand workspace; Open</td>
+<td>Shares <code>readAccountProfile</code>, <code>readNotificationPreferences</code>, Library brand read, then joins them into one result (<code>stack/workers/frontend-router/src/agent/ops-settings.ts:90</code>). No write.</td>
+<td>No audit. Joined agent settings shape versus three browser responses.</td>
+</tr>
+<tr>
+<td>W <code>settings_update</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-settings.ts:125</code>; browser <code>PUT /api/me</code>, <code>POST /api/notifications</code>, <code>PUT/DELETE /api/tree/brand</code> <code>stack/workers/frontend-router/src/router-endpoints.ts:384</code>, <code>stack/workers/frontend-router/src/account-profile.ts:412</code>, <code>stack/workers/workspace-tree/src/index.ts:729</code></td>
+<td>Zod nested fields; browser JSON/form/brand parsers</td>
+<td>Owner/workspace; E</td>
+<td>Shares <code>saveAccountProfile</code> and extracted <code>saveNotificationPreference</code>; calls Library brand route. May write profile, notification rows, and brand settings in one agent call without a common transaction (<code>stack/workers/frontend-router/src/agent/ops-settings.ts:145</code>).</td>
+<td>Audit; no operation event found. Agent returns joined settings; browser responses differ.</td>
+</tr>
+<tr>
+<td>P <code>pages_publish</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-publish.ts:99</code>; browser <code>POST /api/journey-pages/:id/publish</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:127</code></td>
+<td>Zod page ID; browser hand parses required revision</td>
+<td>Separate access and nonempty checks; E; agent approval when exposure changes</td>
+<td>Both call <code>publishJourneyPage</code>, which publishes a revision and activates the public route (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:130</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:454</code>).</td>
+<td>Audit. Agent share URL/revision versus browser sharing wire. No declared product event.</td>
+</tr>
+<tr>
+<td>X <code>pages_unpublish</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-publish.ts:150</code>; browser <code>POST /api/journey-pages/:id/unpublish</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:130</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Separate page access; Open, and browser path is a wall exit</td>
+<td>Both call <code>unpublishJourneyPage</code>, disabling public routes (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:161</code>, <code>stack/workers/frontend-router/src/journey-page-access.ts:88</code>).</td>
+<td>Audit. Agent page state versus browser sharing wire.</td>
+</tr>
+<tr>
+<td>W, sometimes P <code>pages_set_password</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-publish.ts:185</code>; browser <code>PATCH /api/journey-pages/:id/access</code> <code>stack/workers/frontend-router/src/journey-page-access.ts:103</code></td>
+<td>Zod nullable password; browser hand parses <code>password_enabled</code> and password</td>
+<td>Agent page access; E; approval when changing/removing a live password widens access (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:181</code>)</td>
+<td>Both call <code>setJourneyPagePassword</code>. Agent uses expected page timestamp; browser call does not pass one (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:203</code>, <code>stack/workers/frontend-router/src/journey-page-access.ts:126</code>).</td>
+<td>Audit. Agent page state versus browser sharing wire.</td>
+</tr>
+<tr>
+<td>P <code>videos_share</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-publish.ts:234</code>; browser <code>POST /api/videos/:id/share-page</code> <code>stack/workers/frontend-router/src/video-share-page.ts:85</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Separate Library video ownership checks; E; approval if page/link absent</td>
+<td>Both call <code>shareOwnedVideo</code>; agent <strong>also activates</strong> a previously disabled link (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:275</code>). Browser preserves that disabled state (<code>stack/workers/frontend-router/src/video-share-page.ts:124</code>). May insert/publish a page and public route.</td>
+<td>Audit. Agent URL/page ID versus browser page/share ID envelope.</td>
+</tr>
+<tr>
+<td>W, sometimes P <code>videos_edit</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-publish.ts:377</code>; browser <code>POST /api/tree/media/videos/:id/edit[/reset]</code> <code>stack/workers/workspace-tree/src/index.ts:179</code></td>
+<td>Zod edit union plus <code>applyEditIntent</code> precheck; browser hand parses edit intent/digest</td>
+<td>Library video ownership; E; approval when a live page plays it</td>
+<td>Agent sends <strong>one Library route call per edit</strong> with manifest digest compare and swap (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:419</code>); route calls <code>commitVideoEdit</code> (<code>stack/workers/workspace-tree/src/video-edit-routes.ts:75</code>). Writes video manifest; trim may start Mux clip work. Multiple edits can partly land if a later call conflicts.</td>
+<td>Audit; route emits <code>video_trimmed</code> for trim/reset (<code>stack/workers/workspace-tree/src/video-edit-routes.ts:305</code>). Agent acceptance/digest versus route node/result.</td>
+</tr>
+<tr>
+<td>S <code>uploads_start</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:206</code>; browser <code>POST /api/tree/media/mux/uploads</code> or <code>POST /api/media/upload-session</code> <code>stack/workers/workspace-tree/src/index.ts:163</code>, <code>stack/workers/frontend-router/src/routes.ts:300</code></td>
+<td>Zod metadata; route parsers; agent also checks media type/size</td>
+<td>Agent checks folder ownership before grant; routes enforce their own ownership; E</td>
+<td>Video calls Library grant/Mux upload and reserves <code>agent_video_upload_starts</code>; file calls <code>handleUploadSession</code> for an R2 upload URL (<code>stack/workers/frontend-router/src/agent/ops-uploads.ts:121</code>, <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:152</code>). Bytes go directly to Mux or R2.</td>
+<td>Audit; no operation event found. Agent returns encoded upload ticket and URL.</td>
+</tr>
+<tr>
+<td>W <code>uploads_finish</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:342</code>; browser <code>POST /api/tree/media/videos/mux-original</code> or <code>POST /api/tree/nodes</code> <code>stack/workers/workspace-tree/src/index.ts:159</code></td>
+<td>Zod ticket/title, decoded ticket schema; route parsers</td>
+<td>Library routes check workspace/upload; E</td>
+<td>Video uses same claim route; file checks R2 <code>HEAD</code> then uses same node create route (<code>stack/workers/frontend-router/src/agent/ops-uploads.ts:254</code>, <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:314</code>). Writes <code>videos</code>/<code>workspace_nodes</code>.</td>
+<td>Audit; no operation event found. Agent <code>{id,kind,title,state,next}</code> versus route node.</td>
+</tr>
+<tr>
+<td>R <code>videos_get</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-videos.ts:140</code>; browser <code>GET /api/tree/assets/:id</code> <code>stack/workers/workspace-tree/src/index.ts:221</code></td>
+<td>Zod ID/wait; browser path ID</td>
+<td>Library <code>assetNode</code> workspace check; Open</td>
+<td>Calls <code>assetNode</code>, reads <code>videos</code> delivery row, may poll, and derives playback/poster/share URL (<code>stack/workers/frontend-router/src/agent/ops-videos.ts:156</code>). No write intended, though the Library read can settle Mux state.</td>
+<td>No audit. Agent video view differs from browser node.</td>
+</tr>
+<tr>
+<td>R <code>videos_transcript</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-videos.ts:179</code>; browser <code>GET /api/tree/media/videos/:id/speech</code> <code>stack/workers/workspace-tree/src/video-read-routes.ts:1</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Library speech calls scope workspace; Open</td>
+<td>Calls browser speech route for readiness, then <strong>internal</strong> <code>LIBRARY.speechTranscript</code> for words (<code>stack/workers/frontend-router/src/agent/ops-videos.ts:191</code>). Browser route supplies timing/readiness, not this full text response.</td>
+<td>No audit. Agent untrusted text/segments.</td>
+</tr>
+<tr>
+<td>R <code>videos_stats</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-videos.ts:272</code>; browser <code>GET /api/videos/stats/:id</code> <code>stack/workers/frontend-router/src/routes.ts:339</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Agent supplies Library <code>assetNode</code> authorization callback; browser supplies its own; Open</td>
+<td>Calls same <code>handleVideoStatsRequest</code>, then condenses retention and views (<code>stack/workers/frontend-router/src/agent/ops-videos.ts:284</code>). Reads <code>VIDEO_STATS_DB</code>.</td>
+<td>No audit. Condensed agent stats versus browser stats.</td>
+</tr>
+<tr>
+<td>S <code>videos_download</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-videos.ts:307</code>; browser <code>POST /api/tree/media/videos/:id/download</code> <code>stack/workers/workspace-tree/src/video-read-routes.ts:13</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Library route scopes video; E</td>
+<td>Calls same Library download route, which can ask Mux for an MP4; agent then reads video trim state and adds a note (<code>stack/workers/frontend-router/src/agent/ops-videos.ts:319</code>).</td>
+<td>Audit; no operation event found. Agent ready/preparing plus note versus Mux download result.</td>
+</tr>
+<tr>
+<td>D <code>pages_delete</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-destroy.ts:22</code>; browser <code>DELETE /api/journey-pages/:id</code> <code>stack/workers/frontend-router/src/journey-pages-native.ts:192</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Agent facts/read plus owner SQL; browser page access; Open; agent approval</td>
+<td>Both call <code>tombstoneJourneyPage</code>, which removes page/card/public route in a batch (<code>stack/workers/frontend-router/src/agent/ops-destroy.ts:49</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:634</code>).</td>
+<td>Audit. Agent ISO <code>deletedAt</code> versus browser numeric <code>deleted_at</code>/ID.</td>
+</tr>
+<tr>
+<td>D <code>library_delete</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-destroy.ts:187</code>; browser <code>DELETE /api/tree/nodes/:id</code> <code>stack/workers/workspace-tree/src/index.ts:698</code></td>
+<td>Zod ID; browser path ID</td>
+<td>Agent enumerates target/descendants for approval; route scopes workspace; Open; agent approval</td>
+<td>Calls same Library delete handler. Deletes tree descendants and discards Mux assets; page cards move to root as store dictates (<code>stack/workers/frontend-router/src/agent/ops-destroy.ts:202</code>, <code>stack/workers/workspace-tree/src/index.ts:718</code>).</td>
+<td>Audit. Agent reports approved deleted/moved list; browser reports node ID.</td>
+</tr>
+<tr>
+<td>D <code>contacts_delete</code></td>
+<td>MCP <code>stack/workers/frontend-router/src/agent/ops-destroy.ts:229</code>; browser <code>DELETE /api/contacts/:id</code> <code>stack/workers/frontend-router/src/contacts-api.ts:94</code></td>
+<td>Zod ID; browser path ID</td>
+<td><code>leads_contacts</code>, owner SQL; Open for agent, but browser contact DELETE is <strong>not</strong> a listed trial-wall exit</td>
+<td><strong>Two copies of the <code>legacy_contact_snapshots.deleted_at</code> SQL write</strong> (<code>stack/workers/frontend-router/src/agent/ops-destroy.ts:257</code>, <code>stack/workers/frontend-router/src/contacts-api.ts:94</code>).</td>
+<td>Audit. Agent deletion object; browser 204 empty.</td>
+</tr>
+</tbody>
+</table></div>
+<p>R, W, S, P, X, and D mean read, write, spend, publish, retract, and destroy. A write with <code>liveExposure</code> can become publish at dispatch time (<code>stack/workers/frontend-router/src/agent/dispatch.ts:47</code>).</p>
+<p>Other stack actions have their own doors:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Definition and checks</th>
+<th>Side effect and response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Owner <code>GET /api/agent/approvals?status=pending</code> and <code>GET /api/agent/approvals/:id</code></td>
+<td><code>stack/workers/frontend-router/src/agent/approvals-api.ts:17</code>. Cookie session; owner ID; impersonated sessions can read (<code>stack/workers/frontend-router/src/agent/connections-api.ts:24</code>). Hand parsed query/path. Trial wall opens GET.</td>
+<td>Read <code>agent_approvals</code>; <code>{data: card}</code> or pending list. Client re-declares card type in <code>stack/editor/src/lib/agent-api.ts:5</code>.</td>
+</tr>
+<tr>
+<td>Owner <code>POST /api/agent/approvals/:id/approve</code></td>
+<td><code>stack/workers/frontend-router/src/agent/approvals-api.ts:51</code>. Cookie owner, no impersonation. Trial-wall exit, with a second publish entitlement check in <code>stack/workers/frontend-router/src/agent/approvals.ts:287</code>.</td>
+<td>Claims approval, runs stored operation, writes result and audit; card response.</td>
+</tr>
+<tr>
+<td>Owner <code>POST /api/agent/approvals/:id/deny</code></td>
+<td><code>stack/workers/frontend-router/src/agent/approvals-api.ts:47</code>. Cookie owner, no impersonation. Trial-wall exit.</td>
+<td>Marks row denied; card response.</td>
+</tr>
+<tr>
+<td>Cron agent audit sweep</td>
+<td><code>stack/workers/frontend-router/src/agent/sweep.ts:8</code>. No user input.</td>
+<td>Deletes <code>agent_actions</code> after 90 days.</td>
+</tr>
+<tr>
+<td><code>node scripts/agent-parity.mjs</code></td>
+<td><code>stack/scripts/agent-parity.mjs:10</code>. Reads JSON only.</td>
+<td>Prints covered/gap/excluded counts and gap groups; it does not verify semantics.</td>
+</tr>
+<tr>
+<td>CLI <code>login</code>, <code>logout</code>, <code>tools</code>, <code>help</code>, <code>upload</code>, and dynamic operation command</td>
+<td>Built-ins in <code>stack/packages/clarity-cli/clarity.mjs:709</code>; dynamic resolution in <code>stack/packages/clarity-cli/clarity.mjs:381</code>.</td>
+<td>OAuth/token and local credential/cache effects for login/logout; MCP <code>tools/list</code> and <code>tools/call</code> for operation commands; upload also streams bytes directly to Mux/R2 (<code>stack/packages/clarity-cli/clarity.mjs:664</code>).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="duplicated-rules">Duplicated rules</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Locations and state of the copies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A valid account may change content only while entitled.</td>
+<td>Agent effect policy and explicit check in <code>stack/workers/frontend-router/src/agent/policy.ts:9</code>, <code>stack/workers/frontend-router/src/agent/dispatch.ts:97</code>; browser method/path wall in <code>stack/workers/frontend-router/src/trial-wall.ts:47</code>. They already differ: agent bearer fails closed on an unavailable entitlement read; browser lets a nonsuspended account through if its Stripe sync fails (<code>stack/workers/frontend-router/src/trial-wall.ts:85</code>). Agent contact destroy is open while walled, but browser contact DELETE is not among wall exits (<code>stack/workers/frontend-router/src/trial-wall.ts:210</code>).</td>
+</tr>
+<tr>
+<td>A page must belong to the caller before it is read or changed.</td>
+<td>Agent <code>accessiblePage</code> in <code>stack/workers/frontend-router/src/agent/ops-pages.ts:35</code>; browser <code>readAccessibleJourneyPage</code> and <code>readStoredJourneyPageForRead</code> in <code>stack/workers/frontend-router/src/journey-pages-native.ts:654</code>. They share <code>canAccessJourneyPage</code>, but repeat fetching, parsing, and refusal mapping. Agent deliberately maps inaccessible pages to <code>not_found</code>; browser can answer 403.</td>
+</tr>
+<tr>
+<td>A page needs prospect content before publication.</td>
+<td>Agent approval facts in <code>stack/workers/frontend-router/src/agent/ops-publish.ts:117</code>; browser publish response in <code>stack/workers/frontend-router/src/journey-pages-native.ts:465</code>. Both call <code>journeyPageHasProspectContent</code>; the error and point of check differ.</td>
+</tr>
+<tr>
+<td>A page password update should describe the desired gate.</td>
+<td>Agent schema, widening test, and timestamp bound in <code>stack/workers/frontend-router/src/agent/ops-publish.ts:181</code>; browser’s <code>password_enabled</code>/password parsing and store call in <code>stack/workers/frontend-router/src/journey-page-access.ts:103</code>. They already differ in input shape, approval, and compare-and-swap protection.</td>
+</tr>
+<tr>
+<td>A video share page should exist for an owned video.</td>
+<td>Ownership/read and <code>shareOwnedVideo</code> in <code>stack/workers/frontend-router/src/agent/ops-publish.ts:222</code>, <code>stack/workers/frontend-router/src/agent/ops-publish.ts:275</code>; browser ownership/read and same function in <code>stack/workers/frontend-router/src/video-share-page.ts:103</code>. They differ on a disabled existing link: browser keeps it off; agent turns it on after approval.</td>
+</tr>
+<tr>
+<td>Deleting a contact sets <code>deleted_at</code> for the owner’s row.</td>
+<td>Agent SQL in <code>stack/workers/frontend-router/src/agent/ops-destroy.ts:257</code>; browser SQL in <code>stack/workers/frontend-router/src/contacts-api.ts:94</code>. The agent additionally reads a missing/deleted row and returns a JSON result; browser always returns 204 after the update.</td>
+</tr>
+<tr>
+<td>Saving a contact merges omitted fields and preserves owner scope.</td>
+<td>The central write is now <code>saveContact</code> in <code>stack/workers/frontend-router/src/contacts-api.ts:124</code>, used by the browser at <code>stack/workers/frontend-router/src/contacts-api.ts:63</code> and agent at <code>stack/workers/frontend-router/src/agent/ops-library.ts:424</code>. Input mapping remains separate: browser form parsing at <code>stack/workers/frontend-router/src/contacts-api.ts:483</code>, agent Zod/camel case mapping at <code>stack/workers/frontend-router/src/agent/ops-library.ts:391</code>. Agent <code>keepSharing</code> is an explicit difference.</td>
+</tr>
+<tr>
+<td>Profile, notification, and brand fields have valid names and values.</td>
+<td>Agent Zod and field maps in <code>stack/workers/frontend-router/src/agent/ops-settings.ts:57</code>, <code>stack/workers/frontend-router/src/agent/ops-settings.ts:123</code>; browser profile normalization in <code>stack/workers/frontend-router/src/account-profile.ts:352</code>, notification form parsing in <code>stack/workers/frontend-router/src/account-profile.ts:412</code>, Library brand parser at <code>stack/workers/workspace-tree/src/index.ts:729</code>. The stores are shared; validation and response shapes are not.</td>
+</tr>
+<tr>
+<td>A page draft edit must have a valid shape and current revision.</td>
+<td>Agent’s strict edit union and <code>applyEditsToDraft</code> at <code>stack/workers/frontend-router/src/agent/ops-pages.ts:175</code>, <code>stack/workers/frontend-router/src/agent/ops-pages.ts:337</code>; browser full-document PUT at <code>stack/workers/frontend-router/src/journey-pages-native.ts:186</code>. They reach draft storage through different transformations, so their input and output contracts differ by design.</td>
+</tr>
+<tr>
+<td>Video edits need a valid intent and current manifest digest.</td>
+<td>Agent edit Zod, conversion, and preflight at <code>stack/workers/frontend-router/src/agent/ops-publish.ts:288</code>, <code>stack/workers/frontend-router/src/agent/ops-publish.ts:360</code>; Library parser and commit check at <code>stack/workers/workspace-tree/src/video-edit-routes.ts:75</code>, <code>stack/workers/workspace-tree/src/video-edit-routes.ts:121</code>. The domain <code>applyEditIntent</code> is shared. Agent batches intent in one approval but commits edits as separate route calls.</td>
+</tr>
+<tr>
+<td>An upload must have the allowed kind, size, owner, and destination folder.</td>
+<td>Agent Zod and checks in <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:121</code>, <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:152</code>, <code>stack/workers/frontend-router/src/agent/ops-uploads.ts:196</code>; browser Mux/upload-session and node parsers in <code>stack/workers/workspace-tree/src/mux-video-routes.ts:99</code>, <code>stack/workers/frontend-router/src/media-recording-sessions.ts:45</code>, <code>stack/workers/workspace-tree/src/index.ts:626</code>. The agent adds a 20-video daily reservation. Its comment says the Mux grant does not itself validate the destination folder (<code>stack/workers/frontend-router/src/agent/ops-uploads.ts:235</code>).</td>
+</tr>
+<tr>
+<td>One operation result should have a known client shape.</td>
+<td>MCP returns an unchecked record from <code>stack/workers/frontend-router/src/agent/operation.ts:85</code>; browser handlers have local response types such as <code>stack/workers/frontend-router/src/journey-pages-native.ts:315</code>; approval API declares <code>ApprovalCard</code> in <code>stack/workers/frontend-router/src/agent/approvals.ts:156</code>, and the editor repeats it in <code>stack/editor/src/lib/agent-api.ts:5</code>. These are not one derived output definition.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="counts">Counts</h2>
+<ul>
+<li><strong>34 registered operations:</strong> 14 read, 11 write, 3 spend, 2 publish, 1 retract, 3 destroy. The 11 declared writes include two that can be promoted to publish by <code>liveExposure</code> (<code>stack/workers/frontend-router/src/agent/registry.ts:17</code>, <code>stack/workers/frontend-router/src/agent/dispatch.ts:47</code>).</li>
+<li><strong>Input validation:</strong> 34 of 34 operation inputs use Zod. Zero operation inputs are solely hand parsed. Several <code>run()</code> methods add manual semantic checks after Zod. The matching browser routes generally parse JSON, form data, or query values separately. This is a count of operation definitions, not the 81 distinct browser method/path entries in parity.</li>
+<li><strong>Entitlement:</strong> 16 operations require the explicit agent check by their declared effect: 11 write, 3 spend, 2 publish. Four non-read operations are open while walled: one retract and three destroy. Fourteen reads are open. <code>pages_set_password</code> and <code>videos_edit</code> can change from write to publish for a call. Matching browser writes rely on implicit trial-wall middleware; its listed exits cover page/Library deletion and unpublish, but omit contact deletion (<code>stack/workers/frontend-router/src/trial-wall.ts:210</code>).</li>
+<li><strong>Parity inventory:</strong> 137 UI action rows, of which 99 name registered operations and 38 are excluded. It lists 81 distinct browser <code>METHOD path</code> strings and 10 <code>notUserFacing</code> entries. There are no <code>gap</code> rows (<code>stack/workers/frontend-router/src/agent/parity.json:2</code>, <code>stack/scripts/agent-parity.mjs:10</code>).</li>
+</ul>
+<h2 id="non-obvious-things">Non-obvious things</h2>
+<p><strong>Approval is an agent workflow, not a common capability definition.</strong> After parsing, permission, rate, exposure, entitlement, and replay checks, the dispatcher calls <code>facts()</code>, hashes the parsed input and card facts, and finds or inserts a pending <code>agent_approvals</code> row. It returns <code>approval_required</code> with a URL; it does not execute the operation (<code>stack/workers/frontend-router/src/agent/dispatch.ts:128</code>). The row stores connection, user, operation, target, canonical input JSON/hash, facts digest/JSON, status, timestamps, and later result/detail (<code>stack/workers/frontend-router/migrations-auth/0042_agent_access.sql:71</code>, <code>stack/workers/frontend-router/migrations-auth/0047_agent_approval_facts.sql:6</code>).</p>
+<p>The owner sees the server-built card and clicks in <code>stack/editor/src/components/ApprovalDecision.tsx:48</code>. The cookie API refuses an impersonator’s decision (<code>stack/workers/frontend-router/src/agent/connections-api.ts:24</code>). Approval checks connection and extra permission again, and checks entitlement again for publish. A guarded <code>pending → executing</code> update lets one click claim the row (<code>stack/workers/frontend-router/src/agent/approvals.ts:267</code>). It recomputes <code>facts()</code> and compares the whole card digest, then calls <code>run(context, storedInput, approvedFacts)</code> (<code>stack/workers/frontend-router/src/agent/approvals.ts:329</code>). Page publish binds to approved revision; password update binds to approved timestamp; video edit binds to relevant manifest fields; Library delete uses the approved inventory for its answer (<code>stack/workers/frontend-router/src/agent/ops-publish.ts:139</code>, <code>stack/workers/frontend-router/src/agent/ops-publish.ts:212</code>, <code>stack/workers/frontend-router/src/agent/ops-publish.ts:425</code>, <code>stack/workers/frontend-router/src/agent/ops-destroy.ts:210</code>).</p>
+<p>A pending ask expires after 24 hours. A denial blocks another ask for the same connection, operation, and target for 10 minutes. A request still <code>executing</code> after 60 seconds becomes failed and is never run automatically again. These values are constants in <code>stack/workers/frontend-router/src/agent/approvals.ts:30</code>. Agent reads show <code>executing</code> as pending; owner reads show executing (<code>stack/workers/frontend-router/src/agent/ops-account.ts:49</code>, <code>stack/workers/frontend-router/src/agent/approvals.ts:179</code>).</p>
+<p>Publish and destroy require approval when the <em>agent</em> asks because an agent call is not the owner’s direct decision (<code>stack/workers/frontend-router/src/agent/operation.ts:7</code>, <code>stack/workers/frontend-router/src/agent/approvals.ts:12</code>). The browser publish, delete, and share handlers run on the owner’s authenticated action, with no separate approval row (<code>stack/workers/frontend-router/src/journey-pages-native.ts:114</code>, <code>stack/workers/frontend-router/src/video-share-page.ts:85</code>). The stack also chooses approval for a live password widening or an edit to a video used by a live page. It does not require approval for unpublish or an agent destroy’s entitlement.</p>
+<p><strong><code>parity.json</code> is a UI call ledger.</strong> Its test requires unique row IDs, one agent classification per row, valid effect labels, registered operation references, effect agreement, coverage of every registered operation, and syntactically valid <code>METHOD path</code> strings (<code>stack/editor/tests/agent-parity.test.ts:128</code>). It scans editor TypeScript string/template literals for <code>/api</code> and <code>/auth</code> calls, with manual aliases and three unseen calls, then checks both directions against the ledger (<code>stack/editor/tests/agent-parity.test.ts:22</code>, <code>stack/editor/tests/agent-parity.test.ts:97</code>, <code>stack/editor/tests/agent-parity.test.ts:179</code>). It cannot prove a backend route exists, that a UI action really calls the listed path at runtime, that operation and browser validation/authorization/effects/results match, or that webhook, cron, admin, and script doors are covered. The aliases are asserted as declarations, not derived from runtime calls.</p>
+<p><strong>The CLI is dynamic at runtime.</strong> The server derives MCP <code>tools/list</code> from the registry’s names, descriptions, and Zod-to-JSON input schemas (<code>stack/workers/frontend-router/src/agent/registry.ts:26</code>, <code>stack/workers/frontend-router/src/agent/mcp.ts:198</code>). The CLI fetches and caches <code>tools/list</code> for an hour, matches words such as <code>pages edit</code> to <code>pages_edit</code>, parses flags against advertised properties, then calls <code>tools/call</code> (<code>stack/packages/clarity-cli/clarity.mjs:381</code>, <code>stack/packages/clarity-cli/clarity.mjs:603</code>). Its five built-in commands and file upload orchestration are hand written (<code>stack/packages/clarity-cli/clarity.mjs:664</code>, <code>stack/packages/clarity-cli/clarity.mjs:709</code>). The Vite plugin ships that source as a static asset (<code>stack/editor/vite-clarity-cli.ts:5</code>). No CLI source file is generated from the registry at build time.</p>
+<p><strong>The browser-handler changes are selective extractions.</strong> The stack extracts <code>createJourneyPageDraft</code> and <code>duplicateJourneyPageDraft</code> in <code>stack/workers/frontend-router/src/journey-pages-native.ts:340</code>, <code>stack/workers/frontend-router/src/journey-pages-native.ts:585</code>. It exports the existing <code>renameJourneyPage</code> handler for agent reuse (<code>stack/workers/frontend-router/src/journey-pages-native.ts:501</code>). It extracts <code>saveContact</code> and a blank contact input in <code>stack/workers/frontend-router/src/contacts-api.ts:124</code>, <code>stack/workers/frontend-router/src/contacts-api.ts:465</code>. It extracts notification preference writing and exposes reading in <code>stack/workers/frontend-router/src/account-profile.ts:432</code>. The Library <code>index.ts</code> change moves query parsers to <code>tree-query.ts</code> and adds type-only search plus offset; it does <strong>not</strong> extract a shared action definition (<code>stack/workers/workspace-tree/src/index.ts:416</code>).</p>
+<p><strong>Dispatch order matters.</strong> Before the dispatcher, <code>POST /mcp</code> verifies a bearer, resolves a WorkOS-linked account and active connection, rejects suspended accounts, and applies a per-user rate limit (<code>stack/workers/frontend-router/src/agent/caller.ts:150</code>). The dispatcher then coerces top-level JSON-string arguments, parses Zod, checks connection permission, applies per-connection rate limit, computes live exposure, checks entitlement, checks keyed replay, asks approval for publish/destroy, runs, and audits non-reads (<code>stack/workers/frontend-router/src/agent/dispatch.ts:15</code>). Reads run before the non-read audit/replay/entitlement branch (<code>stack/workers/frontend-router/src/agent/dispatch.ts:70</code>). Browser entitlement runs as middleware on <code>/api</code> by HTTP method and exit path, before handlers (<code>stack/workers/frontend-router/src/routes.ts:407</code>, <code>stack/workers/frontend-router/src/trial-wall.ts:191</code>).</p>
+<p>The agent has two extra consistency systems that browser routes do not derive from an operation: <code>agent_actions</code> replay keys and <code>agent_approvals</code> facts. The audit insert happens <strong>after</strong> the side effect and outside the store batch (<code>stack/workers/frontend-router/src/agent/audit.ts:54</code>). A crash in that interval can leave an effect without its replay record. Uploads are especially distinct: the <code>uploadId</code> is encoded client-held data, not a server approval or grant, and finish relies on the underlying routes to check it (<code>stack/workers/frontend-router/src/agent/ops-uploads.ts:30</code>). These are material seams for any one-definition design.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>I did not trace every downstream product analytics outbox write in the page, Library, video, and upload stores. The operation interface declares no analytics event. I confirmed the shared video edit path emits <code>video_trimmed</code> and generation records RUM; “no operation event found” in the table does not prove no deeper store event exists.</li>
+<li>I did not enumerate every webhook or cron/job kind outside this assigned parity stack. The table covers the stack’s agent audit sweep and the generation job reached by an operation.</li>
+<li>The parity test cannot establish runtime equivalence. In particular, it does not establish that the 99 covered UI actions have identical authorization, validation, side effects, or response semantics through the two doors.</li>
+</ul></main></body></html>

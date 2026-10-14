@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory: Editor client</title><style>
+:root { color-scheme: light dark; --fg:#1b1b1f; --muted:#5f6368; --bg:#ffffff; --code:#f4f4f6; --line:#e3e3e8; --accent:#2f5bd3; }
+@media (prefers-color-scheme: dark) { :root { --fg:#e9e9ee; --muted:#a0a3ab; --bg:#121216; --code:#1d1d23; --line:#2c2c35; --accent:#8fb0ff; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 32px 20px 96px; }
+h1 { font-size: 2rem; line-height:1.2; margin: 0 0 8px; }
+h2 { font-size: 1.45rem; margin-top: 2.4em; padding-top: .6em; border-top: 1px solid var(--line); }
+h3 { font-size: 1.15rem; margin-top: 1.8em; }
+p, li { max-width: 72ch; }
+a { color: var(--accent); }
+code { font: 0.86em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; padding: 0; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 1em 0; }
+table { border-collapse: collapse; font-size: 0.88rem; min-width: 640px; }
+th, td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+th { background: var(--code); }
+nav.toc { font-size: .95rem; background: var(--code); border-radius: 8px; padding: 12px 18px; margin: 20px 0; }
+nav.toc a { text-decoration: none; }
+.meta { color: var(--muted); }
+</style></head>
+<body><main><p><a href="index.html">Back to the design</a></p>
+<h1 id="inventory-editor-client">Inventory: Editor client</h1>
+<p>Explorer report, gpt-6-sol, read-only, main <code>e839a6bd5</code>. Unedited except that local paths are made repo-relative.</p>
+<h2 id="inventory">Inventory</h2>
+<p>This inventory covers requests initiated by <code>editor/src</code> on main. It counts a distinct method and path once, even when several controls call it. It includes the external media requests that the editor makes after the server grants an upload. It does not count ordinary browser navigation, SDK traffic generated inside PostHog, or the other agents’ webhook, cron, and CLI slices.</p>
+<p><strong>Reading the tables:</strong> <code>S</code> means a cookie session, <code>O</code> means the handler scopes the resource to the caller’s workspace or checks page access, and <code>A</code> means System Admin. <code>W</code> means the route is below the trial-wall middleware at <code>workers/frontend-router/src/routes.ts:384-390</code>. That middleware lets ordinary reads through for a nonsuspended account; its write exceptions are described below. <code>H</code> means hand parsing or a domain parser, <code>P</code> means a parser or contract imported from <code>packages/</code>, and <code>—</code> means no request body. <code>E</code> means the response type is declared in the editor, <code>P</code> means a package type, and <code>U</code> means an inline cast, <code>unknown</code>, or no typed response. All <code>apiRequest</code> calls share the behavior at <code>editor/src/lib/editor-api.ts:237-334</code>: JSON is cast to <code>T</code>, not checked at runtime; non-2xx becomes <code>ApiRequestError</code>.</p>
+<h3 id="library-and-video">Library and video</h3>
+<p>The browser Library adapter is <code>workers/frontend-router/src/router-endpoints.ts:431-456</code>. It removes browser credentials and passes a resolved identity to <code>workers/workspace-tree/src/index.ts:266-309</code>. Each Library handler uses that identity’s workspace ID. These rows have <code>S+O</code> and <code>W</code> unless stated otherwise.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door and definition</th>
+<th>Input validation</th>
+<th>Auth + ownership</th>
+<th>Entitlement</th>
+<th>Side effects</th>
+<th>Analytics event</th>
+<th>Response shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R <code>GET /api/tree/root</code></td>
+<td><code>editor/src/lib/tree-api.ts:224-255</code>; <code>workers/workspace-tree/src/index.ts:214-217,312</code></td>
+<td>H query filter and sort</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 Library read; may settle Mux facts</td>
+<td>none</td>
+<td>E <code>WorkspaceTreeChildrenResponse</code>, <code>tree-api.ts:96</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/nodes/:id/children</code></td>
+<td><code>tree-api.ts:258-269</code>; <code>workspace-tree/src/index.ts:244-247,312</code></td>
+<td>H query</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 and possible Mux read</td>
+<td>none</td>
+<td>E children response</td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/nodes/:id/path</code></td>
+<td><code>tree-api.ts:272-278</code>; <code>workspace-tree/src/index.ts:239-242,404</code></td>
+<td>path ID</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 read</td>
+<td>none</td>
+<td>E <code>WorkspaceTreePathResponse</code>, <code>tree-api.ts:105</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/assets/:id</code></td>
+<td><code>tree-api.ts:288-295</code>; <code>workspace-tree/src/index.ts:234-237,946</code></td>
+<td>path ID</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 read</td>
+<td>none</td>
+<td>E node</td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/media/videos/:id/speech</code></td>
+<td><code>tree-api.ts:297-302</code>; <code>workers/workspace-tree/src/video-read-routes.ts:12</code></td>
+<td>path ID</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1/Mux speech state read; may start preparation</td>
+<td>none</td>
+<td>E <code>VideoSpeechResponse</code>, <code>tree-api.ts:155</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/search</code></td>
+<td><code>tree-api.ts:351-360</code>; <code>workspace-tree/src/index.ts:219-222,430</code></td>
+<td>H query and sort</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1/Mux read</td>
+<td>none</td>
+<td>E <code>WorkspaceTreeSearchResponse</code>, <code>tree-api.ts:110</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/folders</code></td>
+<td><code>tree-api.ts:363-367</code>; <code>workspace-tree/src/index.ts:229-232,528</code></td>
+<td>—</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 read</td>
+<td>none</td>
+<td>E folders response</td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/decorations</code></td>
+<td><code>tree-api.ts:370-387</code>; <code>workspace-tree/src/index.ts:224-227,478</code></td>
+<td>H repeated <code>id</code> and sort</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1/stats read</td>
+<td>none</td>
+<td>E decorations response</td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/brand</code></td>
+<td><code>tree-api.ts:390-395</code>; <code>workspace-tree/src/index.ts:738-747,806</code></td>
+<td>—</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 read</td>
+<td>none</td>
+<td>E <code>WorkspaceBrandSettings</code>, <code>tree-api.ts:130</code></td>
+</tr>
+<tr>
+<td>W <code>PUT /api/tree/brand</code></td>
+<td><code>tree-api.ts:397-450</code>; <code>workspace-tree/src/index.ts:762-802</code></td>
+<td>H <code>kind</code>, logo ID, colors at <code>index.ts:766-773</code></td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 brand settings</td>
+<td>none</td>
+<td>E brand settings; three client variants share this method/path</td>
+</tr>
+<tr>
+<td>W <code>DELETE /api/tree/brand</code></td>
+<td><code>tree-api.ts:425-431</code>; <code>workspace-tree/src/index.ts:749-759</code></td>
+<td>—</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 brand logo</td>
+<td>none</td>
+<td>E brand settings</td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/nodes/:id/move</code></td>
+<td><code>tree-api.ts:453-470</code>; <code>workspace-tree/src/index.ts:550-633</code></td>
+<td>H body, shared tree move rule at <code>index.ts:593-602</code></td>
+<td>S+O, target folder checked</td>
+<td>W</td>
+<td>D1 node parent/position</td>
+<td>none</td>
+<td>E node</td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/nodes</code></td>
+<td><code>tree-api.ts:472-490,509-525</code>; <code>workspace-tree/src/index.ts:635-705</code></td>
+<td>H allowed types, name, URL, parent at <code>index.ts:641-695</code></td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 <code>workspace_nodes</code></td>
+<td><code>folder_created</code>, <code>image_added</code>, or <code>document_added</code> via <code>migrations-auth/0023_move_triggers.sql:22-33</code></td>
+<td>E node</td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/nodes/:id/thumbnail</code></td>
+<td><code>tree-api.ts:492-507</code>; <code>workspace-tree/src/index.ts:171</code>; <code>workers/workspace-tree/src/document-thumbnail.ts:116</code></td>
+<td>H thumbnail payload</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 document metadata; R2 thumbnail already uploaded</td>
+<td>none</td>
+<td>E node</td>
+</tr>
+<tr>
+<td>W <code>PATCH /api/tree/nodes/:id</code></td>
+<td><code>tree-api.ts:536-549</code>; <code>workspace-tree/src/index.ts:813-912</code></td>
+<td>H update and server-owned metadata protection</td>
+<td>S+O; page cards refused</td>
+<td>W</td>
+<td>D1 node; video/document compare and swap</td>
+<td>none</td>
+<td>E node</td>
+</tr>
+<tr>
+<td>W <code>DELETE /api/tree/nodes/:id</code></td>
+<td><code>tree-api.ts:528-534</code>; <code>workspace-tree/src/index.ts:707-735</code></td>
+<td>path ID</td>
+<td>S+O; page cards refused</td>
+<td>W exit allowed</td>
+<td>D1 descendants; schedules Mux discard</td>
+<td>none</td>
+<td>U deletion envelope</td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/mux/uploads</code></td>
+<td><code>editor/src/lib/take-api.ts:63-74</code>; <code>workers/workspace-tree/src/mux-video-routes.ts:99-165</code></td>
+<td>H bounded JSON and <code>parseCreateMuxUploadRequest</code></td>
+<td>S+O</td>
+<td>W</td>
+<td>Mux upload grant; D1 take/node state</td>
+<td>none</td>
+<td>E <code>GrantOutcome</code>, parsed at <code>take-api.ts:156-173</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/videos/mux-original</code></td>
+<td><code>take-api.ts:80-97</code>; <code>mux-video-routes.ts:166-231</code></td>
+<td>H bounded JSON and <code>parseCreateMuxVideoRequest</code></td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 video/take; Mux ingest; optionally Journey Page</td>
+<td><code>video_added</code> at <code>workers/workspace-tree/src/video-row.ts:475-500</code>; optional page insert triggers <code>journey_page_created</code></td>
+<td>E <code>FinishAck</code>; share-page part checked at <code>take-api.ts:90-96</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/tree/media/videos/:id/take</code></td>
+<td><code>take-api.ts:99-112</code>; <code>workers/workspace-tree/src/video-read-routes.ts:11</code></td>
+<td>path ID</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1/Mux settlement read</td>
+<td>none</td>
+<td>E <code>TakeView</code>, runtime parsed at <code>take-api.ts:140-154</code>; 404 becomes <code>null</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/videos/:id/edit</code></td>
+<td><code>tree-api.ts:304-321</code>; <code>workers/workspace-tree/src/video-edit-routes.ts:75-104</code></td>
+<td>P edit intent plus H digest/body size</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 edit manifest; Mux clip work</td>
+<td><code>video_trimmed</code> for a committed trim at <code>video-edit-routes.ts:304-335</code></td>
+<td>E <code>WorkspaceVideoEditResponse</code>, <code>tree-api.ts:140</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/videos/:id/edit/reset</code></td>
+<td><code>tree-api.ts:323-337</code>; <code>video-edit-routes.ts:75-104</code></td>
+<td>H digest/body size</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 edit manifest; Mux clip work</td>
+<td><code>video_trimmed</code> for committed reset</td>
+<td>E video edit response</td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/videos/:id/download</code></td>
+<td><code>tree-api.ts:339-349</code>; <code>workers/workspace-tree/src/video-read-routes.ts:13-18</code>; <code>workers/workspace-tree/src/mux-video-download.ts:39</code></td>
+<td>path ID</td>
+<td>S+O</td>
+<td>W</td>
+<td>Mux rendition request, potentially asynchronous</td>
+<td>none</td>
+<td>P <code>MuxVideoDownload</code>, <code>packages/mux/src</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/videos/:id/speech/recorder</code></td>
+<td><code>editor/src/lib/speech-edges.ts:266</code>; <code>workers/workspace-tree/src/video-read-routes.ts:10</code></td>
+<td>P recorder speech report</td>
+<td>S+O</td>
+<td>W</td>
+<td>D1 speech facts/auto-trim work</td>
+<td>none traced</td>
+<td>U</td>
+</tr>
+<tr>
+<td>W <code>POST /api/tree/media/videos/:id/speech/window</code></td>
+<td><code>editor/src/lib/speech-windows.ts:4-11</code>; <code>workers/frontend-router/src/router-endpoints.ts:422-429</code>; <code>workers/workspace-tree/src/video-speech-window.ts:13</code></td>
+<td>P binary window protocol</td>
+<td>S+O; strict rate limit</td>
+<td>W</td>
+<td>speech processing</td>
+<td>none</td>
+<td>P <code>WindowAnswer</code>, runtime parsed by <code>parseWindowAnswer</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="journey-pages">Journey Pages</h3>
+<p>These routes enter <code>workers/frontend-router/src/journey-pages-native.ts:80-198</code> after the session check at <code>:97-100</code>. Existing-page access uses <code>readAccessibleJourneyPage</code> at <code>:617</code>; <code>canAccessJourneyPage</code> at <code>:747-765</code> accepts owner, editor, user, corporate, or affiliate IDs, with a System Admin bypass. Page writes use shared normalization in <code>packages/journey-page-domain/src/blocks.ts:748-824</code>; the request envelope itself is hand parsed at <code>journey-pages-native.ts:710-745</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door and definition</th>
+<th>Input validation</th>
+<th>Auth + ownership</th>
+<th>Entitlement</th>
+<th>Side effects</th>
+<th>Analytics event</th>
+<th>Response shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R <code>GET /api/journey-pages/:id</code></td>
+<td><code>editor/src/lib/editor-api.ts:369-383</code>; server <code>journey-pages-native.ts:237-274</code></td>
+<td>path ID, stored document normalized</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 page/job read</td>
+<td>none</td>
+<td>P <code>JourneyPageGetResponse</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/journey-pages</code></td>
+<td><code>editor-api.ts:410-421</code>; server <code>journey-pages-native.ts:306-350</code></td>
+<td>H envelope; P block normalization</td>
+<td>S; owner pinned to caller</td>
+<td>W</td>
+<td>D1 page and Library card in one batch at <code>:642-682</code></td>
+<td><code>journey_page_created</code> SQL trigger at <code>migrations-auth/0023_move_triggers.sql:13-20</code></td>
+<td>P <code>JourneyPageWriteResponse</code></td>
+</tr>
+<tr>
+<td>W <code>PUT /api/journey-pages/:id</code></td>
+<td><code>editor-api.ts:423-443</code>; server <code>journey-pages-native.ts:376-429</code></td>
+<td>H envelope and revision; P document normalization</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 draft/card; revision compare and swap</td>
+<td>none</td>
+<td>P write response; P <code>JourneyPageRejection</code> on 409</td>
+</tr>
+<tr>
+<td>W <code>PATCH /api/journey-pages/:id</code></td>
+<td><code>editor-api.ts:445-455</code>; server <code>journey-pages-native.ts:477-521</code></td>
+<td>H nonempty <code>rename.name</code>; document write rule</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 draft/card name</td>
+<td>none</td>
+<td>P <code>JourneyPageRenameResponse</code></td>
+</tr>
+<tr>
+<td>W <code>DELETE /api/journey-pages/:id</code></td>
+<td><code>editor/src/routes/HomeTreeRoute.tsx:730</code>; server <code>journey-pages-native.ts:597</code></td>
+<td>path ID</td>
+<td>S+page access</td>
+<td>W exit allowed</td>
+<td>D1 page/publication/card removal</td>
+<td>none</td>
+<td>U; caller accepts 404 at <code>HomeTreeRoute.tsx:733</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/journey-pages/:id/duplicate</code></td>
+<td><code>editor/src/lib/journey-page-duplicate.ts:7-29</code>; server <code>journey-pages-native.ts:523-579</code></td>
+<td>H optional parent; P document duplicate</td>
+<td>S+page access; target folder scoped</td>
+<td>W</td>
+<td>New D1 page/card</td>
+<td><code>journey_page_created</code> trigger</td>
+<td>E <code>JourneyPageRecord</code> plus local cast</td>
+</tr>
+<tr>
+<td>R <code>GET /api/journey-pages/:id/access</code></td>
+<td><code>editor/src/lib/journey-page-sharing.ts:22-24,46-77</code>; server <code>journey-pages-native.ts:114-135</code></td>
+<td>path ID</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 route/publication read</td>
+<td>none</td>
+<td>P <code>JourneyPageSharingResponse</code>, converted to E <code>PageSharing</code></td>
+</tr>
+<tr>
+<td>W <code>PATCH /api/journey-pages/:id/access</code></td>
+<td><code>journey-page-sharing.ts:39-43,46-77</code>; server <code>journey-pages-native.ts:114-135</code></td>
+<td>H password patch</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 password gate/draft/publication</td>
+<td>none</td>
+<td>P wire response → E <code>PageSharing</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/journey-pages/:id/publish</code></td>
+<td><code>journey-page-sharing.ts:26-33</code>; server <code>journey-pages-native.ts:114-129,431</code></td>
+<td>P revision; publication/content checks</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 publication and public route</td>
+<td>Client <code>journey_page_publish_changed</code>, <code>editor/src/hooks/use-page-publication.ts:182-187</code></td>
+<td>P wire response → E <code>PageSharing</code>; <code>stale_revision</code> handled at hook <code>:137</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/journey-pages/:id/unpublish</code></td>
+<td><code>journey-page-sharing.ts:35-37</code>; server <code>journey-pages-native.ts:114-132</code></td>
+<td>path ID</td>
+<td>S+page access</td>
+<td>W exit allowed</td>
+<td>D1 publication/retraction</td>
+<td>Client <code>journey_page_publish_changed</code>, <code>use-page-publication.ts:215-219</code></td>
+<td>P wire response → E <code>PageSharing</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/journey-pages/:id/generate</code></td>
+<td><code>editor-api.ts:386-399</code>; <code>workers/frontend-router/src/journey-page-generation.ts:81-145</code></td>
+<td>H bounded JSON, <code>parseGenerateRequest</code></td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 <code>jobs</code> and page draft; OpenAI call</td>
+<td>none</td>
+<td>P <code>JourneyPageGenerateResponse</code>; 409/429 <code>reason</code> values</td>
+</tr>
+<tr>
+<td>R <code>GET /api/journey-pages/:id/generation</code></td>
+<td><code>editor-api.ts:401-407</code>; server <code>journey-page-generation.ts:148-165</code></td>
+<td>path ID</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 jobs read</td>
+<td>none</td>
+<td>P <code>JourneyPageGenerationResponse</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/journey-pages/:id/stats</code></td>
+<td><code>editor/src/lib/page-stats-api.ts:4-12</code>; server <code>journey-pages-native.ts:154-170,208-225</code></td>
+<td>path ID, stored document normalized</td>
+<td>S+page and each video’s ownership check</td>
+<td>W</td>
+<td>D1 page and video stats read</td>
+<td>none</td>
+<td>P <code>JourneyPageStats</code> in inline envelope</td>
+</tr>
+<tr>
+<td>R <code>GET /api/journey-pages/:id/submissions</code></td>
+<td><code>editor-api.ts:457-480</code>; server <code>journey-pages-native.ts:172-178,284</code></td>
+<td>path ID</td>
+<td>S+page access</td>
+<td>W</td>
+<td>D1 submissions read</td>
+<td>none</td>
+<td>E <code>JourneyPageSubmissionsResult</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/videos/:id/share-page</code></td>
+<td><code>editor/src/lib/video-share-page.ts:11-24</code>; <code>workers/frontend-router/src/video-share-page.ts:82,215</code></td>
+<td>video ID</td>
+<td>S+owned video</td>
+<td>W</td>
+<td>D1 page/card/public route</td>
+<td>New page triggers <code>journey_page_created</code></td>
+<td>E <code>JourneyPageRecord</code> plus local cast to <code>VideoSharePageRecord</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="account-contacts-billing-and-admin">Account, contacts, billing, and admin</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door and definition</th>
+<th>Input validation</th>
+<th>Auth + ownership</th>
+<th>Entitlement</th>
+<th>Side effects</th>
+<th>Analytics event</th>
+<th>Response shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R <code>GET /api/me</code></td>
+<td><code>editor/src/lib/editor-api.ts:336-345</code>, <code>sidebar-user.ts:167</code>, billing routes; <code>workers/frontend-router/src/router-endpoints.ts:379-419</code></td>
+<td>—</td>
+<td>S, own account</td>
+<td>W</td>
+<td>AUTH_DB read</td>
+<td>none</td>
+<td>E <code>CurrentUser</code>; other callers declare separate <code>UserData</code> shapes</td>
+</tr>
+<tr>
+<td>W <code>PUT /api/me</code></td>
+<td><code>editor/src/lib/sidebar-user.ts:186</code>, <code>editor/src/routes/settings/BrandingRoute.tsx:96</code>; <code>router-endpoints.ts:384-396</code></td>
+<td>H <code>readAccountProfileUpdate</code></td>
+<td>S, own account</td>
+<td>W</td>
+<td>AUTH_DB profile</td>
+<td>none</td>
+<td>E/inline</td>
+</tr>
+<tr>
+<td>R <code>GET /api/get_user_subscription</code></td>
+<td><code>editor/src/routes/settings/SubscriptionRoute.tsx:175</code>; <code>router-endpoints.ts:398-403</code></td>
+<td>—</td>
+<td>S, own account</td>
+<td>W</td>
+<td>AUTH_DB read</td>
+<td>none</td>
+<td>E <code>SubscriptionRecord[]</code>, <code>SubscriptionRoute.tsx:64</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/notifications</code></td>
+<td><code>editor/src/routes/settings/NotificationsRoute.tsx:59</code>; <code>workers/frontend-router/src/account-profile.ts:385-410</code></td>
+<td>—</td>
+<td>S, own profile</td>
+<td>W</td>
+<td>AUTH_DB read</td>
+<td>none</td>
+<td>E local <code>NotificationPreferences</code>, <code>NotificationsRoute.tsx:16-45</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/notifications</code></td>
+<td><code>NotificationsRoute.tsx:72-85</code>; <code>account-profile.ts:412-430</code></td>
+<td>H form fields and booleans</td>
+<td>S, own profile</td>
+<td>W</td>
+<td>AUTH_DB profile event</td>
+<td>none</td>
+<td>E partial preferences; unlike most calls, response is not under <code>data</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/contacts</code></td>
+<td><code>editor/src/routes/ContactsIndexRoute.tsx:520-524</code>; <code>workers/frontend-router/src/contacts-api.ts:55-60</code></td>
+<td>—</td>
+<td>S, owner-scoped query</td>
+<td>W</td>
+<td>AUTH_DB legacy contact snapshots read</td>
+<td>none</td>
+<td>E local <code>Contact[]</code>, <code>ContactsIndexRoute.tsx:59-85</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/contacts</code></td>
+<td><code>ContactsIndexRoute.tsx:556-577</code>; <code>contacts-api.ts:63-95</code></td>
+<td>H legacy form fields</td>
+<td>S, owner pinned</td>
+<td>W</td>
+<td>AUTH_DB contact upsert</td>
+<td>none</td>
+<td>E <code>Contact</code> through cast envelope</td>
+</tr>
+<tr>
+<td>W <code>PUT /api/contacts/:id</code></td>
+<td><code>ContactsIndexRoute.tsx:579-600</code>; <code>contacts-api.ts:105-137</code></td>
+<td>H legacy form fields</td>
+<td>S, existing owner checked</td>
+<td>W</td>
+<td>AUTH_DB contact upsert</td>
+<td>none</td>
+<td>E <code>Contact</code> through cast envelope</td>
+</tr>
+<tr>
+<td>W <code>DELETE /api/contacts/:id</code></td>
+<td><code>ContactsIndexRoute.tsx:603-614</code>; <code>contacts-api.ts:140-150</code></td>
+<td>path ID</td>
+<td>S, owner-scoped update</td>
+<td>W</td>
+<td>AUTH_DB soft delete</td>
+<td>none</td>
+<td>U; client treats 404 as success</td>
+</tr>
+<tr>
+<td>R <code>GET /api/trial-offer</code></td>
+<td><code>editor/src/lib/trial-access.ts:20-27</code>; <code>workers/frontend-router/src/trial-offer.ts:13-40</code></td>
+<td>—</td>
+<td>S, own account</td>
+<td>W, explicitly open while walled</td>
+<td>AUTH_DB read and possible Stripe reconciliation</td>
+<td>none</td>
+<td>E <code>TrialOffer</code>, a reduced copy of server decision</td>
+</tr>
+<tr>
+<td>W <code>POST /api/billing/stripe/checkout-sessions</code></td>
+<td><code>editor/src/lib/billing-checkout.ts:6-14</code>; <code>workers/frontend-router/src/stripe-billing.ts:115-159</code></td>
+<td>H cadence at <code>workers/frontend-router/src/stripe-checkout.ts:58-62</code></td>
+<td>S, own billing subject</td>
+<td>W exit allowed</td>
+<td>Stripe Checkout session; possible account/customer lookup</td>
+<td>none</td>
+<td>inline <code>{data:{url}}</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/billing/stripe/payment-methods</code></td>
+<td><code>editor/src/routes/settings/BillingRoute.tsx:111-117</code>; <code>stripe-billing.ts:269-306</code></td>
+<td>H scope</td>
+<td>S, own Stripe customer</td>
+<td>W</td>
+<td>Stripe read</td>
+<td>none</td>
+<td>E <code>PaymentMethod</code>, <code>BillingRoute.tsx:20</code>; parsed from <code>unknown</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/billing/stripe/default-payment-method</code></td>
+<td><code>BillingRoute.tsx:134-154</code>; <code>stripe-billing.ts:420-468</code></td>
+<td>H ID and Stripe customer match</td>
+<td>S, own Stripe customer</td>
+<td>W</td>
+<td>Stripe customer update</td>
+<td>none</td>
+<td>U; upstream JSON forwarded</td>
+</tr>
+<tr>
+<td>W <code>POST /api/billing/stripe/payment-methods/:id/detach</code></td>
+<td><code>BillingRoute.tsx:158-183</code>; <code>stripe-billing.ts:370</code></td>
+<td>H ID/scope</td>
+<td>S, own Stripe customer</td>
+<td>W</td>
+<td>Stripe detach</td>
+<td>none</td>
+<td>U; caller checks <code>ok</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/billing/stripe/subscription/cancel</code></td>
+<td><code>editor/src/routes/settings/SubscriptionRoute.tsx:229-255</code>; <code>stripe-billing.ts:470-475,486</code></td>
+<td>H body</td>
+<td>S, own subscription</td>
+<td>W</td>
+<td>Stripe subscription, AUTH_DB mirror</td>
+<td>none</td>
+<td>U</td>
+</tr>
+<tr>
+<td>W <code>POST /api/billing/stripe/subscription/reactivate</code></td>
+<td><code>SubscriptionRoute.tsx:257-271</code>; <code>stripe-billing.ts:478-486</code></td>
+<td>—</td>
+<td>S, own subscription</td>
+<td>W</td>
+<td>Stripe subscription, AUTH_DB mirror</td>
+<td>none</td>
+<td>U</td>
+</tr>
+<tr>
+<td>R <code>GET /api/admin/session</code></td>
+<td><code>editor/src/lib/admin-user-accounts-api.ts:135-142</code>; <code>workers/frontend-router/src/admin-accounts-native.ts:106-124</code></td>
+<td>—</td>
+<td>S; role probe for any signed-in user</td>
+<td>W</td>
+<td>AUTH_DB/session read</td>
+<td>none</td>
+<td>E <code>AdminCurrentUser</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/admin/accounts/search</code></td>
+<td><code>admin-user-accounts-api.ts:144-166</code>; <code>admin-accounts-native.ts:126-143</code></td>
+<td>H filters/cursor</td>
+<td>A</td>
+<td>W</td>
+<td>AUTH_DB read</td>
+<td>none</td>
+<td>E <code>AdminAccountSearchPage</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/admin/accounts/:id/panel</code></td>
+<td><code>admin-user-accounts-api.ts:168-176</code>; <code>admin-accounts-native.ts:146-152</code></td>
+<td>path ID</td>
+<td>A</td>
+<td>W</td>
+<td>AUTH_DB, content counts, billing reads</td>
+<td>none</td>
+<td>E <code>AdminAccountPanel</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/admin/commands</code></td>
+<td><code>admin-user-accounts-api.ts:183-203</code>; <code>admin-accounts-native.ts:164-166</code></td>
+<td>H command union in <code>workers/frontend-router/src/admin-commands.ts</code></td>
+<td>A</td>
+<td>W</td>
+<td>AUTH_DB audit/grants/account; some commands call WorkOS or email</td>
+<td>signup trigger may fire for <code>create_account</code>; no generic command event traced</td>
+<td>E <code>AdminCommandAnswer</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/admin/accounts/:id/email</code></td>
+<td><code>admin-user-accounts-api.ts:205-217</code>; <code>admin-accounts-native.ts:176-179</code></td>
+<td>H email</td>
+<td>A</td>
+<td>W</td>
+<td>AUTH_DB/WorkOS</td>
+<td>none traced</td>
+<td>U</td>
+</tr>
+<tr>
+<td>W <code>POST /api/admin/accounts/:id/impersonation</code></td>
+<td><code>admin-user-accounts-api.ts:221-244</code>; <code>admin-accounts-native.ts:154-162</code></td>
+<td>path ID and exact Origin</td>
+<td>A acting in own session</td>
+<td>W</td>
+<td>WorkOS launch; browser opens new tab</td>
+<td>none</td>
+<td>inline <code>{data:{url}}</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/admin/accounts/:id/billing</code></td>
+<td><code>editor/src/routes/admin/SupportBillingDialog.tsx:24-30</code>; <code>admin-accounts-native.ts:137-140</code></td>
+<td>path ID</td>
+<td>A</td>
+<td>W</td>
+<td>AUTH_DB/Stripe read</td>
+<td>none</td>
+<td>E <code>SupportBilling</code>, <code>editor/src/lib/support-accounts-api.ts:3-13</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/admin/accounts/:id/checkout-links</code></td>
+<td><code>SupportBillingDialog.tsx:35-47</code>; <code>admin-accounts-native.ts:137-140</code></td>
+<td>H cadence</td>
+<td>A</td>
+<td>W</td>
+<td>Stripe Checkout link</td>
+<td>none</td>
+<td>inline <code>{url}</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/admin/accounts/:id/portal-links</code></td>
+<td>same client/server sites as preceding row</td>
+<td>H empty body</td>
+<td>A</td>
+<td>W</td>
+<td>Stripe portal link</td>
+<td>none</td>
+<td>inline <code>{url}</code></td>
+</tr>
+<tr>
+<td>R <code>GET /api/admin/organizations</code></td>
+<td><code>editor/src/lib/admin-organizations-api.ts:24-37</code>; <code>workers/frontend-router/src/admin-organizations.ts:16-47</code></td>
+<td>H limit/offset</td>
+<td>A</td>
+<td>W</td>
+<td>AUTH_DB read</td>
+<td>none</td>
+<td>E <code>AdminOrganization[]</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="auth-uploads-public-form-and-telemetry">Auth, uploads, public form, and telemetry</h3>
+<p>Auth routes are registered at <code>workers/frontend-router/src/auth-session.ts:106-137</code>, above the trial wall. Their client adapter is <code>editor/src/lib/workos-auth.ts:4-43,295-327</code>. A successful identity response is editor-local <code>WorkosAuthIdentity</code>; errors are <code>WorkosAuthError(status, message, code)</code> parsed at <code>workos-auth.ts:305-309,348</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Door and definition</th>
+<th>Input validation</th>
+<th>Auth + ownership</th>
+<th>Entitlement</th>
+<th>Side effects</th>
+<th>Analytics event</th>
+<th>Response shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W <code>POST /auth/password</code></td>
+<td><code>workos-auth.ts:45-58</code>; server <code>auth-session.ts:115,570</code></td>
+<td>H email/password</td>
+<td>public, rate limited</td>
+<td>outside W</td>
+<td>WorkOS/session cookie, AUTH_DB login facts</td>
+<td>none</td>
+<td>E <code>WorkosAuthIdentity</code></td>
+</tr>
+<tr>
+<td>W <code>POST /auth/register</code></td>
+<td><code>workos-auth.ts:60-73</code>; server <code>auth-session.ts:116,374</code></td>
+<td>H email/password; WorkOS checks</td>
+<td>public, rate limited</td>
+<td>outside W</td>
+<td>WorkOS user; AUTH_DB user/grant; cookie</td>
+<td>Client <code>signup_started</code> at <code>workos-auth.ts:63</code>; <code>signup_completed</code> SQL trigger at <code>migrations-auth/0013_native_accounts.sql:22-30</code></td>
+<td>E identity</td>
+</tr>
+<tr>
+<td>R <code>POST /auth/lookup</code></td>
+<td><code>workos-auth.ts:82-103</code>; server <code>auth-session.ts:117,220</code></td>
+<td>H email</td>
+<td>public, rate limited</td>
+<td>outside W</td>
+<td>WorkOS/AUTH_DB lookup</td>
+<td>none</td>
+<td>E <code>AccountLookup</code>; client checks <code>known</code>/<code>new</code></td>
+</tr>
+<tr>
+<td>W <code>POST /auth/change-password</code></td>
+<td><code>workos-auth.ts:105-125</code>; server <code>auth-session.ts:130,688</code></td>
+<td>H password length</td>
+<td>S</td>
+<td>outside W</td>
+<td>WorkOS password</td>
+<td>none</td>
+<td>no success body</td>
+</tr>
+<tr>
+<td>W <code>POST /auth/forgot</code></td>
+<td><code>workos-auth.ts:127-140</code>; server <code>auth-session.ts:131,810</code></td>
+<td>H email</td>
+<td>public, rate limited</td>
+<td>outside W</td>
+<td>reset email</td>
+<td>none</td>
+<td>generic 2xx, no success body</td>
+</tr>
+<tr>
+<td>W <code>POST /auth/reset-password</code></td>
+<td><code>workos-auth.ts:142-155</code>; server <code>auth-session.ts:132,896</code></td>
+<td>H token/new password</td>
+<td>public</td>
+<td>outside W</td>
+<td>WorkOS password/session state</td>
+<td>none</td>
+<td>no success body</td>
+</tr>
+<tr>
+<td>R <code>GET /auth/me</code></td>
+<td><code>workos-auth.ts:157-166,295-327</code>; also <code>editor-api.ts:179-190</code>; server <code>auth-session.ts:137,160</code></td>
+<td>—</td>
+<td>session cookie</td>
+<td>outside W</td>
+<td>session/AUTH_DB read</td>
+<td>none</td>
+<td>E identity; 401 becomes <code>null</code> in one caller</td>
+</tr>
+<tr>
+<td>W <code>POST /logout</code></td>
+<td><code>workos-auth.ts:263-279</code>; server <code>auth-session.ts:114,1564</code></td>
+<td>—</td>
+<td>session-aware</td>
+<td>outside W</td>
+<td>cookie cleared; editor caches cleared</td>
+<td>none</td>
+<td>ignored</td>
+</tr>
+<tr>
+<td>W <code>POST /api/media/upload-session</code></td>
+<td><code>editor/src/lib/media-upload.ts:282-333</code>; <code>workers/frontend-router/src/media-recording-sessions.ts:45-117</code></td>
+<td>H body, UUID client ID; service validates asset</td>
+<td>S; requested owner must equal caller unless System Admin</td>
+<td>W</td>
+<td>R2 service issues signed upload</td>
+<td>none</td>
+<td>E <code>UploadSessionPayload</code>, runtime parsed at <code>media-upload.ts:336-381</code></td>
+</tr>
+<tr>
+<td>W <code>PUT /api/media/upload</code></td>
+<td><code>media-upload.ts:101-118,439-517</code>; <code>workers/frontend-router/src/router-endpoints.ts:497-554</code></td>
+<td>H signed R2 URL and shared byte limit</td>
+<td>S</td>
+<td>W</td>
+<td>relays bytes to R2; used on PR preview origin</td>
+<td>none</td>
+<td>raw status/ETag</td>
+</tr>
+<tr>
+<td>W <code>PUT &lt;signed R2 URL&gt;</code></td>
+<td><code>media-upload.ts:101-122,439-517</code>; R2 handler is outside this trace</td>
+<td>signature, headers, size</td>
+<td>signed URL</td>
+<td>outside W</td>
+<td>R2 bytes</td>
+<td>none</td>
+<td>raw status</td>
+</tr>
+<tr>
+<td>R <code>HEAD &lt;media public URL&gt;</code></td>
+<td><code>media-upload.ts:251-279</code>; media service</td>
+<td>URL</td>
+<td>public media URL</td>
+<td>outside W</td>
+<td>verifies R2 visibility</td>
+<td>none</td>
+<td>status only</td>
+</tr>
+<tr>
+<td>W <code>PUT &lt;Mux upload URL&gt;</code></td>
+<td><code>editor/src/lib/take-sender.ts:110-136</code>; Mux service</td>
+<td>chunk alignment and <code>Content-Range</code></td>
+<td>signed Mux grant</td>
+<td>outside W</td>
+<td>Mux original bytes</td>
+<td>none</td>
+<td>308 range or 200/201</td>
+</tr>
+<tr>
+<td>R <code>GET &lt;Mux storyboard URL&gt;</code></td>
+<td><code>editor/src/lib/video-filmstrip.ts:322</code>; Mux image service</td>
+<td>playback ID URL</td>
+<td>public playback ID</td>
+<td>outside W</td>
+<td>storyboard read</td>
+<td>none</td>
+<td>image/binary</td>
+</tr>
+<tr>
+<td>R <code>GET &lt;current page&gt;?media=1</code></td>
+<td><code>editor/src/lib/published-media-refresh.ts:32-41</code>; public page delivery</td>
+<td>URL query</td>
+<td>public page access</td>
+<td>outside W</td>
+<td>refreshed signed media access</td>
+<td>none</td>
+<td>P <code>LibraryFileAccess</code> parsed by <code>libraryFileAccessMap</code></td>
+</tr>
+<tr>
+<td>W <code>POST /api/contact_us_landing_page</code></td>
+<td><code>editor/src/routes/public/ContactUsRoute.tsx:73-105</code>; <code>workers/frontend-router/src/contact-form.ts:20-71</code></td>
+<td>H fields, length, email</td>
+<td>public, strict rate limit</td>
+<td>outside W</td>
+<td>email through MAILER</td>
+<td>none</td>
+<td><code>{data:{submitted:true}}</code>, ignored by editor</td>
+</tr>
+<tr>
+<td>R <code>GET /api/analytics/config</code></td>
+<td><code>editor/src/lib/product-analytics.ts:57-72</code>; <code>workers/frontend-router/src/product-analytics.ts:29-34</code></td>
+<td>host/environment</td>
+<td>public</td>
+<td>outside W</td>
+<td>configuration read</td>
+<td>none</td>
+<td>E <code>Configuration</code>, runtime checked by client</td>
+</tr>
+<tr>
+<td>W <code>POST /api/rum/events</code></td>
+<td><code>editor/src/lib/rum.ts:202-210</code> and <code>public-page-load-rum.ts:210-225</code>; <code>workers/frontend-router/src/routes.ts:339-342</code></td>
+<td>H RUM event payload</td>
+<td>public</td>
+<td>outside W</td>
+<td>Cloudflare RUM dataset</td>
+<td><strong>RUM, not product analytics</strong></td>
+<td>ignored</td>
+</tr>
+<tr>
+<td>R <code>GET /api/videos/stats/:id</code></td>
+<td><code>editor/src/lib/video-stats-api.ts:9-16</code>; <code>workers/frontend-router/src/video-stats.ts:96-120</code>; ownership callback <code>router-endpoints.ts:466-495</code></td>
+<td>path ID</td>
+<td>S+owned video</td>
+<td>W</td>
+<td>VIDEO_STATS_DB read</td>
+<td>none</td>
+<td>P <code>VideoStatsSummary</code>, normalized at client</td>
+</tr>
+</tbody>
+</table></div>
+<p>The editor sends product events directly to PostHog through <code>captureProductEvent</code> at <code>editor/src/lib/product-analytics.ts:214-220</code>. The allowed event vocabulary and property filter live at <code>editor/src/lib/product-analytics-events.ts:2-38</code>. A general click listener emits <code>feature_used</code> using <code>data-analytics-id</code> at <code>editor/src/components/ProductAnalytics.tsx:44</code> and <code>product-analytics-events.ts:53-66</code>; that ID identifies a control, not a server action. Recording events are emitted at <code>editor/src/hooks/use-media-recorder.ts:186-199</code>. Upload attempt events are emitted at <code>editor/src/lib/product-upload-analytics.ts:3-19</code>. Those client events depend on analytics consent and are separate from authoritative server outbox events.</p>
+<p>Server-side product event writes occur through:</p>
+<ul>
+<li>SQL triggers for <code>signup_completed</code>, <code>journey_page_created</code>, <code>folder_created</code>, <code>image_added</code>, and <code>document_added</code> at <code>workers/frontend-router/migrations-auth/0013_native_accounts.sql:22-30</code> and <code>0023_move_triggers.sql:13-33</code>.</li>
+<li>A manual <code>video_added</code> insert at <code>workers/workspace-tree/src/video-row.ts:475-500</code>, because the node starts with a null analytics environment at grant and is stamped at finish.</li>
+<li><code>video_trimmed</code> at <code>workers/workspace-tree/src/video-edit-routes.ts:304-335</code>, using the conditional outbox statement at <code>workers/workspace-tree/src/product-analytics.ts:25-72</code>.</li>
+<li><code>invoice_paid</code> after verified Stripe processing at <code>workers/frontend-router/src/product-analytics-billing.ts:5-29</code>.</li>
+<li><code>journey_page_session_viewed</code> from a <code>page_event</code> trigger at <code>workers/frontend-router/migrations/0004_product_analytics.sql:20-30</code>, and <code>marketing_request_count</code> at <code>workers/frontend-router/src/traffic-analytics.ts:4-32</code>. These are outside the editor action count.</li>
+<li>The one-minute scheduled handler drains AUTH_DB and VIDEO_STATS_DB outboxes at <code>workers/frontend-router/src/index.ts:27-43</code>; the two-source drain is defined at <code>workers/frontend-router/src/product-analytics.ts:36-57</code>. The outbox stores event IDs for retry and deduplication.</li>
+</ul>
+<h2 id="duplicated-rules">Duplicated rules</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Locations and difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A new password must have at least eight characters.</td>
+<td><code>editor/src/routes/AuthRoute.tsx:185,579</code>, <code>ResetPasswordRoute.tsx:21,53</code>, <code>settings/PasswordRoute.tsx:15,27-37</code>, and <code>workers/frontend-router/src/auth-session.ts:60-64,1358,1460</code>. The values currently agree. The worker comment explicitly says to keep copies in sync.</td>
+</tr>
+<tr>
+<td>Checkout cadence is <code>monthly</code> or <code>annually</code>.</td>
+<td>Client union at <code>editor/src/lib/billing-checkout.ts:3</code> and admin link choice at <code>editor/src/routes/admin/SupportBillingDialog.tsx:35-47</code>; server parser at <code>workers/frontend-router/src/stripe-checkout.ts:58-62</code>. Values agree; contracts are separate.</td>
+</tr>
+<tr>
+<td>Notification field and toggle names identify the same four preferences.</td>
+<td>Client catalog at <code>editor/src/routes/settings/NotificationsRoute.tsx:16-45</code>; server mappings at <code>workers/frontend-router/src/account-profile.ts:121-125,412-424</code>; server defaults also come from <code>packages/auth-identity/src</code> via <code>account-profile.ts:4-7</code>. No mismatch found, but the editor does not import the shared catalog.</td>
+</tr>
+<tr>
+<td>Admin create-account names have a 120-character cap.</td>
+<td>UI input at <code>editor/src/routes/admin/CreateAccountDialog.tsx:143</code>; server <code>workers/frontend-router/src/admin-commands.ts:116,231-232</code>. Values agree. The UI’s 20-address cap at <code>CreateAccountDialog.tsx:32,65</code> was not traced to an equivalent server cap.</td>
+</tr>
+<tr>
+<td>Library node and take responses must have particular fields.</td>
+<td>Editor contracts and parsers at <code>editor/src/lib/tree-api.ts:40-160</code> and <code>take-api.ts:9-61,140-173</code>; server builds responses in <code>workers/workspace-tree/src/index.ts:628-632,704,910-911</code> and <code>mux-video-routes.ts:58-231</code>. The types are not imported from a common package. <code>apiRequest</code> trusts the JSON cast at <code>editor-api.ts:293</code>, while take adds partial runtime checks.</td>
+</tr>
+<tr>
+<td>Page ownership and document IDs must not be taken from client input.</td>
+<td>Server pins new-page ownership at <code>workers/frontend-router/src/journey-pages-native.ts:638-682</code>; editor strips server IDs when comparing local drafts at <code>editor/src/lib/journey-page-document-store.ts:133-139</code>. The rules serve different purposes but encode the same server-owned fields separately.</td>
+</tr>
+<tr>
+<td>Upload size and media kind are checked before and during upload.</td>
+<td>Client target/size checks at <code>editor/src/lib/upload-manager.ts:154-169</code>; server proxy size at <code>workers/frontend-router/src/router-endpoints.ts:521-531</code> and Library content/type rules at <code>workers/workspace-tree/src/index.ts:647-695</code>. The byte constant is shared from <code>packages/recording-session-protocol/src</code>, so that limit is already centralized.</td>
+</tr>
+<tr>
+<td>Contact form requires name, email, and message.</td>
+<td>Client checks nonempty trimmed fields at <code>editor/src/routes/public/ContactUsRoute.tsx:58-64</code>; server validates email syntax and truncates to 120/254/4000 characters at <code>workers/frontend-router/src/contact-form.ts:47-56,85-93</code>. The client is intentionally weaker: it can submit an email the server rejects.</td>
+</tr>
+<tr>
+<td>A stale page revision must be reloaded or merged.</td>
+<td>Server returns <code>reload_required</code>/<code>stale_revision</code> with revision and sometimes current draft at <code>workers/frontend-router/src/journey-pages-native.ts:394-421</code>; editor interprets those shapes at <code>editor/src/lib/journey-page-drafts.ts:85</code> and <code>generation-runs.ts:78-85</code>. Package types cover the rejection shape, but <code>apiRequest</code> still extracts <code>reason</code> by hand at <code>editor-api.ts:277-286</code>.</td>
+</tr>
+<tr>
+<td>A request can be blocked for expired trial or suspension.</td>
+<td>Server middleware emits 402/403 with <code>X-Clarity-Access</code> at <code>workers/frontend-router/src/trial-wall.ts:124-146</code>; editor duplicates the header values and redirects at <code>editor/src/lib/editor-api.ts:216-218,322-330</code>. The values agree.</td>
+</tr>
+<tr>
+<td>A newly created page or Library item produces a product event.</td>
+<td>Page/Library SQL triggers at <code>migrations-auth/0023_move_triggers.sql:13-33</code>; video finish manually mirrors the Library trigger at <code>workers/workspace-tree/src/video-row.ts:475-500</code>. The code comment identifies this duplication.</td>
+</tr>
+<tr>
+<td>Page publication and upload completion are measured in two systems.</td>
+<td>Client attempt/result events at <code>editor/src/hooks/use-page-publication.ts:182-219</code> and <code>editor/src/lib/product-upload-analytics.ts:3-19</code>; server records durable page creation, Library addition, and trim events in outboxes. Event names and meanings differ: a client upload completion does not prove a Library record was added.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Several rules are <strong>already shared</strong>, not duplicated: block kinds, block normalization, and the 255-character legacy text limit come from <code>packages/journey-page-domain/src/blocks.ts:646-659,748-824</code> and <code>index.ts:219</code>; playback resolution comes from <code>packages/served-file-policy/src</code> in both editor and workers; edit intent/readiness comes from <code>packages/video-derivations/src</code>; Library media access comes from <code>packages/library-media/src</code>; Mux download and speech-window contracts come from <code>packages/mux/src</code> and <code>packages/video-speech/src</code>. The editor and workers also both import <code>deployment-surfaces</code>, <code>login-redirect</code>, <code>media-public-assets</code>, <code>recording-session-protocol</code>, <code>video-capabilities</code>, and <code>video-stats-domain</code> (representative imports at <code>editor/src/lib/tree-api.ts:1-11</code>, <code>editor/src/lib/media.ts:5-11</code>, <code>workers/workspace-tree/src/video-readiness.ts:6-12</code>, and <code>workers/frontend-router/src/public-video-playback.ts:1-3</code>).</p>
+<h2 id="counts">Counts</h2>
+<ul>
+<li><strong>84 distinct method/path actions</strong> identified from the editor, including four external media URL actions. <strong>33 reads and 51 writes</strong> by effect; the POST account lookup is counted as a read. <code>GET /api/trial-offer</code> is counted as a read even though Stripe reconciliation can update local billing facts.</li>
+<li><strong>86 network call expressions</strong> in <code>editor/src</code> under this counting rule: 69 endpoint call expressions through <code>apiRequest</code>, <code>apiFetch</code>, or <code>workspaceTreeRequest</code> after excluding wrapper-to-wrapper delegation; 16 raw <code>fetch</code> expressions outside the underlying <code>apiFetch</code> implementation; one XHR upload expression. There are also two <code>sendBeacon</code> call expressions for RUM. <code>supportRequest</code> is a further adapter over <code>apiRequest</code> at <code>editor/src/lib/support-accounts-api.ts:14-24</code>; its two callers resolve to three admin paths.</li>
+<li><strong>Zero editor HTTP actions use Zod at their HTTP boundary.</strong> The request bodies are hand parsed or use shared domain parsers. Zod appears in the separate MCP operation definitions, for example <code>workers/frontend-router/src/agent/ops-pages.ts:1-102</code>, and dispatch calls <code>safeParse</code> at <code>agent/dispatch.ts:147</code>.</li>
+<li><strong>68 of 84 paths sit below the implicit trial-wall middleware.</strong> Of those, 41 are writes. Four write paths are deliberate exits for a walled account: checkout session creation, Library deletion, page deletion, and unpublish (<code>workers/frontend-router/src/trial-wall.ts:38-43,210-228</code>). Ordinary reads skip the entitlement decision unless the session is suspended (<code>trial-wall.ts:77-83</code>). The remaining 16 actions are public/auth or external media requests. I found no per-action editor HTTP entitlement schema.</li>
+<li>For response contracts, the named shared responses I could confirm are <strong>10 package types</strong>: five Journey Page request/response types, sharing, page stats, Mux download, video stats, and speech window. The editor declares <strong>at least 27 major named response DTOs</strong> across Library (12), take (4), admin accounts (8), auth (3); additional local DTOs live in contacts, settings, upload, sharing, and support files. Inline generic envelopes and casts make a single exact “number of types” dependent on whether nested DTOs and anonymous <code>{ data: ... }</code> shapes count. The defensible finding is that most Library, take, auth, billing, admin, contact, and upload response contracts are editor-owned, while the Journey Page document and a few media/stats responses are package-owned.</li>
+</ul>
+<h2 id="non-obvious-things">Non-obvious things</h2>
+<ul>
+<li>The trial wall is <strong>method sensitive</strong>. Reads are usually allowed for a walled, nonsuspended account, while most writes are blocked. A route’s place below the middleware therefore does not mean its read actually performs an entitlement decision. Suspensions are stricter (<code>workers/frontend-router/src/trial-wall.ts:77-83,124-146</code>).</li>
+<li><code>apiRequest</code> treats a successful HTTP status as success even if a legacy endpoint returns a 200 error envelope. Its own comment warns callers that <code>data</code> can be missing (<code>editor/src/lib/editor-api.ts:273-293</code>). Notifications also return a bare preferences object rather than a <code>{data}</code> envelope (<code>workers/frontend-router/src/account-profile.ts:408-410</code>).</li>
+<li>The upload flow is a protocol, not one server action. The router grants an R2 upload, the browser sends bytes to R2 or a PR-preview relay, then the browser verifies public readability and creates a Library node. Video takes instead grant a Mux resumable URL, PUT chunks, then finish the take. The Mux sender interprets 308 ranges and 200/201 completion itself (<code>editor/src/lib/take-sender.ts:9-12,110-136</code>).</li>
+<li><code>POST /api/tree/media/videos/:id/download</code> can start Mux rendition work and return a status to poll, even though its name sounds like a read (<code>editor/src/lib/tree-api.ts:339-349</code>; <code>workers/workspace-tree/src/mux-video-download.ts:39</code>).</li>
+<li>Page creation accepts a client UUID so a retried create can recover the same page; the server refuses an ID belonging to another owner (<code>workers/frontend-router/src/journey-pages-native.ts:328-347</code>). Page updates require a base revision and return a conflict body that the editor uses to merge (<code>:394-421</code>).</li>
+<li>The Library <code>DELETE /nodes/:id</code> refuses Journey Page cards; the page API owns the page and card together (<code>workers/workspace-tree/src/index.ts:723-735</code>). A generic operation derived from node kind would need that distinction.</li>
+<li>Server product events may be emitted by SQL triggers, not the handler that conceptually performs the action. New video nodes are a special case: the insert trigger cannot fire at grant because provenance is null, so finish writes <code>video_added</code> manually (<code>workers/workspace-tree/src/video-row.ts:475-500</code>).</li>
+<li>The editor’s <code>product-analytics-events.ts</code> is a <strong>client PostHog vocabulary</strong>, not a server action registry. <code>data-analytics-id</code> labels clicked controls. Consent, identity, and route filtering happen in <code>editor/src/lib/product-analytics.ts:50-88,125-135,214-220</code>.</li>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>I did not trace every command variant under <code>POST /api/admin/commands</code> through its final WorkOS, Stripe, email, and D1 effects. The editor sends a tagged union at <code>editor/src/lib/admin-user-accounts-api.ts:110-129</code>; the server dispatch is in <code>workers/frontend-router/src/admin-commands.ts</code>.</li>
+<li>I did not trace the R2 media Worker’s signed PUT implementation or Mux’s external service behavior. The editor and router adapters above show what they send and accept.</li>
+<li>I did not assign an exact response-type total across every anonymous generic and nested UI DTO. The counts above explicitly separate confirmed package contracts from the major editor-local named DTOs.</li>
+<li>I did not count requests that may be made by browser navigation (<code>/auth/initiate</code>, OAuth callbacks, Checkout return, public page links), by HTML media elements, or by PostHog internals. They are outside the requested editor <code>fetch</code>/XHR call-site inventory.</li>
+</ul></main></body></html>
