@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D12 · Prospect-page tracking: delete the dead events, count submits on the server, add a viewer id</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D12</p>
+<h1>Prospect-page tracking: delete the dead events, count submits on the server, add a viewer id</h1>
+<p class="kicker">Public page tracking script, page-events worker, page stats. A per-page viewer id on prospect pages is a privacy call.</p>
+<div class="rec"><strong>Recommendation</strong><p>Three changes. Delete section_view, section_dwell, scroll_depth and return_visit from the server, the schema docs and the stats UI; no client code has ever sent them. Record <code>page_form_submit</code> in the worker after the submission row is written, instead of on the browser's submit event, so the event count equals the stored rows. Store a random viewer id per page in the prospect's browser (localStorage, scoped to the share id, no cookie, no cross-site use) and send it with page_view; "Returned" then appears in page stats from existing rows. Scroll depth is never built: dwell and video progress already say what was seen.</p></div>
+<h2>The problem</h2><p>Page stats promise section views, scroll depth and return visits, and have zero rows of each ever. Form submits are counted in the browser before the server accepts anything, so the event count and the stored rows disagree in both directions. Every visit mints a new session id and sends <code>viewer_id: null</code>, so nothing can say that a prospect came back, which is the signal a rep would call on.</p>
+<h2>What it would look like</h2><p>No screen changes except one new fact in page stats ("Returned 2 times") once viewer ids exist. The before shot shows what reps see today.</p><figure><span class="label">Today</span><a href="before-page-stats.png"><img src="before-page-stats.png" alt="Page stats on staging: visits, watched, retention, per-viewer rows. No &quot;returned&quot;, no section data. U07 rebuilds this modal tonight." loading="lazy"></a><figcaption>Page stats on staging: visits, watched, retention, per-viewer rows. No "returned", no section data. U07 rebuilds this modal tonight.</figcaption></figure>
+<h2>What the data says</h2><h3>page_event rows by type</h3><div class="tbl"><table><thead><tr><th class="">Event</th><th class="num">All accounts, all time</th><th class="num">Customer, all time</th><th class="num">Customer, last 90 days</th></tr></thead><tbody><tr><td class="">page_view</td><td class="num">15,012</td><td class="num">14,173</td><td class="num">8,442</td></tr><tr><td class="">page_unload</td><td class="num">8,300</td><td class="num">7,760</td><td class="num">4,394</td></tr><tr><td class="">page_cta_click</td><td class="num">1,138</td><td class="num">1,111</td><td class="num">784</td></tr><tr><td class="">page_form_submit</td><td class="num">65</td><td class="num">58</td><td class="num">22</td></tr><tr><td class="">section_view, section_dwell, scroll_depth, return_visit</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr></tbody></table></div><p class="kicker">Since 2026-05-11. renderer_version is public-page-v1 on every row. viewer_id is NULL on all 24,515 rows. 15,010 of 15,011 sessions hold exactly one page_view.</p><h3>Form submit events vs stored submissions, customer pages, by month</h3><div class="tbl"><table><thead><tr><th class="">Month</th><th class="num">page_form_submit events</th><th class="num">Stored rows</th></tr></thead><tbody><tr><td class="">2026-05</td><td class="num">3</td><td class="num">7</td></tr><tr><td class="">2026-06</td><td class="num">30</td><td class="num">17</td></tr><tr><td class="">2026-07</td><td class="num">7</td><td class="num">7</td></tr><tr><td class="">2026-08</td><td class="num">13</td><td class="num">13</td></tr><tr><td class="">2026-09</td><td class="num">2</td><td class="num">0</td></tr><tr><td class="">2026-10</td><td class="num">3</td><td class="num">1</td></tr></tbody></table></div><p class="kicker">May rows were written by the old app, which emitted no events. June has more events than rows because the client fires on DOM submit before the POST succeeds (render-client-script.ts:223-226). The 401-vs-65 figure in the audit compares all accounts and all time; the monthly view shows the mechanism.</p><p><p>Why the four types never fire, from the code: the server accepts seven types (<code>page-events.ts:35-43</code>); the tracking script emits page_view (<code>render-client-script.ts:213</code>), page_cta_click (217), page_form_submit (225) and page_unload (355). No call emits a section event; the only IntersectionObserver (61-62) warms the video player. Nothing sets scroll_depth_pct. The script hard-codes <code>viewer_id: null</code> (195) and mints a session id per load (185-187). Dwell on page_unload: median 32 s, p90 1,898 s (tabs left open).</p></p>
+<h2>Options</h2><div class="opt"><b>Delete dead types, server-side submit, stored viewer id (recommended)</b><p>Removes a promise the product cannot keep, fixes the count at its source, and gets "returned" from rows that already exist.</p></div><div class="opt"><b>Build section views and scroll depth</b><p>An observer per section and a scroll listener, new rows per visit, and a stats UI to show them. No rep has asked for it, and video progress already covers the video.</p></div><div class="opt"><b>Delete the dead types only</b><p>Honest, but leaves the submit miscount and no return signal.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Delete section_view, section_dwell, scroll_depth and return_visit rather than build them?</div><p class="ans"><b>Recommended:</b> Yes.</p></div><div class="q"><div class="ask">2. Privacy: store a per-page viewer id in the prospect's browser so return visits can be shown?</div><p class="ans"><b>Recommended:</b> Yes, as localStorage scoped to the share id with no cookie and no cross-page use. If William wants zero client storage on prospect pages, "returned" stays unbuilt and the answer to question 1 covers it.</p></div><div class="q"><div class="ask">3. Count form submits on the server after the row is stored?</div><p class="ans"><b>Recommended:</b> Yes. The stored row is the truth; the event is for the stats timeline.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Delete the dead event types</b><p><code>page-events.ts</code> accepted types, docs and any stats UI copy that mentions sections or scroll. Columns stay (no migration). Evidence: a planted section_view is rejected with 400.</p></div><div class="pr"><b>PR 2. Server-side form submit event</b><p><code>lead-capture.ts</code> writes page_form_submit after the insert; the client stops sending it. Evidence on the PR preview: one submit, one row, one event.</p></div><div class="pr"><b>PR 3 (privacy call). Viewer id and &quot;Returned&quot;</b><p><code>render-client-script.ts</code> stores and sends the id; <code>page-events.ts</code> accepts it; page stats add "Returned n times" (after U07). Evidence: two visits in the preview, stats show returned.</p></div>
+
+</main></body></html>

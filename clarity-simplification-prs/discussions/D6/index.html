@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D6 · Notifications: one switch, on by default, fired when they start</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D6</p>
+<h1>Notifications: one switch, on by default, fired when they start</h1>
+<p class="kicker">Settings > Notifications and the view email. Changing the default is a policy call because it changes what 2,300 customers receive.</p>
+<div class="rec"><strong>Recommendation</strong><p>One switch: "Email me when someone watches a page". On by default. The first email goes when a prospect starts watching; the existing hourly digest carries how far they got, and button clicks join the same email. Delete the 60 / 80 / 100 toggles and the unread <code>notify_shared</code> column. Existing users become "on" unless they turned every threshold off (18 users turned 60% off; check they also lack 80 and 100 before flipping them).</p></div>
+<h2>The problem</h2><p>Four toggles decide which watch thresholds email the rep, and only "watched 60%" is on by default. "Someone starts watching", the signal a salesperson can act on, is off. Clicking a button sends nothing. 93% of customers have never touched the toggles, and the 7% who did changed them in the old app; nobody has changed one in the new app.</p>
+<h2>What it would look like</h2><p>Before, four toggles. After, one switch and one email that says where the prospect is.</p><div class="pair"><figure><span class="label">Before</span><a href="before-notifications.png"><img src="before-notifications.png" alt="Settings &gt; Notifications on staging: four toggles." loading="lazy"></a><figcaption>Settings > Notifications on staging: four toggles.</figcaption></figure><figure><span class="label">After</span><a href="after-notifications.png"><img src="after-notifications.png" alt="One switch and its helper. Button clicks are in the same email." loading="lazy"></a><figcaption>One switch and its helper. Button clicks are in the same email.</figcaption></figure></div><figure><span class="label">After, the email</span><a href="after-notification-email.png"><img src="after-notification-email.png" alt="Rendered through the real email layout: started, how far, which button, &quot;See what they watched&quot;." loading="lazy"></a><figcaption>Rendered through the real email layout: started, how far, which button, "See what they watched".</figcaption></figure>
+<h2>What the data says</h2><h3>Customer profiles (2,484), value per column</h3><div class="tbl"><table><thead><tr><th class="">Column (default)</th><th class="num">Off</th><th class="num">On</th><th class="num">Changed from default</th></tr></thead><tbody><tr><td class="">notify_view, started watching (off)</td><td class="num">2,316</td><td class="num">168</td><td class="num">168 turned it on</td></tr><tr><td class="">notify_views_60 (on)</td><td class="num">18</td><td class="num">2,466</td><td class="num">18 turned it off</td></tr><tr><td class="">notify_views_80 (off)</td><td class="num">2,385</td><td class="num">99</td><td class="num">99 turned it on</td></tr><tr><td class="">notify_views_100 (off)</td><td class="num">2,390</td><td class="num">94</td><td class="num">94 turned it on</td></tr><tr><td class="">notify_shared (on)</td><td class="num">5</td><td class="num">2,479</td><td class="num">read by nothing</td></tr></tbody></table></div><p class="kicker">183 profiles (7%) differ from the defaults. All 183 rows date from the September import and none was updated since (updated_at equals created_at), so every change was made in the legacy app. Inferred: no customer has changed a notification setting in the new app.</p><h3>View notification ledger since 2026-10-09 (8 owners)</h3><div class="tbl"><table><thead><tr><th class="">Threshold</th><th class="num">Sent</th><th class="num">Opted out</th></tr></thead><tbody><tr><td class="">started (0)</td><td class="num">10</td><td class="num">23</td></tr><tr><td class="">60%</td><td class="num">19</td><td class="num">0</td></tr><tr><td class="">80%</td><td class="num">6</td><td class="num">10</td></tr><tr><td class="">100%</td><td class="num">5</td><td class="num">10</td></tr></tbody></table></div><p class="kicker">23 "started watching" crossings were dropped because the owner had the default off. Under the recommended default they would have been sent, subject to the hourly cap. 23 digests were sent.</p><p><p>Code facts: thresholds map to the four columns in <code>view-notifications.ts:27-32</code>; the hourly rule (first view at once, later views together after the hour) is already there. Defaults come from <code>migrations-auth/0012_user_profiles.sql</code> and <code>account-spine.ts:60-69</code>.</p></p>
+<h2>Options</h2><div class="opt"><b>One switch, on, fired at start (recommended)</b><p>The rep learns the moment a prospect is on the page, which is when a call lands. The hourly digest keeps volume to one email an hour per owner. Button clicks reuse the same path.</p></div><div class="opt"><b>Two switches: started and finished</b><p>Keeps a "finished" email for reps who only want the strong signal. The digest already says how far they got, so the second switch repeats information.</p></div><div class="opt"><b>Keep four toggles, flip &quot;started&quot; on</b><p>Fixes the default and leaves the UI as it is.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. One switch or two (started / finished)?</div><p class="ans"><b>Recommended:</b> One. The follow-up email carries the progress.</p></div><div class="q"><div class="ask">2. Policy: flip existing users to the new default, so 2,300 customers start receiving "started watching" emails they never opted into?</div><p class="ans"><b>Recommended:</b> Yes, with a one-click "turn off" link in every email and the hourly cap. The ledger shows 23 missed start crossings against 40 emails sent in five days; these are the emails reps asked for.</p></div><div class="q"><div class="ask">3. Button clicks: an instant email or inside the hourly email?</div><p class="ans"><b>Recommended:</b> Same rule as views: at once if nothing was sent in the last hour, otherwise in the digest. One rule, one code path.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Settings switch and migration</b><p><code>NotificationsRoute.tsx</code>: one switch writing <code>notify_view</code>; a migration sets it from the four columns; the 60/80/100 columns stop being read. Evidence: settings before/after, a user with 60 off stays off.</p></div><div class="pr"><b>PR 2. Clicks in the email</b><p><code>view-notifications.ts</code>: a cta_click joins the owner's pending digest or sends at once. Email template line "Clicked Book a call". U07 renames the CTA to "See what they watched".</p></div>
+
+</main></body></html>

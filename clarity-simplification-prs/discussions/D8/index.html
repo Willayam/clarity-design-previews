@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D8 · Recorder: automatic trim, autosaving edit modal, layouts decided by data</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D8</p>
+<h1>Recorder: automatic trim, autosaving edit modal, layouts decided by data</h1>
+<p class="kicker">Recorder finish screen, video edit modal, layout picker.</p>
+<div class="rec"><strong>Recommendation</strong><p>Apply the auto trim when the recording finishes, draw the handles where it landed, and offer one "Restore full video" link. Delete the Auto / Custom / None row and the finish-screen toggles. The edit modal saves as you go, like the recorder, with one "Done" and no Cancel ("Restore full video" is the undo). Keep four layouts for now: no row in production says which layout a recording used, so the merge would be a guess. U01 ships click tracking tonight; in a month the layout tiles will have numbers, and the merge becomes a one-line decision.</p></div>
+<h2>The problem</h2><p>The finish screen shows seven toggles above three buttons. Trimming is a three-way choice that 6 users ever made. The modal and the recorder save differently: the recorder autosaves, the modal saves on Done and drops the draft on Cancel. The layout picker offers four tiles, two of which are camera-plus-screen variants.</p>
+<h2>What it would look like</h2><p>Before, the trim row and the finish toggles. After, handles already placed and one link.</p><div class="pair"><figure><span class="label">Before</span><a href="before-edit-modal-trim.png"><img src="before-edit-modal-trim.png" alt="Video edit modal on staging: Trim and Preview tabs, the Auto / Custom / None row, Cancel and Done. Player and filmstrip blurred (real recording)." loading="lazy"></a><figcaption>Video edit modal on staging: Trim and Preview tabs, the Auto / Custom / None row, Cancel and Done. Player and filmstrip blurred (real recording).</figcaption></figure><figure><span class="label">After</span><a href="after-edit-modal.png"><img src="after-edit-modal.png" alt="Trim and Thumbnail, handles set, &quot;Restore full video&quot;, &quot;Saved&quot;, one Done." loading="lazy"></a><figcaption>Trim and Thumbnail, handles set, "Restore full video", "Saved", one Done.</figcaption></figure></div><div class="pair"><figure><span class="label">Before</span><a href="before-finish-screen.png"><img src="before-finish-screen.png" alt="Recorder finish screen with fake media (the upload POST was blocked by the harness)." loading="lazy"></a><figcaption>Recorder finish screen with fake media (the upload POST was blocked by the harness).</figcaption></figure><figure><span class="label">If merged to three</span><a href="after-recorder.png"><img src="after-recorder.png" alt="Camera, Screen, Camera + screen, one &quot;Start recording&quot;. Shown for the discussion; the recommendation waits for data." loading="lazy"></a><figcaption>Camera, Screen, Camera + screen, one "Start recording". Shown for the discussion; the recommendation waits for data.</figcaption></figure></div><figure><span class="label">Before, close-up</span><a href="before-edit-modal-trim-close.png"><img src="before-edit-modal-trim-close.png" alt="The control row with Auto / Custom / None." loading="lazy"></a><figcaption>The control row with Auto / Custom / None.</figcaption></figure><figure><span class="label">Before</span><a href="before-record.png"><img src="before-record.png" alt="Pre-record screen: four layout tiles and a button that changes wording per layout (U09 fixes the wording tonight)." loading="lazy"></a><figcaption>Pre-record screen: four layout tiles and a button that changes wording per layout (U09 fixes the wording tonight).</figcaption></figure>
+<h2>What the data says</h2><h3>Recording and trim usage, customers</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Count</th></tr></thead><tbody><tr><td class="">Recordings in the videos table (since 2026-09-24)</td><td class="num">52 by 8 owners, 18 ready</td></tr><tr><td class="">Videos with a clip (clip_start/end set)</td><td class="num">10 videos, 4 owners</td></tr><tr><td class="">Pages storing a trim on hero or story media</td><td class="num">0</td></tr><tr><td class="">Transcripts (video_speech)</td><td class="num">3 rows, 1 customer</td></tr><tr><td class="">video_trimmed server events, all accounts</td><td class="num">35 by 6 users</td></tr><tr><td class="">clip_published, all accounts</td><td class="num">27 by 4 users</td></tr></tbody></table></div><p class="kicker">Trim lives on the video row, not the page. The recorder is new (first recording row 2026-09-24), so these are early numbers.</p><h3>Layout</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Result</th></tr></thead><tbody><tr><td class="">Column recording the layout (camera / screen / split / inset)</td><td class="num">none</td></tr><tr><td class="">workspace_nodes.metadata.record_type</td><td class="num">always "video"</td></tr><tr><td class="">captureMode in the client</td><td class="num">chooses a bitrate only (recorder-encoding.ts:78-86), never sent</td></tr></tbody></table></div><p class="kicker">There is no production evidence for which camera-plus-screen layout to keep. U01 adds click tracking to every control tonight; the four tiles will have counts within weeks.</p><p><p>Code facts: auto trim is computed in the recorder (<code>recorder-take.ts</code>, <code>autoTrim</code>); the modal offers Auto / Custom / None only when the take has one (<code>VideoEditConsole.tsx:29</code>). The modal saves trim and thumbnail together on Done and drops the draft on Cancel (<code>VideoEditModal.tsx:73-74</code>). Open PR #1366 touches the video controls and #1423 the recorder transcript.</p></p>
+<h2>Options</h2><div class="opt"><b>Auto trim plus Restore, autosave, layouts wait for data (recommended)</b><p>Two changes with evidence now, one deferred until the evidence exists.</p></div><div class="opt"><b>Everything at once, keep inset as the one camera-plus-screen layout</b><p>Inset is the common convention (Loom), but choosing it today is taste. If William already has a preference, this is fine.</p></div><div class="opt"><b>Keep the trim toggles, only autosave</b><p>Leaves the seven-toggle finish screen.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Auto trim applied silently with "Restore full video" as the only control?</div><p class="ans"><b>Recommended:</b> Yes. 6 users ever chose, and the handles stay for anyone who wants to adjust.</p></div><div class="q"><div class="ask">2. Edit modal autosaves and loses Cancel?</div><p class="ans"><b>Recommended:</b> Yes. Same model as the recorder; Restore is the undo.</p></div><div class="q"><div class="ask">3. Merge the two camera-plus-screen layouts now (which one?) or wait a month for the click data from U01?</div><p class="ans"><b>Recommended:</b> Wait. If William already knows he wants inset, merge now and skip the wait.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Silent auto trim</b><p>Finish screen and <code>VideoEditConsole.tsx</code>: apply the take's autoTrim, delete the toggle row, add "Restore full video" (shown only when a trim is set). Evidence: finish flow video with fake media, modal before/after.</p></div><div class="pr"><b>PR 2. Modal autosave</b><p><code>VideoEditModal.tsx</code>: save on change through the existing save path, status line from <code>VideoEditorSaveStatus</code>, one Done. Coordinate with #1366.</p></div><div class="pr"><b>PR 3 (later). Three layouts</b><p><code>RecorderLayoutPicker.tsx</code>: drop the loser once the tiles have click counts.</p></div>
+
+</main></body></html>

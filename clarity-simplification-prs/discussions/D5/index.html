@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D5 · Settings as one page; billing through Stripe; no cancel survey</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D5</p>
+<h1>Settings as one page; billing through Stripe; no cancel survey</h1>
+<p class="kicker">Settings (Branding, Billing, Subscription, Password, Notifications) and Profile. Billing and the cancel survey are policy calls.</p>
+<div class="rec"><strong>Recommendation</strong><p>Replace five settings tabs plus Profile with one page: Brand, Notifications, Plan, Your account. The Plan card shows the plan, the renewal or trial date, "Manage billing" and a quiet "Cancel plan". "Manage billing" opens the Stripe customer portal; for the 91% of active rows that have no Stripe customer yet, the card says billing is handled by support@clarity.video. The Password page becomes "Send password reset email", shown only to accounts that sign in with a password. The cancel dialog keeps one confirm and loses the required reason and the re-subscribe question. hello@ on the sign-in rail becomes support@.</p>
+<p>Billing and the survey are policy, not UX: say yes or no to each.</p></div>
+<h2>The problem</h2><p>Account settings are spread over six pages (five tabs and Profile) for ten fields that matter. Billing today lists cards with no way to add one and never marks the default card. The Subscription page carries a required cancel reason that no table stores. Password change is a three-field form for something WorkOS already does by email. Two support addresses exist.</p>
+<h2>What it would look like</h2><p>Before, six screens. After, one page.</p><div class="pair"><figure><span class="label">Before</span><a href="before-subscription.png"><img src="before-subscription.png" alt="Settings &gt; Subscription on staging, one of five tabs." loading="lazy"></a><figcaption>Settings > Subscription on staging, one of five tabs.</figcaption></figure><figure><span class="label">Before</span><a href="before-billing.png"><img src="before-billing.png" alt="Settings &gt; Billing: an empty card list with no add button." loading="lazy"></a><figcaption>Settings > Billing: an empty card list with no add button.</figcaption></figure></div><div class="pair"><figure><span class="label">Before</span><a href="before-password.png"><img src="before-password.png" alt="Settings &gt; Password." loading="lazy"></a><figcaption>Settings > Password.</figcaption></figure><figure><span class="label">Before</span><a href="before-profile.png"><img src="before-profile.png" alt="Profile: address, timezone, three phones (U15 trims this tonight)." loading="lazy"></a><figcaption>Profile: address, timezone, three phones (U15 trims this tonight).</figcaption></figure></div><figure><span class="label">After</span><a href="after-settings.png"><img src="after-settings.png" alt="One page. Brand, Notifications, Plan, Your account. Built from the app's own CSS and class names." loading="lazy"></a><figcaption>One page. Brand, Notifications, Plan, Your account. Built from the app's own CSS and class names.</figcaption></figure><figure><span class="label">After, phone</span><a href="after-settings-phone.png"><img src="after-settings-phone.png" alt="390px." loading="lazy"></a><figcaption>390px.</figcaption></figure>
+<h2>What the data says</h2><h3>Customer subscription rows (1,567 rows, 1,396 users)</h3><div class="tbl"><table><thead><tr><th class="">Status</th><th class="num">Rows</th><th class="num">With a Stripe customer id</th><th class="num">With a Stripe subscription id</th></tr></thead><tbody><tr><td class="">active</td><td class="num">1,478</td><td class="num">133 (9%)</td><td class="num">92</td></tr><tr><td class="">cancelled</td><td class="num">54</td><td class="num">50</td><td class="num">50</td></tr><tr><td class="">unknown</td><td class="num">29</td><td class="num">29</td><td class="num">10</td></tr></tbody></table></div><p class="kicker">A portal link needs a Stripe customer. 1,345 active rows have none; they are legacy imports and the webhook has not written Stripe ids back (known gap). Every cancelled row has cancel_at_period_end set, no active row does.</p><h3>Cancel survey</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Result</th></tr></thead><tbody><tr><td class="">Keys in subscriptions.source_json</td><td class="num">id, subscription_name, status, payment_plan, trial and period dates, Stripe ids</td></tr><tr><td class="">Any key holding a reason or survey answer</td><td class="num">none</td></tr></tbody></table></div><p class="kicker">The dialog posts "reason" (SubscriptionRoute.tsx:245). Where the API puts it is not the subscription row; inferred: it is logged or mailed, or dropped.</p><h3>Sign-in method</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Customers</th></tr></thead><tbody><tr><td class="">Google connection on the profile</td><td class="num">721</td></tr><tr><td class="">Microsoft connection</td><td class="num">147</td></tr><tr><td class="">Neither</td><td class="num">1,616</td></tr></tbody></table></div><p class="kicker">These are connected accounts, not the login method. The real split needs the WorkOS API. An account that only signs in with Google has no password, so the reset button must show only for password accounts.</p><p><p>Other code facts: the settings index redirects to Branding (<code>App.tsx:126</code>), not Notifications as the audit said. The portal link code exists (<code>account-billing.ts:144</code>, <code>createPortalLink</code>). support@clarity.video is used in three places, hello@ in one (<code>AuthRoute.tsx:183</code>).</p></p>
+<h2>Options</h2><div class="opt"><b>One page, portal with a support fallback, no survey (recommended)</b><p>One route, four cards, two policy switches William can say no to without changing the layout.</p></div><div class="opt"><b>One page, keep the in-app card list</b><p>Keeps a billing UI Clarity has to maintain (and the default-card bug) for 133 accounts that Stripe would serve better.</p></div><div class="opt"><b>Keep the tabs, fix the copy</b><p>U02 and U20 do this tonight. This item is about whether to go further.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Policy: does the Stripe portal replace the in-app card list, with the support line for accounts that have no Stripe customer?</div><p class="ans"><b>Recommended:</b> Yes. The portal link code exists; the card list has no add button and never shows the default card.</p></div><div class="q"><div class="ask">2. Policy: does the cancel survey (required reason, re-subscribe question) go?</div><p class="ans"><b>Recommended:</b> Yes. Nothing stores the answers on the subscription. If William wants the signal, one optional free-text line after the cancel is enough.</p></div><div class="q"><div class="ask">3. Profile folds into Settings as "Your account", and the account menu item reads "Settings"?</div><p class="ans"><b>Recommended:</b> Yes. Once Contacts and Learn leave the nav (D7), the account menu is the only way into Settings, so it needs the item.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. One settings page</b><p>New <code>/settings</code> route with the four cards; old tab routes redirect. Profile fields that U15 keeps move into "Your account". Evidence: page desktop and phone, every field round-trips.</p></div><div class="pr"><b>PR 2. Plan card and portal (policy)</b><p>Plan line, date line, "Manage billing" via <code>createPortalLink</code>, support line when <code>no_customer</code>. Delete BillingRoute.</p></div><div class="pr"><b>PR 3. Password reset instead of the form</b><p>"Send password reset email" through the existing WorkOS reset flow; hidden for accounts without a password. Delete PasswordRoute.</p></div><div class="pr"><b>PR 4. Cancel dialog (policy) and one support address</b><p>Delete the reason radio group and the re-subscribe question; hello@ becomes support@ on the sign-in rail.</p></div>
+
+</main></body></html>

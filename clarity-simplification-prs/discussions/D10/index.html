@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D10 · Blocks: keep pricing and summary apart; phone optional; consent wording</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D10</p>
+<h1>Blocks: keep pricing and summary apart; phone optional; consent wording</h1>
+<p class="kicker">Pricing and summary blocks, the lead form defaults and the consent line on the public page. The consent text is a compliance call.</p>
+<div class="rec"><strong>Recommendation</strong><p>Do not fold summary into pricing. Seven recent pages use both and two use only a summary; a merged block makes the pricing editor carry a table for those nine, and 1,697 legacy pricing blocks would need the new shape. U17 renames the tile to "Summary table" and U19 drops the three-tier chip tonight, which is the real complaint.</p>
+<p>New forms start with phone optional (existing forms keep their flags). The consent line becomes "I agree to be contacted by email or text about this proposal." It keeps the text-message consent the current line carries, in words a prospect reads. Whoever chose the current wording should confirm it is still enough for texting.</p></div>
+<h2>The problem</h2><p>Pricing is on 7% of recent customer pages and summary on 3%, and the audit asked whether they should be one block. The form defaults make phone required and show a consent line written for a billing system ("transactional messages related to my account, orders, or services I have requested") on a sales page.</p>
+<h2>What it would look like</h2><p>Before, the form editor and the public form today. After, phone optional and the new consent line.</p><div class="pair"><figure><span class="label">Before</span><a href="before-form-editor-close.png"><img src="before-form-editor-close.png" alt="Form block in the editor on staging." loading="lazy"></a><figcaption>Form block in the editor on staging.</figcaption></figure><figure><span class="label">After</span><a href="after-form-editor.png"><img src="after-form-editor.png" alt="Phone optional, consent line, one Submit (U04 removes Cancel tonight). The mockup's consent line lacks &quot;by email or text&quot;; the recommended wording is in the text above." loading="lazy"></a><figcaption>Phone optional, consent line, one Submit (U04 removes Cancel tonight). The mockup's consent line lacks "by email or text"; the recommended wording is in the text above.</figcaption></figure></div><div class="pair"><figure><span class="label">Before</span><a href="before-public-form.png"><img src="before-public-form.png" alt="Public page form: &quot;Enter First Name&quot;, Cancel beside Submit (U04 fixes both)." loading="lazy"></a><figcaption>Public page form: "Enter First Name", Cancel beside Submit (U04 fixes both).</figcaption></figure><figure><span class="label">After</span><a href="after-public-form.png"><img src="after-public-form.png" alt="Plain labels, &quot;Phone (optional)&quot;, the new consent line." loading="lazy"></a><figcaption>Plain labels, "Phone (optional)", the new consent line.</figcaption></figure></div><figure><span class="label">Kept apart</span><a href="before-pricing-summary.png"><img src="before-pricing-summary.png" alt="Pricing and summary blocks on the fixture page." loading="lazy"></a><figcaption>Pricing and summary blocks on the fixture page.</figcaption></figure>
+<h2>What the data says</h2><h3>Lead forms on customer pages: required flags</h3><div class="tbl"><table><thead><tr><th class="">Field</th><th class="num">Last 90 days required / optional</th><th class="num">All time required / optional</th></tr></thead><tbody><tr><td class="">email</td><td class="num">11 / 0</td><td class="num">82 / 0</td></tr><tr><td class="">mobile_number</td><td class="num">9 / 0</td><td class="num">79 / 0</td></tr><tr><td class="">first_name</td><td class="num">2 / 9</td><td class="num">3 / 80</td></tr><tr><td class="">last_name</td><td class="num">2 / 9</td><td class="num">3 / 81</td></tr><tr><td class="">custom fields</td><td class="num">0 / 11</td><td class="num">14 / 12</td></tr></tbody></table></div><p class="kicker">11 recent forms, 88 all time. 4 of 11 recent forms are the untouched default. No form stores a consent field; the consent checkbox is hard-coded on the public page (render-blocks.ts:556-558).</p><h3>Submissions on customer pages</h3><div class="tbl"><table><thead><tr><th class="">Set</th><th class="num">Rows</th><th class="num">With email</th><th class="num">Without phone</th></tr></thead><tbody><tr><td class="">All time</td><td class="num">202</td><td class="num">199</td><td class="num">8</td></tr><tr><td class="">Last 90 days</td><td class="num">18</td><td class="num">17</td><td class="num">1</td></tr></tbody></table></div><p class="kicker">Phone is required on nearly every form, so this says nothing about how many prospects would skip it when optional. There is no local evidence either way; the question is a judgment.</p><h3>Pricing and summary, last 90 days</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Count</th></tr></thead><tbody><tr><td class="">Pricing blocks</td><td class="num">22 (14 with one plan, 2 with three, 5 empty)</td></tr><tr><td class="">Summary blocks</td><td class="num">9 (all two columns, 3 still the empty seed)</td></tr><tr><td class="">Pages with both</td><td class="num">7</td></tr><tr><td class="">Pricing only</td><td class="num">14</td></tr><tr><td class="">Summary only</td><td class="num">2</td></tr><tr><td class="">Legacy pricing blocks, all time</td><td class="num">1,697</td></tr></tbody></table></div>
+<h2>Options</h2><div class="opt"><b>Keep both blocks, phone optional, plain consent (recommended)</b><p>Three small copy and default changes, no migration.</p></div><div class="opt"><b>Fold summary into pricing</b><p>A pricing editor with an optional table, a migration for 9 summary blocks and a new shape for 1,697 pricing blocks, for two pages that use a summary without pricing.</p></div><div class="opt"><b>Keep phone required</b><p>Reps get a phone on every lead. Prospects who will not give a phone leave nothing. No local data on which matters more.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Keep pricing and summary as two blocks?</div><p class="ans"><b>Recommended:</b> Yes.</p></div><div class="q"><div class="ask">2. Phone optional for new forms (existing forms keep required)?</div><p class="ans"><b>Recommended:</b> Yes. The email is what the view notification and the lead row need; a phone can be asked for on the call.</p></div><div class="q"><div class="ask">3. Compliance: is "I agree to be contacted by email or text about this proposal." enough for the texting the GoHighLevel sync enables, or must the transactional-messages wording stay?</div><p class="ans"><b>Recommended:</b> Use the new line unless the person who wrote the current one says texting rules need the old phrasing. That is a check, not a design choice.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Form defaults and consent</b><p><code>blocks.ts</code> createDefaultFormFields (mobile_number required false), <code>render-blocks.ts:558</code> consent text, <code>FormEditor.tsx</code> preview. Lands after U04. Evidence: new form in the editor, public form on the PR preview, a submission without phone accepted.</p></div>
+
+</main></body></html>

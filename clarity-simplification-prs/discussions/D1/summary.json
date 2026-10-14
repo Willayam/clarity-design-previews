@@ -1,0 +1,55 @@
+{
+  "id": "D1",
+  "title": "Build the page from what the rep said: transcript into the composer, composer open on arrival, Build page after recording",
+  "recommendation": "Attach the take's transcript as a removable chip in the composer, open the composer with one question (\"Who is this video for?\") when the editor is reached from the recorder, rename the finish-screen action to \"Build page\", and land PR #1423 first so the transcript is there within two seconds of Stop instead of about thirty.",
+  "questions": [
+    {
+      "q": "Does the rep answer one question before the page builds, or does Build page run at once?",
+      "recommended": "Ask \"Who is this video for?\", but let an empty answer build from the transcript alone (the composer's existing default prompt for pasted sources)."
+    },
+    {
+      "q": "Should the rep see the transcript as a chip they can remove, or is it attached silently on the server?",
+      "recommended": "A visible \"Transcript\" chip in the composer, removable. The AI prompt already treats pasted sources as material, not instructions, so no prompt change is needed."
+    },
+    {
+      "q": "Does PR #1423 (live transcript and title at Stop) land before this work?",
+      "recommended": "Yes. Measured on main the transcript is ready 28.9 s after Stop and the editor is open at 6.2 s; with #1423 the words are complete at Stop in 15 of 16 takes. Resolve its conflict with #1429 and give the 503 fallback a retry."
+    },
+    {
+      "q": "What does the finish-screen button say: \"Build page\" (audit) or \"Edit page\" (U09 tonight)?",
+      "recommended": "\"Build page\", filled, with \"Copy link\" as the outline button. Tell U09 to drop its \"Edit page\" hunk."
+    },
+    {
+      "q": "After Build, does the page publish itself, or does the rep publish?",
+      "recommended": "The rep publishes. The take page is already live from the grant with the video and title; Share should publish the built draft and copy the link in one click, with the dialog behind \"Options\"."
+    },
+    {
+      "q": "When the transcript is late or missing (non-English take, Workers AI 503), does Build wait or go without it?",
+      "recommended": "Go without it after five seconds and say so in the chip (\"Transcript not available\"). The rep can rebuild with \"Edit with AI\" once it lands."
+    }
+  ],
+  "files": [
+    "index.html",
+    "summary.json",
+    "shots/current-flow.webm",
+    "shots/timeline.json",
+    "shots/01-record-setup.png",
+    "shots/02-recording.png",
+    "shots/03-finish.png",
+    "shots/03b-finish-console.png",
+    "shots/04-editor-landing.png",
+    "shots/05-composer-open.png",
+    "shots/05b-composer-closeup.png",
+    "shots/06-share-dialog.png",
+    "shots/m-03-finish.png",
+    "shots/m-04-editor-landing.png",
+    "shots/m-05-composer-open.png",
+    "mockup/index.html",
+    "mockup/app.css",
+    "mockup/a-finish-desktop.png",
+    "mockup/b-editor-desktop.png",
+    "mockup/b-composer-closeup.png",
+    "mockup/c-finish-phone.png",
+    "mockup/c-editor-phone.png"
+  ]
+}

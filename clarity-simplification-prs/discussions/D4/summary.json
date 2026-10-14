@@ -1,0 +1,30 @@
+{
+  "id": "D4",
+  "title": "Layout controls: delete the dead ones, keep the ones one in ten pages use",
+  "recommendation": "Delete summary column insert/drag/remove, the drag-resize grip and the heading alignment bar on sections (hero keeps it); keep Wrap text, gallery columns and logo colour because customers use them on 18 to 38% of the blocks that have them.",
+  "questions": [
+    {
+      "q": "Adopt the one-in-ten rule as the test for layout controls?",
+      "recommended": "Yes. It is the same test as the usage audit, applied per control instead of per block."
+    },
+    {
+      "q": "Alignment bar: delete on sections, keep on the hero?",
+      "recommended": "Yes. Stored alignments keep rendering, so no live page changes."
+    },
+    {
+      "q": "Gallery columns: keep the stepper, or derive from the image count as the audit suggested?",
+      "recommended": "Keep the stepper. Deriving would change five live galleries and the stepper is one control."
+    }
+  ],
+  "files": [
+    "index.html",
+    "before-summary-columns-close.png",
+    "after-summary-table.png",
+    "before-story-media-toolbar-close.png",
+    "after-story-media-toolbar.png",
+    "before-align-bar-close.png",
+    "after-heading-selected.png",
+    "before-gallery-stepper-close.png",
+    "before-logo-color-close.png"
+  ]
+}

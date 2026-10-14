@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D3 · Style panel: presets first, the levers under &quot;More&quot;</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D3</p>
+<h1>Style panel: presets first, the levers under &quot;More&quot;</h1>
+<p class="kicker">Editor topbar, Page style panel. The theme system itself (presets as macros over levers) does not change.</p>
+<div class="rec"><strong>Recommendation</strong><p>The panel opens on the six preset cards and a collapsed "More". More holds the levers William blessed in July (Fonts, Background, Size, Corners) plus the page accent colour, which defaults to the brand colour from Settings. "Add logo" and logo alignment leave the panel: the logo is added on the canvas and set once in Settings, and its alignment is a hero property. Nothing about storage or the CSS changes; this is only what the panel shows first.</p></div>
+<h2>The problem</h2><p>The panel shows 29 choices at once (six presets, logo, alignment, colour dots, background, six fonts, size, corners). 9% of recent customer pages store any theme at all, and the per-lever overrides are single digits: font pair 9 pages, background tone 5, size 1, corners 1, out of 288. The colour row is the exception: 44 recent pages (15%) carry a non-default accent colour.</p>
+<h2>What it would look like</h2><p>Before, every lever is open. After, presets and one disclosure.</p><div class="pair"><figure><span class="label">Before</span><a href="before-style-panel.png"><img src="before-style-panel.png" alt="Page style panel on staging: presets, logo, alignment, colour, background, fonts, size, corners." loading="lazy"></a><figcaption>Page style panel on staging: presets, logo, alignment, colour, background, fonts, size, corners.</figcaption></figure><figure><span class="label">After</span><a href="after-style-panel.png"><img src="after-style-panel.png" alt="Six presets, a line pointing at Settings for brand colour and logo, &quot;More&quot; collapsed." loading="lazy"></a><figcaption>Six presets, a line pointing at Settings for brand colour and logo, "More" collapsed.</figcaption></figure></div><div class="pair"><figure><span class="label">After, More open</span><a href="after-style-panel-more.png"><img src="after-style-panel-more.png" alt="Fonts, Background, Size, Corners. Accent colour belongs here too (not drawn in this mockup)." loading="lazy"></a><figcaption>Fonts, Background, Size, Corners. Accent colour belongs here too (not drawn in this mockup).</figcaption></figure><figure><span class="label">After, phone</span><a href="after-style-panel-phone.png"><img src="after-style-panel-phone.png" alt="390px wide." loading="lazy"></a><figcaption>390px wide.</figcaption></figure></div>
+<h2>What the data says</h2><h3>Theme stored on customer pages, last 90 days (288 pages)</h3><div class="tbl"><table><thead><tr><th class="">Value</th><th class="num">Pages</th></tr></thead><tbody><tr><td class="">No theme</td><td class="num">261 (91%)</td></tr><tr><td class="">clean</td><td class="num">9</td></tr><tr><td class="">theme without a preset</td><td class="num">7</td></tr><tr><td class="">aurora</td><td class="num">6</td></tr><tr><td class="">bold</td><td class="num">2</td></tr><tr><td class="">editorial</td><td class="num">1</td></tr><tr><td class="">warm</td><td class="num">1</td></tr><tr><td class="">noir</td><td class="num">1</td></tr></tbody></table></div><p class="kicker">All 27 themed customer pages are recent; the all-time share is below 1%.</p><h3>Lever overrides stored, last 90 days</h3><div class="tbl"><table><thead><tr><th class="">Override</th><th class="num">Pages</th></tr></thead><tbody><tr><td class="">font pair (system 6, editorial 2, modern 1)</td><td class="num">9</td></tr><tr><td class="">background tone (dark 3, tint 2)</td><td class="num">5</td></tr><tr><td class="">size step m</td><td class="num">1</td></tr><tr><td class="">corners pill</td><td class="num">1</td></tr></tbody></table></div><h3>Colour and logo</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Count</th></tr></thead><tbody><tr><td class="">Recent pages with hero ctaColor set</td><td class="num">223 of 288</td></tr><tr><td class="">of which the default blue #2563eb</td><td class="num">179</td></tr><tr><td class="">of which another colour</td><td class="num">44 (15%)</td></tr><tr><td class="">Customer workspaces with a brand logo in Settings</td><td class="num">151 of 155 rows</td></tr><tr><td class="">with a brand primary colour in Settings</td><td class="num">16</td></tr></tbody></table></div><p class="kicker">The accent still lives on the hero's ctaColor, not in the theme (open item in the July design). 14 themed pages also carry a ctaColor.</p>
+<h2>Options</h2><div class="opt"><b>Presets plus &quot;More&quot;, levers kept (recommended)</b><p>Keeps the macro-over-levers system intact and reachable, and shows a first-time rep six cards instead of 29 controls. The one-in-seven pages that change the accent colour still can, inside More.</p></div><div class="opt"><b>Presets only, delete Size and Corners (the audit's cut)</b><p>Fewer controls, but it removes levers the preset system was built around in July (Size s/m/l was a stated requirement) for a saving of two rows that are already hidden under More in the recommended option.</p></div><div class="opt"><b>Leave the panel, reorder it</b><p>Presets to the top, everything else below. Cheaper, but a new rep still meets 29 choices.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Keep Size and Corners (under More) or delete them from the panel as the audit proposed?</div><p class="ans"><b>Recommended:</b> Keep them under More. The lever system is the architecture; hiding costs nothing, deleting reopens a settled design.</p></div><div class="q"><div class="ask">2. Does the page accent colour stay per page (under More, defaulting to the brand colour) or become Settings-only?</div><p class="ans"><b>Recommended:</b> Per page under More. 44 of 288 recent pages use a non-default colour, and the brand-colour setting is filled on only 16 workspaces today.</p></div><div class="q"><div class="ask">3. Logo off the panel entirely (canvas "+ Add logo" and Settings only)?</div><p class="ans"><b>Recommended:</b> Yes. U18 already reduces the three logo prompts to Settings plus one in-editor ask; the panel checkbox is the one to lose.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Panel layout</b><p><code>editor/src/components/editor/ThemeStylePanel.tsx</code>: presets, Settings line, More disclosure (Fonts, Background, Size, Corners, Colour). Delete the logo and alignment rows. Evidence: panel desktop and phone, More open and closed, a page with an override still showing it inside More.</p></div><div class="pr"><b>PR 2. Logo alignment moves to the hero</b><p>The hero's logo alignment control lives with the logo on the canvas (edge-mounted, like the media grip). Depends on U18's logo decision.</p></div><div class="pr"><b>PR 3. Accent colour defaults to the brand colour</b><p>New pages take ctaColor from Settings > Brand (the existing <code>DEFAULT_CUSTOMER_BRAND_PRIMARY</code> path). Existing pages untouched.</p></div>
+
+</main></body></html>

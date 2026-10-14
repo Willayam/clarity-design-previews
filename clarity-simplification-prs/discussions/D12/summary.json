@@ -1,0 +1,23 @@
+{
+  "id": "D12",
+  "title": "Prospect-page tracking: delete the dead events, count submits on the server, add a viewer id",
+  "recommendation": "Delete the four event types that no code emits, record form submits from the worker after the row is stored, and give each prospect a stored per-page viewer id so return visits fall out of page_view rows without a new event.",
+  "questions": [
+    {
+      "q": "Delete section_view, section_dwell, scroll_depth and return_visit rather than build them?",
+      "recommended": "Yes."
+    },
+    {
+      "q": "Privacy: store a per-page viewer id in the prospect's browser so return visits can be shown?",
+      "recommended": "Yes, as localStorage scoped to the share id with no cookie and no cross-page use. If William wants zero client storage on prospect pages, \"returned\" stays unbuilt and the answer to question 1 covers it."
+    },
+    {
+      "q": "Count form submits on the server after the row is stored?",
+      "recommended": "Yes. The stored row is the truth; the event is for the stats timeline."
+    }
+  ],
+  "files": [
+    "index.html",
+    "before-page-stats.png"
+  ]
+}

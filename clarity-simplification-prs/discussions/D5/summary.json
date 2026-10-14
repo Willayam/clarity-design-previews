@@ -1,0 +1,28 @@
+{
+  "id": "D5",
+  "title": "Settings as one page; billing through Stripe; no cancel survey",
+  "recommendation": "One Settings page with four cards (Brand, Notifications, Plan, Your account); the Plan card opens the Stripe portal when the account has a Stripe customer and shows a support line otherwise; the Password page becomes a reset-email button; the cancel survey goes; support@ is the one address.",
+  "questions": [
+    {
+      "q": "Policy: does the Stripe portal replace the in-app card list, with the support line for accounts that have no Stripe customer?",
+      "recommended": "Yes. The portal link code exists; the card list has no add button and never shows the default card."
+    },
+    {
+      "q": "Policy: does the cancel survey (required reason, re-subscribe question) go?",
+      "recommended": "Yes. Nothing stores the answers on the subscription. If William wants the signal, one optional free-text line after the cancel is enough."
+    },
+    {
+      "q": "Profile folds into Settings as \"Your account\", and the account menu item reads \"Settings\"?",
+      "recommended": "Yes. Once Contacts and Learn leave the nav (D7), the account menu is the only way into Settings, so it needs the item."
+    }
+  ],
+  "files": [
+    "index.html",
+    "before-subscription.png",
+    "before-billing.png",
+    "before-password.png",
+    "before-profile.png",
+    "after-settings.png",
+    "after-settings-phone.png"
+  ]
+}

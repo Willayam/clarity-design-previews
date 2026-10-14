@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D7 · Leads instead of Contacts; Learn becomes Help</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D7</p>
+<h1>Leads instead of Contacts; Learn becomes Help</h1>
+<p class="kicker">Main navigation, Contacts route, Learn route, account menu, phone tab bar.</p>
+<div class="rec"><strong>Recommendation</strong><p>The nav becomes Home and Leads. Leads lists form submissions newest first with Name, Email, Phone, Page and When, plus search and Export CSV. The 1,769 existing contacts stay readable behind a quiet "Older contacts" link on the same route, read-only with export; Add contact, Import CSV, Department and Industry go. Learn becomes "Help" in the account menu, and the account menu gains "Settings" (it is the only way in once Contacts and Learn leave the nav). The phone bar drops to Home, Leads, Record, More.</p>
+<p>Storage does not change: submissions already upsert into the contacts table (<code>lead-capture-contact.ts</code>), which the GoHighLevel sync reads, so the sync keeps working.</p></div>
+<h2>The problem</h2><p>Contacts is a small CRM (Department, Industry, Import CSV, Add contact) that never shows which page a lead came from. In 90 days customers created 6 contacts by hand and 4 arrived from forms; no CSV, Google or Salesforce contact has arrived in 90 days. Learn is nine static videos holding a slot in the main nav and one of five phone tabs.</p>
+<h2>What it would look like</h2><p>Before, a CRM table. After, a leads list that answers "who filled in which page, when".</p><div class="pair"><figure><span class="label">Before</span><a href="before-contacts.png"><img src="before-contacts.png" alt="Contacts on staging: Export All, Import CSV, Add Contact." loading="lazy"></a><figcaption>Contacts on staging: Export All, Import CSV, Add Contact.</figcaption></figure><figure><span class="label">After</span><a href="after-leads.png"><img src="after-leads.png" alt="Leads: search, Export CSV, Name / Email / Phone / Page / When. Fixture rows." loading="lazy"></a><figcaption>Leads: search, Export CSV, Name / Email / Phone / Page / When. Fixture rows.</figcaption></figure></div><div class="pair"><figure><span class="label">Before</span><a href="before-page-contacts.png"><img src="before-page-contacts.png" alt="The &quot;2 prospects&quot; badge opens a per-page contacts table." loading="lazy"></a><figcaption>The "2 prospects" badge opens a per-page contacts table.</figcaption></figure><figure><span class="label">After, phone</span><a href="after-leads-phone.png"><img src="after-leads-phone.png" alt="The table scrolls sideways at 390px, as the app's tables do today." loading="lazy"></a><figcaption>The table scrolls sideways at 390px, as the app's tables do today.</figcaption></figure></div><div class="pair"><figure><span class="label">After, nav</span><a href="after-sidebar.png"><img src="after-sidebar.png" alt="Home and Leads." loading="lazy"></a><figcaption>Home and Leads.</figcaption></figure><figure><span class="label">After, account menu</span><a href="after-account-menu.png"><img src="after-account-menu.png" alt="Profile, Help, Sign out. Add &quot;Settings&quot; (see question 3)." loading="lazy"></a><figcaption>Profile, Help, Sign out. Add "Settings" (see question 3).</figcaption></figure></div><figure><span class="label">After, phone tabs</span><a href="after-phone-tabs.png"><img src="after-phone-tabs.png" alt="Home, Leads, Record, More." loading="lazy"></a><figcaption>Home, Leads, Record, More.</figcaption></figure>
+<h2>What the data says</h2><h3>Customer contacts (1,769 live rows, 199 owners)</h3><div class="tbl"><table><thead><tr><th class="">Source</th><th class="num">Rows</th><th class="num">Created last 90 days</th></tr></thead><tbody><tr><td class="">(none)</td><td class="num">919</td><td class="num">0</td></tr><tr><td class="">google</td><td class="num">234</td><td class="num">0</td></tr><tr><td class="">imported</td><td class="num">192</td><td class="num">0</td></tr><tr><td class="">clarity (by hand)</td><td class="num">189</td><td class="num">6</td></tr><tr><td class="">SalesForce</td><td class="num">110</td><td class="num">0</td></tr><tr><td class="">csv</td><td class="num">104</td><td class="num">0</td></tr><tr><td class="">microsoft</td><td class="num">17</td><td class="num">0</td></tr><tr><td class="">journey_page_form</td><td class="num">4</td><td class="num">4</td></tr></tbody></table></div><p class="kicker">Per owner: median 2, p90 18, max 179. Department filled on 24 rows, industry on 240, organization on 320.</p><h3>Form submissions (journey_page_submissions)</h3><div class="tbl"><table><thead><tr><th class="">Set</th><th class="num">Rows</th><th class="num">Pages</th><th class="num">Owners</th></tr></thead><tbody><tr><td class="">Customer, all time</td><td class="num">202</td><td class="num">22</td><td class="num">20</td></tr><tr><td class="">Customer, last 90 days</td><td class="num">18</td><td class="num">4</td><td class="num">4</td></tr><tr><td class="">All accounts, last 90 days</td><td class="num">176</td><td class="num">8</td><td class="num">7</td></tr></tbody></table></div><p class="kicker">158 of the 176 recent submissions are internal test traffic. Submissions became contacts only from 2026-07-26 (4 rows); older ones were never backfilled, so the Leads page must read submissions, not contacts.</p><p><p>Code facts: CSV import is browser-only, one POST per row with <code>source: "csv"</code> (<code>ContactsIndexRoute.tsx:472, 651</code>); the API has no import route. GoHighLevel sync: 57 rows, 23 customers, none failed.</p></p>
+<h2>Options</h2><div class="opt"><b>Leads from submissions, old contacts read-only (recommended)</b><p>Answers the question a rep has, drops the CRM fields nobody fills, keeps every row readable and exportable, and keeps the sync.</p></div><div class="opt"><b>Leads page plus the CRM kept as a second tab</b><p>Two lists with two schemas on one route. The CRM tab would be for 6 hand-made contacts a quarter.</p></div><div class="opt"><b>Per-page Leads only (no global list)</b><p>The page card badge already does this. Reps with several pages need one list.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Leads (submissions, newest first, with page and date) replaces Contacts in the nav?</div><p class="ans"><b>Recommended:</b> Yes.</p></div><div class="q"><div class="ask">2. The 1,769 existing contacts: read-only "Older contacts" with export, and delete Add, Import CSV, Department and Industry?</div><p class="ans"><b>Recommended:</b> Yes. 10 contacts were created in 90 days; export covers the 199 owners who have rows.</p></div><div class="q"><div class="ask">3. Learn moves to "Help" in the account menu, and "Settings" joins that menu?</div><p class="ans"><b>Recommended:</b> Yes. U16 flattens Learn's tabs tonight; this moves it. Settings needs a home once the nav is Home and Leads.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Leads route</b><p>New <code>/leads</code> reading submissions joined to pages (owner-scoped API), search, CSV export, relative "When". Nav item and phone tab swap. The page card badge links here with a page filter. Evidence: desktop and phone, a page filter, export.</p></div><div class="pr"><b>PR 2. Older contacts read-only</b><p>Contacts route becomes the read-only list with export, reachable from Leads. Delete create, edit, import UI and their API routes if nothing else calls them (the GoHighLevel sync reads the table, not the API).</p></div><div class="pr"><b>PR 3. Help in the account menu</b><p>Learn leaves the sidebar and MobileNav; "Help" and "Settings" join the account menu. Four phone tabs.</p></div>
+
+</main></body></html>

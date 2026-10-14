@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D9 · Library: Images and Documents become one &quot;Files&quot; tab</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D9</p>
+<h1>Library: Images and Documents become one &quot;Files&quot; tab</h1>
+<p class="kicker">Home library type tabs, desktop and phone.</p>
+<div class="rec"><strong>Recommendation</strong><p>Four tabs: All, Videos, Pages, Files. Files holds images and PDFs with the type on the card. Nothing else changes; the picker inside the editor already lists both.</p></div>
+<h2>The problem</h2><p>Five tabs for four content types, and two of them (Images, Documents) are page ingredients, not things a rep sends. Documents are rare: 101 customer workspaces have one, against 614 with an image and 1,313 with anything.</p>
+<h2>What it would look like</h2><div class="pair"><figure><span class="label">Before</span><a href="before-images-tab.png"><img src="before-images-tab.png" alt="Images tab on staging." loading="lazy"></a><figcaption>Images tab on staging.</figcaption></figure><figure><span class="label">Before</span><a href="before-documents-tab.png"><img src="before-documents-tab.png" alt="Documents tab on staging." loading="lazy"></a><figcaption>Documents tab on staging.</figcaption></figure></div><div class="pair"><figure><span class="label">After</span><a href="after-files-tab.png"><img src="after-files-tab.png" alt="All, Videos, Pages, Files. Images and PDFs in one grid with the type on the card." loading="lazy"></a><figcaption>All, Videos, Pages, Files. Images and PDFs in one grid with the type on the card.</figcaption></figure><figure><span class="label">After, phone</span><a href="after-files-tab-phone.png"><img src="after-files-tab-phone.png" alt="390px." loading="lazy"></a><figcaption>390px.</figcaption></figure></div><div class="pair"><figure><span class="label">Before</span><a href="before-tabs-close.png"><img src="before-tabs-close.png" alt="Tab row." loading="lazy"></a><figcaption>Tab row.</figcaption></figure><figure><span class="label">After</span><a href="after-tabs-close.png"><img src="after-tabs-close.png" alt="Tab row." loading="lazy"></a><figcaption>Tab row.</figcaption></figure></div>
+<h2>What the data says</h2><h3>Customer workspace nodes</h3><div class="tbl"><table><thead><tr><th class="">Type</th><th class="num">All time</th><th class="num">Created last 90 days</th><th class="num">Used in a live page</th></tr></thead><tbody><tr><td class="">video</td><td class="num">6,021</td><td class="num">238</td><td class="num"></td></tr><tr><td class="">journey_page</td><td class="num">5,296</td><td class="num">162</td><td class="num"></td></tr><tr><td class="">image</td><td class="num">5,277</td><td class="num">415</td><td class="num">2,754 (52%)</td></tr><tr><td class="">document</td><td class="num">241</td><td class="num">19</td><td class="num">132 (55%)</td></tr><tr><td class="">folder</td><td class="num">914</td><td class="num">25</td><td class="num"></td></tr></tbody></table></div><p class="kicker">Workspaces with any image: 614. With any document: 101. "Used" matches the node's asset id inside any live page document (gallery, logos, hero and story media, document block url). Migrated nodes carry their import date, so the 90-day column is close but not exact.</p>
+<h2>Options</h2><div class="opt"><b>One Files tab (recommended)</b><p>One tab fewer, no data change, the type stays visible on the card.</p></div><div class="opt"><b>Drop both tabs, keep files in the editor picker only</b><p>Half of uploaded images never land on a page, so reps do browse and manage them. Removing the view hides 5,277 items.</p></div><div class="opt"><b>Leave five tabs</b><p>Nothing wrong with it except one more tab than the content needs.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Merge Images and Documents into Files?</div><p class="ans"><b>Recommended:</b> Yes.</p></div><div class="q"><div class="ask">2. Tab order: All, Videos, Pages, Files?</div><p class="ans"><b>Recommended:</b> Yes. Videos first matches U11 making Record the first action.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. Files tab</b><p><code>HomeTreeRoute.tsx</code> TYPE_OPTIONS and the filter (value "image" or "document"), empty state copy, phone tab row, the <code>?library=</code> query values with redirects for the old two. Evidence: desktop and phone tabs, Files grid, old URLs redirect.</p></div>
+
+</main></body></html>

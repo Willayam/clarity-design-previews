@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D11 · Share dialog: Unpublish and password under &quot;More options&quot;</title><style>
+:root{--ink:#111;--muted:#5f6368;--line:#e4e4e7;--bg:#fff;--soft:#f6f6f7;--accent:#1d4ed8;--ok:#0a7a3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 8px}
+p{margin:0 0 12px}
+.kicker{color:var(--muted);margin:0 0 20px}
+.rec{background:var(--soft);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0 8px;border-radius:0 8px 8px 0}
+.rec strong{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+code{overflow-wrap:anywhere}
+p,li,.q{overflow-wrap:break-word}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:12px 0 20px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fafafa}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0}
+.label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.q .ask{font-weight:600;margin-bottom:6px}
+.q .ans{margin:0}
+.q .ans b{color:var(--ok)}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin:4px 0}
+.opt{margin:8px 0 8px}
+.opt b{display:block}
+.pr{padding:10px 14px;border:1px dashed var(--line);border-radius:8px;margin:8px 0;font-size:15px}
+.pr b{display:block}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.nav{font-size:14px;color:var(--muted);margin-bottom:12px}
+.nav a{color:var(--muted)}
+details{margin:8px 0 16px}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+</style></head><body><main>
+<p class="nav">Clarity simplification · discussion D11</p>
+<h1>Share dialog: Unpublish and password under &quot;More options&quot;</h1>
+<p class="kicker">Share dialog from the library card and the editor topbar.</p>
+<div class="rec"><strong>Recommendation</strong><p>The dialog shows the published state, the link with open and copy, and a collapsed "More options" row. Opening it reveals the password switch and Unpublish. U08 removes the version numbers tonight.</p></div>
+<h2>The problem</h2><p>Unpublish and the password switch sit beside the copy button, the one control every rep needs. Password protection is on 13 customer pages ever (0 of 288 recent), and 3 pages have ever been unpublished.</p>
+<h2>What it would look like</h2><div class="pair"><figure><span class="label">Before</span><a href="before-share-dialog.png"><img src="before-share-dialog.png" alt="Share dialog on staging: state, Unpublish, link, password switch, version numbers." loading="lazy"></a><figcaption>Share dialog on staging: state, Unpublish, link, password switch, version numbers.</figcaption></figure><figure><span class="label">After</span><a href="after-share-dialog.png"><img src="after-share-dialog.png" alt="State, link, &quot;More options&quot; collapsed." loading="lazy"></a><figcaption>State, link, "More options" collapsed.</figcaption></figure></div><div class="pair"><figure><span class="label">After, More options open</span><a href="after-share-dialog-more.png"><img src="after-share-dialog-more.png" alt="Password switch and Unpublish." loading="lazy"></a><figcaption>Password switch and Unpublish.</figcaption></figure><figure><span class="label">After, phone</span><a href="after-share-dialog-phone.png"><img src="after-share-dialog-phone.png" alt="390px." loading="lazy"></a><figcaption>390px.</figcaption></figure></div><figure><span class="label">Before, phone</span><a href="before-share-dialog-phone.png"><img src="before-share-dialog-phone.png" alt="The dialog from the editor at 390px." loading="lazy"></a><figcaption>The dialog from the editor at 390px.</figcaption></figure>
+<h2>What the data says</h2><h3>Customer pages</h3><div class="tbl"><table><thead><tr><th class="">Measure</th><th class="num">Last 90 days</th><th class="num">All time (live)</th></tr></thead><tbody><tr><td class="">Pages</td><td class="num">288</td><td class="num">5,431</td></tr><tr><td class="">Password enabled</td><td class="num">0</td><td class="num">13</td></tr><tr><td class="">Published (has a publication)</td><td class="num">223</td><td class="num">5,354</td></tr><tr><td class="">Published then unpublished (route disabled)</td><td class="num">1</td><td class="num">2</td></tr><tr><td class="">Never published</td><td class="num">65</td><td class="num">77</td></tr><tr><td class="">Draft ahead of the publication</td><td class="num">1</td><td class="num">3</td></tr></tbody></table></div><p class="kicker">The explicit publish step shipped 2026-09-30; older pages got publications by backfill, so "published" mostly means "existed before". Unpublish disables the share route and keeps the publication (journey-page-access.ts:87-94).</p>
+<h2>Options</h2><div class="opt"><b>&quot;More options&quot; row (recommended)</b><p>Two controls move one click away. No behaviour changes.</p></div><div class="opt"><b>Delete password protection</b><p>13 pages use it. Deleting means a plan for those 13 and a feature gone for the next proposal that needs it.</p></div><div class="opt"><b>Move Unpublish to the page card menu</b><p>Spreads publishing state over two places.</p></div>
+<h2>Questions for William</h2><div class="q"><div class="ask">1. Both Unpublish and the password switch under "More options"?</div><p class="ans"><b>Recommended:</b> Yes.</p></div><div class="q"><div class="ask">2. Keep password protection as a feature?</div><p class="ans"><b>Recommended:</b> Yes, hidden. 13 pages use it and it costs nothing under More.</p></div>
+<h2>PRs once decided</h2><div class="pr"><b>PR 1. More options</b><p><code>JourneyPageShareDialog.tsx</code>: a disclosure row holding the password controls and Unpublish; opens itself when the page is password protected or unpublished so the state is never hidden. Lands after U08. Evidence: dialog from library and editor, desktop and phone, a protected page opening with More expanded.</p></div>
+
+</main></body></html>

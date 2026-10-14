@@ -1,0 +1,25 @@
+{
+  "id": "D6",
+  "title": "Notifications: one switch, on by default, fired when they start",
+  "recommendation": "Replace four threshold toggles with one switch \"Email me when someone watches a page\", on by default, fired at the first view and then at most hourly with how far they got and which buttons they clicked; migrate existing users to on unless they switched every threshold off.",
+  "questions": [
+    {
+      "q": "One switch or two (started / finished)?",
+      "recommended": "One. The follow-up email carries the progress."
+    },
+    {
+      "q": "Policy: flip existing users to the new default, so 2,300 customers start receiving \"started watching\" emails they never opted into?",
+      "recommended": "Yes, with a one-click \"turn off\" link in every email and the hourly cap. The ledger shows 23 missed start crossings against 40 emails sent in five days; these are the emails reps asked for."
+    },
+    {
+      "q": "Button clicks: an instant email or inside the hourly email?",
+      "recommended": "Same rule as views: at once if nothing was sent in the last hour, otherwise in the digest. One rule, one code path."
+    }
+  ],
+  "files": [
+    "index.html",
+    "before-notifications.png",
+    "after-notifications.png",
+    "after-notification-email.png"
+  ]
+}

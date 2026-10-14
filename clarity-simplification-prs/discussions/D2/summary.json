@@ -1,0 +1,27 @@
+{
+  "id": "D2",
+  "title": "Hero buttons: two at most, no button types, no Primary switch",
+  "recommendation": "Cap the hero at two buttons edited as one list (label and link), first one primary, and delete the Sign / Payment / Custom types and the Primary switch without changing storage or tracking ids.",
+  "questions": [
+    {
+      "q": "Hard cap at two in the editor, with existing three- and four-button pages left as they are until edited?",
+      "recommended": "Yes. 6 recent customer pages and 201 all-time live pages render three or more. Leave them rendering; the editor simply offers no further add."
+    },
+    {
+      "q": "Do Sign and Payment need to stay as named types for any integration, or are they plain links?",
+      "recommended": "Plain links. Nothing in the renderer or the workers treats them differently beyond the tracking id, which stays."
+    },
+    {
+      "q": "Default labels for the two buttons: \"Book a call\" and \"Learn more\"?",
+      "recommended": "Yes. U06 already changes the fallback and seeds to these tonight; this item only removes the type menu around them."
+    }
+  ],
+  "files": [
+    "index.html",
+    "before-cta-row.png",
+    "after-cta-row.png",
+    "before-cta-popover-close.png",
+    "after-cta-popover.png",
+    "after-cta-row-one.png"
+  ]
+}
