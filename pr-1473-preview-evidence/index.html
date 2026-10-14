@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PR #1473 preview evidence</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;color:#1e293b}img{max-width:100%;border:1px solid #e2e8f0;border-radius:8px}h2{margin-top:2.5rem;font-size:1.1rem}code{background:#f1f5f9;padding:0 .3em;border-radius:4px}</style></head><body>
+<h1>PR #1473 on its preview</h1>
+<p>Preview <code>pr-1473.clarity-video.workers.dev</code> at <code>aea0281bc</code>, 14 Oct 2026. The e2e test accounts were moved between Pro, Free and Suspended by changing their grants in the preview's own database, then restored.</p>
+<h2>1. A Free account lands on Home, not the wall</h2><p><code>/api/trial-offer</code>: <code>plan: free, lapse: access_ended, livePages 0 of 3</code>.</p><img src="01-free-home.png" alt="Home screen for a Free account">
+<h2>2. The fourth publish is refused and the page stays a draft</h2><p>Pages 1 to 3 published with 200. Page 4 got 409 <code>live_page_limit</code>, and the trial-access read then reported 3 of 3. The full limit dialog is #1434; this is today's Share dialog band.</p><img src="04-share-dialog-refused.png" alt="Share dialog with the Free limit message">
+<h2>3. A prospect sees the Free page with the badge</h2><img src="05-free-public-1280.png" alt="Free page on desktop with the Made with Clarity footer"><img src="05-free-public-390.png" alt="Free page on a phone" style="max-width:390px">
+<h2>4. After an upgrade, the same page serves without the badge on the next request</h2><img src="06-after-upgrade-1280.png" alt="The same page after upgrade, no badge">
+<h2>5. A Pro owner's themed page is unchanged</h2><img src="07-pro-fixture-1280.png" alt="Themed fixture page on Pro">
+<h2>6. The same page while its owner is Free: default look plus badge</h2><img src="08-fixture-owner-free-1280.png" alt="Fixture page in Clarity's default look with the badge">
+<h2>7. A suspended account still meets the wall</h2><p>Reads and writes answer 403 <code>account-suspended</code>.</p><img src="09-suspended-wall.png" alt="Suspended wall">
+</body></html>
