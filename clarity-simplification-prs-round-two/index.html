@@ -1,0 +1,736 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simplification PRs, round two</title>
+<style>
+:root{--ink:#0f172a;--dim:#64748b;--line:#e2e8f0;--soft:#f8fafc;--blue:#1d4ed8;--green:#15803d;--red:#b91c1c;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:var(--ink);background:#f1f5f9}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 140px}h1{font-size:28px;margin:0 0 6px}
+.dim{color:var(--dim);font-size:14px}nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 24px}
+nav.toc a{font-size:13px;padding:3px 9px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--ink);text-decoration:none}
+nav.toc a.done{background:#dcfce7;border-color:#86efac}nav.toc a.chg{background:#fef3c7;border-color:#fcd34d}nav.toc a.rej{background:#fee2e2;border-color:#fca5a5}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 18px 14px;margin:0 0 20px}
+.card header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.card h2{font-size:19px;margin:0;flex:1;min-width:200px}
+.uid{font:600 12px ui-monospace,Menlo,monospace;color:var(--dim)}.prlink{font-size:14px;font-weight:600;color:var(--blue)}
+.blocked,.blocked-reason{color:var(--red);font-weight:600}.why{margin:10px 0;overflow-wrap:anywhere}details li,.qs p,figcaption{overflow-wrap:anywhere}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600;font-size:14px}details ul{margin:6px 0;padding-left:20px;font-size:14px}
+.pair{margin:14px 0}.pair figcaption{font-size:14px;margin:0 0 6px}.tag{font-size:11px;font-weight:700;background:#e0e7ff;color:#3730a3;border-radius:99px;padding:1px 7px;margin-right:6px}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{font-size:12px;font-weight:700;color:var(--dim);margin-bottom:3px}.label.after{color:var(--green)}
+.sides img,.sides video{width:100%;border:1px solid var(--line);border-radius:8px;display:block;background:#000}
+.none{border:1px dashed var(--line);border-radius:8px;padding:30px 10px;text-align:center;color:var(--dim);font-size:13px}
+.decide{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.choices{display:flex;gap:8px;flex-wrap:wrap}
+.choices button{font:inherit;font-size:14px;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.choices button.on[data-v=approve],.choices button.on[data-v=yes]{background:var(--green);color:#fff;border-color:var(--green)}
+.choices button.on[data-v=changes],.choices button.on[data-v=other]{background:var(--amber);color:#fff;border-color:var(--amber)}
+.choices button.on[data-v=reject]{background:var(--red);color:#fff;border-color:var(--red)}
+textarea{width:100%;margin-top:8px;min-height:44px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:8px}
+.qs{padding-left:20px}.qs li{margin:0 0 14px}.qs p{margin:0 0 4px}.rec{font-size:14px;color:var(--green)}
+h3.section{font-size:22px;margin:36px 0 12px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar button{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:0;background:var(--blue);color:#fff;cursor:pointer}.bar button.ghost{background:#e2e8f0;color:var(--ink)}
+.bar .count{font-size:14px;color:var(--dim)}.intro h3{margin:0 0 8px;font-size:17px}.intro ul{margin:0;padding-left:20px;font-size:15px}.intro li{margin:0 0 6px}.intro p{margin:0 0 8px}table.summary{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px;margin:0 0 20px}table.summary th,table.summary td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}table.summary th{background:var(--soft)}
+@media(max-width:720px){.sides{grid-template-columns:1fr}h1{font-size:23px}}
+</style></head><body><main>
+<h1>Simplification PRs, round two</h1>
+<p class="dim">Built overnight, last updated 14 Oct 2026, 11:06, from the <a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit/">simplicity audit</a>. 5 PRs are open and none are merged. 0 items need a conversation first; they're further down. Your choices save in this browser as you go. "Send decisions" opens a prefilled GitHub issue that I'll read and act on.</p>
+<nav class="toc"><a href="#U11" data-for="U11">U11</a><a href="#U12" data-for="U12">U12</a><a href="#U07" data-for="U07">U07</a><a href="#U08" data-for="U08">U08</a><a href="#U17" data-for="U17">U17</a></nav>
+
+<div class="card intro"><p>These are the five PRs you sent back, reworked from your comments. CI is green on all five. Each card's before side is still main; the after side is the reworked branch.</p><ul><li><b>U11 (#1455).</b> Upload on the left, New page in the middle, filled Record on the right. The dot on the filled Record is white, and the empty library shows only Record.</li><li><b>U12 (#1460).</b> The video card says Share again. What Share does is unchanged, pending question 6 in chat.</li><li><b>U07 (#1450).</b> The mini page is back in page activity and the video poster is in video activity. The wording, "Activity" and "15m ago" stay. The play-count rule is still your open question 2.</li><li><b>U08 (#1457).</b> The status box says what visitors see. Edits not yet published get their own row with a "Publish changes" button. Unpublish lives under More options and asks before it acts. The card's why lists the publishing flows it borrows from.</li><li><b>U17 (#1459).</b> Tile labels that fit on one line, measured in the real menus: Text, Logos, Gallery, Lead form, PDF, FAQ, Pricing, Summary.</li></ul><p>Approve what you're happy with and I'll add it to the merge train. That train is already landing the 15 you approved this morning.</p></div>
+<div class="card intro"><h3>Calls only you can make</h3><ul><li><a href="#U07">U07</a> DECISION FOR WILLIAM, still open and unchanged in round 2: video play counts drop after deploy. A play now needs a watched range (the rule page activity already used). Coordinator count, prod read-only, last 90 days: 7,229 video sessions, 1,757 with any watched range (24%). Customers will see video play counts fall by roughly three quarters (about 76%) overnight. Options: ship as is with an in-app note, or keep the old count on cards and use watched plays only inside Activity.</li></ul></div>
+
+
+<table class="summary"><tr><th>Unit</th><th>What</th><th>PR</th></tr><tr><td><a href="#U11">U11</a></td><td>Home leads with recording</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1455" target="_blank">#1455</a></td></tr><tr><td><a href="#U12">U12</a></td><td>Home: one way to each action</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1460" target="_blank">#1460</a></td></tr><tr><td><a href="#U07">U07</a></td><td>One activity view, one vocabulary</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1450" target="_blank">#1450</a></td></tr><tr><td><a href="#U08">U08</a></td><td>Share dialog: say what visitors see, Unpublish under More options</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1457" target="_blank">#1457</a></td></tr><tr><td><a href="#U17">U17</a></td><td>Editor copy: Replace, plain section names, Style, Write page / Edit with AI, Serif</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1459" target="_blank">#1459</a></td></tr></table>
+<h3 class="section">PRs</h3>
+
+<article class="card" id="U11" data-kind="pr" data-id="U11" data-pr="1455">
+  <header>
+    <span class="uid">U11</span>
+    <h2>Home leads with recording</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1455" target="_blank">PR #1455</a>
+  </header>
+  
+  <p class="why">Clarity&#39;s job is record a video, get a page built around it, send it. Home gave the most weight to a filled &quot;New Journey Page&quot; and an empty library only talked about dropping files. The audit asked for Home to lead with recording. This makes a filled Record video the header&#39;s main button, on the right after Upload and New page (William&#39;s round-one review), renames the page button to &quot;New page&quot;, and turns the empty library into a prompt to record.</p>
+  <details open><summary>What changes (10)</summary><ul><li>Header order: Upload, Record video, New Journey Page (filled) -&gt; Upload, New page, Record video (filled, on the right). Same order on phones (Upload, New page, Record).</li><li>&quot;New Journey Page&quot; -&gt; &quot;New page&quot; at every width</li><li>Empty library title: &quot;Your workspace is empty&quot; -&gt; &quot;Record your first video&quot;</li><li>Empty library text: &quot;Drop videos, images or PDFs anywhere.&quot; -&gt; &quot;Clarity builds a page around it for you to send.&quot;</li><li>Empty library buttons: Upload, Record video, New Journey Page -&gt; Record video only (the header above already offers Upload and New page). An empty folder keeps all three, in the header&#39;s order.</li><li>Record dot on the filled Record video button: red -&gt; white (the button&#39;s text colour, as on the recorder&#39;s own Record button). The outlined record button in the library grid keeps its red dot.</li><li>Folder view title: &quot;Home&quot; -&gt; the folder&#39;s name</li><li>Search box label: &quot;Search this workspace&quot; -&gt; &quot;Search&quot; (screen reader label; the placeholder was already &quot;Search...&quot;)</li><li>New folder default name: &quot;Untitled Folder&quot; -&gt; &quot;New folder&quot;</li><li>404 link: &quot;Go to your library&quot; -&gt; &quot;Go to Home&quot;</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Header close-up: Upload, New page, then the filled Record video on the right with a white record dot.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/home-header.png" target="_blank"><img src="units/U11/before/home-header.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/home-header.png" target="_blank"><img src="units/U11/after/home-header.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Home on desktop with the new header order.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/home.png" target="_blank"><img src="units/U11/before/home.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/home.png" target="_blank"><img src="units/U11/after/home.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Home on a phone: Upload, New page, Record (filled, right). Phones already said &quot;New page&quot; before; the change there is the order and which button is filled.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/home-phone.png" target="_blank"><img src="units/U11/before/home-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/home-phone.png" target="_blank"><img src="units/U11/after/home-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Empty library: &quot;Record your first video&quot; with a single filled Record video button below it; the header keeps all three. Shown by rewriting the /api/tree/root response to no nodes in the browser, so the sidebar still lists the account&#39;s folders.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/empty-library.png" target="_blank"><img src="units/U11/before/empty-library.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/empty-library.png" target="_blank"><img src="units/U11/after/empty-library.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same empty library on a phone: one Record video button under the message.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/empty-library-phone.png" target="_blank"><img src="units/U11/before/empty-library-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/empty-library-phone.png" target="_blank"><img src="units/U11/after/empty-library-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Inside the Production shape fixtures folder: the title reads the folder&#39;s name instead of Home.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/folder.png" target="_blank"><img src="units/U11/before/folder.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/folder.png" target="_blank"><img src="units/U11/after/folder.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The folder title on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/folder-phone.png" target="_blank"><img src="units/U11/before/folder-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/folder-phone.png" target="_blank"><img src="units/U11/after/folder-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>An empty folder (Hey): the title is the folder name, and its empty state keeps &quot;Hey is empty&quot;, the drop hint and all three buttons in the header&#39;s order.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/empty-folder.png" target="_blank"><img src="units/U11/before/empty-folder.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/empty-folder.png" target="_blank"><img src="units/U11/after/empty-folder.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>After clicking New folder in Hey: the new card is named &quot;New folder&quot; (was &quot;Untitled Folder&quot;). The create request was answered in the browser; nothing reached staging.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/new-folder.png" target="_blank"><img src="units/U11/before/new-folder.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/new-folder.png" target="_blank"><img src="units/U11/after/new-folder.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Clicking New folder in an empty folder and the card that appears with its default name.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U11/before/new-folder.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U11/after/new-folder.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>404 page: &quot;Go to your library&quot; -&gt; &quot;Go to Home&quot;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U11/before/not-found.png" target="_blank"><img src="units/U11/before/not-found.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U11/after/not-found.png" target="_blank"><img src="units/U11/after/not-found.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>A long folder name (response rewritten in the browser) wraps the title onto three lines without sideways scroll.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U11/after/long-folder-title.png" target="_blank"><img src="units/U11/after/long-folder-title.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same long folder name on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U11/after/long-folder-title-phone.png" target="_blank"><img src="units/U11/after/long-folder-title-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>Rebased onto main b217793cb (after #1461, U14). #1454 (U01) had not landed, so its analytics lint rule did not apply.</code></li><li><code>scripts/check-loc-ratchet.sh -&gt; OK, HomeTreeRoute.tsx 1723 -&gt; 1722 lines (two expressions folded onto one line each to stay flat)</code></li><li><code>editor typecheck (tsc -b) -&gt; exit 0</code></li><li><code>vitest tests/workspace-library-selection.test.tsx tests/home-video-editor-player.test.tsx tests/home-folder-disclosure.test.tsx tests/media-picker-dialog-multi-upload.test.ts -&gt; 19 passed</code></li><li><code>node scripts/check-test-types.mjs -&gt; 168 errors, budget 202</code></li><li><code>eslint --quiet on every changed source and test file -&gt; exit 0</code></li><li><code>node scripts/check-feature-map-paths.mjs -&gt; pass</code></li><li><code>labels.json in after/ records header buttons [Upload/outline, New page/outline, Record video/default] on Home, folder, empty library and phone, and the empty-library actions as Record video only</code></li><li><code>capture.mjs now throws if a page lands on the sign-in screen (a proxy flake produced a signed-out home.png on the first round-two run)</code></li><li><code>Folder title sampled every frame across a search and two type tabs inside a folder (round one): before the path-query fallback it read [fixtures, Home, fixtures]; after, [fixtures] only</code></li><li><code>new-folder-request.json: the create request sent name &quot;Untitled Folder&quot; before and &quot;New folder&quot; after</code></li><li><code>Harness blocked.txt lists only RUM beacons; no write reached staging</code></li><li><code>Independent opus review of the round-one diff and shots: nothing blocking.</code></li></ul>
+    <h4>Risks</h4><ul><li>Round two: an empty folder still shows all three buttons below its message, so it shows Record video twice (header and empty state), as round one did. Only the root empty library was cut to one button.</li><li>An existing empty folder still named &quot;Untitled Folder&quot; now asks for confirmation before delete. Only empty folders with the new default name (&quot;New folder&quot;) delete without one. Nothing can be lost.</li><li>Long folder names now show as the big page title and can wrap to three lines (see long-folder-title.png). No clamp was added.</li><li>While the folder list reloads, the title falls back to useWorkspaceTreePath, the cached path query the sidebar already uses. home-video-editor-player.test.tsx gained a mock for it.</li><li>Overlaps: open PRs #1418 (button treatments) and #985 (live trainings) edit HomeTreeRoute.tsx in other hunks. Queue units U12, U13 and U14 edit HomeTreeRoute.tsx. U12 also edits TreeNodeCardMenu.tsx, where this PR changes one import and the empty-folder name check. U13 deletes the sidebar tree but not useWorkspaceTreePath.</li><li>tests/e2e/library-mutations.spec.ts now looks up the created folder as &quot;New folder&quot;. It uses an exact link name, so an account that already has a root folder named &quot;New folder&quot; would match twice. The old &quot;Untitled Folder&quot; lookup had the same exposure.</li><li>Three verify-loop feature docs were updated to the new labels (Search, New page).</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>workers/frontend-router/src/trial-wall-page.ts draws a mock of Home behind the trial wall with the old order and a filled &quot;New Journey Page&quot; (it had already drifted: &quot;New Folder&quot;, &quot;Record Video&quot;).</li><li>editor/src/components/LibraryGrid.tsx still falls back to &#39;Untitled Folder&#39; for a nameless folder in the old library grid.</li><li>lib/home-card-labels.ts treats names matching /^[0-9a-f]{6,}[-_]?/i as machine-made, so a folder named &quot;Decade review&quot; would show as &quot;Untitled&quot; on its card while the title and breadcrumb show the real name (reviewer finding, not reproduced).</li><li>The breadcrumbs inside a folder still blank while the folder list reloads after a search or type change, for the same reason the title did.</li><li>The search box has no data-analytics-id; LibraryToolbar would need a prop for it. docs/runbooks/product-analytics.md documents only editor_* and recorder_* id prefixes, so home_new_page and not_found_go_home follow the snake_case rule but not a documented prefix.</li></ul>
+    <p class="dim">Before ran on 13e173819, after on d12a95696. Branch <code>simplify/u11-home-leads-with-recording</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for U11">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="U12" data-kind="pr" data-id="U12" data-pr="1460">
+  <header>
+    <span class="uid">U12</span>
+    <h2>Home: one way to each action</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1460" target="_blank">PR #1460</a>
+  </header>
+  
+  <p class="why">Home offered several ways to reach the same place. The shelf &quot;Show all&quot; links repeated the shelf heading and the type tab. The page card menu repeated the always-visible Share button and the card click. On phones the header Record repeated the tab bar&#39;s centre Record (audit, Home and library cut list).</p>
+  <details open><summary>What changes (6)</summary><ul><li>Shelf headers: the &quot;Show all&quot; link is gone from Journey Pages, Videos, Images and Documents. The heading still links to the type tab. The phone folder toggle &quot;Show all 9 folders&quot; stays.</li><li>Page card menu, desktop: Edit and Share are gone. It now lists Statistics, Rename, Duplicate, Move, Delete.</li><li>Page card menu, phone (below 640px, where the card&#39;s pencil hides): Edit stays at the top. Share is gone.</li><li>Home header, phone (below 768px): the Record button is hidden by a class on the button itself, not by matching its label. Upload and New page share the row. The empty library still shows Record.</li><li>Phone tab bar Record: inside a folder it now opens /record?folder=&lt;that folder&gt;, so the take lands in that folder like the old header button did.</li><li>Round two: the &quot;Make page&quot; rename is reverted. The video card button says &quot;Share&quot; with the share icon again, and the video stats empty state says &quot;Share video&quot;. What Share does is unchanged.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Desktop Home. The &quot;Show all&quot; links at the right of the Journey Pages and Videos shelf headers are gone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/home-desktop.png" target="_blank"><img src="units/U12/before/home-desktop.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/home-desktop.png" target="_blank"><img src="units/U12/after/home-desktop.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the Journey Pages shelf header. &quot;Show all&quot; at the far right is gone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/shelf-header-closeup.png" target="_blank"><img src="units/U12/before/shelf-header-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/shelf-header-closeup.png" target="_blank"><img src="units/U12/after/shelf-header-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Desktop page card menu. Edit and Share are gone. The card&#39;s pencil and Share button stay on the card.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/page-card-menu-desktop.png" target="_blank"><img src="units/U12/before/page-card-menu-desktop.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/page-card-menu-desktop.png" target="_blank"><img src="units/U12/after/page-card-menu-desktop.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the same menu.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/page-card-menu-desktop-closeup.png" target="_blank"><img src="units/U12/before/page-card-menu-desktop-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/page-card-menu-desktop-closeup.png" target="_blank"><img src="units/U12/after/page-card-menu-desktop-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone page card menu. Edit stays because the pencil hides on phones. Share is gone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/page-card-menu-phone.png" target="_blank"><img src="units/U12/before/page-card-menu-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/page-card-menu-phone.png" target="_blank"><img src="units/U12/after/page-card-menu-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone Home header. Record is gone from the header, hidden by a max-md:hidden class on the button. The tab bar&#39;s centre Record stays.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/home-phone.png" target="_blank"><img src="units/U12/before/home-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/home-phone.png" target="_blank"><img src="units/U12/after/home-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone folder view. The header has no Record. The tab bar&#39;s Record links to /record?folder=... after and to /record before (facts.json, phoneFolderRecordHref).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U12/before/folder-phone.png" target="_blank"><img src="units/U12/before/folder-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U12/after/folder-phone.png" target="_blank"><img src="units/U12/after/folder-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Open a page card menu (no Edit, no Share after), then hover a video card&#39;s top button. Its tooltip reads &quot;Share&quot; on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U12/before/card-actions.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U12/after/card-actions.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm --filter clarity-journey-editor run typecheck (tsc -b) -&gt; exit 0</code></li><li><code>vitest run tests/home-folder-disclosure.test.tsx tests/home-video-editor-player.test.tsx tests/video-stats-modal.test.ts -&gt; 18 passed, 0 failed</code></li><li><code>eslint --quiet (root config with suppressions) on the 6 changed source files -&gt; no issues</code></li><li><code>scripts/check-loc-ratchet.sh -&gt; OK; HomeTreeRoute.tsx stays at 1764 lines, so the ratchet passes without waiting for U14</code></li><li><code>capture facts.json before -&gt; after: shelfShowAllLinks 4 -&gt; 0; pageMenuDesktop [Edit, Statistics, Share, Rename, Duplicate, Move, Delete] -&gt; [Statistics, Rename, Duplicate, Move, Delete]; pageMenuPhone keeps Edit and drops Share; phoneHeaderButtons [Upload, Record, New page] -&gt; [Upload, New page]; phoneFolderRecordHref /record -&gt; /record?folder=folder%3Auser%3A...; video card button &#39;Share &lt;name&gt;&#39; and stats empty button &#39;Share video&#39; unchanged</code></li><li><code>probe at 767px and 768px viewport width: header buttons [Upload, New page] at 767, [Upload, Record, New page] at 768</code></li><li><code>blocked.txt in both folders: 19 POST /api/rum/events beacons aborted each run, no other write attempted</code></li></ul>
+    <h4>Risks</h4><ul><li>Expected conflicts. #1455 (U11) and #1454 (U01) both edit RecordVideoButton&#39;s Button line, where this PR adds className={className}; keep all three attributes. #1455 also rewrites the header Record line in HomeTreeRoute.tsx, which this PR changes to pass className={place === &#39;header&#39; ? &#39;max-md:hidden&#39; : undefined}; keep U11&#39;s variant=&quot;default&quot; alongside it. #1455 touches the default-folder-name check in TreeNodeCardMenu.tsx near this PR&#39;s Edit and Share hunks. #1454 edits the MobileNav Record Link line to add data-analytics-id; keep both changes. U13 and U14 touch HomeTreeRoute.tsx.</li><li>The empty-library Record on phones is kept by code (headlineActions(&#39;empty&#39;) passes no class) but was not shown at runtime: the staging account has no empty folder or empty library to open without a write.</li><li>Between 640px and 768px the page card shows its pencil and the menu hides Edit, matching the pencil&#39;s own breakpoint.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>The video card menu still has Edit while the card&#39;s pencil does the same on desktop. The audit only named the page card menu.</li><li>William is to decide separately whether Share on a video should create the page and open the share dialog directly, instead of opening the page editor.</li><li>lib/video-share-page.ts error message reads &quot;Unable to share this video.&quot; and is unchanged.</li></ul>
+    <p class="dim">Before ran on 13e173819, after on 54ee25553. Branch <code>simplify/u12-one-way-to-each-action</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for U12">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="U07" data-kind="pr" data-id="U07" data-pr="1450">
+  <header>
+    <span class="uid">U07</span>
+    <h2>One activity view, one vocabulary</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1450" target="_blank">PR #1450</a>
+  </header>
+  
+  <p class="why">A salesperson opening stats met two different modals, both titled Statistics, that sorted differently and called the same things views, plays and Page visits. Video stats was its own 583-line grid with a scrub readout and a locations view. The audit asked for one stats view with one vocabulary. This PR draws video stats from the page stats parts, keeps the mini page beside page activity and shows the video&#39;s poster in video activity, says visits for pages and plays for videos, and shows the hour for anything under a day old, so &#39;did they watch it this morning&#39; is answered at a glance.</p>
+  <details open><summary>What changes (19)</summary><ul><li>Both modal titles: Statistics -&gt; Activity</li><li>Card menu item: Statistics -&gt; Activity</li><li>Page card count: 30 views -&gt; 30 visits</li><li>Page activity facts: Page visits -&gt; Visits, and a new Last visit fact leads (for example just now, 12m ago)</li><li>Video activity now uses the page activity layout: Plays and Past halfway facts, the same retention chart and activity table, newest first</li><li>A play counts only when the video was watched: a player that loaded and never played no longer counts on the video card or in video activity (page activity already worked this way)</li><li>Video activity summary &#39;27 views · 3 watched all of it · 3 past halfway · 27 barely started&#39; -&gt; facts &#39;Plays&#39;, &#39;Past halfway&#39;</li><li>When column: Today -&gt; 12m ago / 3h ago for anything under 24 hours; older rows keep Yesterday, 4d ago or the date</li><li>Kept from main: the mini page beside page activity. Clicking a video or button in it opens that row, including #1442&#39;s pricing and document buttons</li><li>Video activity shows the video&#39;s poster beside Plays and the curve, the same image its card shows. On main this tile was always blank: the modal asked the source resolver for a poster without passing one</li><li>Deleted: the scrub readout while hovering the video curve (0:04 · 3 of 27 watching, nobody here, % still watching)</li><li>Deleted: the stored-summary locations view and its copy &#39;No location or session detail for these views&#39; / &#39;Totals come from a stored summary.&#39; (the totals stay as facts)</li><li>Deleted: sorting by Where (the column stays)</li><li>Retention chart hidden under 5 plays, in both modals</li><li>No recorded plays yet -&gt; No plays yet</li><li>This page has no tracked videos or buttons. -&gt; Add a video or button to see what they do.</li><li>View notification and summary emails: See page stats -&gt; See what they watched</li><li>A video row with no location: Visit 3 -&gt; Play 3</li><li>Video activity sizes to its content instead of filling a fixed-height dialog</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Page activity at 1440. Before: Statistics, Page visits, a curve for 3 plays, Today. After: Activity, the same mini page on the left, Visits, no curve under 5 plays, 12m ago.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/page-activity.png" target="_blank"><img src="units/U07/before/page-activity.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/page-activity.png" target="_blank"><img src="units/U07/after/page-activity.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Video activity at 1440 through local Vite, which reads staging&#39;s unchanged router, so all 27 sessions still list here; the plays fix shows on the preview shots. Before: a blank poster tile, a views summary line, sorted by watched share. After: the video&#39;s poster beside Plays, Past halfway and the curve, then the same table as page activity, newest first, 12m ago / 3h ago.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/video-activity.png" target="_blank"><img src="units/U07/before/video-activity.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/video-activity.png" target="_blank"><img src="units/U07/after/video-activity.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Hovering the curve. Before: the scrub readout &#39;0:04 · 3 of 27 watching&#39; and dimmed rows. After: nothing extra.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/video-activity-hover.png" target="_blank"><img src="units/U07/before/video-activity-hover.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/video-activity-hover.png" target="_blank"><img src="units/U07/after/video-activity-hover.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Clicking the Where heading. Before: it re-sorts by place. After: it is a plain label and the order stays newest first.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/video-activity-where-click.png" target="_blank"><img src="units/U07/before/video-activity-where-click.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/video-activity-where-click.png" target="_blank"><img src="units/U07/after/video-activity-where-click.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Page activity at 390. The facts row now wraps; this fixture page has two facts, so nothing wraps here.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/page-activity-phone.png" target="_blank"><img src="units/U07/before/page-activity-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/page-activity-phone.png" target="_blank"><img src="units/U07/after/page-activity-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Video activity at 390: a small poster beside Plays and Past halfway, the curve full width, then the newest plays with 12m ago / 3h ago under each place.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/video-activity-phone.png" target="_blank"><img src="units/U07/before/video-activity-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/video-activity-phone.png" target="_blank"><img src="units/U07/after/video-activity-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Page card meta line: 30 views -&gt; 30 visits.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/card-page.png" target="_blank"><img src="units/U07/before/card-page.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/card-page.png" target="_blank"><img src="units/U07/after/card-page.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Video card meta line, unchanged: 27 plays.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/card-video.png" target="_blank"><img src="units/U07/before/card-video.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/card-video.png" target="_blank"><img src="units/U07/after/card-video.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Card menu item: Statistics -&gt; Activity.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/card-menu.png" target="_blank"><img src="units/U07/before/card-menu.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/card-menu.png" target="_blank"><img src="units/U07/after/card-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The whole desktop flow: card menu, page activity from the visits count, video activity from the plays count, hover the curve, click Where.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U07/before/activity-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U07/after/activity-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>View notification email rendered from the template: button See page stats -&gt; See what they watched.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/email-notification.png" target="_blank"><img src="units/U07/before/email-notification.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/email-notification.png" target="_blank"><img src="units/U07/after/email-notification.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>View summary email: link See page stats -&gt; See what they watched.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/email-summary.png" target="_blank"><img src="units/U07/before/email-summary.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/email-summary.png" target="_blank"><img src="units/U07/after/email-summary.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>PR preview pr-1450 against baseline pr-1440, same fixture page with one recorded visit on each. After keeps the mini page and leads with &quot;Last visit&quot; and how long ago it was (&quot;8h ago&quot; at this capture), which the router now returns. The local shots have no Last visit fact because the staging router does not return it yet. The mini page&#39;s hero is grey here on both sides: opened from the ?stats= link, no card hands it a poster.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/preview-page-activity.png" target="_blank"><img src="units/U07/before/preview-page-activity.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/preview-page-activity.png" target="_blank"><img src="units/U07/after/preview-page-activity.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/preview-page-activity-phone.png" target="_blank"><img src="units/U07/before/preview-page-activity-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/preview-page-activity-phone.png" target="_blank"><img src="units/U07/after/preview-page-activity-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>PR preview after recording the same two playback sessions on each preview&#39;s own database, one that only loaded the player and one that watched 4s. Before: the card says 2 plays and the modal says 2 views with a 0% row. After: the poster, and card and modal both say 1 play.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/preview-video-activity.png" target="_blank"><img src="units/U07/before/preview-video-activity.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/preview-video-activity.png" target="_blank"><img src="units/U07/after/preview-video-activity.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same video card on each preview: 2 plays -&gt; 1 play.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U07/before/preview-card-video.png" target="_blank"><img src="units/U07/before/preview-card-video.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U07/after/preview-card-video.png" target="_blank"><img src="units/U07/after/preview-card-video.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm run typecheck -&gt; all workspace projects pass; test type errors 168, within budget 202</code></li><li><code>editor: npx vitest run -&gt; 4152 passed, 0 failed</code></li><li><code>eslint --quiet on every changed file -&gt; no issues</code></li><li><code>red checks: retention threshold set to 4, load-only filter removed from the video summary, watched-range predicate removed from the card count -&gt; each fails its test, then restored</code></li><li><code>control-clarity doctor --pr 1450 --wait -&gt; preview serves head 755faf453d90</code></li><li><code>compare-plays.mjs after the same two sessions on each preview -&gt; pr-1440 card 2, video plays 2, loads 2; pr-1450 card 1, video plays 1, loads 2</code></li><li><code>independent review (opus) -&gt; nothing blocking; its should-fix items and nits are fixed in 755faf453 except the two noted under risks</code></li><li><code>CI fix 7c8b7992f: analytics-write-read-paths.test.ts expected unique_viewer_count 3 after a load-only session c; decided that is intended, not a side effect, and changed the test to 2 with video_loads still 3. Why: the same watched-range filter that makes a play feeds unique_viewer_count and locations, and the router comment says a loaded player counts as a load, not a view; no editor or email code reads unique_viewer_count on main or this branch, so no screen changes; counting load-only viewers would need a second session set and could show more viewers than plays. Router test file 9 passed, 12 editor stats test files 89 passed.</code></li><li><code>Round 2 (William&#39;s review: keep the wording, bring back the mini page and the video): rebased on main cb3e7eba9 with #1442; PagePreview.tsx is byte-identical to main</code></li><li><code>pnpm run typecheck -&gt; pass, test type errors 168 within budget 202</code></li><li><code>editor vitest on the stats files (video-stats-modal, page-stats-content, page-stats, frost-card-stats, library-view-counts, view-notifications, video-stats-storage) -&gt; 71 passed</code></li><li><code>red checks: rendering page activity without PagePreview fails 3 tests; dropping the poster img fails &#39;shows the poster the card shows&#39;; both restored</code></li><li><code>eslint --quiet on the changed files -&gt; no issues (a first draft used arbitrary grid columns and failed shadcn/no-arbitrary-values; now grid-cols-3 / sm:grid-cols-4)</code></li><li><code>CI on 293b449d6: LOC ratchet failed, HomeTreeRoute.tsx 1764 -&gt; 1765; fe5839d20 puts the VideoStatsModal element on one line, 1761</code></li><li><code>After shots recaptured at 293b449d6 with the same capture.mjs (local) and capture-preview.mjs (pr-1450); before shots unchanged</code></li><li><code>#1454 (U01 analytics id lint) not merged at push time, so its rule did not apply</code></li></ul>
+    <h4>Risks</h4><ul><li>DECISION FOR WILLIAM, still open and unchanged in round 2: video play counts drop after deploy. A play now needs a watched range (the rule page activity already used). Coordinator count, prod read-only, last 90 days: 7,229 video sessions, 1,757 with any watched range (24%). Customers will see video play counts fall by roughly three quarters (about 76%) overnight. Options: ship as is with an in-app note, or keep the old count on cards and use watched plays only inside Activity.</li><li>Video cards show fewer plays after deploy: sessions that only loaded the player stop counting as plays on the card and in video activity. On staging the fixture video would go from 27 to 3, since 24 of its 27 sessions have no watched range. Imported Mux summaries are unchanged; they only have load totals.</li><li>Local shots run through Vite against staging. The capture shifts every activity timestamp so the newest play is 12 minutes old, the same shift on both sides, because staging&#39;s newest fixture play is days old and the change under test is the under-24-hours format. Counts, places and percentages are untouched.</li><li>Last visit and the plays fix need the router change, so they show only on the PR preview. To give both previews something to show, the capture recorded one page_view and two playback sessions (one load-only, one watched 4s) on each preview&#39;s own seeded database, pr-1440 and pr-1450, the same events the public page sends. No write reached staging or production.</li><li>The page stats API adds lastVisitAtMs. The editor hides Last visit when an older router omits it, so deploy order does not matter.</li><li>The view email intro keeps &#39;A visitor on your page&#39;; only the button and link text changed, because &#39;Someone on your page&#39; repeated the &#39;Someone watched&#39; title above it.</li><li>Overlap: #1442 (U03) has merged and this branch is rebased on it; PagePreview.tsx, MiniPage.tsx and statistics.ts&#39;s preview code match main, and statistics.ts only gains lastVisitAtMs. #1418 and #1366 touch other lines of index.css; #1418 and #985 touch other lines of HomeTreeRoute.tsx, which this PR now also edits to hand the card poster to video activity. U12 will change the video empty-state button &#39;Share video&#39;, which stays on one line in VideoStatsModal.tsx. U08 edits FrostCardMeta.tsx and JourneyPageShareDialog.tsx; this PR changes only their relativeTimestamp import and the page count line.</li><li>The verify-loop feature map (.agents/skills/verify-loop/features/library.md) now says Activity instead of Statistics.</li><li>Not captured: four facts wrapping on a phone. That needs a page with a video, a button and visits, and no fixture on staging or either preview has all three. The facts row wraps (flex-wrap), and the three-fact preview phone shot shows no overflow.</li><li>Kept on review: the &#39;Today&#39; branch in ageLabel stays, because a 25-hour daylight-saving day can leave a 24-hour-old timestamp on today&#39;s date.</li><li>The video poster comes from the card that opened the modal (its decoration image). A card with no image shows an empty grey tile, as main always did.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Button rows with no location still read &#39;Visit N&#39; in page activity.</li><li>The shared capture harness&#39;s beacon pattern matched Vite dev modules such as /src/lib/rum.ts (since fixed by the coordinator). This unit&#39;s scripts let local module GETs through on both sides.</li><li>VideoStatsSummary.locations is no longer read by the editor but is still computed and sent.</li><li>Page card visits count page_view events (library-media.ts pageViewCounts), while page activity counts distinct sessions.</li><li>Page activity opened from the ?stats= email link has no card, so the mini page&#39;s hero shows no poster unless the outline carries one (same on main).</li><li>Idea, not built: hovering the retention curve could show the frame at that second in the poster via Mux thumbnail ?time=, which would bring back a scrub position without the readout text.</li></ul>
+    <p class="dim">Before ran on 13e173819, after on fe5839d20. Branch <code>simplify/u07-activity-vocabulary</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for U07">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="U08" data-kind="pr" data-id="U08" data-pr="1457">
+  <header>
+    <span class="uid">U08</span>
+    <h2>Share dialog: say what visitors see, Unpublish under More options</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1457" target="_blank">PR #1457</a>
+  </header>
+  
+  <p class="why">On round one the box that said &quot;Changes not published&quot; also held the Unpublish button, so a rep who wanted to publish their edits could take the whole page offline. The dialog now says what anyone with the link sees (&quot;Published&quot;, the version from 2h ago), gives unpublished edits their own row above a &quot;Publish changes&quot; button, and moves Unpublish and the password switch (13 pages ever, 0 of 288 recent, per D11) under a collapsed &quot;More options&quot; that asks before it turns the link off. Round one stays: no version numbers, one name for unpublished edits.
+
+Patterns we borrowed:
+- Webflow labels the main action &quot;Publish changes&quot; when edits are staged, and its toolbar counts unpublished changes (https://help.webflow.com/hc/en-us/articles/33961266935187).
+- Notion&#39;s Share &gt; Publish tab shows the live site link as the published state (https://www.notion.com/help/public-pages-and-web-publishing).
+- Google Sites keeps Unpublish in a menu beside Publish, and edits stay private until you press Publish again (https://td.usd.edu/TDClient/33/Portal/KB/ArticleDet?ID=7804, https://libguides.trinity.edu/websites/preview-publish).
+- Framer puts Publish in the top right and Unpublish at the bottom of site settings (https://framer.com/help/articles/publishing-your-framer-website, https://www.guideflow.com/tutorial/how-to-publish-a-framer-website).
+- Substack uses &quot;Update&quot; for a published post and keeps Unpublish in the post&#39;s menu behind a confirm (https://www.beehiiv.com/blog/how-to-delete-a-substack-post).</p>
+  <details open><summary>What changes (7)</summary><ul><li>Status box on a live page with edits: &quot;Unpublished changes / The link shows the version you published 2h ago.&quot; -&gt; &quot;Published / Anyone with the link sees the version you published 2h ago.&quot;</li><li>New row under the link, only when there are edits: &quot;Changes not published / Visitors don&#39;t see your edits until you publish them.&quot; The button below still reads &quot;Publish changes&quot;.</li><li>Unpublish button removed from the status box. It is now &quot;Unpublish page&quot; (red text) under a collapsed &quot;More options&quot; row, on live pages only.</li><li>Unpublish page asks first: &quot;Unpublish this page? The link stops working for everyone you sent it to. They see \&quot;Page not found\&quot;. Your page stays here, and Publish turns the same link back on.&quot; with Cancel and a red Unpublish.</li><li>Password protected switch moved under More options. More options opens by itself when the page is password protected.</li><li>Draft, Published and Unpublished stage copy unchanged; the &quot;Draft version n · Published version m&quot; line stays removed (round one).</li><li>New data-analytics-id: share_more_options, share_unpublish, share_unpublish_confirm, share_unpublish_cancel, share_password_toggle, share_publish.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Live page with edits (stage reached by rewriting the access response). Before: Unpublish sits in the &quot;Unpublished changes&quot; box. After: the &quot;Published&quot; box says what visitors see, a separate &quot;Changes not published&quot; row, More options folded, Publish changes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-changes-closeup.png" target="_blank"><img src="units/U08/before/stage-changes-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-changes-closeup.png" target="_blank"><img src="units/U08/after/stage-changes-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Live page with edits, More options open, Unpublish page pressed: the confirm says what unpublishing does. Stopped before the red Unpublish.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-changes-confirm-closeup.png" target="_blank"><img src="units/U08/after/stage-changes-confirm-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Before: open Share, hover Unpublish next to &quot;Unpublished changes&quot;. After: open Share, open More options, press Unpublish page, read the confirm, Cancel. Nothing unpublished; writes blocked.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/stage-changes-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/stage-changes-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Same stage in the full editor at 1440x900.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-changes.png" target="_blank"><img src="units/U08/before/stage-changes.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-changes.png" target="_blank"><img src="units/U08/after/stage-changes.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Live page, no edits (the fixture&#39;s real state, no rewriting). Before: Unpublish in the box and the password switch in view. After: status, link, More options folded, no button.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-published-closeup.png" target="_blank"><img src="units/U08/before/stage-published-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-closeup.png" target="_blank"><img src="units/U08/after/stage-published-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Live page with More options open: password switch, then a red &quot;Unpublish page&quot;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-more-closeup.png" target="_blank"><img src="units/U08/after/stage-published-more-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Live page, Unpublish page pressed: the confirm.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-confirm-closeup.png" target="_blank"><img src="units/U08/after/stage-published-confirm-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Never published (rewritten access response). Draft box and Publish; the password switch folds into More options.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-draft-closeup.png" target="_blank"><img src="units/U08/before/stage-draft-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-draft-closeup.png" target="_blank"><img src="units/U08/after/stage-draft-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Never published with More options open: only the password switch, nothing to unpublish.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-draft-more-closeup.png" target="_blank"><img src="units/U08/after/stage-draft-more-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Unpublished (rewritten access response). Unpublished box and Publish, no link.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-unpublished-closeup.png" target="_blank"><img src="units/U08/before/stage-unpublished-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-unpublished-closeup.png" target="_blank"><img src="units/U08/after/stage-unpublished-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Unpublished with More options open: password switch only.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-unpublished-more-closeup.png" target="_blank"><img src="units/U08/after/stage-unpublished-more-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Password-protected live page (rewritten access response, fake password). After: More options opens by itself so the gate stays visible.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-password-closeup.png" target="_blank"><img src="units/U08/before/stage-password-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-password-closeup.png" target="_blank"><img src="units/U08/after/stage-password-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390x844, live page with edits, as a sheet (rewritten access response).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-changes.png" target="_blank"><img src="units/U08/before/phone-stage-changes.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-changes.png" target="_blank"><img src="units/U08/after/phone-stage-changes.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, More options open: password switch and Unpublish page above Publish changes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-changes-more.png" target="_blank"><img src="units/U08/after/phone-stage-changes-more.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, the Unpublish confirm.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-changes-confirm.png" target="_blank"><img src="units/U08/after/phone-stage-changes-confirm.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Phone version of the flow above; stops at Cancel.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/phone-stage-changes-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/phone-stage-changes-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, never published (rewritten access response).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-draft.png" target="_blank"><img src="units/U08/before/phone-stage-draft.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-draft.png" target="_blank"><img src="units/U08/after/phone-stage-draft.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, live with no edits.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-published.png" target="_blank"><img src="units/U08/before/phone-stage-published.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-published.png" target="_blank"><img src="units/U08/after/phone-stage-published.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, unpublished (rewritten access response).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-unpublished.png" target="_blank"><img src="units/U08/before/phone-stage-unpublished.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-unpublished.png" target="_blank"><img src="units/U08/after/phone-stage-unpublished.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, password-protected page (rewritten access response) with More options open by itself.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-password.png" target="_blank"><img src="units/U08/before/phone-stage-password.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-password.png" target="_blank"><img src="units/U08/after/phone-stage-password.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Library card Share on a real staging page with real edits, no rewriting: same layout from the library.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/library-share-dialog-closeup.png" target="_blank"><img src="units/U08/before/library-share-dialog-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/library-share-dialog-closeup.png" target="_blank"><img src="units/U08/after/library-share-dialog-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Open Share from the library card; stops before any publish or unpublish.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/library-open-share.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/library-open-share.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>vitest run tests/journey-page-share-link-issues.test.ts tests/use-page-publication.test.tsx tests/editor-topbar-publish.test.ts tests/frost-card-stats.test.tsx -&gt; 35 passed, before and after the rebase</code></li><li><code>editor: tsc -b -&gt; clean</code></li><li><code>node scripts/check-test-types.mjs -&gt; 168 errors, under budget 202</code></li><li><code>eslint --quiet from the repo root on the 4 changed source and test files -&gt; clean, after the rebase too</code></li><li><code>keyboard on local Vite: Tab reaches More options, Enter opens it, two Tabs reach Unpublish page, Enter shows the confirm; no console errors</code></li><li><code>harness blocked.txt before and after -&gt; only RUM beacons, no writes</code></li><li><code>CI on 91b68874f: Typecheck, Test &amp; Build pass; E2E Smoke pass; Guards table pass; Proof names the head pass</code></li></ul>
+    <h4>Risks</h4><ul><li>Draft, changes, unpublished and password stages are reached by rewriting GET /api/journey-pages/:id/access in the browser on the published fixture page; the server never saw those stages. The published stage and the library shot are real staging data.</li><li>Unpublish is now three clicks (More options, Unpublish page, Unpublish). 3 pages have ever been unpublished (D11).</li><li>The password switch is one click deeper on unprotected pages. Protected pages open More options by itself.</li><li>tests/e2e/journey-page-publish-default.spec.ts now clicks More options, Unpublish page, then Unpublish. It has not run: it writes, so it was not run locally, and CI E2E Smoke runs only pr-preview-smoke.spec.ts.</li><li>The branch was rebased onto 19fae873c (#1442 and #1448 landed, neither touches these files) and force-pushed with a lease on cd8adc6a6. #1454 (U01 analytics lint) had not landed; the new controls carry data-analytics-id anyway.</li><li>Overlap with #1450 (U07): it changes the dialog&#39;s relativeTimestamp import line; this PR&#39;s hunks don&#39;t touch it.</li><li>Media is blurred in every shot because staging thumbnails show a real face.</li><li>Dialog URLs read 127.0.0.1:5308 because the capture ran on local Vite proxied to staging.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>QUEUE said EditorTopbar.tsx and FrostCardMeta.tsx needed the rename; both already said &quot;Changes not published&quot; on main, so only the dialog changed.</li><li>The editor topbar status still says only &quot;Published&quot; or &quot;Changes not published&quot;; it could borrow the dialog&#39;s &quot;version you published 2h ago&quot; line.</li></ul>
+    <p class="dim">Before ran on 13e173819, after on 91b68874f. Branch <code>simplify/u08-share-dialog</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for U08">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="U17" data-kind="pr" data-id="U17" data-pr="1459">
+  <header>
+    <span class="uid">U17</span>
+    <h2>Editor copy: Replace, plain section names, Style, Write page / Edit with AI, Serif</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1459" target="_blank">PR #1459</a>
+  </header>
+  
+  <p class="why">Several editor controls are named for how they&#39;re built, not for what a rep gets. The image toolbar&#39;s &quot;Edit&quot; opens the picker, the add-section tiles say Story, Document and Form, the style button is an unlabelled paintbrush, and &quot;AI Generate&quot; reads the same on a blank page and a finished one. The simplicity audit&#39;s copy table names each of these and their replacements. It also flags that a theme preset and a font pair were both called &quot;Editorial&quot;.</p>
+  <details open><summary>What changes (8)</summary><ul><li>Media toolbar on images, logos and PDFs: &quot;Edit&quot; (pencil) -&gt; &quot;Replace&quot; (swap icon, same as video)</li><li>Media toolbar Remove icon: no accessible name -&gt; aria-label &quot;Remove&quot; (the same line as #1418, so the two merge cleanly)</li><li>Add-section tiles, shortened in round two so each fits on one line: &quot;Story&quot; -&gt; &quot;Text&quot;, &quot;Client logos&quot; -&gt; &quot;Logos&quot;, &quot;Document&quot; -&gt; &quot;PDF&quot;, &quot;Form&quot; -&gt; &quot;Lead form&quot;. Gallery, FAQ, Pricing and Summary keep their names. The same labels show in the grip menu, the fallback title of an untitled section, and screen-reader announcements</li><li>Topbar: icon-only paintbrush &quot;Page style&quot; -&gt; labelled &quot;Style&quot; button (label visually hidden below sm so Share stays on the phone toolbar row)</li><li>Topbar and composer submit: &quot;AI Generate&quot; -&gt; &quot;Write page&quot; on a new page (/new), &quot;Edit with AI&quot; on an existing page</li><li>New-page composer placeholder: &quot;A proposal for a B2B video agency with a formal tone and a booking CTA.&quot; -&gt; &quot;Follow-up for Anna at Acme after today&#39;s demo. Recap pricing and ask her to book a call.&quot;</li><li>Existing-page composer placeholder: &quot;Make the tone more formal and add a three-tier pricing section.&quot; -&gt; &quot;Make the tone more formal and add a pricing section.&quot; (matches U19 #1456)</li><li>Style panel fonts: font pair &quot;Editorial&quot; -&gt; &quot;Serif&quot; (stored value stays editorial; the Editorial preset keeps its name)</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Existing page topbar. The paintbrush is now labelled Style, and AI Generate reads Edit with AI.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/topbar-existing-page-strip.png" target="_blank"><img src="units/U17/before/topbar-existing-page-strip.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/topbar-existing-page-strip.png" target="_blank"><img src="units/U17/after/topbar-existing-page-strip.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>New page (/new) topbar. AI Generate reads Write page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/topbar-new-page-strip.png" target="_blank"><img src="units/U17/before/topbar-new-page-strip.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/topbar-new-page-strip.png" target="_blank"><img src="units/U17/after/topbar-new-page-strip.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390. Style stays an icon so Share keeps its row, and the AI button reads Edit with AI.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/topbar-existing-page-phone.png" target="_blank"><img src="units/U17/before/topbar-existing-page-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/topbar-existing-page-phone.png" target="_blank"><img src="units/U17/after/topbar-existing-page-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390 on a new page. Write page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/topbar-new-page-phone.png" target="_blank"><img src="units/U17/before/topbar-new-page-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/topbar-new-page-phone.png" target="_blank"><img src="units/U17/after/topbar-new-page-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>New-page composer. The sales follow-up placeholder replaces the B2B agency proposal, and the submit button reads Write page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/composer-new-page-closeup.png" target="_blank"><img src="units/U17/before/composer-new-page-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/composer-new-page-closeup.png" target="_blank"><img src="units/U17/after/composer-new-page-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Existing-page composer. The placeholder drops &quot;three-tier&quot;, and the submit button reads Edit with AI.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/composer-existing-page-closeup.png" target="_blank"><img src="units/U17/before/composer-existing-page-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/composer-existing-page-closeup.png" target="_blank"><img src="units/U17/after/composer-existing-page-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Add-section tiles at 1440 (232px menu). Every label is on one line: Text, Logos, Gallery, Lead form, PDF, FAQ, Pricing, Summary.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/add-section-menu-closeup.png" target="_blank"><img src="units/U17/before/add-section-menu-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/add-section-menu-closeup.png" target="_blank"><img src="units/U17/after/add-section-menu-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same menu in place on the fixture page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/add-section-menu.png" target="_blank"><img src="units/U17/before/add-section-menu.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/add-section-menu.png" target="_blank"><img src="units/U17/after/add-section-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390, opened from the section grip (no hover on touch), 220px menu. On main &quot;Client logos&quot; wraps. Now every label is on one line.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/add-section-menu-phone-closeup.png" target="_blank"><img src="units/U17/before/add-section-menu-phone-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/add-section-menu-phone-closeup.png" target="_blank"><img src="units/U17/after/add-section-menu-phone-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The phone menu in place on the fixture page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/add-section-menu-phone.png" target="_blank"><img src="units/U17/before/add-section-menu-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/add-section-menu-phone.png" target="_blank"><img src="units/U17/after/add-section-menu-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Image toolbar. The pencil Edit is now the swap-icon Replace, as on video.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/image-toolbar-closeup.png" target="_blank"><img src="units/U17/before/image-toolbar-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/image-toolbar-closeup.png" target="_blank"><img src="units/U17/after/image-toolbar-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The image toolbar on hover in a story section. The story media is a library image filled in this browser only, because no staging page holds a viewable image.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/image-toolbar.png" target="_blank"><img src="units/U17/before/image-toolbar.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/image-toolbar.png" target="_blank"><img src="units/U17/after/image-toolbar.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Style panel fonts row. Editorial becomes Serif.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/style-fonts-closeup.png" target="_blank"><img src="units/U17/before/style-fonts-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/style-fonts-closeup.png" target="_blank"><img src="units/U17/after/style-fonts-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Presets are unchanged. Editorial is now the only thing called Editorial.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U17/before/style-presets-closeup.png" target="_blank"><img src="units/U17/before/style-presets-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U17/after/style-presets-closeup.png" target="_blank"><img src="units/U17/after/style-presets-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Existing page: opens the composer, then the Style panel, scrolls to fonts, then opens the add-section menu with the short labels.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U17/before/editor-tour.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U17/after/editor-tour.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>New page: opens the composer with the new placeholder. Generate is never pressed.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U17/before/new-page-composer.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U17/after/new-page-composer.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>Round two: browser measurement (.context/u17-measure.mjs in the agent worktree) opens the 232px canvas add-section menu at 1440 and the 220px grip submenu at 1440 and 390, and counts text lines per tile with a DOM range. All 8 tiles: 1 line, no clipping. The widest is Lead form at 54px in a 61px box. A probe label &quot;Text and logos&quot; reports 2 lines, so the check can fail. The same measurement rejected &quot;Text + media&quot;, &quot;Text &amp; media&quot;, &quot;Summary table&quot; and &quot;Client logos&quot; (2 lines at 220px), and &quot;Text, media&quot; (fits with 1px spare)</code></li><li><code>Round two: npx vitest run on the 6 files that read block labels (journey-page-blocks, canvas-section-handle, block-rendering-parity, block-title, canvas-logos-pdf-faq, canvas-keyboard-controls) -&gt; 96 passed, 0 failed</code></li><li><code>Round two: pnpm run typecheck -&gt; exit 0 (test type errors 168, budget 202)</code></li><li><code>Round two: NODE_OPTIONS=--max-old-space-size=8192 npx eslint --quiet on the changed source and spec files -&gt; no issues</code></li><li><code>Round two CI on d465181cb: Typecheck, Test &amp; Build, PR Preview, Detect E2E Impact, Proof names the head, Guards table/feature map/proof and clarity/preview pass. E2E Smoke, Staging and Production skipped</code></li><li><code>Round two generation check: 6 calls on pr-1459 (d465181cb) and 3 on pr-1440 (main) -&gt; no change from the label. Summary now lands on both sides, main included, so that is drift or noise. See generation-check.md, section Round two</code></li><li><code>Round two capture: before/add-section-menu-phone*.png ran on 13e173819 (main, detached checkout). Everything in after/ ran on d465181cb (control-names.json records the SHA, tree clean). blocked.txt never written</code></li><li><code>Round one: editor: npx vitest run on 11 files (block-title, canvas-keyboard-controls, canvas-logos-pdf-faq, media-overlay-dialog, editor-topbar-loading, color-field-popover, journey-page-theme, journey-page-blocks, journey-page-outline, canvas-section-handle, block-rendering-parity) -&gt; 181 passed, 0 failed</code></li><li><code>Round one: pnpm run typecheck -&gt; exit 0 (test type errors 168, budget 202)</code></li><li><code>Round one: NODE_OPTIONS=--max-old-space-size=8192 npx eslint --quiet &lt;13 changed files&gt; -&gt; no issues</code></li><li><code>Round one: Before and after capture via harness.mjs on local Vite 5317 against staging -&gt; blocked.txt never written: no write or beacon was attempted, no save was sent. control-names.json in each folder lists the accessible names of the topbar and toolbar buttons per side</code></li><li><code>Round one: An independent Opus reviewer searched every use of the old labels and every onBrowse caller -&gt; no blockers. It flagged one nit (stale &quot;AI Generate&quot; in two CSS comments), which is fixed in the head</code></li><li><code>Round one: Generation check (12 calls, pr-1440 main vs pr-1459 b5068377): no change. Block kinds, order and section style match main on all three prompts, and count differences (P2 3/5 vs 6/5, P3 5/5 vs 5/6) sit within run-to-run noise. See generation-check.md.</code></li></ul>
+    <h4>Risks</h4><ul><li>Labels changed again in round two: story &quot;Text&quot;, logos &quot;Logos&quot;, summary back to main&#39;s &quot;Summary&quot;. They feed the generation prompt as &quot;kind: label&quot; lines (generate-blocks.ts:200). The story line still says &quot;title, body, optional media&quot;. A 9-call check found no label effect (generation-check.md).</li><li>Rebased on main cb3e7eba9 (#1442 landed). #1453 (U18) and #1454 (U01) had not landed at push time, so no U01 lint change was needed. When U18 lands, its fused-logos item builds &quot;Remove {title} and logos&quot;, so an untitled story reads &quot;Remove Text and logos&quot; and its trash reads &quot;Remove section: Text&quot;. Both read sensibly. U18&#39;s unit test passes its own titles ({ story: &#39;Story&#39; }), so it does not depend on this label.</li><li>staging-critical-flow.spec.ts now selects &quot;Logos&quot; (two lines) and &quot;PDF&quot; (one line). #1453 and four recorder/video PRs touch the same file in other hunks. gallery-summary-persistence.spec.ts is back to main&#39;s &quot;Summary&quot;, so this PR no longer touches it.</li><li>Naming vs D1: D1 renames the recorder finish-screen action &quot;Build page&quot; and calls the editor&#39;s AI control &quot;Edit with AI&quot;, which matches this PR. &quot;Write page&quot; is the topbar button on /new before the first save, a different surface. Both come from the audit&#39;s copy table. A take page from the recorder already exists, so after &quot;Build page&quot; the editor shows &quot;Edit with AI&quot;. If William wants one verb for AI-makes-the-page, swapping &quot;Write page&quot; to &quot;Build page&quot; is a one-line change in EditorTopbar.tsx.</li><li>Overlaps. #1418 adds the same `title=&quot;Remove&quot; aria-label=&quot;Remove&quot;` lines in MediaPicker.tsx, character for character, so the two merge cleanly. #1448 edits form default labels in blocks.ts about 7 lines above the Form label, with no shared hunk.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>The media toolbar&#39;s alignment and Wrap text icon buttons have no accessible names. #1418 adds them.</li><li>Untitled sections fall back to their tile label (&quot;Text&quot;, &quot;Lead form&quot;) in announcements and the grip menu. &quot;Section&quot; is the alternative generic fallback.</li><li>&quot;Generating...&quot; uses three dots, not an ellipsis, and doesn&#39;t match the new verbs. Consider &quot;Writing…&quot; for a later copy pass.</li><li>Announcements read &quot;Text moved to position 3 of 5&quot; and &quot;Text removed&quot; for an untitled story, which could sound like the words were deleted. A &quot;Text section&quot; fallback in blockTitle would fix it.</li><li>The canvas add-section menu is 232px and the grip submenu is 220px (w-55), so the same grid has two widths.</li><li>On a phone the grip submenu opens over its parent menu, and in the capture the highlighted row reads &quot;Add section above&quot; after tapping &quot;Add section below&quot;. Which seam a pick lands at was not checked.</li></ul>
+    <p class="dim">Before ran on 13e173819, after on d465181cb. Branch <code>simplify/u17-editor-copy</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for U17">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+
+
+</main>
+<div class="bar"><span class="count" id="count"></span><button class="ghost" id="copy">Copy as text</button><button id="send">Send decisions</button></div>
+<script>
+const KEY='clarity-simplify-review-'+(document.title.includes('round two')?'r2':'v1');const state=JSON.parse(localStorage.getItem(KEY)||'{}');
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));render();};
+document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;state[id]??={};
+  if(card.dataset.kind==='pr'){const s=state[id];
+    card.querySelectorAll('.decide .choices button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=card.querySelector('.decide textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};
+  } else card.querySelectorAll('.qs li').forEach(li=>{const q=li.dataset.q;const s=(state[id][q]??={});
+    li.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=li.querySelector('textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};});
+});
+function render(){let done=0,total=0;
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const a=document.querySelector('nav a[data-for="'+id+'"]');
+    if(card.dataset.kind==='pr'){total++;const v=state[id].v;if(v)done++;
+      card.querySelectorAll('.decide .choices button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+      a.className=v==='approve'?'done':v==='changes'?'chg':v==='reject'?'rej':'';}
+    else{const qs=card.querySelectorAll('.qs li');let answered=0;qs.forEach(li=>{const s=state[id][li.dataset.q]||{};if(s.v)answered++;
+      li.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.v));});total++;if(answered===qs.length&&qs.length)done++;
+      a.className=answered===qs.length&&qs.length?'done':answered?'chg':'';}});
+  document.getElementById('count').textContent=done+' of '+total+' decided';}
+function text(){const L=['Decisions on the simplification PRs',''];
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const title=card.querySelector('h2').textContent;
+    if(card.dataset.kind==='pr'){const s=state[id];if(!s.v&&!s.c)return;const pr=card.dataset.pr?' (#'+card.dataset.pr+')':'';
+      L.push('- '+id+pr+' '+title+': '+({approve:'APPROVE',changes:'CHANGES',reject:'DROP'}[s.v]||'COMMENT')+(s.c?' - '+s.c.replace(/\n/g,' '):''));}
+    else{const lines=[];card.querySelectorAll('.qs li').forEach(li=>{const s=state[id][li.dataset.q]||{};if(!s.v&&!s.c)return;
+      lines.push('  - Q'+(+li.dataset.q+1)+': '+(s.v==='yes'?'go with recommendation':s.v==='other'?'something else':'comment')+(s.c?' - '+s.c.replace(/\n/g,' '):''));});
+      if(lines.length){L.push('- '+id+' '+title+':');L.push(...lines);}}});
+  return L.join('\n');}
+document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(text());document.getElementById('copy').textContent='Copied';setTimeout(()=>document.getElementById('copy').textContent='Copy as text',1500);};
+document.getElementById('send').onclick=()=>{const body=text()+'\n\nSent from the overnight review page.';
+  location.href='https://github.com/Clarity-Video-HQ/clarity/issues/new?title='+encodeURIComponent(''+(document.title.includes('round two')?'Simplification review decisions, round two':'Simplification review decisions')+'')+'&body='+encodeURIComponent(body);};
+render();
+</script></body></html>
