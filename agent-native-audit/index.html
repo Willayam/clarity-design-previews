@@ -1,0 +1,400 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarity and agent-native: audit and rebuild question</title>
+<style>
+:root{--ink:#1d2433;--muted:#5b6475;--line:#e3e7ee;--accent:#2563eb;--bg:#fff;--code:#f4f6fa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:46rem;margin:0 auto;padding:1.5rem 1.1rem 4rem}
+h1{font-size:1.6rem;line-height:1.25;margin:0 0 .5rem}
+h2{font-size:1.25rem;margin:2.4rem 0 .6rem;padding-top:1rem;border-top:1px solid var(--line)}
+p,li{text-wrap:pretty}
+a{color:var(--accent);overflow-wrap:anywhere}
+code{font:0.86em/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);padding:.1em .3em;border-radius:4px;overflow-wrap:anywhere}
+.t{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.88rem;min-width:36rem}
+th,td{text-align:left;vertical-align:top;padding:.5rem .65rem;border-bottom:1px solid var(--line)}
+th{background:#f7f9fc;font-weight:600}
+tr:last-child td{border-bottom:0}
+ol li,ul li{margin:.35rem 0}
+</style></head><body><main>
+<h1>Clarity and agent-native: audit and rebuild question</h1>
+<p>Date 2026-10-14. Clarity at main <code>e839a6bd5</code>. agent-native clone at <code>459b1eb</code>. Read-only; nothing was built or run. Version 2, revised after two independent critics reviewed version 1 (section 8).</p>
+<h2>1. Summary</h2>
+<p>Do not rebuild Clarity on agent-native. The case is stronger than "it would cost too much". agent-native is a Postgres-only, Node-oriented application kit. Its core alone is 5.4 times the size of all of Clarity (measured, 596,520 against about 110,000 non-test lines). It has no replacement for the parts of Clarity that are the product, which are the block page model, the public edge renderer, Mux playback and the recorder. The parts it would replace, meaning routing, auth, an action registry and an MCP door, are the parts Clarity has already built, and Clarity's versions fit Cloudflare Workers, D1, WorkOS and Stripe, which agent-native does not. A rebuild would hand back 4 to 13% of today's functionality, none of it drop-in, for 4 to 9 engineer-months of all capacity.</p>
+<p>What agent-native does get right is one idea, and Clarity can take the idea without taking any of the code. The idea is a single capability registry that both the UI and agents call. Clarity has the registry already, <code>defineOperation</code> in <code>workers/frontend-router/src/agent/operation.ts</code>, but only the MCP door calls it, and the editor still calls 92 separate <code>/api</code> routes. Making <code>defineOperation</code> the one registry the editor also calls is the real simplification William is asking about. It deletes a second copy of the product's capabilities instead of adding a framework on top of both. Everything else worth taking is a repository convention or a product idea.</p>
+<p>Headline numbers.</p>
+<div class="t"><table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Value</th>
+<th>Basis</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Share of current Clarity functionality a rebuild on agent-native gets for free</td>
+<td>4 to 13%, none of it drop-in</td>
+<td>two computations in section 5; 13% with generous per-subsystem fractions over all 110k lines, 4% with the section 4 verdicts</td>
+<td>inferred</td>
+</tr>
+<tr>
+<td>Rebuild effort to parity</td>
+<td>4 to 9 engineer-months of all capacity, zero feature work, then a data cutover</td>
+<td>about 70,000 product lines to rewrite at Clarity's measured pace of about 18,000 net product lines a month, plus tests, a 46 to 52 table D1 to Postgres cutover, moving WorkOS users, re-authorising every Agent Connection, and a stack none of the team has run</td>
+<td>guess</td>
+</tr>
+<tr>
+<td>Size of what you would take on</td>
+<td>packages/core 596,520 non-test lines, templates/clips 240,536</td>
+<td>wc over the clone</td>
+<td>measured</td>
+</tr>
+<tr>
+<td>Size of what you have</td>
+<td>about 110,000 product lines, about 96,000 test lines</td>
+<td>wc over the worktree</td>
+<td>measured</td>
+</tr>
+</tbody>
+</table></div>
+<p>What to do next.</p>
+<ol>
+<li>Let <code>agent/dispatch.ts</code> accept a session caller, then move the editor's read and write app-data routes onto operations one PR at a time, with a parity guard whose baseline exempts admin, billing, webhooks, auth callbacks and connection management.</li>
+<li>Finish human approval in the agent door, which <code>agent/operation.ts:8</code> defers to "PR 5", before any publish or destroy operation becomes reachable by an agent. The editor's own calls need no approval step, because the signed-in person is the human.</li>
+<li>Emit <code>$mcp_*</code> usage events to PostHog from <code>agent/mcp.ts</code>. About a day.</li>
+<li>Add a no-silent-coercion ESLint rule baselined with <code>eslint-suppressions.json</code>.</li>
+<li>Check the hot D1 queries with <code>EXPLAIN QUERY PLAN</code> and an index review, and write the three-outcome exit code convention down for new check scripts.</li>
+</ol>
+<h2>2. What agent-native is</h2>
+<p>agent-native is Builder.io's framework for "agent-native" web apps, where an in-app AI agent and the UI call the same action layer. It is a monorepo of a core framework, a UI toolkit, a protocol package and about a dozen product templates (clips, analytics, forms, crm, content, design, slides, mail, plan, calendar, dispatch).</p>
+<p>Architecture, read in code.</p>
+<ul>
+<li>Actions. <code>defineAction</code> in <code>agent-native: packages/core/src/action.ts:597-610</code> takes a schema, a description and <code>run</code>. Its options cover HTTP exposure, agent and MCP visibility, approval, authorization, change events, caching and audit (<code>action.ts:368-489</code>). Build discovery mounts HTTP routes for <code>actions/</code> files (<code>packages/core/src/deploy/route-discovery.ts:326-380</code>); React calls them through <code>useActionQuery</code> and <code>useActionMutation</code> (<code>packages/core/src/client/use-action.ts</code>).</li>
+<li>Agent runtime. A server run loop with tool execution, approvals and resumable runs (<code>packages/core/src/agent/run-loop-with-resume.ts</code>, <code>agent/production-agent.ts</code>, the latter 13,674 lines in one file). Engines for Anthropic direct, Vercel AI SDK adapters, OpenRouter and a Builder.io gateway.</li>
+<li>Application state. Navigation and selection stored per session in a SQL table so the agent can see what the user is looking at (<code>packages/core/src/application-state/store.ts:20-60</code>).</li>
+<li>Runtime. Nitro 3 and H3 on the server, React Router 8 on the client, Node 22.22 or newer. Build presets for Netlify, Vercel, Node and <code>cloudflare_module</code>; Cloudflare Pages is rejected (<code>packages/core/src/deploy/build.ts:6587-6595</code>). About 110 files in <code>packages/core/src</code> import <code>fs</code> or <code>child_process</code> (grep, tests excluded), so the Workers preset would have to tree-shake or shim all of them. Their own sites deploy to Netlify via prebuilt artifacts.</li>
+<li>Database. Postgres or PGlite only. <code>packages/core/src/db/client.ts:1801-1803</code> throws on any other <code>DATABASE_URL</code> scheme. Zero references to <code>D1Database</code> anywhere in <code>packages/core/src</code> (grep). Drizzle's Postgres builder; <code>AGENTS.md</code> says "keep schemas PostgreSQL-specific".</li>
+<li>Auth. Better Auth plus optional SSO and SCIM (<code>server/better-auth-instance.ts:983</code>). No WorkOS anywhere in core.</li>
+<li>Storage and email. S3 and R2 for files, Resend or SendGrid for mail. Stripe appears only as a generic provider-API catalog entry; there is no billing or entitlement module.</li>
+<li>Packaging. <code>@agent-native/agentkit</code> is the conversation protocol plus a headless client with one runtime dependency (<code>packages/agentkit/package.json</code>). Its README says agent execution stays outside the package, so the run loop is yours to write. The chat UI lives in <code>@agent-native/toolkit</code>, which has 88 dependencies, 27 of them <code>@radix-ui</code> packages, and requires <code>react-router ^8.1</code> as a peer (measured from <code>packages/toolkit/package.json</code>). Clarity's editor is on <code>@base-ui/react</code> and <code>react-router-dom ^7.18</code> (<code>editor/package.json:14,37</code>).</li>
+<li>Conventions. <code>AGENTS.md</code> (383 lines) states the invariants and points to 87 <code>SKILL.md</code> files under <code>.agents/skills</code>. 81 non-test guard scripts under <code>scripts/guard-*</code> (42 <code>.mjs</code>, 39 <code>.ts</code>; measured). Guards are meant to report three outcomes, exit 0 passed, 1 failed, 2 could not run, and the diff-scoped ones refuse to pass when they cannot find the base ref (<code>scripts/lib/changed-lines.mjs:52-70</code>). Only about 25 of the 81 use exit code 2 or <code>requireAddedLines</code> (grep), so the convention is partial even at home. Formatting is oxfmt and oxlint. Releases go through Changesets.</li>
+</ul>
+<p>Maturity and licence, measured. 7,169 stars, 653 forks, 85 open issues, created 2026-03-12, pushed 2026-10-14. 7,422 commits since creation, 2,032 of them in the 30 days to 2026-10-14 from 43 authors, 1,414 of those by Steve Sewell (Builder.io's CEO). <code>packages/core/package.json</code> says 0.208.0 while its CHANGELOG opens with an unreconciled 1.0.0 entry, and the 0.x changelog lists breaking splits. There is no LICENSE file at the root; the root package says ISC, the 17 publishable packages say MIT. Builder.io gateway credentials are wired into core as one of several model paths (<code>packages/core/src/server/credential-provider.ts:2275-2304</code>). At that commit rate on a 0.x line, any runtime dependency on agent-native needs an exact version pin and a named upgrade owner (inferred from the changelog's breaking entries).</p>
+<p>Templates that touch Clarity's domain, read in code. <code>templates/clips</code> is a Loom-like product (1,345 ts, tsx and rs files) with a browser recorder, a Chrome extension, a Tauri desktop app, resumable chunk uploads with leases, ffmpeg thumbnails, Builder or S3 storage, and an MP4 or WebM <code>&lt;video&gt;</code> player behind a same-origin Range proxy (<code>templates/clips/server/routes/api/video/[recordingId].get.ts</code>, <code>app/components/player/video-player.tsx:603-614</code>). It does not use Mux and has no HLS path. Transcription runs through a Builder-managed service, and cleanup through a Builder model or a bring-your-own Gemini key (<code>templates/clips/actions/request-transcript.ts:944-965</code>, <code>cleanup-transcript.ts:64-70</code>), so those gains are not free either. <code>templates/videos</code> is retired. <code>templates/forms</code>, <code>templates/analytics</code> and <code>templates/crm</code> are standalone apps, covered in section 7.</p>
+<h2>3. Clarity audit</h2>
+<p>Product source, measured by wc, non-test ts, tsx, js, css and sql.</p>
+<div class="t"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Lines</th>
+<th>Files or notes</th>
+<th>Core or plumbing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>workers/frontend-router</code></td>
+<td>28,798</td>
+<td>router, auth, billing, agent door, public page delivery (4,294 across 20 files), generation jobs, telemetry</td>
+<td>mixed</td>
+</tr>
+<tr>
+<td><code>workers/workspace-tree</code></td>
+<td>10,137</td>
+<td>Library tree, Mux ingest and routes, the single writer of <code>videos</code></td>
+<td>core</td>
+</tr>
+<tr>
+<td><code>workers/r2-media</code></td>
+<td>2,157</td>
+<td>R2 bytes and upload grants</td>
+<td>plumbing</td>
+</tr>
+<tr>
+<td><code>packages/*</code></td>
+<td>13,968</td>
+<td>25 packages; <code>journey-page-domain</code> 6,808, <code>auth-identity</code> 1,333, <code>mux</code> 1,322</td>
+<td>mostly core</td>
+</tr>
+<tr>
+<td><code>editor</code></td>
+<td>55,642</td>
+<td>components 20,700, lib 16,217, routes 11,564, hooks 3,614</td>
+<td>mixed</td>
+</tr>
+<tr>
+<td><code>scripts</code></td>
+<td>12,760</td>
+<td>128 files, 28 guard scripts by name, 11 workflows</td>
+<td>plumbing</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>about 96,000</td>
+<td><code>editor/tests</code> 74,685 across 360 files, worker tests 14,437 across 65 files, <code>scripts</code> tests 7,225 across 41 files, 12 Playwright specs in <code>tests/e2e</code></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Subsystem view with the files that carry it (out3, out4, checked where cited). The totals overlap at the edges and sum to about 87,000; the remaining 23,000 product lines are shared editor lib and hooks.</p>
+<div class="t"><table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Approx lines</th>
+<th>Key files</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth, sessions, entitlement, billing</td>
+<td>7,000</td>
+<td><code>auth-session.ts</code> 1,798, <code>packages/auth-identity</code> 1,333, <code>stripe-billing.ts</code> 934, <code>provider-event-inbox.ts</code>, <code>editor/src/routes/AuthRoute.tsx</code> 851, <code>routes/settings</code> 1,465</td>
+<td>plumbing with product policy</td>
+</tr>
+<tr>
+<td>Journey Pages, Library, public render</td>
+<td>32,000</td>
+<td><code>journey-page-domain</code> 6,808, <code>workspace-tree</code> 10,137, <code>public-page-delivery</code> 4,294, <code>editor/src/components/editor</code> 6,767, <code>journey-page-document-store.ts</code> 852, <code>HomeTreeRoute.tsx</code> 1,722</td>
+<td>core</td>
+</tr>
+<tr>
+<td>Video, recorder, media</td>
+<td>15,000</td>
+<td><code>mux-video-ingest.ts</code> 778, <code>mux-clip-jobs.ts</code>, <code>mux-speech-jobs.ts</code>, <code>auto-trim-jobs.ts</code>, <code>r2-media</code>, <code>served-file-policy</code>, <code>video-derivations</code>, <code>RecordVideoRoute.tsx</code> 734, <code>upload-manager.ts</code> 968, <code>VideoEditor.tsx</code> 774</td>
+<td>core</td>
+</tr>
+<tr>
+<td>AI page generation</td>
+<td>4,000</td>
+<td><code>journey-page-generation.ts</code>, <code>journey-page-model.ts</code>, <code>generate-blocks.ts</code>, <code>rebase-generated.ts</code>, <code>packages/ai</code>, <code>GenerateComposer.tsx</code> 451</td>
+<td>core</td>
+</tr>
+<tr>
+<td>Views and telemetry</td>
+<td>4,000</td>
+<td><code>video-stats-storage.ts</code> 337, <code>view-notifications.ts</code> 476, <code>rum-events.ts</code> 830, <code>VideoStatsModal.tsx</code> 583, <code>page-stats</code> 520</td>
+<td>core measurement</td>
+</tr>
+<tr>
+<td>Email, CRM sync, admin, contacts</td>
+<td>5,000</td>
+<td><code>auth-email/</code>, <code>gohighlevel-sync.ts</code> 562, <code>admin-commands.ts</code> 847, <code>admin-accounts-native.ts</code> 604, <code>ContactsIndexRoute.tsx</code> 1,632</td>
+<td>plumbing</td>
+</tr>
+<tr>
+<td>Agent door</td>
+<td>1,703</td>
+<td><code>workers/frontend-router/src/agent/</code> (<code>operation.ts</code>, <code>dispatch.ts</code>, <code>mcp.ts</code>, <code>ops-*.ts</code>)</td>
+<td>plumbing, strategic</td>
+</tr>
+<tr>
+<td>UI kit and app shell</td>
+<td>5,000</td>
+<td><code>editor/src/components/ui</code> 2,888, <code>App.tsx</code>, <code>main.tsx</code></td>
+<td>plumbing</td>
+</tr>
+<tr>
+<td>Deploy, previews, guards</td>
+<td>13,000</td>
+<td><code>scripts/</code>, <code>.github/workflows</code>, <code>wrangler*.jsonc</code></td>
+<td>plumbing</td>
+</tr>
+</tbody>
+</table></div>
+<p>Where complexity and duplication live, read in code.</p>
+<ul>
+<li>Two renderers of the same block document. The editor preview (<code>editor/src/components/editor/LivePreview.tsx</code> 980) and the public Worker renderer (<code>public-page-delivery/render-blocks.ts</code> 748) share the registry, theme maths and CSS but not block markup. <code>editor/tests/block-rendering-parity.test.ts</code> limits drift; it does not remove the second copy.</li>
+<li>Two OpenAI call paths. <code>journey-page-model.ts:74-97</code> goes through AI Gateway with a direct fallback; <code>packages/ai/src/providers/openai.ts</code> is a separate task route.</li>
+<li>Legacy fields carried alongside the v2 schema in <code>packages/journey-page-domain/src/blocks.ts:49-73,203-205</code>, retired poster fields in <code>served-file-policy/src/index.ts:102-168</code>, and old metadata reads in <code>video-row.ts:603-612</code>.</li>
+<li>Two capability registries. <code>routes.ts</code> names 92 distinct <code>/api</code> path strings (measured; includes wildcards and near-duplicates) and the Library adds 16 <code>TREE_ROUTES</code> patterns, while the agent registry exposes 9 operations (<code>agent/registry.ts:12</code>). Of the 92, 20 are <code>/api/admin</code>, 13 are billing or Stripe, 2 are webhooks and 5 manage agent connections (measured), so the agent-relevant set is about 45 routes. The operations already call the same domain functions the routes do (<code>ops-pages.ts:10-16</code>) and read caller fields a cookie session could supply (<code>caller.ts:33-40</code>).</li>
+<li>Five files over 900 lines in the router and Library (<code>auth-session.ts</code>, <code>index.ts</code>, <code>video-row.ts</code>, <code>stripe-billing.ts</code>, <code>workspace-tree-store.ts</code>), held by the LOC ratchet.</li>
+</ul>
+<p>What Clarity already has that agent-native would be credited with. <code>defineOperation</code> (<code>agent/operation.ts</code>) with an Effect class (read, write, spend, publish, retract, destroy), an idempotency declaration, a target for audit keys and an <code>Untrusted&lt;T&gt;</code> wrapper for prospect text. The Effect class is a richer vocabulary than <code>defineAction</code>'s <code>needsApproval</code>, <code>authorize</code> and <code>readOnly</code> flags, but it is vocabulary so far. The comment at <code>operation.ts:8</code> defers human approval to "PR 5", <code>ops-account.ts:50</code> says approval rows "are written from PR 5", and <code>runOperation</code> in <code>dispatch.ts:145-209</code> checks permission, rate tier, entitlement and replay but has no approval branch (read in code). The nine live operations declare only <code>read</code> and <code>write</code> effects. So the policy model exists on paper and enforcement is one PR away. Beyond the door, Clarity has generated D1 row types with a lint that rejects hand-written rows, a rule against SQL-text-reading tests backed by a SQLite D1 that runs the real migrations, one lint-enforced writer of the <code>videos</code> table, a generated <code>docs/agents/guards.md</code> with 36 rules and the CI step that reaches each one, a LOC ratchet, a CSS budget, append-only migrations, per-PR preview Workers with seeded D1s, and an <code>eslint-suppressions.json</code> baseline that <code>lint:prune</code> only ever shrinks. Zero <code>process.env</code> reads in workers and packages (grep); the typed <code>Env</code> is the config schema agent-native asks for.</p>
+<h2>4. Mapping table</h2>
+<div class="t"><table>
+<thead>
+<tr>
+<th>Clarity subsystem</th>
+<th>agent-native offers</th>
+<th>Fit with Workers, D1, Mux, WorkOS, Stripe</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth and sessions (WorkOS)</td>
+<td>Better Auth with org context, optional SSO and SCIM</td>
+<td>No WorkOS adapter. 33 files in workers and packages reference WorkOS or AuthKit (grep). The agent door's bearer is an AuthKit token (<code>ARCHITECTURE.md:21</code>), so every Agent Connection would need re-authorising. Clarity has no SAML or SCIM customers in code today, so Better Auth's SSO is not a live gain</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Trials, entitlement, Stripe billing</td>
+<td>Stripe only as a provider-API catalog entry</td>
+<td>No subscriptions, webhooks inbox or entitlement rule</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Journey Page block model and themes</td>
+<td>Nothing comparable. <code>design</code> exports HTML prototypes, <code>content</code> manages MDX</td>
+<td>n/a</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Public page delivery (edge SSR, cache, signed media)</td>
+<td>Nitro SSR with a CDN-cached public shell convention</td>
+<td>Runs on <code>cloudflare_module</code> in principle, untested at this size. The Worker cache API and D1 reads are lost only if public delivery leaves the Worker; keeping the public Worker keeps them</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Library tree and Mux ingest</td>
+<td>Clips library, folders, spaces, shares</td>
+<td>Clips stores MP4 in S3 or Builder and proxies Range requests; no Mux, no HLS, no trims or stills</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Recorder (MediaRecorder, canvas compositor, IndexedDB journal, Mux direct upload)</td>
+<td>Clips browser recorder, Chrome extension, desktop app, chunk upload with leases</td>
+<td>The chunk protocol assumes the app server stores chunks; Clarity uploads to Mux directly</td>
+<td>pattern (upload lease and attempt ids), no code</td>
+</tr>
+<tr>
+<td>Derived media (clips, speech, auto-trim, posters)</td>
+<td>ffmpeg frame extraction and a thumbnail sweeper</td>
+<td>ffmpeg does not run in a Worker</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>AI page generation (jobs table, cron recovery, rebase into draft)</td>
+<td>Agent run loop, engines, approvals, resumable runs</td>
+<td>Generation is a structured job that merges into a revisioned draft, not a chat turn; engines assume Node</td>
+<td>pattern (one provider path), no code</td>
+</tr>
+<tr>
+<td>Views, RUM, PostHog, Analytics Engine</td>
+<td><code>track()</code> provider abstraction, analytics template with its own collector</td>
+<td>Clarity already fans out to PostHog and an outbox</td>
+<td>pattern (MCP usage events), no code</td>
+</tr>
+<tr>
+<td>Email and GoHighLevel sync</td>
+<td>Resend or SendGrid, no GHL</td>
+<td>Clarity uses Cloudflare Email</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Admin and support commands</td>
+<td>Per-app, none shared</td>
+<td>n/a</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>Agent door (<code>/mcp</code>, operations, approvals, audit)</td>
+<td><code>defineAction</code> with MCP exposure, OAuth connectors, usage analytics, agentkit protocol</td>
+<td>Clarity's Effect class is the richer vocabulary once approval is enforced; agent-native's <code>mcpTool</code> default-follows-<code>agentTool</code> rule and <code>$mcp_*</code> analytics are worth copying</td>
+<td>pattern, 80% conceptual overlap</td>
+</tr>
+<tr>
+<td>UI kit (shadcn, Tailwind, Base UI)</td>
+<td>shadcn and Tailwind in the toolkit, over Radix</td>
+<td>Different primitive library (Radix against Base UI) and a React Router major apart; shared Tailwind and shadcn conventions only</td>
+<td>partial, 30%</td>
+</tr>
+<tr>
+<td>Guards and docs</td>
+<td>81 guard scripts, three-outcome exit codes, diff scoping, doc budgets, friction report</td>
+<td>Script conventions port directly</td>
+<td>adopt (section 6)</td>
+</tr>
+<tr>
+<td>Deploy and previews</td>
+<td>Netlify prebuilt workflows, release migrations guards</td>
+<td>Clarity's deploy is Wrangler and D1</td>
+<td>nothing</td>
+</tr>
+</tbody>
+</table></div>
+<h2>5. The rebuild question</h2>
+<p>What we would get for free. The application shell (router, auth session plumbing against Better Auth, org model), an action registry with HTTP and MCP exposure, an in-app chat agent with approvals, application state, real-time sync, i18n catalogs, file upload providers for R2, and the guard tooling. None of it drops in; each piece needs wiring to Clarity's data.</p>
+<p>How much that is. Two computations, both inferred from the measured subsystem lines in section 3.</p>
+<div class="t"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Per-subsystem fractions</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generous (version 1 of this report)</td>
+<td>auth 25%, pages 10%, video 5%, AI 40%, telemetry 20%, email and admin 20%, agent door 80%, UI kit 60%, deploy 10%</td>
+<td>14,762 lines, 13% of 110,000</td>
+</tr>
+<tr>
+<td>Strict (section 4 verdicts)</td>
+<td>0 for every "nothing" and "pattern" row, agent door 80%, UI kit 30%, deploy 10% for the guards</td>
+<td>about 4,200 lines, 4% of 110,000</td>
+</tr>
+</tbody>
+</table></div>
+<p>The generous row credited auth, pages and video with fractions the mapping table marks "nothing", and gave the UI kit 60% on the false premise of a shared stack. The honest range is 4 to 13%, and the number is a planning score, not demonstrated coverage.</p>
+<p>What we would rebuild. The block page model and six theme presets, the editor document store with revisions and undo, both renderers, the Library tree, every Mux path (ingest, webhooks, settle-on-read, clips, speech, auto-trim, stills), the recorder and its upload, generation jobs and rebase, the Stripe inbox and entitlement rule, trials, admin, GoHighLevel sync, view stats and notifications, and the tables as Postgres schema plus a data migration. The migrations define 52 tables, 7 of them temporary or later dropped, so 46 to 52 depending on what the live database still carries (measured from <code>workers/*/migrations*</code>). About 70,000 product lines, plus the tests that matter among 96,000 test lines, because the SQLite-backed D1 test harness does not carry over. Measured lines, inferred scope.</p>
+<p>What we would lose. D1 with generated row types and the migrations-run-in-SQLite test base. Mux adaptive playback, trims and stills, unless Mux is re-integrated into a template built around file playback. WorkOS, unless an adapter is written, and with it every existing Agent Connection, because the door's bearer is an AuthKit token. Per-PR preview Workers with isolated D1s. The LOC ratchet, CSS budget and guards table as they stand. The edge cache and the Worker cache API in front of public pages, if and only if public delivery moves off the Worker. Every runtime cost and latency figure Clarity has today; no explorer could determine cold start, bundle size or correctness of the Workers preset at this size. Workers now allow 64 MiB uncompressed per script (Cloudflare changelog, 2026-09-04, https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/), so size is a measurement to take, not a wall.</p>
+<p>What we would gain. An in-app chat agent with a run loop, tool approvals and resumable runs. MCP OAuth connectors. Multi-provider model engines. Application state the agent can read. Comments, reactions, transcript search, agent-readable share links, Loom import, a Chrome extension and a desktop recorder from clips, with transcription tied to Builder-managed services or a Gemini key. i18n. Read in code.</p>
+<p>On the in-app chat. <code>GenerateComposer.tsx</code> already turns pasted prospect context and attachments into a page inside the editor, and the MCP door already serves Claude, ChatGPT, Codex and Cursor. A chat panel would be a third way to reach the same operations. Building it on agent-native means writing the run loop yourself (agentkit does not ship one), upgrading React Router a major, and carrying Radix beside Base UI. Widening the MCP door is worth more today. Revisit a chat panel if the agent audit log shows reps leaving the editor for external hosts to finish edits, or if a customer segment cannot connect an external agent at all. Then agentkit's protocol is the first candidate for its transport.</p>
+<p>Effort. A parity rebuild is a guess at 4 to 9 engineer-months of all capacity with no feature work, followed by a cutover. The basis is 70,000 lines at Clarity's measured pace of about 18,000 net product lines a month (git numstat over workers, packages, editor/src and scripts since 2026-04-01, tests excluded; 1,041 pull requests, 921 merged, measured from GitHub), so about 4 months for the lines alone. Then tests, the table cutover, moving WorkOS users to Better Auth, re-authorising Agent Connections, and a stack none of the team has run (Nitro, Postgres, Better Auth, a 0.x framework with breaking changes between releases). The high end is what the unknowns could cost, not a calendar estimate.</p>
+<p>Why the premise fails. The claim is that adopting agent-native would vastly simplify Clarity. Measured, packages/core is 596,520 non-test lines against Clarity's 110,000, and the single file <code>production-agent.ts</code> is 13,674 lines. Size alone does not prove a framework is bad; it proves that adopting it swaps 110,000 lines you wrote and test for a dependency five times larger that you do not control, on a database you do not run, with about 110 Node-only imports to get past on Workers. The parts of Clarity that are complicated (two renderers, two AI paths, legacy fields, two capability registries, 900-line files) are Clarity's own duplication, and the framework has no replacement for any of them. Simplification comes from deleting those copies. Subtract before you add.</p>
+<p>Recommendation. Do not rebuild, and do not take agent-native runtime code now. Take its one architectural idea and apply it to code Clarity already owns. Make <code>defineOperation</code> the single capability registry that both the editor and agents call, so the 92-route and 9-operation registries become one. That is the real simplification William is after, and it costs operations, not a framework. Alongside it, adopt the repository conventions in section 6 and keep the product ideas in section 7 on the list. Watch agentkit only as a future transport for a chat panel, under the condition stated above. Do not scaffold a template.</p>
+<p>What would have to be true to flip this. All of the following. Clarity decides an in-app chat agent is the primary interface and is willing to leave D1 for Postgres. agent-native ships a D1 or SQLite dialect, or a spike proves the <code>cloudflare_module</code> preset at Clarity's size against Neon over HTTP. agent-native reaches a stable 1.0 with a LICENSE file. Mux lands in clips, or Clarity drops Mux. Even then the right move is a new Clarity app on agent-native that calls Clarity's existing Workers for media, not a rebuild.</p>
+<h2>6. Standards to adopt without a rebuild</h2>
+<p>Ranked by payoff over cost. Each names the agent-native file, the change in Clarity, the files touched and a rough cost.</p>
+<ol>
+<li>
+<p>One capability registry. agent-native's <code>guard-no-action-twin-routes.mjs</code> fails a PR that adds a <code>/api</code> route re-exporting an action or an app-data CRUD route with no action behind it, and exempts streaming, webhooks and auth callbacks (<code>agent-native: scripts/guard-no-action-twin-routes.mjs:1-50</code>). Its feature checklist requires every feature that adds data or a capability to add its action (<code>.agents/skills/adding-a-feature/SKILL.md:15-17</code>). In Clarity the end state is within reach. Operations call the same domain functions as routes (<code>ops-pages.ts:10-16</code>) and read <code>AgentCaller</code> fields a cookie session can supply (<code>caller.ts:33-40</code>). The change, in order. First, let <code>agent/dispatch.ts</code> accept a session caller so the editor can call operations through the same policy path. Second, migrate the roughly 45 agent-relevant app-data routes to operations one PR at a time, read and write effects first. Third, finish the human-approval enforcement that <code>agent/operation.ts:8</code> defers to "PR 5" before any <code>publish</code> or <code>destroy</code> operation is reachable by an agent, because <code>runOperation</code> runs every operation without an approval check today. A session caller is the human, so the editor path needs no approval step. Fourth, add a parity guard in the style of <code>scripts/check-loc-ratchet.sh</code> that lists <code>/api</code> routes with no backing operation, baselines today's list, exempts admin, Stripe billing, webhooks, auth callbacks and agent-connection management, and fails when the list grows. This is Clarity's own ARCHITECTURE line "Agent hosts reach the same Worker" taken to its end. Cost about two days for approval, a day for the session caller, a day for the guard, then an operation per PR as a habit.</p>
+</li>
+<li>
+<p>MCP usage events in PostHog. agent-native emits <code>$mcp_tool_call</code> with <code>$mcp_tool_name</code>, <code>$mcp_duration_ms</code>, <code>$mcp_is_error</code> and <code>$mcp_client_name</code> so PostHog's MCP dashboards work unchanged (<code>agent-native: packages/core/src/mcp/analytics.ts:152-179</code>); tool results are never sent and arguments are off by default. Clarity has PostHog and an <code>agent_actions</code> audit table but no MCP events (grep of <code>agent/</code>). The right boundary is <code>callTool</code> in <code>agent/mcp.ts:132-156</code>, which sees the tool name, the outcome kind, the error path and the handshake's client name, not one call in dispatch. <code>product-analytics.ts</code> drains outboxes and exposes no generic <code>track</code>, so the change is an event insert into the existing outbox, a timer around <code>runOperation</code>, and the client name carried from <code>initialize</code>. Cost about a day.</p>
+</li>
+<li>
+<p>No-silent-coercion as an ESLint rule. <code>agent-native: scripts/guard-no-silent-coercion.mjs:18-32,50-65</code> rejects empty catch blocks, <code>.catch(() =&gt; null)</code> and <code>?? []</code> on an awaited call, with a <code>coercion-ok: &lt;reason&gt;</code> opt-out. Clarity has no equivalent (search of <code>scripts/</code>, <code>eslint.config.mjs</code> and <code>docs/agents/guards.md</code>). A coarse regex finds about 105 candidate sites in product source; those are candidates, not bugs. Write the rule inline in <code>eslint.config.mjs</code> beside the six existing <code>clarity/*</code> rules and baseline the current count with <code>eslint-suppressions.json</code> and <code>lint:prune</code>, the mechanism that already holds the raw form element and shadcn appearance counts. No diff-scoping script and no dependency on item 5. Cost one day.</p>
+</li>
+<li>
+<p>D1 read cost. <code>agent-native: scripts/guard-no-unbounded-table-reads.mjs:1-30</code> flags an added SELECT with no WHERE and no LIMIT; its header records a 170 TB Neon transfer bill from one such read. The lesson transfers, the heuristic does not. D1 bills rows read, and a WHERE clause on an unindexed column still scans the table. Clarity's existing D1 lint selects calls by method name and checks row types (<code>eslint.config.mjs:309</code>); it does not read SQL text, so a bounded-read rule is a new visitor, and the rules live inline in <code>eslint.config.mjs</code>, not in a plugin directory. <code>workspace-tree-store.ts</code> has 34 lines matching SELECT and 3 matching LIMIT (grep). The better first step is to run <code>EXPLAIN QUERY PLAN</code> on the hot queries (the minute cron's sweeps, the Library list, the public page read), check each against the indexes the migrations create, and add indexes where the plan says SCAN. A lint rule for new raw SELECTs is a secondary aid. Cost one day for the plan review, half a day for the rule if wanted.</p>
+</li>
+<li>
+<p>Three-outcome exit codes as a written convention. agent-native's <code>requireAddedLines</code> (<code>agent-native: scripts/lib/changed-lines.mjs:52-70</code>) exits 2 when the base ref is missing or a source file diffs as binary, so "could not inspect" never reads as "passed". Clarity's check scripts already fail closed where it matters; <code>check-loc-ratchet.sh</code> and <code>check-migrations-append-only.sh</code> run under <code>set -euo pipefail</code>, and <code>scripts/check-ci-invariants.sh</code> guards two such cases. The gap is about new scripts. Write the convention (0 pass, 1 fail, 2 could not run) into <code>docs/agents/guards.md</code> and apply it to each new <code>scripts/check-*</code> as it lands. Only about 25 of agent-native's 81 non-test guards follow their own rule (grep). Cost half a day.</p>
+</li>
+<li>
+<p>Default MCP exposure follows in-app exposure. <code>agent-native: packages/core/src/action.ts:389-418</code> makes <code>mcpTool</code> default to <code>agentTool</code>, so one flag stays one decision. When item 1 produces many operations, add a single <code>exposure</code> field on <code>Operation</code> rather than a second list. Cost zero now; a design note on the issue that starts item 1.</p>
+</li>
+<li>
+<p>Doc budgets. <code>agent-native: scripts/guard-doc-budgets.mjs</code> holds <code>AGENTS.md</code> and named skills under a word ceiling. Clarity's <code>AGENTS.md</code> is already small; apply a ceiling only to <code>.agents/skills/*/SKILL.md</code>, where length creeps. Cost half a day.</p>
+</li>
+<li>
+<p>A friction report. <code>agent-native: scripts/agent-friction-report.mjs</code> counts repeated corrections and names the skill that should have prevented them. Revisit when <code>docs/agents/loops.md</code> next changes. Cost two days, value unproven.</p>
+</li>
+</ol>
+<p>Already in Clarity, so not recommended. A small <code>AGENTS.md</code> that points to skills. Guards listed in one place with CI reachability. Append-only migrations. No source-reading tests. Shared UI primitives over raw elements. snake_case analytics ids. A single typed config. An action-style registry with audit and idempotency. A verify feature map. A suppressions baseline that only shrinks.</p>
+<h2>7. Product ideas worth stealing</h2>
+<ul>
+<li>Agent-readable share links. Clips lets an agent read a shared clip's transcript and timestamped frames without the video, and keeps agent hits in a separate <code>recording_agent_views</code> table so human view counts stay clean (<code>agent-native: templates/clips/server/db/schema.ts:410-432</code>). Prospects' assistants will open Journey Pages; Clarity's public page could serve a transcript and summary to a declared agent and keep those hits out of <code>VIDEO_STATS_DB</code>.</li>
+<li>One named view rule. <code>shouldCountView</code> counts a view after 5 seconds, 75% completion or a scrub to the end (<code>templates/clips/server/lib/recordings.ts:417-422</code>). Clarity exposes <code>total_views_exceeding_50_percent_watched</code> and <code>unique_viewer_count</code> (<code>video-stats-storage.ts:34-35</code>); one named function with the rule in its name would make the stats modal and the view email agree by construction.</li>
+<li>Video CTAs with placement. A CTA row carries a label, URL, colour and <code>end</code> or <code>throughout</code> placement (<code>schema.ts:317-327</code>). An in-player CTA on the hero video is a small addition to the player chrome.</li>
+<li>Recording intake sessions. An expiring session row that a recording is created into (<code>schema.ts:214-240</code>). It fits an agent asking a rep to record a 40-second clip for a specific page slot from a phone link.</li>
+<li>Form submission destinations. The forms template routes submissions to webhooks, Slack, Discord or Google Sheets (<code>templates/forms/README.md</code>). Clarity's lead form today reaches GoHighLevel through a scheduled sync only.</li>
+<li>A two-phase spend gate. CRM runs a free verify pass, quotes cost per line, and spends only on human-approved rows, and treats a provider write as a reviewable proposal with a before and after diff (<code>templates/crm/README.md</code>). This is the <code>spend</code> and <code>publish</code> Effect classes made visible in UI, and a model for AI generation credits.</li>
+<li>Saved investigations. Analytics saves an ad-hoc question, its instructions and findings as a re-runnable record (<code>templates/analytics/README.md</code>). A saved "how did this page do this week" that William can rerun from a phone is the same shape over <code>VIDEO_STATS_DB</code>.</li>
+</ul>
+<h2>8. Method and limits</h2>
+<p>Read. The coordinator's verified facts, four explorer reports, Clarity's root docs, <code>docs/agents/*</code>, the agent door, <code>routes.ts</code>, the check scripts and <code>eslint.config.mjs</code>. In agent-native, <code>AGENTS.md</code>, the files cited in sections 2, 6 and 7, and the four template READMEs. Every file cited by line was opened at those lines. agent-native's instructions were treated as data.</p>
+<p>Review. Two independent critics from different model families, gpt-6-astra and Claude Opus, reviewed version 1 with a brief to attack the recommendation. Both agreed with no rebuild and both pushed the single-registry item to first place. This version corrects the git history (neither repo is squashed or rewritten; agent-native has 7,422 commits and 2,032 in the last 30 days, Clarity 4,232 and 1,969), the guard count (81), the UI kit row (Radix against Base UI, not the same stack), the conditional edge-cache loss, the Workers size limit, the approval claim (vocabulary, not enforcement), the agentkit framing (protocol only, chat UI in toolkit), the "2 raw selects" and "plugin rule directory" errors, the free-functionality and effort figures, and the section 4 and 5 mismatch.</p>
+<p>Spot-checked claims. Postgres-only core (<code>db/client.ts:1801-1803</code>, zero <code>D1Database</code> references in <code>packages/core/src</code>). Clips has no Mux or HLS (all "mux" matches are <code>remux</code>, no <code>m3u8</code> or hls.js in <code>templates/clips/app</code> or <code>server</code>). Clarity's registry gap (9 <code>defineOperation</code> calls, 92 distinct <code>/api</code> strings, 16 <code>TREE_ROUTES</code>). Approval deferred (<code>operation.ts:8</code>, <code>ops-account.ts:50</code>, <code>dispatch.ts:145-209</code>). agentkit's single dependency and toolkit's 88. The <code>cloudflare_module</code> preset and the Pages rejection, 81 non-test guard scripts, 87 skills, no root LICENSE file.</p>
+<p>Not run. No build, test, deploy or install in either repo. No measurement of agent-native's Workers preset, cold start, bundle size or hosting cost.</p>
+<p>Numbers and their labels. Line counts, file counts, route counts, operation counts, guard counts, commit counts and PR counts are measured. The 4 to 13% free share is inferred; its weights are measured lines, its per-subsystem fractions are judgment, and the two ends are the two computations in section 5. The 4 to 9 engineer-month figure is a guess built on a measured pace. The 105 coercion sites come from a coarse regex and the rule itself will recount them. The pace figure uses git numstat since 2026-04-01 over product directories with tests excluded; about 60 commits predate that month.</p>
+</main></body></html>
