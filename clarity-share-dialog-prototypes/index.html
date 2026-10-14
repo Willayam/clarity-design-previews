@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: five prototypes</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · prototype, throwaway, mock data</p>
+    <h1>Share dialog: five ways to show what visitors see</h1>
+    <p>Every dialog below is live. Pick a state in the row above each one, then press the buttons inside. Nothing here talks to a server. Option 6 is what the PR does today, for comparison. One option carries a "Recommended" tag with the reason under it.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set every option to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+  <section class="x-grid" id="options"></section>
+  <footer class="x-outro">
+    <h2>What each option borrows</h2>
+    <ul id="borrowed"></ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>
