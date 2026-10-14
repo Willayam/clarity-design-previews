@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: round five finals (draft)</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · round five finals · draft for critique · prototype, throwaway, mock data</p>
+    <h1>Share dialog: three finals</h1>
+    <p>Three critics reviewed the eight round-five candidates. They agreed on the same three to keep and on ten fixes that apply to all of them. These are those three, rebuilt with every fix. Each dialog is live. Pick a state above it, or set all three at once, then press the controls. Nothing talks to a server. Desktop dialogs are the app's 512px; on a phone each becomes the full-width sheet.</p>
+    <p>Use the keyboard too. Tab reaches every control, the access menus take arrow keys, Escape closes a menu or the confirm and puts focus back where it came from.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set every final to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+
+  <section class="x-grid" id="options"></section>
+
+  <footer class="x-outro">
+    <h2>What every final shares</h2>
+    <ul>
+      <li>The access control never publishes. Before the first publish it is disabled or absent, and while the link is off its "Anyone with the link" choice is disabled and says that Publish turns the link back on. The primary button is the only way on.</li>
+      <li>One lock, on the password row. "No one" uses a broken-link icon.</li>
+      <li>The band says how fresh the live page is and nothing else. Live with "Published 2h ago.", amber Live with "Visitors see the version from 2h ago.", Off with "The link is off. Publish to bring it back.", Not published with "Nobody can open it until you publish." The amber is a yellow, not an orange.</li>
+      <li>One vocabulary: "No one" with "Turns the link off" under it, the confirm asks "Turn the link off?", the band then says "Off". F2 uses Live and Off for both the band and the menu.</li>
+      <li>The confirm says what visitors see and that edits stay saved. Cancel and Turn off are the primary's size, 44px on a phone. Focus lands on Cancel, Escape cancels and returns focus to the control that opened it, and the rest of the dialog is inert while it is open.</li>
+      <li>Password protection starts when a password is saved, not when the switch flips. The switch opens a field with Save; the line under it says whether visitors need the password yet. On a live page it applies at once, and the line says so.</li>
+      <li>The URL is set in Geist. The slug stays visible on a phone; the middle of the path is what shrinks.</li>
+      <li>No band line ends with a lone word at 1440. The dialog is 512px wide like the app's, the band text balances, and "Publish changes" carries no icon.</li>
+      <li>Every access control has an accessible name that starts with "Who can open it". Focus survives a re-render. Menus take arrow keys, Home, End and Escape. The URL link reads the full address to a screen reader. Hit targets are at least 32px on desktop and 44px on a phone.</li>
+      <li>F1 and F2 keep both copy controls while live: the icon in the link row and the primary Copy link. F3 shows the icon only while the primary is not Copy link, and says so on its card.</li>
+    </ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>
