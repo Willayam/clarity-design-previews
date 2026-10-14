@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activity facts row: options</title>
+<link rel="stylesheet" href="./app.css">
+<style>
+  html { background: #e2e8f0; }
+  body { margin: 0; font-family: var(--font-sans); color: var(--foreground); -webkit-font-smoothing: antialiased; }
+  .page { padding: 24px 20px 80px; max-width: 2200px; margin: 0 auto; }
+  .page > header { max-width: 72ch; margin-bottom: 20px; }
+  .page h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 6px; }
+  .page header p { margin: 0 0 6px; font-size: .9375rem; color: #334155; line-height: 1.45; }
+  nav.jump { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .875rem; margin: 10px 0 0; }
+  nav.jump a { color: #2563eb; text-decoration: none; }
+  nav.jump a:hover { text-decoration: underline; }
+
+  section.option { margin: 28px 0 0; padding-top: 18px; border-top: 1px solid #cbd5e1; }
+  section.option h2 { font-size: 1.0625rem; font-weight: 600; margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px; }
+  section.option h2 .pick { font-size: .75rem; font-weight: 600; color: #fff; background: #2563eb; border-radius: 999px; padding: 2px 8px; letter-spacing: .01em; }
+  section.option .note { margin: 0 0 14px; font-size: .9rem; color: #334155; max-width: 90ch; line-height: 1.45; }
+  section.option .note b { color: #0f172a; font-weight: 600; }
+
+  .frames { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .frame { flex: none; }
+  .frame > .cap { font-size: .75rem; color: #475569; margin: 0 0 6px; }
+  .frame.desktop { width: 928px; zoom: .6; }
+  .frame.desktop > .cap { font-size: 1.2rem; }
+  .frame.phone { width: 390px; }
+  .stage { background: #94a3b8; border-radius: 12px; overflow: hidden; display: grid; }
+  .frame.desktop .stage { padding: 28px; min-height: 0; }
+  .frame.phone .stage { height: 760px; align-content: end; padding-top: 48px; }
+  @media (max-width: 1000px) { .frame.desktop { zoom: .4; } }
+
+  /* The real popup is fixed and centred; in a frame it sits in flow. */
+  .stage [data-slot=dialog-popup] { position: relative; inset: auto; transform: none; width: 100%; max-width: none; height: auto; }
+  .frame.desktop [data-slot=dialog-popup] { height: 600px; }
+  .frame.desktop.kind-video [data-slot=dialog-popup] { height: auto; }
+  .frame.phone [data-slot=dialog-popup] { height: 712px; border-bottom: 0; border-radius: var(--radius-2xl) var(--radius-2xl) 0 0; padding-top: 28px; overflow: hidden; }
+  .frame.phone [data-slot=dialog-header] { text-align: center; }
+  .frame.phone [data-slot=dialog-close] { top: 1.5rem; }
+
+  /* Mini page preview, drawn by hand: the real one renders the user's page. */
+  .mini { background: #1e2140; border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 480px; }
+  .mini .bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,.55); }
+  .mini .bar.sm { height: 6px; background: rgba(255,255,255,.3); }
+  .mini .media { aspect-ratio: 16/9; border-radius: var(--radius-md); background: linear-gradient(135deg, #3b4bb3, #1d2a73); display: grid; place-items: center; }
+  .mini .media.selected { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary); }
+  .mini .play { width: 36px; height: 36px; border-radius: 999px; background: rgba(255,255,255,.85); display: grid; place-items: center; }
+  .mini .play::after { content: ""; border-left: 11px solid #1e2140; border-top: 7px solid transparent; border-bottom: 7px solid transparent; margin-left: 3px; }
+  .mini .cta { width: 56px; height: 18px; border-radius: 999px; background: #2563eb; }
+  .mini .cta.selected { box-shadow: 0 0 0 2px #1e2140, 0 0 0 4px var(--primary); }
+  .mini .fields { display: grid; gap: 6px; }
+  .mini .field { height: 14px; border: 1px solid rgba(255,255,255,.3); border-radius: 4px; }
+  .vtop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 20px; align-items: start; }
+  .vtop .poster { grid-row: span 2; }
+  .vtop .vfacts, .vtop .vchart { grid-column: span 3; }
+  .ph .vtop { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ph .vtop .poster { grid-row: auto; }
+  .ph .vtop .vfacts { grid-column: span 2; }
+  .poster { aspect-ratio: 16/9; border-radius: var(--radius-md); background: linear-gradient(135deg, #3b4bb3, #1d2a73); overflow: hidden; }
+
+  /* Facts: shared fixes applied to every option. */
+  .facts, .facts * { box-sizing: border-box; }
+  .facts dd, .facts dt { margin: 0; }
+  .facts .v { font-variant-numeric: tabular-nums; line-height: 1; }
+  .facts .l { font-size: .75rem; line-height: 1.2; color: var(--muted-foreground); }
+
+  /* 0. The PR as merged today, for reference. */
+  .opt-now .facts { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+  .opt-now .fact { display: flex; flex-direction: column-reverse; }
+  .opt-now .v { font-size: 1.5rem; font-weight: 600; }
+  .opt-now .facts .v { line-height: 1.33; }
+
+  /* A. Stat cards. */
+  .opt-a .facts { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; }
+  .opt-a .fact { display: flex; flex-direction: column-reverse; gap: 6px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .opt-a .v { font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; }
+  .opt-a.ph .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* B. One band with dividers. */
+  .opt-b .facts { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); background: var(--muted); border-radius: var(--radius-md); padding: 12px 0; }
+  .opt-b .fact { display: flex; flex-direction: column-reverse; gap: 6px; padding: 0 16px; border-left: 1px solid var(--border); }
+  .opt-b .fact:first-child { border-left: 0; }
+  .opt-b .v { font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; }
+  .opt-b.ph .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; row-gap: 0; }
+  .opt-b.ph .fact { padding: 12px 16px; }
+  .opt-b.ph .fact:nth-child(odd) { border-left: 0; }
+  .opt-b.ph .fact:nth-child(n+3) { border-top: 1px solid var(--border); }
+
+  /* C. Hero fact with quieter chips. */
+  .opt-c .facts { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 20px; }
+  .opt-c .fact { display: flex; flex-direction: column-reverse; gap: 6px; }
+  .opt-c .fact.hero .v { font-size: 2rem; font-weight: 600; letter-spacing: -.02em; }
+  .opt-c .chips { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 2px; }
+  .opt-c .chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--muted); font-size: .8125rem; line-height: 1; white-space: nowrap; }
+  .opt-c .chip .v { font-weight: 600; }
+  .opt-c .chip .l { font-size: .8125rem; line-height: 1; }
+  .opt-c.ph .facts { align-items: flex-start; flex-direction: column; gap: 10px; }
+
+  /* D. Ledger: label left, value right. */
+  .opt-d .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+  .opt-d .fact { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .opt-d .fact:nth-child(-n+2) { border-top: 1px solid var(--border); }
+  .opt-d .l { font-size: .875rem; color: var(--muted-foreground); }
+  .opt-d .v { font-size: .9375rem; font-weight: 600; }
+  .opt-d.ph .facts { grid-template-columns: minmax(0, 1fr); }
+  .opt-d.ph .fact:nth-child(2) { border-top: 0; }
+  .opt-d.kind-video .facts { grid-template-columns: minmax(0, 1fr); }
+  .opt-d.kind-video .fact:nth-child(2) { border-top: 0; }
+
+  /* E. One line of text, no big numbers. */
+  .opt-e .facts { display: flex; flex-wrap: wrap; gap: 4px 0; font-size: .875rem; color: var(--muted-foreground); line-height: 1.5; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .opt-e .fact { display: inline-flex; align-items: baseline; gap: 4px; }
+  .opt-e .fact:not(:last-child)::after { content: "·"; margin: 0 8px; color: #94a3b8; }
+  .opt-e .v { font-weight: 600; color: var(--foreground); font-size: .875rem; line-height: 1.5; }
+  .opt-e .l { font-size: .875rem; line-height: 1.5; }
+  .opt-e .fact.lead .l { order: -1; }
+  .opt-e.kind-video .facts { border-bottom: 0; padding-bottom: 0; }
+
+  .caption-row { display: flex; gap: 18px; flex-wrap: wrap; }
+  .legend { font-size: .8125rem; color: #475569; margin: 6px 0 0; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Activity facts row: options</h1>
+    <p>Five ways to set the facts row in the Activity modal (PR #1450). Each option shows the page modal and the video modal at desktop width and as the phone sheet. Every option fixes the same baseline problems in the current row: tabular numbers, one value size, one label size, equal columns, and a planned wrap on the phone instead of flex-wrap. Mock data throughout.</p>
+    <p><b>Pick: B, one band with dividers.</b> It gives the row the highlight William asked for with one surface instead of four, and that surface is the same slate-100 the table already stripes with, so nothing new enters the modal. The jaggedness itself comes from flex-wrap and unequal columns, and B's equal columns, hairlines and tabular numbers remove it at desktop and phone width alike.</p>
+    <nav class="jump" id="jump"></nav>
+  </header>
+  <div id="options"></div>
+</div>
+
+<script>
+const pageFacts = [
+  ['15m ago', 'Last visit'],
+  ['30', 'Visits'],
+  ['3', 'Watched video'],
+  ['2', 'Clicked button'],
+];
+const videoFacts = [
+  ['27', 'Plays'],
+  ['9', 'Past halfway'],
+];
+const pageRows = [
+  ['Austin, Texas', '15m ago', 100, [[0, 1]]],
+  ['Denver, Colorado', '4d ago', 62, [[0, .62]]],
+  ['Austin, Texas', '6d ago', 38, [[0, .2], [.5, .68]]],
+];
+const videoRows = [
+  ['Austin, Texas', '12m ago', 100, [[0, 1]]],
+  ['Stockholm, Sweden', '3h ago', 71, [[0, .71]]],
+  ['Denver, Colorado', '5h ago', 55, [[0, .3], [.55, .8]]],
+  ['Berlin, Germany', '7h ago', 24, [[0, .24]]],
+  ['Stockholm, Sweden', '8h ago', 12, [[0, .12]]],
+  ['Austin, Texas', '10h ago', 9, [[0, .09]]],
+];
+
+const closeButton = `<button data-slot="dialog-close" class="ring-offset-background absolute top-4 right-4 grid size-8 place-items-center rounded-sm opacity-70" aria-label="Close"><svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>`;
+const videoIcon = `<svg class="size-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>`;
+const buttonIcon = `<svg class="size-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>`;
+const chevron = (open) => `<svg class="size-4 shrink-0 text-muted-foreground" style="transform:rotate(${open ? 180 : 0}deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+
+function ranges(list) {
+  const last = Math.max(...list.map((r) => r[1]));
+  return `<svg class="h-4 w-full min-w-16 text-primary" viewBox="0 0 1000 18" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="1000" y1="9" y2="9" stroke="currentColor" stroke-opacity="0.12" vector-effect="non-scaling-stroke"/>${list.map(([a, b]) => `<line x1="${a * 1000}" x2="${b * 1000}" y1="9" y2="9" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('')}<line x1="${last * 1000}" x2="${last * 1000}" y1="9" y2="9" stroke="currentColor" stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function table(rows, phone) {
+  const head = phone
+    ? `<th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-foreground text-xs"><span class="text-xs text-muted-foreground">Where</span></th><th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-xs"><span class="inline-flex items-center gap-1 text-xs text-muted-foreground">Watched</span></th><th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-xs">%</th>`
+    : `<th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-foreground text-xs"><span class="text-xs text-muted-foreground">Where</span></th><th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-xs"><span class="inline-flex items-center gap-1 text-xs text-muted-foreground">When <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span></th><th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-xs"><span class="inline-flex items-center gap-1 text-xs text-muted-foreground">Watched</span></th><th class="h-8 px-1 text-left align-middle font-medium whitespace-nowrap text-xs">%</th>`;
+  const body = rows.map(([where, when, pct, r], i) => `<tr class="${i % 2 ? 'bg-muted/50' : ''}" style="${i % 2 ? 'background: color-mix(in oklab, var(--muted) 50%, transparent)' : ''}">
+    <td class="px-1 py-1 align-middle whitespace-nowrap"><span class="block max-w-28 truncate text-muted-foreground" style="${phone ? '' : 'max-width:10rem'}">${where}</span>${phone ? `<span class="block text-muted-foreground">${when}</span>` : ''}</td>
+    ${phone ? '' : `<td class="px-1 py-1 align-middle whitespace-nowrap"><time class="whitespace-nowrap text-muted-foreground">${when}</time></td>`}
+    <td class="px-1 py-1 align-middle whitespace-nowrap" style="width:100%">${ranges(r)}</td>
+    <td class="px-1 py-1 align-middle whitespace-nowrap"><span class="font-semibold tabular-nums">${pct}%</span></td>
+  </tr>`).join('');
+  return `<div class="relative w-full overflow-x-auto"><table class="w-full caption-bottom text-xs"><thead><tr class="border-b">${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function chart(duration) {
+  const pts = [100, 96, 90, 84, 80, 74, 66, 60, 55, 50, 46, 41, 36, 30, 26, 22, 20, 18, 16, 14];
+  let d = `M 0,${(100 - pts[0] * .96).toFixed(1)}`;
+  pts.forEach((p, i) => { if (i === 0) return; const x = (i / pts.length) * 1000; const y = 100 - p * .96; const py = 100 - pts[i - 1] * .96; d += ` L ${x.toFixed(1)},${py.toFixed(1)} L ${x.toFixed(1)},${y.toFixed(1)}`; });
+  d += ' L 1000,' + (100 - pts[pts.length - 1] * .96).toFixed(1);
+  const t = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  return `<div class="shrink-0 space-y-2"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" role="img" class="h-24 w-full border-b-2 border-foreground text-primary"><path d="${d} L 1000,100 L 0,100 Z" fill="currentColor" fill-opacity="0.15"/><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><div class="flex justify-between text-xs text-muted-foreground tabular-nums">${[0, .25, .5, .75, 1].map((f) => `<span>${t(duration * f)}</span>`).join('')}</div><p class="text-xs text-muted-foreground">41% average watched</p></div>`;
+}
+
+function miniPage() {
+  return `<div class="hidden min-h-0 w-56 shrink-0 flex-col gap-3" style="display:flex"><div class="min-h-0 overflow-hidden rounded-lg border bg-background shadow-sm" aria-label="Page preview"><div class="flex items-center gap-1 border-b bg-muted px-3 py-2" aria-hidden="true"><span class="size-1 rounded-full bg-muted-foreground/30" style="background:#cbd5e1"></span><span class="size-1 rounded-full" style="background:#cbd5e1"></span><span class="size-1 rounded-full" style="background:#cbd5e1"></span></div><div class="mini"><div class="bar" style="width:84%"></div><div class="bar" style="width:56%"></div><div class="media selected"><span class="play"></span></div><div class="bar sm" style="width:70%"></div><div class="bar sm" style="width:92%"></div><div class="bar sm" style="width:60%"></div><div class="cta selected"></div><div class="fields"><div class="field"></div><div class="field"></div><div class="field"></div></div><div class="bar sm" style="width:40%; margin-top:8px"></div></div></div></div>`;
+}
+
+// Each renderer takes the facts and returns the row's markup.
+const renderers = {
+  now: (facts) => `<dl class="facts">${facts.map(([v, l]) => `<div class="fact"><dt class="l">${l}</dt><dd class="v">${v}</dd></div>`).join('')}</dl>`,
+  a: (facts) => `<dl class="facts" style="--n:${facts.length}">${facts.map(([v, l]) => `<div class="fact"><dt class="l">${l}</dt><dd class="v">${v}</dd></div>`).join('')}</dl>`,
+  b: (facts) => `<dl class="facts" style="--n:${facts.length}">${facts.map(([v, l]) => `<div class="fact"><dt class="l">${l}</dt><dd class="v">${v}</dd></div>`).join('')}</dl>`,
+  c: (facts) => {
+    const [hero, ...rest] = facts;
+    const label = (l, v) => ({ 'Visits': 'visits', 'Watched video': 'watched the video', 'Clicked button': 'clicked the button', 'Past halfway': 'past halfway', 'Plays': 'plays' })[l] || l.toLowerCase();
+    return `<dl class="facts"><div class="fact hero"><dt class="l">${hero[1]}</dt><dd class="v">${hero[0]}</dd></div><div class="chips">${rest.map(([v, l]) => `<span class="chip"><span class="v">${v}</span><span class="l">${label(l, v)}</span></span>`).join('')}</div></dl>`;
+  },
+  d: (facts) => `<dl class="facts">${facts.map(([v, l]) => `<div class="fact"><dt class="l">${l}</dt><dd class="v">${v}</dd></div>`).join('')}</dl>`,
+  e: (facts) => {
+    const words = { 'Visits': 'visits', 'Watched video': 'watched the video', 'Clicked button': 'clicked the button', 'Past halfway': 'past halfway', 'Plays': 'plays' };
+    return `<dl class="facts">${facts.map(([v, l]) => l === 'Last visit'
+      ? `<div class="fact lead"><dt class="l">Last visit</dt><dd class="v">${v}</dd></div>`
+      : `<div class="fact"><dd class="v">${v}</dd><dt class="l">${words[l] || l.toLowerCase()}</dt></div>`).join('')}</dl>`;
+  },
+};
+
+function pageModal(opt, phone) {
+  const facts = renderers[opt](pageFacts);
+  const header = `<div data-slot="dialog-header" class="flex flex-col gap-2 shrink-0 mr-8"><h2 class="text-lg font-semibold leading-none">Activity</h2><p class="text-sm text-muted-foreground">Proposal for Northwind Traders</p></div>`;
+  const list = `<div class="min-h-0 flex-1 overflow-y-auto">
+    <div class="border-b"><div class="group flex w-full items-center gap-3 py-3 text-left">${videoIcon}<span class="min-w-0 flex-1"><span class="block truncate text-sm font-medium">Intro video</span><span class="block text-xs text-muted-foreground">Video · 1:42</span></span><span class="shrink-0 text-xs text-muted-foreground tabular-nums">3 plays</span>${chevron(true)}</div>
+      <div class="flex min-h-0 flex-col gap-3 pb-3">${table(pageRows, phone)}</div></div>
+    <div class="border-b"><div class="group flex w-full items-center gap-3 py-3 text-left">${buttonIcon}<span class="min-w-0 flex-1"><span class="block truncate text-sm font-medium">Book a call</span><span class="block text-xs text-muted-foreground">Button</span></span><span class="shrink-0 text-xs text-muted-foreground tabular-nums">2 clicks</span>${chevron(false)}</div></div>
+  </div>`;
+  const eHeader = opt === 'e';
+  const right = `<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4">${eHeader ? '' : facts}${list}</div>`;
+  const body = `<div class="flex min-h-0 flex-1 gap-6">${phone ? '' : miniPage()}${right}</div>`;
+  return `<div data-slot="dialog-popup" class="z-50 grid gap-4 rounded-lg border bg-background p-6 shadow-lg flex flex-col overflow-hidden" style="display:flex">${phone ? '<div aria-hidden="true" class="absolute top-2 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full" style="background:#cbd5e1"></div>' : ''}${header}${eHeader ? facts : ''}${body}${closeButton}</div>`;
+}
+
+function videoModal(opt, phone) {
+  const facts = renderers[opt](videoFacts);
+  const header = `<div data-slot="dialog-header" class="flex flex-col gap-2 shrink-0 mr-8"><h2 class="text-lg font-semibold leading-none">Activity</h2><p class="text-sm text-muted-foreground">Q3 pricing walkthrough</p></div>`;
+  const top = `<div class="vtop"><div class="poster"></div><div class="vfacts">${facts}</div><div class="vchart flex flex-col gap-4">${chart(102)}</div></div>`;
+  const body = `<div class="flex min-h-0 flex-1 flex-col gap-4">${top}<div class="min-h-0 flex-1 overflow-y-auto">${table(videoRows, phone)}</div></div>`;
+  return `<div data-slot="dialog-popup" class="z-50 grid gap-4 rounded-lg border bg-background p-6 shadow-lg flex flex-col overflow-hidden" style="display:flex">${phone ? '<div aria-hidden="true" class="absolute top-2 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full" style="background:#cbd5e1"></div>' : ''}${header}${body}${closeButton}</div>`;
+}
+
+const options = [
+  { id: 'now', name: 'Now: the PR as it stands', note: 'Reference only. Flex-wrap with uneven gaps, "15m ago" at the same scale as the integers, labels hanging under values of different widths.' },
+  { id: 'a', name: 'A. Stat cards', note: 'Each fact on its own white tile with a hairline border, equal columns, two per row on the phone. <b>Tradeoff:</b> four boxes inside a modal that already holds a bordered preview and a table; DESIGN.md names nested boxes as the thing to avoid.' },
+  { id: 'b', name: 'B. One band with dividers', pick: true, note: 'One muted band (the same slate-100 the table stripes use) behind the whole row, facts in equal columns split by hairlines, 2 by 2 on the phone. <b>Tradeoff:</b> still one filled container above a list; the band reads as a table header, so it must stay flush with the list below it.' },
+  { id: 'c', name: 'C. Hero fact with chips', note: 'Last visit (or Plays) set large as the headline, the counts as quiet pill chips beside it, stacked on the phone. <b>Tradeoff:</b> decides for the rep which fact matters most, and chips add a third text style to the modal.' },
+  { id: 'd', name: 'D. Ledger', note: 'Label left, value right, hairline between rows, two columns at desktop and one on the phone. <b>Tradeoff:</b> no glanceable scale; it reads as metadata rather than a summary, and it costs the most height on the phone.' },
+  { id: 'e', name: 'E. One line under the title', note: 'No big numbers. The facts become one sentence-like line under the description, bold values in muted prose, so the element list starts higher. <b>Tradeoff:</b> the quietest option, and the only one that does not give the row the highlight William asked for.' },
+];
+
+const root = document.getElementById('options');
+const jump = document.getElementById('jump');
+for (const o of options) {
+  const a = document.createElement('a'); a.href = '#opt-' + o.id; a.textContent = o.name; jump.appendChild(a);
+  const section = document.createElement('section');
+  section.className = 'option opt-' + o.id; section.id = 'opt-' + o.id;
+  section.innerHTML = `<h2>${o.name}${o.pick ? '<span class="pick">Recommended</span>' : ''}</h2><p class="note">${o.note}</p>
+    <div class="frames">
+      <div class="frame desktop opt-${o.id}"><p class="cap">Page activity, desktop 928px</p><div class="stage kind-page">${pageModal(o.id, false)}</div></div>
+      <div class="frame phone ph opt-${o.id}"><p class="cap">Page activity, phone 390px</p><div class="stage kind-page">${pageModal(o.id, true)}</div></div>
+      <div class="frame desktop kind-video opt-${o.id}"><p class="cap">Video activity, desktop 928px</p><div class="stage kind-video">${videoModal(o.id, false)}</div></div>
+      <div class="frame phone ph kind-video opt-${o.id}"><p class="cap">Video activity, phone 390px</p><div class="stage kind-video">${videoModal(o.id, true)}</div></div>
+    </div>`;
+  root.appendChild(section);
+}
+</script>
+</body>
+</html>
