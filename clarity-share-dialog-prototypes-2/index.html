@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: round two</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · round two · prototype, throwaway, mock data</p>
+    <h1>Share dialog: six takes on "link first"</h1>
+    <p>Every dialog is live. Pick a state above each one, then press the buttons inside. Nothing talks to a server. All six keep the same bones from your notes: the link row with its open and copy icons, a green "Live", amber when visitors see an older version, Publish in the bottom right, and a real Unpublish button that asks before the link stops working. They differ only in where the status sits, how amber is drawn, how Unpublish looks, and where the password lives. Round one's option 3 is at the end for comparison.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set every option to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+  <section class="x-grid" id="options"></section>
+  <footer class="x-outro">
+    <h2>What stays fixed in all six</h2>
+    <ul>
+      <li>The link row is the original chip: URL, open-in-new-tab arrow, copy icon. Off or never published, the chip dims and the copy icon disables.</li>
+      <li>"Live" with a green dot when the page is live and nothing is pending.</li>
+      <li>Live with unpublished changes turns amber and says "Visitors see the version from 2h ago". Clarity knows changes exist, not how many, so there is no count.</li>
+      <li>Publish or Publish changes is the only primary button and sits bottom right. When everything is live the slot reads "Up to date".</li>
+      <li>Unpublish is a full-size button labelled "Unpublish", never red text alone, placed away from Publish, and the confirm says the link stops working.</li>
+    </ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>
