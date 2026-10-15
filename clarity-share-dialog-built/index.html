@@ -1,0 +1,314 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share dialog (U08), built</title>
+<style>
+:root{--ink:#0f172a;--dim:#64748b;--line:#e2e8f0;--soft:#f8fafc;--blue:#1d4ed8;--green:#15803d;--red:#b91c1c;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:var(--ink);background:#f1f5f9}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 140px}h1{font-size:28px;margin:0 0 6px}
+.dim{color:var(--dim);font-size:14px}nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 24px}
+nav.toc a{font-size:13px;padding:3px 9px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--ink);text-decoration:none}
+nav.toc a.done{background:#dcfce7;border-color:#86efac}nav.toc a.chg{background:#fef3c7;border-color:#fcd34d}nav.toc a.rej{background:#fee2e2;border-color:#fca5a5}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 18px 14px;margin:0 0 20px}
+.card header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.card h2{font-size:19px;margin:0;flex:1;min-width:200px}
+.uid{font:600 12px ui-monospace,Menlo,monospace;color:var(--dim)}.prlink{font-size:14px;font-weight:600;color:var(--blue)}
+.blocked,.blocked-reason{color:var(--red);font-weight:600}.why{margin:10px 0;overflow-wrap:anywhere}details li,.qs p,figcaption{overflow-wrap:anywhere}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600;font-size:14px}details ul{margin:6px 0;padding-left:20px;font-size:14px}
+.pair{margin:14px 0}.pair figcaption{font-size:14px;margin:0 0 6px}.tag{font-size:11px;font-weight:700;background:#e0e7ff;color:#3730a3;border-radius:99px;padding:1px 7px;margin-right:6px}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{font-size:12px;font-weight:700;color:var(--dim);margin-bottom:3px}.label.after{color:var(--green)}
+.sides img,.sides video{width:100%;border:1px solid var(--line);border-radius:8px;display:block;background:#000}
+.none{border:1px dashed var(--line);border-radius:8px;padding:30px 10px;text-align:center;color:var(--dim);font-size:13px}
+.decide{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.choices{display:flex;gap:8px;flex-wrap:wrap}
+.choices button{font:inherit;font-size:14px;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.choices button.on[data-v=approve],.choices button.on[data-v=yes]{background:var(--green);color:#fff;border-color:var(--green)}
+.choices button.on[data-v=changes],.choices button.on[data-v=other]{background:var(--amber);color:#fff;border-color:var(--amber)}
+.choices button.on[data-v=reject]{background:var(--red);color:#fff;border-color:var(--red)}
+textarea{width:100%;margin-top:8px;min-height:44px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:8px}
+.qs{padding-left:20px}.qs li{margin:0 0 14px}.qs p{margin:0 0 4px}.rec{font-size:14px;color:var(--green)}
+h3.section{font-size:22px;margin:36px 0 12px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar button{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:0;background:var(--blue);color:#fff;cursor:pointer}.bar button.ghost{background:#e2e8f0;color:var(--ink)}
+.bar .count{font-size:14px;color:var(--dim)}.intro h3{margin:0 0 8px;font-size:17px}.intro ul{margin:0;padding-left:20px;font-size:15px}.intro li{margin:0 0 6px}.intro p{margin:0 0 8px}table.summary{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px;margin:0 0 20px}table.summary th,table.summary td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}table.summary th{background:var(--soft)}
+@media(max-width:720px){.sides{grid-template-columns:1fr}h1{font-size:23px}}
+</style></head><body><main>
+<h1>Share dialog (U08), built</h1>
+<p class="dim">Built overnight, last updated 15 Oct 2026, 16:22, from the <a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit/">simplicity audit</a>. 1 PRs are open and none are merged. 0 items need a conversation first; they're further down. Your choices save in this browser as you go. "Send decisions" opens a prefilled GitHub issue that I'll read and act on.</p>
+<nav class="toc"><a href="#U08" data-for="U08">U08</a></nav>
+
+<div class="card intro"><p>F1b with the Cascade motion, built into PR #1457. You can also try it in the app: the PR preview at <a href="https://pr-1457.clarity-video.workers.dev">pr-1457.clarity-video.workers.dev</a>, where publishing and unpublishing write to the preview's own database. CI is green, and the end-to-end publish test passed on that preview: publish, open the link, turn it off through No one, see the link stop working, publish again on the same address.</p><p>The password uses the eye icon from sign-in. Saving a password applies it to the live link straight away and signs out anyone who unlocked the old one, so the warning shown before Save is accurate. A page that was never published shows no link row yet, because the address is created on the first publish.</p><p>The before shots show main's dialog. Videos of each transition are on the card, two of them also at quarter speed so you can follow the Cascade. Approve and I'll merge it.</p></div>
+
+
+
+<table class="summary"><tr><th>Unit</th><th>What</th><th>PR</th></tr><tr><td><a href="#U08">U08</a></td><td>Share dialog: settings rows, a status band and one action (F1b, Cascade)</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1457" target="_blank">#1457</a></td></tr></table>
+<h3 class="section">PRs</h3>
+
+<article class="card" id="U08" data-kind="pr" data-id="U08" data-pr="1457">
+  <header>
+    <span class="uid">U08</span>
+    <h2>Share dialog: settings rows, a status band and one action (F1b, Cascade)</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1457" target="_blank">PR #1457</a>
+  </header>
+  
+  <p class="why">Round two hid Unpublish and the password under &quot;More options&quot;, and William found it more complicated. He picked prototype F1b and the Cascade motion: a rep sees what visitors see in one coloured band, the next step in one full-width button, and turning the link off is a labelled choice (&quot;Who can open it: No one&quot;) that asks first, the access pattern Google Docs and Figma use. The password field protects only once saved, which is how the router applies it, and the eye toggle is the one from sign-in.</p>
+  <details open><summary>What changes (11)</summary><ul><li>Status box with an Unpublish button -&gt; a band above the button: green &quot;Live / Published 2h ago.&quot;, yellow &quot;Live / Visitors see the version from 2h ago.&quot;, grey &quot;Off / The link is off. Publish to bring it back.&quot;, grey &quot;Not published / Nobody can open it until you publish.&quot;</li><li>One full-width primary per stage: Publish (never published), Copy link (live), Publish changes (live with edits), Publish (off).</li><li>Link chip with an open-arrow and a copy icon -&gt; the URL itself is the underlined link, plus one copy icon only while live; while off the address is dimmed text; never-published pages have no link row because the router mints the address on first publish.</li><li>Unpublish button -&gt; &quot;Who can open it&quot; select (Anyone with the link / No one, &quot;Turns the link off&quot;), hidden before first publish, a static &quot;No one&quot; while off. No one asks &quot;Turn the link off?&quot; with &quot;People you sent it to will see that the page is unavailable. Your edits stay saved. Publish turns the same link back on with your latest edits.&quot;</li><li>Password: the switch only opens the field; Save protects. Help line before Save on a live page: &quot;Press Save to use this password. Everyone you already sent the link to will need it.&quot;; after: &quot;Saved. Everyone with the link needs it now.&quot;. The Show/Hide is the sign-in eye toggle (PasswordToggle moved to components/).</li><li>&quot;Draft version n · Published version m&quot; line removed.</li><li>Copied shows only after the clipboard accepts; a refusal says &quot;Couldn&#39;t copy. Select the link and copy it.&quot;</li><li>Cascade motion: changed parts in reading order 45ms apart, 170ms ease-out fade with a 4px rise, band 260ms with one ring on going live, bottom-up on turn off, heights animate, the dialog grows away from the pressed control, reduced motion drops movement.</li><li>Dialog 512px -&gt; 420px wide; title size text-xl -&gt; the dialog default.</li><li>SelectTrigger is flat inside dialogs and menus; SelectValue no longer capitalises (the Contacts phone-type values are already capitalised).</li><li>New data-analytics-id: share_open_link, share_copy_icon, share_access, share_access_anyone, share_access_no_one, share_password_toggle, share_password_reveal, share_password_save, share_publish, share_copy_link, share_turn_off, share_turn_off_cancel, auth_password_reveal, reset_password_reveal. Round two&#39;s share_more_options and share_unpublish* are gone with their controls.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Live with edits. Before: an &quot;Unpublished changes&quot; box with Unpublish inside it. After: yellow band &quot;Live / Visitors see the version from 2h ago.&quot; above a full-width Publish changes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-changes-closeup.png" target="_blank"><img src="units/U08/before/stage-changes-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-changes-closeup.png" target="_blank"><img src="units/U08/after/stage-changes-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Live, no edits. After: underlined link with one copy icon, &quot;Who can open it: Anyone with the link&quot;, password switch, green band &quot;Live / Published 2h ago.&quot;, Copy link.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-published-closeup.png" target="_blank"><img src="units/U08/before/stage-published-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-closeup.png" target="_blank"><img src="units/U08/after/stage-published-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The access menu open: Anyone with the link, or No one (&quot;Turns the link off&quot;). The select is flat, no shadow.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-menu.png" target="_blank"><img src="units/U08/after/stage-published-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Choosing No one asks first: &quot;Turn the link off?&quot; with Cancel and a red Turn off. Nothing was turned off.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-confirm-closeup.png" target="_blank"><img src="units/U08/after/stage-published-confirm-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Never published. After: no link and no access row yet, grey band &quot;Not published / Nobody can open it until you publish.&quot;, Publish.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-draft-closeup.png" target="_blank"><img src="units/U08/before/stage-draft-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-draft-closeup.png" target="_blank"><img src="units/U08/after/stage-draft-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Link off. After: the address as dimmed text with no copy icon, a static &quot;No one&quot; with no chevron, grey band &quot;Off / The link is off. Publish to bring it back.&quot;, Publish.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-unpublished-closeup.png" target="_blank"><img src="units/U08/before/stage-unpublished-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-unpublished-closeup.png" target="_blank"><img src="units/U08/after/stage-unpublished-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Password-protected live page. After: the field holds the saved password, hidden, with the sign-in eye toggle and &quot;Saved. Everyone with the link needs it now.&quot;</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-password-closeup.png" target="_blank"><img src="units/U08/before/stage-password-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-password-closeup.png" target="_blank"><img src="units/U08/after/stage-password-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The eye toggle pressed: the password shows in plain text.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-password-reveal-closeup.png" target="_blank"><img src="units/U08/after/stage-password-reveal-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Switch on and a password typed, before Save: &quot;Press Save to use this password. Everyone you already sent the link to will need it.&quot;</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-published-password-unsaved-closeup.png" target="_blank"><img src="units/U08/after/stage-published-password-unsaved-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>A long page address at 1440 fits whole.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-long-slug-closeup.png" target="_blank"><img src="units/U08/before/stage-long-slug-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-long-slug-closeup.png" target="_blank"><img src="units/U08/after/stage-long-slug-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same long address at 390: the path folds to an ellipsis before the page name is cut.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-long-slug-closeup.png" target="_blank"><img src="units/U08/before/phone-stage-long-slug-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-long-slug-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-long-slug-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390x844, live with edits, as a sheet.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-changes-closeup.png" target="_blank"><img src="units/U08/before/phone-stage-changes-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-changes-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-changes-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, live with no edits.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-published-closeup.png" target="_blank"><img src="units/U08/before/phone-stage-published-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-published-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-published-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, access menu open.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-published-menu.png" target="_blank"><img src="units/U08/after/phone-stage-published-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, the turn-off confirm with Cancel and Turn off splitting the width.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-published-confirm-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-published-confirm-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, never published.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-draft-closeup.png" target="_blank"><img src="units/U08/before/phone-stage-draft-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-draft-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-draft-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, link off.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-unpublished-closeup.png" target="_blank"><img src="units/U08/before/phone-stage-unpublished-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-unpublished-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-unpublished-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, password-protected page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/phone-stage-password-closeup.png" target="_blank"><img src="units/U08/before/phone-stage-password-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-password-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-password-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, password revealed with the eye toggle.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-password-reveal-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-password-reveal-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, the warning before Save.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/U08/after/phone-stage-published-password-unsaved-closeup.png" target="_blank"><img src="units/U08/after/phone-stage-published-password-unsaved-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Live with edits in the full editor at 1440x900.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/U08/before/stage-changes.png" target="_blank"><img src="units/U08/before/stage-changes.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/U08/after/stage-changes.png" target="_blank"><img src="units/U08/after/stage-changes.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Publish a never-published page. After: the link row and access row grow in above, the band turns green and its dot rings, the button becomes Copied then Copy link. Publish stays under the pointer; the dialog grows upward.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-publish-draft.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-publish-draft.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The same at a quarter speed, to follow the Cascade: link, access row, band, button, 45ms apart.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-publish-draft-slow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-publish-draft-slow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Publish changes on a live page: yellow band to green, button to Copy link.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-publish-changes.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-publish-changes.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Copy from the button, then from the icon. Copied appears only once the clipboard accepts; the icon shows a Copied tip.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-copy.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-copy.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Turn the link off and back on. After: access menu, No one, the confirm, Turn off (plays bottom-up), then Publish brings the same link back.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-off-on.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-off-on.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The same at a quarter speed.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-off-on-slow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-off-on-slow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Switch on, type, reveal with the eye, Save. The warning shows before Save; Save leaves and &quot;Saved. Everyone with the link needs it now.&quot; appears; focus stays in the field.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/flow-password-save.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/flow-password-save.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Phone: publish a never-published page; the sheet grows upward.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/phone-flow-publish-draft.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/phone-flow-publish-draft.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Phone: turn the link off and back on.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/U08/before/phone-flow-off-on.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/U08/after/phone-flow-off-on.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>BASE_URL=https://pr-1457.clarity-video.workers.dev playwright test tests/e2e/journey-page-publish-default.spec.ts (preview serving dbdf57c0e) -&gt; 1 passed: publish, follow link, No one -&gt; Turn off -&gt; link 404, publish again on the same address</code></li><li><code>vitest run share-link-issues, use-page-publication, editor-topbar-publish, editor-topbar-loading, auth-door, auth-full-load, button-interactions, agent-parity, draft-merge-saves, frost-card-stats, index-css-shape, trial-wall-drift -&gt; all passed</code></li><li><code>New &#39;Share dialog stages&#39; tests against main&#39;s dialog and hook -&gt; 15 of 18 fail (the 3 that pass guard behaviour main already had)</code></li><li><code>editor tsc -b -&gt; clean; node scripts/check-test-types.mjs -&gt; 168, at budget</code></li><li><code>pnpm lint:prune (analytics-id suppressions 155 -&gt; 149) + node scripts/generate-guards-table.mjs, then pnpm lint -&gt; exit 0</code></li><li><code>node .context/u08-verify-motion.mjs (local Vite, fake sharing record) -&gt; 10/10: Publish moves 0.42px at most, rows animate height, rise and ring play, reduced motion has no transform/height animation and keeps fades, mid-flight toggle settles to the same box, Turn off keeps the dialog&#39;s bottom edge and focuses Publish. Planted no-op ResizeObserver -&gt; anchor check red (67px); no reduced-motion emulation -&gt; reduced check red</code></li><li><code>Independent review (opus) of the diff -&gt; 9 findings, fixed before push: Save focus loss, failed save wiping typed password, stale confirm on reopen, announcement order, Turn off closing before the stage flips, stuck overflow, help text with an empty field, Publish dropped during a password save, reduced-motion exit fade, band fade 260ms</code></li></ul>
+    <h4>Risks</h4><ul><li>Every stage and every write in the evidence is answered by the capture script from a fake of GET/PATCH /access, POST /publish and POST /unpublish, seeded from the real staging record of the fixture page; staging saw no writes. The real publish/turn-off/publish path ran only in the e2e against the PR preview.</li><li>Turning the link off is now: open the access select, choose No one, press Turn off.</li><li>Publish still copies the link (existing behaviour), so after a publish the button reads Copied for 1.6s before Copy link.</li><li>The menu flip is Base UI&#39;s own collision handling; no reachable dialog layout needs it, so there is no flipped screenshot.</li><li>tests/e2e/staging-critical-flow.spec.ts was updated for the new labels but not run (it targets staging).</li><li>Overlaps: #1450 touches JourneyPageShareDialog.tsx and index.css; #1366 touches index.css and staging-critical-flow.spec.ts; #1423 touches staging-critical-flow.spec.ts.</li><li>Before shots ran on main de0819b5e; main moved to 34860df91 during the run, with no change to the share dialog, its hook, the Select or the Dialog.</li><li>Dialog URLs read 127.0.0.1:5308 because the capture ran on local Vite. Media is blurred.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>The shared Dialog still opens at scale 0.95 over 150ms; Cascade&#39;s spec says 0.97 over 200ms. That lives in ui/dialog.tsx and touches every dialog.</li><li>JourneyPageShareDialog.tsx is 981 lines, close to the 1000-line ratchet; LibraryShareDialog and JourneyPageLinkIssues could move to their own files.</li><li>The editor topbar status still says only Published / Changes not published; it could borrow the band&#39;s freshness line.</li></ul>
+    <p class="dim">Before ran on de0819b5e, after on dbdf57c0e. Branch <code>simplify/u08-share-dialog</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for U08">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+
+
+</main>
+<div class="bar"><span class="count" id="count"></span><button class="ghost" id="copy">Copy as text</button><button id="send">Send decisions</button></div>
+<script>
+const KEY='clarity-simplify-review-'+(document.title.includes('round two')?'r2':'v1');const state=JSON.parse(localStorage.getItem(KEY)||'{}');
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));render();};
+document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;state[id]??={};
+  if(card.dataset.kind==='pr'){const s=state[id];
+    card.querySelectorAll('.decide .choices button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=card.querySelector('.decide textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};
+  } else card.querySelectorAll('.qs li').forEach(li=>{const q=li.dataset.q;const s=(state[id][q]??={});
+    li.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=li.querySelector('textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};});
+});
+function render(){let done=0,total=0;
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const a=document.querySelector('nav a[data-for="'+id+'"]');
+    if(card.dataset.kind==='pr'){total++;const v=state[id].v;if(v)done++;
+      card.querySelectorAll('.decide .choices button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+      a.className=v==='approve'?'done':v==='changes'?'chg':v==='reject'?'rej':'';}
+    else{const qs=card.querySelectorAll('.qs li');let answered=0;qs.forEach(li=>{const s=state[id][li.dataset.q]||{};if(s.v)answered++;
+      li.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.v));});total++;if(answered===qs.length&&qs.length)done++;
+      a.className=answered===qs.length&&qs.length?'done':answered?'chg':'';}});
+  document.getElementById('count').textContent=done+' of '+total+' decided';}
+function text(){const L=['Decisions on the simplification PRs',''];
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const title=card.querySelector('h2').textContent;
+    if(card.dataset.kind==='pr'){const s=state[id];if(!s.v&&!s.c)return;const pr=card.dataset.pr?' (#'+card.dataset.pr+')':'';
+      L.push('- '+id+pr+' '+title+': '+({approve:'APPROVE',changes:'CHANGES',reject:'DROP'}[s.v]||'COMMENT')+(s.c?' - '+s.c.replace(/\n/g,' '):''));}
+    else{const lines=[];card.querySelectorAll('.qs li').forEach(li=>{const s=state[id][li.dataset.q]||{};if(!s.v&&!s.c)return;
+      lines.push('  - Q'+(+li.dataset.q+1)+': '+(s.v==='yes'?'go with recommendation':s.v==='other'?'something else':'comment')+(s.c?' - '+s.c.replace(/\n/g,' '):''));});
+      if(lines.length){L.push('- '+id+' '+title+':');L.push(...lines);}}});
+  return L.join('\n');}
+document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(text());document.getElementById('copy').textContent='Copied';setTimeout(()=>document.getElementById('copy').textContent='Copy as text',1500);};
+document.getElementById('send').onclick=()=>{const body=text()+'\n\nSent from the overnight review page.';
+  location.href='https://github.com/Clarity-Video-HQ/clarity/issues/new?title='+encodeURIComponent(''+(document.title.includes('round two')?'Simplification review decisions, round two':'Simplification review decisions')+'')+'&body='+encodeURIComponent(body);};
+render();
+</script></body></html>
