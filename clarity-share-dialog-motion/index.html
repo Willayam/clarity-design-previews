@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: motion options</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./motion.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · share dialog F1b · motion · prototype, throwaway, mock data</p>
+    <h1>Share dialog: motion options</h1>
+    <p>F1b as you picked it, with four ways the dialog could move between its states. Every option is the same dialog and the same tour of twenty-one steps, every transition the dialog has; only the motion differs. The videos above each option are the tour, recorded at 1440 and at 390, so you can watch on your phone. Press Tour to run it live, 0.25x to watch it in slow motion, and Reduced motion to see what each option becomes when the OS asks for less movement.</p>
+    <p>Two rules hold in all four. The control you pressed does not move: when a row appears or leaves, the dialog grows or shrinks away from the pressed control (Publish stays under the cursor while the access row arrives above it). And every change can be interrupted: pressing something mid-transition continues from where the motion is, never from a restart.</p>
+    <p class="x-rec"><strong>Recommendation.</strong> <span data-rec>Cascade. It is the only option where Publish reads as a sentence instead of a flash, and at 45ms a beat the whole change still finishes inside 400ms, so it does not slow anyone down.</span></p>
+  </header>
+
+  <section class="x-grid" id="options"></section>
+
+  <footer class="x-outro">
+    <h2>What is shared</h2>
+    <ul>
+      <li>One state record and one reducer drive all four dialogs. A profile is a table of durations, easings and a few flags; the painter diffs the previous state against the next and animates only the slots that changed.</li>
+      <li>Rows that appear or leave animate their wrapper's height, the one layout property in the system. Everything else is opacity, transform, clip-path or colour.</li>
+      <li>Anchor rule: a height change is split in half by the centred dialog, so the dialog is translated by the other half toward the pressed control. On a phone the sheet sits on the bottom edge and grows upward.</li>
+      <li>Busy: the spinner sits to the left of the label in its own absolute slot, so the label never shifts. Cancel greys out once Turn off is pressed.</li>
+      <li>Copied: the icon becomes a check and a tip pops above it; the primary says Copied with a check. Both return after 1.6s. A refused clipboard shows a line under the link for 2.6s.</li>
+      <li>Reduced motion keeps opacity and colour, drops travel, scale, sweep, ping and height animation. Height snaps and the anchor rule still applies, instantly.</li>
+      <li>Interrupting: a second press while a row is moving starts the new animation from the row's current height; a swap mid-crossfade drops the older ghost.</li>
+    </ul>
+    <h2>Verify</h2>
+    <p><code>node verify.mjs &lt;url&gt; &lt;outdir&gt;</code> runs the tour for every option at 1440 and 390 and under reduced motion, checks each step's end state, polls the primary's position during every publish (must not move more than 1px), audits reduced motion for transform, height and clip-path keyframes, and presses the password switch mid-flight to check the dialog settles to the same height. <code>?plant=shift</code> switches the anchor rule off and <code>?plant=reduce-moves</code> ignores the reduced-motion preference; each must go red.</p>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./motion.js"></script>
+</body>
+</html>
