@@ -9,4 +9,7 @@
 <h2>5. A Pro owner's themed page is unchanged</h2><img src="07-pro-fixture-1280.png" alt="Themed fixture page on Pro">
 <h2>6. The same page while its owner is Free: default look plus badge</h2><img src="08-fixture-owner-free-1280.png" alt="Fixture page in Clarity's default look with the badge">
 <h2>7. A suspended account still meets the wall</h2><p>Reads and writes answer 403 <code>account-suspended</code>.</p><img src="09-suspended-wall.png" alt="Suspended wall">
+<h1 style="margin-top:3rem">Re-verified at <code>b69c3e41e</code> (15 Oct, after the rebase onto main)</h1>
+<p>The preview database was rebuilt. userBasic was moved to Free again. Pages 1 to 3 published with 200, and page 4 got 409 <code>live_page_limit</code>. The Free page had the badge. After the upgrade, the same page had no badge on the next request. The Pro fixture page had no badge. A suspended account got the wall and 403 <code>account-suspended</code> on a write. All test data was restored.</p>
+<img src="b6-free-public-1280.png" alt="Free page on desktop at b69c3e41e"><img src="b6-free-public-390.png" alt="Free page on phone at b69c3e41e" style="max-width:390px"><img src="b6-after-upgrade-1280.png" alt="Same page after upgrade, no badge"><img src="b6-suspended-wall.png" alt="Suspended wall at b69c3e41e">
 </body></html>
