@@ -1,0 +1,199 @@
+/* Page shell for the two F1 footers. Dialog internals reuse the app's tokens
+   and utility classes; x- is gallery chrome, d- shared dialog bits, f- the
+   footer band and menus, s- the settings-row select, p- the password block. body[data-plant] rules exist only so verify.mjs can
+   prove a check goes red. */
+:root {
+  /* Amber that reads yellow, not orange: hue 92 in oklch (DESIGN.md's warning
+     token sits at hue 70 and renders peach on a light fill). Solid colours so
+     a contrast check reads them straight off the computed style. */
+  --y-fill: oklch(96.5% 0.075 95);
+  --y-ink: oklch(47% 0.115 82);
+  --y-dot: oklch(84% 0.165 92);
+  --y-hover: oklch(93.5% 0.1 95);
+  --g-fill: oklch(96% 0.035 160);
+  --g-hover: oklch(93% 0.055 160);
+}
+body { font-family: var(--font-sans); }
+.x-page { max-width: 1640px; margin: 0 auto; padding: 24px 16px 64px; }
+.x-intro { max-width: 760px; margin-bottom: 28px; }
+.x-intro h1 { font-size: 1.5rem; line-height: 1.2; margin: 6px 0 10px; letter-spacing: -0.01em; }
+.x-intro p { font-size: 0.9375rem; color: var(--muted-foreground); margin: 0 0 12px; line-height: 1.5; }
+.x-intro h2 { font-size: 1rem; margin: 20px 0 6px; }
+.x-kicker { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; color: var(--muted-foreground); }
+.x-rec { padding: 12px 14px; border-radius: 10px; background: color-mix(in oklab, var(--primary) 7%, transparent); color: var(--foreground); }
+.x-rec strong { font-weight: 600; }
+.x-global { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; }
+.x-global-label { font-size: 0.875rem; font-weight: 500; }
+.x-grid { display: grid; grid-template-columns: 1fr; gap: 28px; max-width: 1240px; }
+@media (min-width: 1000px) { .x-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.x-opt { display: grid; grid-template-rows: auto 1fr; gap: 14px; min-width: 0; }
+.x-opt-head { display: flex; flex-direction: column; gap: 6px; }
+.x-opt-title { display: flex; align-items: baseline; gap: 8px; font-size: 1.0625rem; font-weight: 600; flex-wrap: wrap; }
+.x-opt-num { font-variant-numeric: tabular-nums; color: var(--muted-foreground); font-weight: 500; }
+.x-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.x-tag--rec { background: color-mix(in oklab, var(--primary) 12%, transparent); color: var(--primary); }
+.x-tag--second { background: var(--muted); color: var(--foreground); }
+.x-tag--doubt { background: var(--y-fill); color: var(--y-ink); }
+.x-opt-note, .x-opt-tradeoff, .x-opt-ships { font-size: 0.8125rem; line-height: 1.45; margin: 0; }
+.x-opt-note { color: var(--muted-foreground); }
+.x-opt-tradeoff::before { content: 'Tradeoff. '; font-weight: 600; }
+.x-opt-ships { padding-left: 0; list-style: none; display: grid; gap: 2px; color: var(--muted-foreground); }
+.x-opt-ships-label { font-size: 0.8125rem; font-weight: 600; margin: 4px 0 0; }
+.x-opt-ships code { font-family: var(--font-sans); color: var(--foreground); }
+.x-opt-why { font-size: 0.8125rem; line-height: 1.45; margin: 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in oklab, var(--primary) 7%, transparent); }
+.x-opt-why--doubt { background: var(--y-fill); color: var(--y-ink); }
+.x-critics { margin-top: 4px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); display: grid; gap: 4px; }
+.x-critics p { margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--muted-foreground); }
+.x-critics-label { font-weight: 600; color: var(--foreground) !important; }
+.x-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.x-preset { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font: inherit; font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground); cursor: pointer; }
+.x-preset:hover { color: var(--foreground); }
+.x-preset[aria-pressed="true"] { background: var(--foreground); border-color: var(--foreground); color: var(--background); }
+.x-side { display: grid; gap: 12px; }
+.x-stage { position: relative; background: oklch(0.5 0 0 / 0.35); border-radius: 14px; padding: 16px 14px 24px; min-height: 360px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+.x-opener { align-self: flex-start; margin-bottom: 12px; background: var(--background); }
+.x-dialog { position: relative; width: 100%; max-width: 420px; }
+.x-outro { max-width: 760px; margin-top: 40px; }
+.x-outro h2 { font-size: 1.125rem; margin-bottom: 8px; }
+.x-outro ul { padding-left: 18px; font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.5; }
+.x-outro li { margin-bottom: 6px; }
+@media (max-width: 440px) {
+  .x-page { padding: 16px 0 48px; }
+  .x-intro, .x-outro, .x-opt-head, .x-global, .x-side > .x-presets { padding: 0 16px; }
+  .x-stage { border-radius: 0; padding: 12px 0 24px; }
+  .x-opener { margin-left: 16px; }
+  .x-dialog { max-width: none; border-radius: 16px 16px 0 0; }
+}
+
+/* Shared dialog bits */
+.d-body { display: grid; gap: 16px; }
+.d-title-row { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.d-title { font-size: 1.125rem; font-weight: 600; line-height: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-close { margin-left: auto; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; opacity: 0.7; color: var(--foreground); background: none; border: 0; cursor: default; flex: none; }
+.d-close:hover { opacity: 1; background: var(--muted); }
+.d-close:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; opacity: 1; }
+.d-link { display: grid; gap: 6px; }
+/* The chip is 44px with or without the copy icon, so rows never move between states. */
+.d-chip { display: flex; min-width: 0; align-items: center; gap: 4px; border-radius: 8px; background: var(--muted); padding: 4px; }
+.d-chip-url, .d-chip-inert { display: flex; min-width: 0; flex: 1; align-items: center; min-height: 36px; border-radius: 6px; padding: 6px 8px; font-size: 0.875rem; color: inherit; text-decoration: none; }
+.d-url { display: flex; min-width: 0; flex: 1; white-space: nowrap; font-family: var(--font-sans); }
+/* Every segment stays whole while the URL fits. proto.js adds d-url--tight when
+   it does not: the path collapses to an ellipsis, then the slug's tail may go. */
+.d-url-host, .d-url-sep, .d-url-mid, .d-url-slug { flex: none; }
+.d-url-dots { display: none; flex: none; }
+.d-url--tight .d-url-mid { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.d-url--tight .d-url-dots { display: inline; }
+.d-url--tight .d-url-slug { flex: 0 1 auto; min-width: 2em; overflow: hidden; text-overflow: ellipsis; }
+.d-chip--off .d-chip-inert { opacity: 0.5; }
+a.d-chip-url { text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent); text-underline-offset: 3px; cursor: pointer; }
+a.d-chip-url:hover { text-decoration-color: currentColor; background: color-mix(in oklab, var(--muted) 70%, var(--background)); }
+a.d-chip-url:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.d-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; }
+.d-label { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 500; }
+.d-label svg { color: var(--muted-foreground); }
+.d-row--off .d-label { color: var(--muted-foreground); }
+.d-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.d-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--muted-foreground); flex: none; }
+.d-dot--off { background: var(--muted-foreground); opacity: 0.6; }
+.d-dot--live { background: var(--success); box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 18%, transparent); }
+.d-dot--changes { background: var(--y-dot); box-shadow: 0 0 0 3px color-mix(in oklab, var(--y-dot) 35%, transparent); }
+.spin { animation: d-spin 0.8s linear infinite; }
+@keyframes d-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+.v-copy-wrap { position: relative; display: inline-flex; flex: none; }
+.v-tip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 4px 8px; border-radius: 6px; background: var(--foreground); color: var(--background); font-size: 0.75rem; font-weight: 500; white-space: nowrap; pointer-events: none; z-index: 2; }
+.v-tip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -4px; border: 4px solid transparent; border-top-color: var(--foreground); }
+.v-status-word { font-weight: 600; color: var(--foreground); }
+
+/* Password block: switch row, then the field with Show and Save and one line of state. */
+.p-block { display: grid; gap: 8px; }
+.p-field { display: flex; gap: 8px; align-items: center; }
+.p-field input { flex: 1; }
+.p-help { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.75rem; color: var(--muted-foreground); line-height: 1.35; }
+.p-help svg { flex: none; color: var(--success); }
+.p-help--error { color: var(--foreground); }
+
+/* Footer: the band across the full width, the primary under it. F1a keeps the
+   primary at its own width against the right edge; F1b stretches it. */
+.f-footer { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+[data-footer="right"] .f-primary { align-self: flex-end; }
+[data-footer="full"] .f-primary { align-self: stretch; }
+[data-footer="full"] .d-confirm-actions > button { flex: 1 1 0; }
+.f-band { position: relative; display: flex; flex: none; min-width: 0; align-items: center; gap: 10px; min-height: 40px; border-radius: 10px; padding: 7px 12px; background: var(--muted); text-align: left; }
+.f-band .d-dot { flex: none; }
+.f-band-body { min-width: 0; flex: 1; display: grid; gap: 1px; }
+.f-band p { margin: 0; }
+.f-band-head { font-size: 0.875rem; font-weight: 600; line-height: 1.25; display: flex; align-items: center; }
+.f-band-text { font-size: 0.75rem; color: var(--muted-foreground); line-height: 1.3; text-wrap: balance; }
+.f-band[data-tone="live"] { background: var(--g-fill); }
+.f-band[data-tone="live"] .v-status-word { color: var(--success); }
+.f-band[data-tone="changes"] { background: var(--y-fill); }
+.f-band[data-tone="changes"] .v-status-word, .f-band[data-tone="changes"] .f-band-text { color: var(--y-ink); }
+.f-band[data-tone="off"] .v-status-word { color: var(--muted-foreground); }
+.f-primary { flex: none; }
+/* Menus imitate the app's DropdownMenuContent and DropdownMenuRadioItem faces. */
+.f-menu-wrap { position: relative; display: inline-flex; flex: none; }
+.f-menu-wrap--row { display: flex; flex: 1 1 auto; min-width: 0; }
+.f-menu { position: absolute; z-index: 20; min-width: 300px; border-radius: 8px; background: var(--popover); color: var(--popover-foreground); padding: 4px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent); }
+.f-menu--down-end { top: calc(100% + 4px); right: 0; }
+.f-menu--down-start { top: calc(100% + 4px); left: 0; }
+.f-menu--up { top: auto; bottom: calc(100% + 4px); }
+.f-item { display: flex; width: 100%; align-items: center; gap: 8px; border-radius: 6px; padding: 6px 8px; min-height: 32px; font: inherit; font-size: 0.875rem; color: inherit; background: none; border: 0; cursor: default; text-align: left; text-decoration: none; }
+.f-item:hover, .f-item:focus-visible { background: color-mix(in oklab, var(--primary) 10%, transparent); outline: none; }
+.f-item[aria-disabled="true"] { color: var(--muted-foreground); }
+.f-item[aria-disabled="true"]:hover { background: var(--muted); }
+.f-item svg { flex: none; color: var(--muted-foreground); }
+.f-item[aria-checked="true"] { font-weight: 500; }
+.f-item .f-check { margin-left: auto; color: var(--primary); }
+.f-item-body { display: grid; gap: 1px; min-width: 0; }
+.f-item-sub { font-size: 0.75rem; color: var(--muted-foreground); font-weight: 400; }
+
+/* F1: the app's SelectTrigger face (h-9, border-input, rounded-lg), flat inside the panel. */
+.s-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+.s-select { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; height: 36px; max-width: 100%; padding: 0 10px 0 12px; border-radius: 8px; border: 1px solid var(--input); background: transparent; box-shadow: none; font: inherit; font-size: 0.875rem; color: inherit; cursor: default; white-space: nowrap; }
+.s-select:hover { background: var(--muted); }
+.s-select:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent); }
+.s-select:disabled { opacity: 0.5; cursor: not-allowed; }
+.s-select svg { color: var(--muted-foreground); flex: none; }
+.s-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.s-static { display: inline-flex; align-items: center; height: 36px; padding: 0 12px; font-size: 0.875rem; color: var(--muted-foreground); }
+
+/* The off confirm replaces the footer. Neutral panel; the danger button carries the weight. */
+.d-confirm { border-radius: 12px; border: 1px solid var(--border); background: var(--muted); padding: 12px 14px 14px; display: grid; gap: 6px; }
+.d-confirm p { margin: 0; font-size: 0.875rem; line-height: 1.4; }
+.d-confirm .d-muted { color: var(--muted-foreground); text-wrap: balance; }
+.d-confirm-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+/* Phone: full-width sheet, 44px targets, stacked footer. */
+@media (max-width: 440px) {
+  .d-close { width: 44px; height: 44px; margin-right: -8px; }
+  .d-chip-url, .d-chip-inert { min-height: 44px; padding: 8px; }
+  .d-chip .v-copy-wrap button { width: 44px; height: 44px; }
+  .d-row, .s-row { min-height: 44px; }
+  .d-row [role="switch"]::after { top: -13px; bottom: -13px; }
+  .p-field input { height: 44px; }
+  .p-field button { height: 44px; }
+  .s-select { height: 44px; }
+  .s-static { height: 44px; }
+  .f-band { min-height: 48px; }
+  .f-primary, [data-footer="right"] .f-primary { align-self: stretch; height: 44px; }
+  .f-item { min-height: 44px; }
+  .d-confirm-actions > button { flex: 1 1 0; height: 44px; }
+}
+
+/* Planted violations for verify.mjs. Each rule reproduces one defect the critics named. */
+body[data-plant="select-shadow"] .s-select { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+body[data-plant="wide-dialog"] .x-dialog { max-width: 512px; }
+body[data-plant="footer-row"] .f-footer { flex-direction: row; align-items: center; }
+body[data-plant="footer-row"] .f-band { flex: 1 1 auto; }
+body[data-plant="band-narrow"] .f-band { align-self: flex-start; }
+body[data-plant="primary-narrow"] [data-footer="full"] .f-primary { align-self: flex-end; }
+body[data-plant="primary-left"] [data-footer="right"] .f-primary { align-self: flex-start; }
+body[data-plant="access-wrap"] .s-row .d-label { max-width: 90px; }
+body[data-plant="pw-wrap"] .p-block .d-label { max-width: 90px; }
+body[data-plant="value-cut"] .s-value { max-width: 80px; }
+body[data-plant="confirm-gap"] .d-confirm-actions { margin-top: 24px; }
+@media (max-width: 440px) {
+  body[data-plant="phone-stack"] .s-row { flex-direction: column; align-items: stretch; gap: 8px; }
+}
+body[data-plant="confirm-right"] [data-footer="full"] .d-confirm-actions > button { flex: none; }

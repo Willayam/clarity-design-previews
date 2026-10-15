@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Share dialog: F1 stacked</title>
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<main class="x-page">
+  <header class="x-intro">
+    <p class="x-kicker">PR #1457 · U08 · share dialog · F1 settings rows, stacked footer · prototype, throwaway, mock data</p>
+    <h1>Share dialog: F1 stacked</h1>
+    <p>F1 from round five, narrower, with the status band and the primary button stacked. The dialog is 420px wide on desktop instead of the app's 512. The band takes the full width and the button sits under it. The two versions differ only in the button. F1a keeps it at its own width against the right edge. F1b stretches it across the dialog. On a phone both fill the width, so at 390 they look the same apart from the confirm.</p>
+    <p>Each dialog works. Pick a state above it, or set both at once, then press the controls. Nothing talks to a server. Tab stays inside the dialog, the access menu takes arrow keys, and Escape closes the menu, the confirm, or the dialog. The Share button above each dialog reopens it.</p>
+    <p class="x-rec"><strong>Recommendation.</strong> F1a, the button at the right. It keeps Publish in the bottom right corner where you asked for it in round one, and a short label like Copy link doesn't turn into a slab as wide as the dialog.</p>
+    <h2>How 420 was picked</h2>
+    <p>The widest row is "Who can open it": the label, a 12px gap and the select reading "Anyone with the link" need 320px. The link row needs 305px with its copy icon, and 340px with the long slug. The password row needs 200px. With the dialog's padding and border that makes 370px the narrowest dialog that holds the usual rows on one line, and 390px for the long slug. 420 leaves 30px to spare on the long slug. The verify script measures this in the browser, and fails if any row wraps, the select value is cut, or a URL that fits is shortened.</p>
+    <div class="x-global">
+      <span class="x-global-label">Set both to</span>
+      <div class="x-presets" data-global-presets></div>
+    </div>
+  </header>
+
+  <section class="x-grid" id="options"></section>
+
+  <footer class="x-outro">
+    <h2>What both versions keep from F1</h2>
+    <ul>
+      <li>Before the first publish there is no access row, so "Not published" is said once, in the band. While the link is off the row is plain text, "No one", with no chevron. Publish is the only way back on.</li>
+      <li>One lock, on the password row. "No one" in the menu uses a broken-link icon and the sub line "Turns the link off". "Anyone with the link" has no sub line unless a password is saved, then it says "Visitors need the link and the password."</li>
+      <li>The band says how fresh the live page is and nothing else. Live with "Published 2h ago.", amber Live with "Visitors see the version from 2h ago.", Off with "The link is off. Publish to bring it back.", Not published with "Nobody can open it until you publish."</li>
+      <li>The switch alone protects nothing. It opens a password field, hidden, with a Show toggle and Save. On a live page the line under the field warns before Save that everyone you already sent the link to will need the password. After Save it says "Saved. Everyone with the link needs it now."</li>
+      <li>The link row has a copy icon in every live state and none while draft or off. Copy says "Copied" only after the clipboard accepts the text. If it refuses, a line under the link says "Couldn't copy. Select the link and copy it." On a phone a long slug keeps its full name and the path in the middle becomes an ellipsis.</li>
+      <li>Turning the link off asks first. The confirm text has no lone word on its last line. Focus lands on Cancel and Escape cancels. Once Turn off is pressed, Cancel is disabled because the request is on its way. While publishing or turning off, nothing else in the dialog works.</li>
+      <li>One live region per dialog announces Published, The link is off, Link copied and Password saved. Escape and the X close the dialog and focus returns to the Share button.</li>
+      <li>The menu flips above the select when there is no room below and stays inside the viewport. The select is flat, with no shadow.</li>
+    </ul>
+  </footer>
+</main>
+<script src="./icons.js"></script>
+<script src="./button-classes.js"></script>
+<script src="./proto.js"></script>
+</body>
+</html>
