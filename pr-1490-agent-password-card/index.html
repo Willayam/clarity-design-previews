@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #1490: approval cards name a password an agent set</title>
+<style>
+body{font:16px/1.5 system-ui,-apple-system,sans-serif;margin:0 auto;max-width:1100px;padding:24px;color:#111}
+h1{font-size:1.4rem;margin:0 0 .5rem}h2{font-size:1.1rem;margin:2rem 0 .5rem}p{max-width:68ch}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+figure{margin:0}figure img{border:1px solid #ddd;border-radius:8px;display:block}
+.desk img{width:min(100%,640px)}.phone img{width:260px}figcaption{font-size:.85rem;color:#555;margin-top:4px}
+</style></head><body>
+<h1>Approval cards now name a password an agent set</h1>
+<p>Taken on the PR preview <a href="https://pr-1490.clarity-video.workers.dev">pr-1490</a> at the PR head, signed in as the e2e Pro test account. In both cases the agent turned the link off, set a password of its own while the link was off, then asked to turn the link back on. Before this PR the publish card said only "Password: on", and the video card had no password row at all.</p>
+<p><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1490">PR #1490</a></p>
+<h2>pages_publish</h2>
+<div class="row">
+<figure class="desk"><img src="publish-card-desktop.png" alt="Publish card on desktop naming an agent-set password"><figcaption>Desktop, 1280 wide</figcaption></figure>
+<figure class="phone"><img src="publish-card-phone.png" alt="Publish card on a phone"><figcaption>Phone, 390 wide</figcaption></figure>
+</div>
+<h2>videos_share, turning a video's share link back on</h2>
+<div class="row">
+<figure class="desk"><img src="video-share-card-desktop.png" alt="Video share card on desktop with the password row"><figcaption>Desktop, 1280 wide</figcaption></figure>
+<figure class="phone"><img src="video-share-card-phone.png" alt="Video share card on a phone"><figcaption>Phone, 390 wide</figcaption></figure>
+</div>
+</body></html>
