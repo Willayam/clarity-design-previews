@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Opus 5.5 verification</title><style>body{font:16px/1.6 system-ui;max-width:1000px;margin:24px auto;padding:16px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}</style><pre># PR 1492 independent verification: VERIFIED
+
+- Target: https://pr-1492.clarity-video.workers.dev (PR preview)
+- Head: ebcd6b6a8e5bceba0d38061a985a546e9e0e561f. `doctor --pr 1492` exit 0, with deploy-info commitSha and headSha both equal to this SHA (`final-free1-doctor.log`).
+- Verifier: Claude Opus 5.5, independent seat, verify-loop skill, 2026-10-15 (Free/Pro/Free/restored cycle 21:36Z to 21:39Z).
+- Browser: Chromium 149 `--single-process --no-zygote`, 1280x900, anonymous prospect, one browser per page.
+- Fixtures: themed https://pr-1492.clarity-video.workers.dev/page/4yccwp (Bold preset, CTA #d4a017, logo) and legacy https://pr-1492.clarity-video.workers.dev/page/f6cm9q (no theme, brand #102c2a, CTA #d4a017, logo). Both use a Library content image.
+
+## Code review of ebcd6b6a8 (HEAD~1..HEAD)
+
+The commit adds one line to `workers/frontend-router/src/public-page-delivery/render-blocks.ts`: `.jp-theme:not([data-theme-preset]) .jp-made-with` maps `--jp-foreground`, `--jp-muted-foreground` and `--jp-border` to the plain-section tokens.
+
+- Correct: a legacy `.jp-theme` paints `--jp-section-plain-background` (#ffffff, `journey-page-styles.ts:23,34`), and the footer sits directly on it. The plain tokens (#0f172a / #64748b / #e2e8f0) are the pairs designed for that background.
+- Scope: the rule lives inside the badge `&lt;style&gt;`, which only Free pages get. Preset pages keep their own badge tokens. `compare.mjs`&#x27;s badge regex still strips the whole block.
+- No findings.
+
+## Checks
+
+| Acceptance criterion | Result | Evidence |
+|---|---|---|
+| Owner plan flips as the parent set it | pass | `/api/me`: free1 `free`/null, pro `pro` 2030-01-01T00:00:00.000Z, free2 `free`/null, restored `pro` 2030-01-01T00:00:00.000Z (`runs/final-*/state.json`) |
+| Free page keeps the full design | pass | free1 and free2 HTML equal the Pro baseline once the badge block and media signatures are removed (`runs/compare-final-pro-baseline-vs-final-free{1,2}.json`). The browser shows the same preset, vars, hero, h1 and CTA styles as Pro on both pages |
+| Free page shows a readable badge | pass | `footer.jp-made-with` &quot;Made with · Make your own&quot; with `/signup?plan=Pro&amp;utm_…&amp;utm_content=&lt;share_id&gt;`. Legacy text rgb(100,116,139) on rgb(255,255,255) is 4.76:1, with a rgb(226,232,240) top border. Themed text rgb(100,116,139) on rgb(252,247,236) is 4.45:1. Contrast is measured by painting the computed colors over the stacked backgrounds (`runs/final-free{1,2}/summary.json` `badge.ink`) |
+| Pro page has no badge and is unchanged | pass | final-pro HTML equals the baseline at identical byte lengths (65561 / 61228). No `footer.jp-made-with` in the DOM |
+| Logo, content image and CTA load in every state | pass | Logo drawn at 240x80 and story image 960x540 natural, both `complete`. Media 200 from pr-1492-r2-media. HTTP image bytes match the uploaded mocks in every run |
+| Plan flips never republish or edit the page | pass | Every state has published_revision 1 and draft_revision 1, with draft hashes 75f16738a236c7b3 (themed) and 84b12a7c074deef0 (legacy). `published_at` matches the baseline in every run, including final-restored |
+| Free to Pro to Free is stable | pass | free1 and free2 HTML are byte-identical after normalisation (`runs/compare-final-free1-vs-final-free2.json`) |
+| Console and network | pass | No console messages, failed requests or 4xx/5xx. The only hosts contacted were the preview and pr-1492-r2-media. No Google Fonts link |
+| Adjacent: password gate, media authorization, draft isolation, signed media (11/11) | pass, carried | From prior run `runs/02-regression-pro/`. Still applies, because the only code change since then is the badge-scoped CSS line |
+| Restored grant | pass | final-restored: plan pro, expiration 2030-01-01T00:00:00.000Z, pages identical to baseline |
+
+## Before / after for the badge defect
+
+- Before (dcccf2147): `badge-failure/legacy-before.png`. On the dark-brand legacy page the footer shows only the grey logo, because the text was rgba(255,255,255,0.7) on white (1:1).
+- After (ebcd6b6a8): `runs/final-free1/legacy-badge.png` and `runs/final-free2/legacy.png` show &quot;Made with · Make your own&quot; in slate with a light top border.
+- Themed control: `runs/final-free1/themed-badge.png` and `runs/final-free2/themed-badge.png` stay readable on cream.
+
+## Notes, none blocking
+
+- Themed (Bold preset) badge text is 4.45:1 on cream. That is just under WCAG AA&#x27;s 4.5:1 for 13px text, though readable in the screenshots. The commit doesn&#x27;t touch this preset path.
+- The logo URL `…&amp;w=240` is the same in every run. The media host returned the 240x80 resize in free1 and the 360x120 original in pro and free2. It draws at 240x80 every time and the HTML is identical, so this is media-host resize variance and does not depend on the plan.
+- I added a badge ink and contrast probe, plus a `&lt;page&gt;-badge.png` close-up, to `scripts/browser-check.mjs`, and added a read-only `scripts/summarize.mjs`. The old height-only `visible` check is why the white-on-white text got through before.
+- `report.md` is the earlier NOT VERIFIED report from dcccf2147 and is superseded by this file.
+
+## Not done by this seat
+
+- No D1 operations. The parent did the plan flips and grant restore. No source changes, merge, deploy or fixture deletion. The parent handles cleanup with `scripts/cleanup.mjs`.
+
+## Artifacts (under .context/opus-verification/)
+
+- `runs/final-pro-baseline/`, `runs/final-free1/`, `runs/final-pro/`, `runs/final-free2/`, `runs/final-restored/`
+- `runs/compare-final-pro-baseline-vs-final-{free1,pro,free2}.json`, `runs/compare-final-free1-vs-final-free2.json`
+- `phase-free1.done`, `phase-pro.done`, `phase-free2.done`, `final-*-{doctor,state,http,browser}.log`
+</pre></html>
