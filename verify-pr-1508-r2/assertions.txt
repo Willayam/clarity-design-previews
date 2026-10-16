@@ -1,0 +1,7 @@
+PASS exact deployed SHA
+PASS release = commitShort = response header = bundle comparison = ba161a32
+PASS three real stats POST responses, no notice
+PASS injected mismatch produced notice
+PASS Reload changed timeOrigin, cleared notice and removed wrapper
+PASS stats modal one visit equals API data
+PASS Settings rendered and both brand/profile GETs returned 200

@@ -1,0 +1,88 @@
+{
+  "stats": {
+    "proof": [
+      {
+        "url": "/api/actions/pages_stats",
+        "method": "POST",
+        "status": 200,
+        "build": "ba161a32",
+        "request": "{\"pageId\":\"7d8a04c6-f55a-4289-91f8-549b668c6376\"}",
+        "stats": {
+          "visits": 1,
+          "totalVisits": 1,
+          "watched": 0,
+          "clicked": 0
+        }
+      }
+    ],
+    "notice": false,
+    "modal": "Statistics\n\nJourney Page\n\nSmoke Journey 1792155296605\nBook a strategy call\nA better buying room\nBook a strategy call\nFrequently Asked Questions\nRecommended next step\n1\nPage visits\n0\nWatched video\n0\nClicked button\nSmoke Journey 1792155296605\nVideo\n0 plays\n\nNo recorded plays yet\n\nBook a strategy call\nButton\n0 clicks\nBook a strategy call · Document\nButton\n0 clicks\nApprove pilot · Pilot package\nButton\n0 clicks\nClose"
+  },
+  "normal": {
+    "proof": [
+      {
+        "url": "/api/actions/pages_stats",
+        "method": "POST",
+        "status": 200,
+        "build": "ba161a32",
+        "request": "{\"pageId\":\"7d8a04c6-f55a-4289-91f8-549b668c6376\"}",
+        "stats": {
+          "visits": 1,
+          "totalVisits": 1,
+          "watched": 0,
+          "clicked": 0
+        }
+      },
+      {
+        "url": "/api/actions/pages_stats",
+        "method": "POST",
+        "status": 200,
+        "build": "ba161a32",
+        "request": "{\"pageId\":\"7d8a04c6-f55a-4289-91f8-549b668c6376\"}",
+        "stats": {
+          "visits": 1,
+          "totalVisits": 1,
+          "watched": 0,
+          "clicked": 0
+        }
+      },
+      {
+        "url": "/api/actions/pages_stats",
+        "method": "POST",
+        "status": 200,
+        "build": "ba161a32",
+        "request": "{\"pageId\":\"7d8a04c6-f55a-4289-91f8-549b668c6376\"}",
+        "stats": {
+          "visits": 1,
+          "totalVisits": 1,
+          "watched": 0,
+          "clicked": 0
+        }
+      }
+    ],
+    "notice": false
+  },
+  "mismatch": {
+    "last": {
+      "url": "/api/actions/pages_stats",
+      "method": "POST",
+      "status": 200,
+      "build": "ba161a32",
+      "request": "{\"pageId\":\"7d8a04c6-f55a-4289-91f8-549b668c6376\"}",
+      "stats": {
+        "visits": 1,
+        "totalVisits": 1,
+        "watched": 0,
+        "clicked": 0
+      },
+      "injectedBuild": "verify-r2-mismatch"
+    },
+    "notice": true
+  },
+  "reload": {
+    "reloaded": true,
+    "notice": false,
+    "home": true,
+    "wrapperGone": true
+  }
+}
