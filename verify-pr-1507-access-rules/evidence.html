@@ -1,0 +1,638 @@
+<!doctype html><meta name="viewport" content="width=device-width"><title>PR 1507 evidence</title><style>body{font:15px/1.5 system-ui;margin:24px;max-width:1000px}pre{white-space:pre-wrap;overflow-wrap:anywhere}section{border-top:1px solid #ddd}</style><section id="L1"><h2>Line 1. Preview identity</h2><pre>{
+  &quot;branch&quot;: &quot;HEAD&quot;,
+  &quot;commitSha&quot;: &quot;2a3fba4411535da7c4fbc337674d8199109b21f5&quot;,
+  &quot;commitShort&quot;: &quot;2a3fba44-dirty&quot;,
+  &quot;release&quot;: &quot;2a3fba44-dirty&quot;,
+  &quot;headSha&quot;: &quot;2a3fba4411535da7c4fbc337674d8199109b21f5&quot;,
+  &quot;baseSha&quot;: &quot;61274a6f582d6588a3d7372ad39316dbc34c043f&quot;
+}</pre></section><section id="L2"><h2>Line 2. Required GitHub merge SHA</h2><pre>{
+  &quot;head&quot;: &quot;2a3fba4411535da7c4fbc337674d8199109b21f5&quot;,
+  &quot;merge_commit_sha&quot;: &quot;5a523a38786a8afee0ea36d3ee0ce2020bdb91d6&quot;
+}</pre></section><section id="L3"><h2>Line 3. Source trees match</h2><pre>{
+  &quot;merge&quot;: {
+    &quot;parents&quot;: [
+      &quot;61274a6f582d6588a3d7372ad39316dbc34c043f&quot;,
+      &quot;2a3fba4411535da7c4fbc337674d8199109b21f5&quot;
+    ],
+    &quot;sha&quot;: &quot;5a523a38786a8afee0ea36d3ee0ce2020bdb91d6&quot;,
+    &quot;tree&quot;: &quot;f392e8e49f64ffeca7f069b46137eca100a368ab&quot;
+  },
+  &quot;deployedHead&quot;: &quot;2a3fba4411535da7c4fbc337674d8199109b21f5 f392e8e49f64ffeca7f069b46137eca100a368ab ce1fd69d7f260c533d144e83c63b47e64eff8e64&quot;
+}</pre></section><section id="L4"><h2>Line 4. PR Preview passed</h2><pre>&quot;PR Preview\tpass\t3m57s\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896952041/job/116959590123\t\nProduction\tskipping\t0\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896952041/job/116959591447\t\nStaging\tskipping\t0\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896952041/job/116959592853\t\nStaging ref guard\tskipping\t0\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896952041/job/116959591613\t\nDetect E2E Impact\tpass\t7s\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896661000/job/116958646660\t\nE2E Smoke\tpass\t35s\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896661000/job/116958716744\t\nGuards table, feature map and proof\tpass\t16s\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896890008/job/116959390367\t\nProof names the head\tpass\t0\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896890008\tProof names 2a3fba441, or there is no Proof section\nTypecheck, Test &amp; Build\tpass\t5m10s\thttps://github.com/Clarity-Video-HQ/clarity/actions/runs/38896660990/job/116958646992\t\nclarity/preview\tpass\t0\thttps://pr-1507.clarity-video.workers.dev\tpr-1507.clarity-video.workers.dev serves this commit on main 61274a6\n&quot;</pre></section><section id="L5"><h2>Line 5. Existing foreign page control</h2><pre>{
+  &quot;status&quot;: 200,
+  &quot;owner&quot;: &quot;user_01M3PV8N4H36ZZPHGXFXWCQPM3&quot;
+}</pre></section><section id="L6"><h2>Line 6. Foreign browser reads and rename</h2><pre>[
+  {
+    &quot;method&quot;: &quot;GET&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+    }
+  },
+  {
+    &quot;method&quot;: &quot;PATCH&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+    }
+  },
+  {
+    &quot;method&quot;: &quot;GET&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/submissions&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+    }
+  },
+  {
+    &quot;method&quot;: &quot;GET&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/access&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+    }
+  },
+  {
+    &quot;method&quot;: &quot;GET&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/stats&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+    }
+  },
+  {
+    &quot;method&quot;: &quot;GET&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/generation&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+    }
+  }
+]</pre></section><section id="L7"><h2>Line 7. Foreign browser writes</h2><pre>[
+  {
+    &quot;method&quot;: &quot;DELETE&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  },
+  {
+    &quot;method&quot;: &quot;PUT&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  },
+  {
+    &quot;method&quot;: &quot;POST&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/duplicate&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  },
+  {
+    &quot;method&quot;: &quot;POST&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/publish&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  },
+  {
+    &quot;method&quot;: &quot;POST&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/unpublish&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  },
+  {
+    &quot;method&quot;: &quot;PATCH&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/access&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  },
+  {
+    &quot;method&quot;: &quot;POST&quot;,
+    &quot;path&quot;: &quot;/api/journey-pages/e300555e-6ee9-5dda-aecb-26f50e242a73/generate&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: &quot;{\n  \&quot;error\&quot;: \&quot;Journey Page was not found in D1\&quot;\n}&quot;
+  }
+]</pre></section><section id="L8"><h2>Line 8. Agent page refusal</h2><pre>{
+  &quot;name&quot;: &quot;pages_get&quot;,
+  &quot;args&quot;: {
+    &quot;pageId&quot;: &quot;e300555e-6ee9-5dda-aecb-26f50e242a73&quot;
+  },
+  &quot;status&quot;: 200,
+  &quot;body&quot;: {
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;: 2,
+    &quot;result&quot;: {
+      &quot;content&quot;: [
+        {
+          &quot;type&quot;: &quot;text&quot;,
+          &quot;text&quot;: &quot;{\&quot;code\&quot;:\&quot;not_found\&quot;,\&quot;message\&quot;:\&quot;No Journey Page with this id is in your account.\&quot;}&quot;
+        }
+      ],
+      &quot;isError&quot;: true,
+      &quot;structuredContent&quot;: {
+        &quot;code&quot;: &quot;not_found&quot;,
+        &quot;message&quot;: &quot;No Journey Page with this id is in your account.&quot;
+      }
+    }
+  }
+}</pre></section><section id="L9"><h2>Line 9. Ordinary draft agent reads</h2><pre>{
+  &quot;id&quot;: &quot;771ab2b9-2ed2-4ccc-b919-407bd9205941&quot;,
+  &quot;createStatus&quot;: 201,
+  &quot;pages_get&quot;: {
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;: 4,
+    &quot;result&quot;: {
+      &quot;content&quot;: [
+        {
+          &quot;type&quot;: &quot;text&quot;,
+          &quot;text&quot;: &quot;{\&quot;pageId\&quot;:\&quot;771ab2b9-2ed2-4ccc-b919-407bd9205941\&quot;,\&quot;revision\&quot;:1,\&quot;title\&quot;:\&quot;Verify 1507 draft read\&quot;,\&quot;updatedAt\&quot;:\&quot;2026-10-16T12:05:34.050Z\&quot;,\&quot;editorUrl\&quot;:\&quot;https://pr-1507.clarity-video.workers.dev/edit/771ab2b9-2ed2-4ccc-b919-407bd9205941\&quot;,\&quot;publication\&quot;:{\&quot;stage\&quot;:\&quot;draft\&quot;,\&quot;shareUrl\&quot;:null,\&quot;publishedRevision\&quot;:null,\&quot;draftAheadOfLive\&quot;:false,\&quot;publishedAt\&quot;:null,\&quot;passwordEnabled\&quot;:false},\&quot;outline\&quot;:{\&quot;source\&quot;:\&quot;page\&quot;,\&quot;untrusted\&quot;:true,\&quot;value\&quot;:[{\&quot;blockId\&quot;:\&quot;5e65b30f-6bc5-4e4b-b3b7-432008ccbe76\&quot;,\&quot;kind\&quot;:\&quot;hero\&quot;,\&quot;label\&quot;:\&quot;smoke-upload-video-1792151836957\&quot;}]},\&quot;theme\&quot;:{\&quot;preset\&quot;:\&quot;\&quot;,\&quot;base\&quot;:\&quot;\&quot;,\&quot;font\&quot;:\&quot;\&quot;,\&quot;scale\&quot;:\&quot;s\&quot;,\&quot;shape\&quot;:\&quot;round\&quot;},\&quot;generation\&quot;:null}&quot;
+        }
+      ],
+      &quot;structuredContent&quot;: {
+        &quot;pageId&quot;: &quot;771ab2b9-2ed2-4ccc-b919-407bd9205941&quot;,
+        &quot;revision&quot;: 1,
+        &quot;title&quot;: &quot;Verify 1507 draft read&quot;,
+        &quot;updatedAt&quot;: &quot;2026-10-16T12:05:34.050Z&quot;,
+        &quot;editorUrl&quot;: &quot;https://pr-1507.clarity-video.workers.dev/edit/771ab2b9-2ed2-4ccc-b919-407bd9205941&quot;,
+        &quot;publication&quot;: {
+          &quot;stage&quot;: &quot;draft&quot;,
+          &quot;shareUrl&quot;: null,
+          &quot;publishedRevision&quot;: null,
+          &quot;draftAheadOfLive&quot;: false,
+          &quot;publishedAt&quot;: null,
+          &quot;passwordEnabled&quot;: false
+        },
+        &quot;outline&quot;: {
+          &quot;source&quot;: &quot;page&quot;,
+          &quot;untrusted&quot;: true,
+          &quot;value&quot;: [
+            {
+              &quot;blockId&quot;: &quot;5e65b30f-6bc5-4e4b-b3b7-432008ccbe76&quot;,
+              &quot;kind&quot;: &quot;hero&quot;,
+              &quot;label&quot;: &quot;smoke-upload-video-1792151836957&quot;
+            }
+          ]
+        },
+        &quot;theme&quot;: {
+          &quot;preset&quot;: &quot;&quot;,
+          &quot;base&quot;: &quot;&quot;,
+          &quot;font&quot;: &quot;&quot;,
+          &quot;scale&quot;: &quot;s&quot;,
+          &quot;shape&quot;: &quot;round&quot;
+        },
+        &quot;generation&quot;: null
+      }
+    }
+  },
+  &quot;library_list&quot;: {
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;: 4,
+    &quot;result&quot;: {
+      &quot;content&quot;: [
+        {
+          &quot;type&quot;: &quot;text&quot;,
+          &quot;text&quot;: &quot;{\&quot;items\&quot;:[{\&quot;id\&quot;:\&quot;771ab2b9-2ed2-4ccc-b919-407bd9205941\&quot;,\&quot;type\&quot;:\&quot;journey_page\&quot;,\&quot;title\&quot;:\&quot;Verify 1507 draft read\&quot;,\&quot;stage\&quot;:\&quot;draft\&quot;,\&quot;createdAt\&quot;:\&quot;2026-10-16T12:05:34.050Z\&quot;,\&quot;updatedAt\&quot;:\&quot;2026-10-16T12:05:34.050Z\&quot;,\&quot;folderId\&quot;:null},{\&quot;id\&quot;:\&quot;36f819b0-4cf0-423e-92eb-3dac8e9d1956\&quot;,\&quot;type\&quot;:\&quot;journey_page\&quot;,\&quot;title\&quot;:\&quot;Smoke Journey 1792151836957\&quot;,\&quot;stage\&quot;:\&quot;live\&quot;,\&quot;shareUrl\&quot;:\&quot;https://pr-1507.clarity-video.workers.dev/page/zr47vc\&quot;,\&quot;createdAt\&quot;:\&quot;2026-10-16T11:57:42.023Z\&quot;,\&quot;updatedAt\&quot;:\&quot;2026-10-16T11:57:42.023Z\&quot;,\&quot;folderId\&quot;:null}]}&quot;
+        }
+      ],
+      &quot;structuredContent&quot;: {
+        &quot;items&quot;: [
+          {
+            &quot;id&quot;: &quot;771ab2b9-2ed2-4ccc-b919-407bd9205941&quot;,
+            &quot;type&quot;: &quot;journey_page&quot;,
+            &quot;title&quot;: &quot;Verify 1507 draft read&quot;,
+            &quot;stage&quot;: &quot;draft&quot;,
+            &quot;createdAt&quot;: &quot;2026-10-16T12:05:34.050Z&quot;,
+            &quot;updatedAt&quot;: &quot;2026-10-16T12:05:34.050Z&quot;,
+            &quot;folderId&quot;: null
+          },
+          {
+            &quot;id&quot;: &quot;36f819b0-4cf0-423e-92eb-3dac8e9d1956&quot;,
+            &quot;type&quot;: &quot;journey_page&quot;,
+            &quot;title&quot;: &quot;Smoke Journey 1792151836957&quot;,
+            &quot;stage&quot;: &quot;live&quot;,
+            &quot;shareUrl&quot;: &quot;https://pr-1507.clarity-video.workers.dev/page/zr47vc&quot;,
+            &quot;createdAt&quot;: &quot;2026-10-16T11:57:42.023Z&quot;,
+            &quot;updatedAt&quot;: &quot;2026-10-16T11:57:42.023Z&quot;,
+            &quot;folderId&quot;: null
+          }
+        ]
+      }
+    }
+  },
+  &quot;cleanupStatus&quot;: 200,
+  &quot;afterDeleteStatus&quot;: 404
+}</pre></section><section id="L10"><h2>Line 10. Password persisted</h2><pre>{
+  &quot;status&quot;: 200,
+  &quot;body&quot;: {
+    &quot;data&quot;: {
+      &quot;access&quot;: &quot;private&quot;,
+      &quot;id&quot;: &quot;329dc2ec-10fb-450a-b88a-e48d81829e1b&quot;,
+      &quot;link_on&quot;: false,
+      &quot;password&quot;: &quot;[redacted]&quot;,
+      &quot;password_enabled&quot;: true,
+      &quot;published_at&quot;: null,
+      &quot;published_revision&quot;: null,
+      &quot;share_id&quot;: &quot;&quot;,
+      &quot;url&quot;: &quot;&quot;
+    }
+  }
+}</pre></section><section id="L11"><h2>Line 11. Published page has anonymous password gate</h2><pre>{
+  &quot;access&quot;: {
+    &quot;status&quot;: 200,
+    &quot;data&quot;: {
+      &quot;access&quot;: &quot;public&quot;,
+      &quot;id&quot;: &quot;329dc2ec-10fb-450a-b88a-e48d81829e1b&quot;,
+      &quot;link_on&quot;: true,
+      &quot;password&quot;: &quot;[redacted]&quot;,
+      &quot;password_enabled&quot;: true,
+      &quot;published_at&quot;: 1792152108323,
+      &quot;published_revision&quot;: 1,
+      &quot;share_id&quot;: &quot;ttkx9d&quot;,
+      &quot;url&quot;: &quot;/page/ttkx9d&quot;
+    }
+  },
+  &quot;public&quot;: {
+    &quot;status&quot;: 200,
+    &quot;hasGate&quot;: true
+  }
+}</pre></section><section id="L12"><h2>Line 12. Contact created</h2><pre>{
+  &quot;status&quot;: 201,
+  &quot;body&quot;: {
+    &quot;data&quot;: {
+      &quot;id&quot;: &quot;224845a3-bb55-4719-a7bf-842f58081e9d&quot;,
+      &quot;family_name&quot;: &quot;Disposable&quot;,
+      &quot;given_name&quot;: &quot;Verify1507&quot;,
+      &quot;name_prefix&quot;: null,
+      &quot;name_suffix&quot;: null,
+      &quot;title&quot;: null,
+      &quot;organization&quot;: &quot;Verification fixture&quot;,
+      &quot;department&quot;: null,
+      &quot;industry_type&quot;: null,
+      &quot;email_addresses&quot;: [
+        {
+          &quot;id&quot;: &quot;b6fdcc75-7a6f-41c3-88f3-2b4acd911902&quot;,
+          &quot;value&quot;: &quot;[redacted email]&quot;
+        }
+      ],
+      &quot;phone_numbers&quot;: [],
+      &quot;corp_id&quot;: null,
+      &quot;shared&quot;: null,
+      &quot;source_id&quot;: null,
+      &quot;source&quot;: null,
+      &quot;owner_id&quot;: &quot;user_01KSNENWMM5DQVRM6XDJWAF8X9&quot;,
+      &quot;shared_contact&quot;: false
+    }
+  }
+}</pre></section><section id="L13"><h2>Line 13. Contact absent on fresh GET</h2><pre>{
+  &quot;status&quot;: 200,
+  &quot;deletedId&quot;: &quot;224845a3-bb55-4719-a7bf-842f58081e9d&quot;,
+  &quot;absent&quot;: true,
+  &quot;remainingCount&quot;: 1
+}</pre></section><section id="L14"><h2>Line 14. Page absent after completed delete</h2><pre>{
+  &quot;path&quot;: &quot;/api/journey-pages/329dc2ec-10fb-450a-b88a-e48d81829e1b&quot;,
+  &quot;status&quot;: 404,
+  &quot;body&quot;: {
+    &quot;error&quot;: &quot;Journey Page was not found in D1&quot;
+  },
+  &quot;cardAbsent&quot;: true
+}</pre></section><section id="L15"><h2>Line 15. Public video playback</h2><pre>[
+  {
+    &quot;time&quot;: 1.848455,
+    &quot;paused&quot;: true,
+    &quot;readyState&quot;: 4,
+    &quot;src&quot;: &quot;blob:https://pr-1507.clarity-video.workers.dev/82070b75-da67-48c1-a20e-db111612b60f&quot;,
+    &quot;error&quot;: null
+  }
+]</pre></section><section id="L16"><h2>Line 16. Video ownership and active share URL</h2><pre>[
+  {
+    &quot;name&quot;: &quot;library_list&quot;,
+    &quot;args&quot;: {
+      &quot;type&quot;: &quot;journey_page&quot;,
+      &quot;limit&quot;: 50
+    },
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;jsonrpc&quot;: &quot;2.0&quot;,
+      &quot;id&quot;: 3,
+      &quot;result&quot;: {
+        &quot;content&quot;: [
+          {
+            &quot;type&quot;: &quot;text&quot;,
+            &quot;text&quot;: &quot;{\&quot;items\&quot;:[{\&quot;id\&quot;:\&quot;36f819b0-4cf0-423e-92eb-3dac8e9d1956\&quot;,\&quot;type\&quot;:\&quot;journey_page\&quot;,\&quot;title\&quot;:\&quot;Smoke Journey 1792151836957\&quot;,\&quot;stage\&quot;:\&quot;live\&quot;,\&quot;shareUrl\&quot;:\&quot;https://pr-1507.clarity-video.workers.dev/page/zr47vc\&quot;,\&quot;createdAt\&quot;:\&quot;2026-10-16T11:57:42.023Z\&quot;,\&quot;updatedAt\&quot;:\&quot;2026-10-16T11:57:42.023Z\&quot;,\&quot;folderId\&quot;:null}]}&quot;
+          }
+        ],
+        &quot;structuredContent&quot;: {
+          &quot;items&quot;: [
+            {
+              &quot;id&quot;: &quot;36f819b0-4cf0-423e-92eb-3dac8e9d1956&quot;,
+              &quot;type&quot;: &quot;journey_page&quot;,
+              &quot;title&quot;: &quot;Smoke Journey 1792151836957&quot;,
+              &quot;stage&quot;: &quot;live&quot;,
+              &quot;shareUrl&quot;: &quot;https://pr-1507.clarity-video.workers.dev/page/zr47vc&quot;,
+              &quot;createdAt&quot;: &quot;2026-10-16T11:57:42.023Z&quot;,
+              &quot;updatedAt&quot;: &quot;2026-10-16T11:57:42.023Z&quot;,
+              &quot;folderId&quot;: null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    &quot;name&quot;: &quot;videos_get&quot;,
+    &quot;args&quot;: {
+      &quot;videoId&quot;: &quot;6915648c-b29f-56d0-a9fe-53c6eb285cf7&quot;
+    },
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;jsonrpc&quot;: &quot;2.0&quot;,
+      &quot;id&quot;: 3,
+      &quot;result&quot;: {
+        &quot;content&quot;: [
+          {
+            &quot;type&quot;: &quot;text&quot;,
+            &quot;text&quot;: &quot;{\&quot;code\&quot;:\&quot;not_found\&quot;,\&quot;message\&quot;:\&quot;No video with this id is in your Library.\&quot;}&quot;
+          }
+        ],
+        &quot;isError&quot;: true,
+        &quot;structuredContent&quot;: {
+          &quot;code&quot;: &quot;not_found&quot;,
+          &quot;message&quot;: &quot;No video with this id is in your Library.&quot;
+        }
+      }
+    }
+  },
+  {
+    &quot;name&quot;: &quot;videos_get&quot;,
+    &quot;args&quot;: {
+      &quot;videoId&quot;: &quot;00bAdUoAz9ZuTSVn8eKxxiJu01Wym4qCFBOOa9oX42LL00&quot;
+    },
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;jsonrpc&quot;: &quot;2.0&quot;,
+      &quot;id&quot;: 3,
+      &quot;result&quot;: {
+        &quot;content&quot;: [
+          {
+            &quot;type&quot;: &quot;text&quot;,
+            &quot;text&quot;: &quot;{\&quot;videoId\&quot;:\&quot;00bAdUoAz9ZuTSVn8eKxxiJu01Wym4qCFBOOa9oX42LL00\&quot;,\&quot;title\&quot;:\&quot;smoke-upload-video-1792151836957\&quot;,\&quot;state\&quot;:\&quot;ready\&quot;,\&quot;playable\&quot;:true,\&quot;clipPending\&quot;:false,\&quot;durationSeconds\&quot;:1.865544,\&quot;playbackUrl\&quot;:\&quot;https://stream.mux.com/sPEOB6QLDSCpF2Dbk6n7TTzfkrzRc4GpyemVB627H5o.m3u8\&quot;,\&quot;posterUrl\&quot;:\&quot;https://image.mux.com/sPEOB6QLDSCpF2Dbk6n7TTzfkrzRc4GpyemVB627H5o/thumbnail.png\&quot;,\&quot;folderId\&quot;:null,\&quot;shareUrl\&quot;:\&quot;https://pr-1507.clarity-video.workers.dev/page/7ednga\&quot;}&quot;
+          }
+        ],
+        &quot;structuredContent&quot;: {
+          &quot;videoId&quot;: &quot;00bAdUoAz9ZuTSVn8eKxxiJu01Wym4qCFBOOa9oX42LL00&quot;,
+          &quot;title&quot;: &quot;smoke-upload-video-1792151836957&quot;,
+          &quot;state&quot;: &quot;ready&quot;,
+          &quot;playable&quot;: true,
+          &quot;clipPending&quot;: false,
+          &quot;durationSeconds&quot;: 1.865544,
+          &quot;playbackUrl&quot;: &quot;https://stream.mux.com/sPEOB6QLDSCpF2Dbk6n7TTzfkrzRc4GpyemVB627H5o.m3u8&quot;,
+          &quot;posterUrl&quot;: &quot;https://image.mux.com/sPEOB6QLDSCpF2Dbk6n7TTzfkrzRc4GpyemVB627H5o/thumbnail.png&quot;,
+          &quot;folderId&quot;: null,
+          &quot;shareUrl&quot;: &quot;https://pr-1507.clarity-video.workers.dev/page/7ednga&quot;
+        }
+      }
+    }
+  }
+]</pre></section><section id="L17"><h2>Line 17. Browser video stats owner control and foreign refusal</h2><pre>[
+  {
+    &quot;id&quot;: &quot;6915648c-b29f-56d0-a9fe-53c6eb285cf7&quot;,
+    &quot;status&quot;: 404,
+    &quot;body&quot;: {
+      &quot;error&quot;: &quot;Video was not found&quot;
+    }
+  },
+  {
+    &quot;id&quot;: &quot;00bAdUoAz9ZuTSVn8eKxxiJu01Wym4qCFBOOa9oX42LL00&quot;,
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;stats&quot;: {
+        &quot;duration_seconds&quot;: 2,
+        &quot;hh_mm_ss&quot;: &quot;0:02&quot;,
+        &quot;locations&quot;: [
+          {
+            &quot;city&quot;: &quot;Stockholm&quot;,
+            &quot;country&quot;: &quot;SE&quot;,
+            &quot;region&quot;: &quot;Stockholm&quot;,
+            &quot;views&quot;: 5
+          }
+        ],
+        &quot;percent_watched&quot;: 100,
+        &quot;retention&quot;: [
+          {
+            &quot;percent&quot;: 20,
+            &quot;second&quot;: 0,
+            &quot;watch_count&quot;: 1
+          },
+          {
+            &quot;percent&quot;: 20,
+            &quot;second&quot;: 1,
+            &quot;watch_count&quot;: 1
+          }
+        ],
+        &quot;source_provider&quot;: &quot;clarity&quot;,
+        &quot;title&quot;: &quot;00bAdUoAz9ZuTSVn8eKxxiJu01Wym4qCFBOOa9oX42LL00&quot;,
+        &quot;total_views_exceeding_50_percent_watched&quot;: 1,
+        &quot;unique_viewer_count&quot;: 5,
+        &quot;video_loads&quot;: 5,
+        &quot;view_list&quot;: {
+          &quot;kind&quot;: &quot;complete&quot;,
+          &quot;views&quot;: [
+            {
+              &quot;location&quot;: {
+                &quot;city&quot;: &quot;Stockholm&quot;,
+                &quot;country&quot;: &quot;SE&quot;,
+                &quot;region&quot;: &quot;Stockholm&quot;
+              },
+              &quot;started_at_ms&quot;: 1792152251000,
+              &quot;watched_percent&quot;: 0,
+              &quot;watched_ranges&quot;: []
+            },
+            {
+              &quot;location&quot;: {
+                &quot;city&quot;: &quot;Stockholm&quot;,
+                &quot;country&quot;: &quot;SE&quot;,
+                &quot;region&quot;: &quot;Stockholm&quot;
+              },
+              &quot;started_at_ms&quot;: 1792152250000,
+              &quot;watched_percent&quot;: 0,
+              &quot;watched_ranges&quot;: []
+            },
+            {
+              &quot;location&quot;: {
+                &quot;city&quot;: &quot;Stockholm&quot;,
+                &quot;country&quot;: &quot;SE&quot;,
+                &quot;region&quot;: &quot;Stockholm&quot;
+              },
+              &quot;started_at_ms&quot;: 1792152249000,
+              &quot;watched_percent&quot;: 100,
+              &quot;watched_ranges&quot;: [
+                [
+                  0,
+                  1.85
+                ]
+              ]
+            },
+            {
+              &quot;location&quot;: {
+                &quot;city&quot;: &quot;Stockholm&quot;,
+                &quot;country&quot;: &quot;SE&quot;,
+                &quot;region&quot;: &quot;Stockholm&quot;
+              },
+              &quot;started_at_ms&quot;: 1792152215000,
+              &quot;watched_percent&quot;: 0,
+              &quot;watched_ranges&quot;: []
+            },
+            {
+              &quot;location&quot;: {
+                &quot;city&quot;: &quot;Stockholm&quot;,
+                &quot;country&quot;: &quot;SE&quot;,
+                &quot;region&quot;: &quot;Stockholm&quot;
+              },
+              &quot;started_at_ms&quot;: 1792152204000,
+              &quot;watched_percent&quot;: 0,
+              &quot;watched_ranges&quot;: []
+            }
+          ]
+        }
+      }
+    }
+  }
+]</pre></section><section id="L18"><h2>Line 18. Preview smoke and route flake</h2><pre>&quot;\nRunning 6 tests using 1 worker\n\n\n(node:35212) Warning: The &#x27;NO_COLOR&#x27; env is ignored due to the &#x27;FORCE_COLOR&#x27; env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n[1/6] [chromium] \u203a tests/e2e/editor-route-coexistence.spec.ts:84:7 \u203a Flattened editor routes \u203a canonical flat routes render for an authenticated user\n  1) [chromium] \u203a tests/e2e/editor-route-coexistence.spec.ts:84:7 \u203a Flattened editor routes \u203a canonical flat routes render for an authenticated user \u203a /home \n\n    Error: page.goto: net::ERR_ADDRESS_UNREACHABLE at https://pr-1507.clarity-video.workers.dev/home\n    Call log:\n      - navigating to \&quot;https://pr-1507.clarity-video.workers.dev/home\&quot;, waiting until \&quot;domcontentloaded\&quot;\n\n\n      58 |   route: RouteExpectation\n      59 | ): Promise&lt;void&gt; {\n    &gt; 60 |   await page.goto(route.url, { waitUntil: &#x27;domcontentloaded&#x27; });\n         |              ^\n      61 |\n      62 |   await expect\n      63 |     .poll(() =&gt; {\n        at expectAppRoute (/Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/tests/e2e/editor-route-coexistence.spec.ts:60:14)\n        at /Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/tests/e2e/editor-route-coexistence.spec.ts:103:15\n        at /Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/tests/e2e/editor-route-coexistence.spec.ts:102:7\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/editor-route-coexistence-F-6f009-r-for-an-authenticated-user-chromium/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    attachment #2: video (video/webm) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/editor-route-coexistence-F-6f009-r-for-an-authenticated-user-chromium/video.webm\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: test-results/editor-route-coexistence-F-6f009-r-for-an-authenticated-user-chromium/error-context.md\n\n\n\n(node:35507) Warning: The &#x27;NO_COLOR&#x27; env is ignored due to the &#x27;FORCE_COLOR&#x27; env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n[2/6] [chromium] \u203a tests/e2e/editor-route-coexistence.spec.ts:109:7 \u203a Flattened editor routes \u203a legacy route shapes redirect to flattened routes\n[3/6] [chromium] \u203a tests/e2e/pr-preview-smoke.spec.ts:29:9 \u203a PR preview smoke \u203a renders / without credentials\n[4/6] [chromium] \u203a tests/e2e/pr-preview-smoke.spec.ts:29:9 \u203a PR preview smoke \u203a renders /privacy without credentials\n[5/6] [chromium] \u203a tests/e2e/pr-preview-smoke.spec.ts:29:9 \u203a PR preview smoke \u203a renders /terms without credentials\n[6/6] [chromium] \u203a tests/e2e/pr-preview-smoke.spec.ts:42:7 \u203a PR preview smoke \u203a renders the seeded fixture page with its blocks\n  1 failed\n    [chromium] \u203a tests/e2e/editor-route-coexistence.spec.ts:84:7 \u203a Flattened editor routes \u203a canonical flat routes render for an authenticated user \n  5 passed (24.4s)\n&quot;</pre></section><section id="L19"><h2>Line 19. Route retry passed</h2><pre>&quot;\nRunning 2 tests using 1 worker\n\n\n(node:36675) Warning: The &#x27;NO_COLOR&#x27; env is ignored due to the &#x27;FORCE_COLOR&#x27; env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n[1/2] [chromium] \u203a tests/e2e/editor-route-coexistence.spec.ts:84:7 \u203a Flattened editor routes \u203a canonical flat routes render for an authenticated user\n[2/2] [chromium] \u203a tests/e2e/editor-route-coexistence.spec.ts:109:7 \u203a Flattened editor routes \u203a legacy route shapes redirect to flattened routes\n  2 passed (17.0s)\n&quot;</pre></section><section id="L20"><h2>Line 20. Intent regression and network flake</h2><pre>&quot;\nRunning 2 tests using 1 worker\n\n\n(node:41419) Warning: The &#x27;NO_COLOR&#x27; env is ignored due to the &#x27;FORCE_COLOR&#x27; env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n[1/2] [chromium] \u203a tests/e2e/public-page-intent-regression.spec.ts:43:9 \u203a Public Journey Page intent regression \u203a gate 1 7ednga video share fixture\n[2/2] [chromium] \u203a tests/e2e/public-page-intent-regression.spec.ts:43:9 \u203a Public Journey Page intent regression \u203a gate 2 zr47vc journey fixture\n  1) [chromium] \u203a tests/e2e/public-page-intent-regression.spec.ts:43:9 \u203a Public Journey Page intent regression \u203a gate 2 zr47vc journey fixture \n\n    Error: page.goto: net::ERR_ADDRESS_UNREACHABLE at https://pr-1507.clarity-video.workers.dev/page/zr47vc\n    Call log:\n      - navigating to \&quot;https://pr-1507.clarity-video.workers.dev/page/zr47vc\&quot;, waiting until \&quot;domcontentloaded\&quot;\n\n\n      143 | ) {\n      144 |   await page.setViewportSize(viewport);\n    &gt; 145 |   const response = await page.goto(target.shortUrl, { waitUntil: &#x27;domcontentloaded&#x27; });\n          |                               ^\n      146 |   expect(response?.status(), `${target.shortUrl} should render a public response`).toBeLessThan(500);\n      147 |   await page.waitForLoadState(&#x27;networkidle&#x27;, { timeout: 15_000 }).catch(() =&gt; undefined);\n      148 |\n        at validateViewport (/Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/tests/e2e/public-page-intent-regression.spec.ts:145:31)\n        at validatePublicPageIntent (/Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/tests/e2e/public-page-intent-regression.spec.ts:131:3)\n        at /Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/tests/e2e/public-page-intent-regression.spec.ts:44:7\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/public-page-intent-regress-ec661-te-2-zr47vc-journey-fixture-chromium/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    attachment #2: video (video/webm) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/public-page-intent-regress-ec661-te-2-zr47vc-journey-fixture-chromium/video.webm\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: test-results/public-page-intent-regress-ec661-te-2-zr47vc-journey-fixture-chromium/error-context.md\n\n\n  1 failed\n    [chromium] \u203a tests/e2e/public-page-intent-regression.spec.ts:43:9 \u203a Public Journey Page intent regression \u203a gate 2 zr47vc journey fixture \n  1 passed (25.9s)\n&quot;</pre></section><section id="L21"><h2>Line 21. Intent retry passed</h2><pre>&quot;\nRunning 1 test using 1 worker\n\n\n(node:42952) Warning: The &#x27;NO_COLOR&#x27; env is ignored due to the &#x27;FORCE_COLOR&#x27; env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\n[1/1] [chromium] \u203a tests/e2e/public-page-intent-regression.spec.ts:43:9 \u203a Public Journey Page intent regression \u203a gate 2 zr47vc journey fixture\n  1 passed (6.5s)\n&quot;</pre></section><section id="L22"><h2>Line 22. Malformed draft focused unit test</h2><pre>&quot;\n RUN  v4.1.11 /Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/editor\n\n\n Test Files  1 passed (1)\n      Tests  1 passed | 31 skipped (32)\n   Start at  14:03:23\n   Duration  2.92s (transform 1.51s, setup 35ms, import 2.36s, tests 305ms, environment 0ms)\n\n&quot;</pre></section><section id="L23"><h2>Line 23. Self audit</h2><pre>&quot;PASS Seven additional foreign write routes return 404; total foreign checks 13\nPASS Existing foreign page returns 404 on all six routes; negative control rejected\nPASS Ordinary draft has no usable share URL in both agent reads; negative control rejected\nGAP Ordinary draft control passes on the old code too. Active-route-without-publication behavior has focused unit evidence only. Preview D1 access failed with Cloudflare 10000.\nPASS Password Save persisted and anonymous live page shows the gate; negative control rejected\nPASS Contact delete persisted after a real create; negative control rejected\nPASS Page delete persisted after request completion; negative control rejected\nPASS Public shared video played; negative control rejected\nPASS Foreign video stats and agent video read both refuse; negative control rejected\nFAIL exact requested merge SHA: expected 5a523a38786a8afee0ea36d3ee0ce2020bdb91d6; served 2a3fba4411535da7c4fbc337674d8199109b21f5\nPASS Deployed head and GitHub merge have identical source tree f392e8e49f64ffeca7f069b46137eca100a368ab\nAUDIT Screenshots library.png, editor.png, share.png, password.png, contacts.png and public-playback.png were visually inspected. Captions describe visible mock fixtures. Screenshots alone do not prove persistence.\nAUDIT No before-preview run exists. Status assertions reject 403; unit test names the malformed active-route case. No claim that a fresh draft reproduces that malformed case.\n&quot;</pre></section><section id="L24"><h2>Line 24. Video share cleanup</h2><pre>{
+  &quot;cleanupVideoSharePage&quot;: 200,
+  &quot;refetch&quot;: 404
+}</pre></section><section id="L25"><h2>Line 25. Agent read eval results</h2><pre>[
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;brand-settings&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;I only used `settings_get`. It answered in one fast call and gave me what I needed, so I don&#x27;t have much to report:\n\n- **`settings_get` \u2192 `brand.color`:** I get a hex code, which is fine, but I made up \&quot;dark navy\&quot; myself. A name for the color, or a note that it&#x27;s only applied to new pages (as `settings_update` says), would help.\n- **Account identity:** `profile.email` didn&#x27;t match the email of the user I was talking to. Nothing in the answer said whose account this was or why. I&#x27;d have needed a separate `whoami` call to confirm.\n- **Null vs. empty string:** some unset profile fields come back as `null` (`mobilePhone`, `timezone`) and others as `\&quot;\&quot;` (`workPhone`, `calendlyLink`). It&#x27;s unclear whether those mean different things.\n- **`brand.logo`:** it&#x27;s named `logo`, but `settings_update` takes `logoAssetId`. When a logo is set, it&#x27;s unclear whether this field holds an asset id I can pass back or something else.\n\n**The change that would help most:** have `settings_get` include a small account block (account id, owner name, email) so a mismatch between the connected account and the user is obvious without an extra `whoami` call.&quot;,
+    &quot;answer&quot;: &quot;Here&#x27;s the branding Clarity has on file:\n\n- **Company name:** Rivera Sales\n- **Brand color:** `#111827`, a very dark navy that&#x27;s close to black\n- **Default logo:** none set\n\nOne thing to check: this connection is signed in to the account for Sam Rivera ([redacted email]), not [redacted email]. If you expected a different account, the connector may be signed in to the wrong one.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;find-in-folder&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;It went smoothly overall. These are small points:\n\n- **`library_list` took two calls:** I had to search with `query: \&quot;Archive\&quot;` and `type: folder` to get the folder&#x27;s id, then list again with `folderId`. There&#x27;s no way to list a folder by its name or path in one call.\n- **Ids look different by type:** folder ids are long composite strings (`folder:user:user_01M3\u2026:62742747-\u2026`), while pages are plain UUIDs. It works, but at first I wasn&#x27;t sure whether the full string or just the UUID part was the id to send back.\n- **No folder path in search results:** a `query` match shows only `folderId` (null here), not the folder&#x27;s path. If two folders were both called \&quot;Archive\&quot;, I couldn&#x27;t tell them apart without more calls.\n- **No item count on folders:** a folder entry doesn&#x27;t say how many items it holds, so I couldn&#x27;t tell from the first call whether it was empty.\n- **End of list isn&#x27;t explicit:** the response had no `nextCursor`. I took that to mean there were no more items, but the description doesn&#x27;t say so outright.\n\n**The one change that would have helped most:** let `library_list` take a folder name or path (e.g. `folderPath: \&quot;Archive\&quot;`) and return each folder&#x27;s contents with an item count. Then this question would have taken one call.&quot;,
+    &quot;answer&quot;: &quot;Your **Archive** folder (at the Library root) has one item in it:\n\n- **Hooli pitch**: a Journey Page that&#x27;s still a draft, so it has never been published and has no share link. It was created today at 12:05 UTC and last edited a few seconds later.\n\nThere are no videos, images, documents or subfolders in it.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;list-videos&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;- **`library_list`, `nextCursor`:** The response had no `nextCursor`. I took that to mean there were no more pages, but the tool description doesn&#x27;t say so. I couldn&#x27;t be fully sure I had listed every video.\n- **`library_list`, `playable`:** I used `playable: true` to mean \&quot;ready to share.\&quot; But the list doesn&#x27;t show `clipPending` or trim state; only `videos_get` does. Two of the Fixture videos mention trims in their titles, and I didn&#x27;t check them one by one. So \&quot;ready\&quot; might be a little too confident for those two.\n- **`library_list`, `shareUrl`:** The field only appears while a link is live. When it&#x27;s missing, I can&#x27;t tell whether the video never had a share page or had one that was turned off.\n- **`library_list`, `folderId`:** It&#x27;s an opaque string (`folder:user:\u2026:9d1bf3cf-\u2026`) with no folder name. That&#x27;s why I said the Fixture videos are \&quot;in one folder\&quot; without naming it. Finding the name would have taken another call.\n- **Missing duration:** The video items don&#x27;t include length, which would have been useful in a summary like the one you asked for.\n\n**The change that would help most:** add `clipPending` and trim state to the video items in `library_list`. Then one call could fully answer \&quot;is this ready to share?\&quot; without checking each video separately with `videos_get`.&quot;,
+    &quot;answer&quot;: &quot;You have 7 videos in Clarity. All of them have finished processing and can play, so any of them can be shared. Only one has a public share link turned on right now.\n\n| Video | Created | Can play | Public link |\n|---|---|---|---|\n| Untitled take | Oct 16, 2026 | \u2705 Yes | \u2014 |\n| Product demo for Initech | Oct 16, 2026 | \u2705 Yes | \u2014 |\n| Globex discovery call recap | Oct 16, 2026 | \u2705 Yes | \u2014 |\n| Northwind pricing walkthrough | Oct 16, 2026 | \u2705 Yes | \u2014 |\n| Fixture: re-ingested legacy_import with legacy trim pair | Apr 10, 2026 | \u2705 Yes | \u2014 |\n| Fixture: re-ingested media_video_materialization with legacy trim pair | Apr 10, 2026 | \u2705 Yes | \u2014 |\n| Fixture: old-app import (2024 Mux) | Mar 1, 2024 | \u2705 Yes | \ud83d\udd17 [Live](https://pr-1507.clarity-video.workers.dev/page/4uxp6b) |\n\n- The four newest videos are in your Library root. The three \&quot;Fixture\&quot; videos are together in one folder.\n- \&quot;Untitled take\&quot; has no real name yet. You may want to rename it before you send it to anyone.\n\nI can create a share link for any of the other six videos. Each one will need your approval in Clarity before it goes public.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;oldest-video&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;Overall it went smoothly. One `library_list` call answered the question. A few small things:\n\n- **`library_list`, `createdAt`:** It doesn&#x27;t say whether this is when the video was recorded or when it was added to Clarity. For a video titled \&quot;old-app import (2024 Mux)\&quot;, that changes what \&quot;oldest\&quot; means. I assumed the 2024 date was kept from the original.\n- **`library_list`, `folderId`:** Each item only has a long folder id, not a folder name. I couldn&#x27;t tell you where the video lives without making another call.\n- **`library_list`, `sort: \&quot;oldest\&quot;`:** Two videos had the exact same `createdAt`, and the description doesn&#x27;t say how ties are ordered. It didn&#x27;t matter here, but it could make results shift between pages.\n- **`library_list`, the description:** It packs several rules into a few words (\&quot;type keeps one kind; alone, Library-wide\&quot;). I had to read it twice to be sure that leaving out `folderId` while setting `type` searches every folder, not just the root.\n- **Nothing was slow or missing** for this question.\n\n**The one change that would help most:** say in the `library_list` description what `createdAt` means, especially for imported videos (the original date or the date it was imported). That decides whether \&quot;oldest\&quot; is correct.&quot;,
+    &quot;answer&quot;: &quot;Your oldest video is **\&quot;Fixture: old-app import (2024 Mux)\&quot;**. It was created on 1 March 2024.\n\n- **ID:** `6915648c-b29f-56d0-a9fe-53c6eb285cf7`\n- **Status:** ready to play\n- **Share link (live):** https://pr-1507.clarity-video.workers.dev/page/4uxp6b\n\nAll your other videos are much newer. The next two oldest were both created on 10 April 2026.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;page-views&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;- **`pages_stats` \u2192 `videos[...].duration_seconds` / `hh_mm_ss`:** These showed `0` / `\&quot;0:00\&quot;` for a video that is actually 8.08 s long. It looked like a broken or still-processing video, so I made an extra `videos_get` call just to rule that out.\n- **`pages_stats` \u2192 video `title` / element `label`:** Both said \&quot;Pricing for Northwind Traders\&quot;, which is the hero title. `videos_get` called the same video \&quot;Northwind pricing walkthrough\&quot;. It wasn&#x27;t clear which name was the video&#x27;s real one.\n- **`pages_stats` response size:** To answer \&quot;has anyone opened it?\&quot; I only needed `totalVisits`. But the response also carried `preview`, a full `outline` (repeating the blocks), empty `poster` strings and an empty `buttons: {}`, which buried the answer.\n- **Missing in `pages_stats`: `lastVisitAt` / `firstVisitAt`:** When there are visits, \&quot;when was it last opened?\&quot; is the obvious next question. Nothing in the stats answers it directly.\n- **Missing in `pages_stats`: form submission count:** I couldn&#x27;t say how many leads the form collected without `pages_leads`, which needs a separate `leads_contacts` permission. A plain count in the stats would have been enough here.\n\n**Change that would have helped most:** In `pages_stats`, give the video&#x27;s real duration, or `null` when it isn&#x27;t known, instead of `0`. That wrong value cost an extra call and made me doubt whether the video worked at all.&quot;,
+    &quot;answer&quot;: &quot;No, nobody has opened it yet. Clarity shows **0 visits** for the **Northwind proposal** page.\n\nThe page is live at https://pr-1507.clarity-video.workers.dev/page/qyh8ck. It was published today at 12:02 UTC, so it hasn&#x27;t had long to get views.\n\nWhat the Stats screen shows:\n- **Total visits:** 0\n- **Watched / clicked:** 0 / 0\n- **Hero video (\&quot;Pricing for Northwind Traders\&quot;):** 0 loads, 0 unique viewers, no retention or location data. The stats list its length as 0:00, but that&#x27;s only because nobody has played it. The video itself is ready and playable, and runs about 8 seconds.\n- **Form:** it can&#x27;t have any submissions, since nobody has visited the page.\n\nIf you haven&#x27;t sent the link to Northwind yet, that would explain the empty stats. Once someone opens the page, the visit will show up here.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;read-leads&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;Both calls worked on the first try, so these are small points:\n\n- **`pages_leads`, the `value` object:** The fields the prospect typed (`first_name`, `email`) come mixed in with system fields (`id`, `inserted_at`, `journey_page_id`, `section_id`). `untrusted: true` is set on the whole object, which makes `inserted_at` look like prospect input when the server probably wrote it. I couldn&#x27;t fully trust the timestamp I used to confirm \&quot;today.\&quot;\n- **`pages_leads`, no filters or paging:** There&#x27;s no `since` filter or `limit`, and `count` doesn&#x27;t say whether the list is complete. On a busy page I&#x27;d have to download everything and filter by date myself.\n- **`pages_leads`, keys without labels:** Fields arrive only as keys like `first_name`, with no labels from the form. Custom fields would be harder to report clearly, and I&#x27;d have to call `pages_get` to see what each one means.\n- **Leads and contacts aren&#x27;t linked:** Nothing says whether the submission also created a contact in `contacts_list`, so I&#x27;d need another call to find out.\n- **`library_list`:** No problems. The title search found the page right away.\n\n**The change that would help most:** split each lead into `fields` (what the prospect typed, marked untrusted) and `meta` (server-generated `id`, `submittedAt`, `sectionId`). Then a question like \&quot;who filled in the form today\&quot; could be answered from trusted data without guessing which fields are which.&quot;,
+    &quot;answer&quot;: &quot;Casey Morgan filled in the form. Their email is **[redacted email]**.\n\nThey submitted it today, 16 October 2026, at 12:04 UTC. It&#x27;s the only submission on the **Northwind proposal** page, which is live at https://pr-1507.clarity-video.workers.dev/page/56w6ut.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;search-library&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;- **`library_list` `query`:** It only matches titles. \&quot;Anything for Hooli\&quot; also covers videos whose transcript mentions Hooli and pages whose text names Hooli but whose title doesn&#x27;t. I couldn&#x27;t check those without opening each item one by one, so my answer could have missed things.\n- **`library_list` `folderId`:** The result gives only an opaque id (`folder:user:\u2026:32b2\u2026`), not the folder&#x27;s name. Saying which folder the page is in would have taken another call, so I left it vague.\n- **`contacts_list` `permission_required`:** The error was clear and included `settingsUrl`, which helped. But I only found out the permission was missing by calling the tool and failing. A list of granted permissions in `whoami` would have let me plan around it from the start.\n- **`updatedAt` mismatch:** For the same page, `library_list` returned `12:09:26.764Z` and `pages_get` returned `12:09:25.497Z`. It&#x27;s small, but it makes me unsure which timestamp to trust.\n- **No search across the whole account:** Checking the Library, contacts and leads for one company took separate calls. Leads also need a page id first, so I couldn&#x27;t check them without already knowing the page.\n\n**The one change that would help most:** an option on `library_list` to search content, meaning transcripts and page text, not just titles. That would have let me answer \&quot;do I have anything for Hooli\&quot; fully instead of only for titles.&quot;,
+    &quot;answer&quot;: &quot;Yes, you have one item for Hooli in your Library: a Journey Page called **Hooli pitch**.\n\n- **Status:** Draft. It has never been published, so it has no share link and prospects can&#x27;t see it.\n- **Content:** Only the hero section so far, with the headline \&quot;Hooli, meet Rivera Sales\&quot;. There are no other sections yet.\n- **Created:** Today (2026-10-16). It&#x27;s inside a Library folder rather than at the top level.\n- **Editor:** https://pr-1507.clarity-video.workers.dev/edit/2e02cd9a-fe1d-4a33-aa07-63b9895627e5\n\nNo video, image, document or folder has \&quot;Hooli\&quot; in its title. That search only checks titles, not transcripts or page text.\n\nI couldn&#x27;t check your contacts for anyone at Hooli because this connection doesn&#x27;t have the **leads_contacts** permission. If you want me to look, you can turn it on at https://pr-1507.clarity-video.workers.dev/settings/agents.\n\nI can also write the rest of the pitch page if you&#x27;d like.&quot;
+  },
+  {
+    &quot;seat&quot;: &quot;opus&quot;,
+    &quot;task&quot;: &quot;video-views&quot;,
+    &quot;pass&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;feedback&quot;: &quot;- **`videos_stats` \u2192 `durationSeconds: 0`**: I couldn&#x27;t tell if this meant \&quot;unknown or not measured yet\&quot; or a real zero-length video, even though the video was `ready` and `playable`. I raised it as a possible problem, which may have been a false alarm.\n- **`videos_stats` with zero views**: All-zero stats don&#x27;t say whether the video has ever been shareable or viewable. I had to guess why there were no views.\n- **Share status had to be inferred**: I said the video wasn&#x27;t on a live page only because `library_list` left out `shareUrl`. Nothing confirmed that directly, and it doesn&#x27;t cover the video being embedded in someone else&#x27;s live Journey Page.\n- **No time context in stats**: There&#x27;s no `lastViewedAt` and no \&quot;counting since\&quot; date. \&quot;0 views\&quot; is clear here, but with nonzero counts I couldn&#x27;t say how recent they are.\n- **Nothing was slow**: Two calls were enough. The title search in `library_list` with `type: video` found the video in one try.\n\n**The change that would help most:** have `videos_stats` return `durationSeconds: null` when the length isn&#x27;t known, and add a short sharing summary (a live share link and/or a list of the live pages that play the video). Then \&quot;0 views\&quot; would come with its reason, and I wouldn&#x27;t have to guess.&quot;,
+    &quot;answer&quot;: &quot;No one has watched your **\&quot;Northwind pricing walkthrough\&quot;** video yet. It has 0 views and 0 unique viewers.\n\nYou only added it today (Oct 16), so that&#x27;s probably why. It&#x27;s also not on a live share page yet. Once you share the link or put the video on a published Journey Page, views will show up in its stats.\n\nOne odd thing: the stats list the video&#x27;s length as 0 seconds, even though the video is ready and playable. If views still don&#x27;t appear after people watch it, open the video in Clarity and check that it plays all the way through.&quot;
+  }
+]</pre></section><section id="L26"><h2>Line 26. Agent eval run log</h2><pre>&quot;run 2026-10-16T12-00-34-475Z: 1 seats x 8 tasks against https://pr-1507.clarity-video.workers.dev, 1 lanes\nPASS opus           list-videos        12s 1 calls 0 errors\nPASS opus           page-views         13s 3 calls 0 errors\nPASS opus           read-leads         8s 2 calls 0 errors\nPASS opus           video-views        10s 2 calls 0 errors\nPASS opus           find-in-folder     36s 2 calls 0 errors\nERROR opus search-library: fetch failed\nPASS opus           oldest-video       6s 1 calls 0 errors\nPASS opus           brand-settings     16s 1 calls 0 errors\n7/8 passed. parity 10/124 rows covered by a passing state-checked task (11/124 have a task). Report: /Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/.context/agent-mcp-runs/2026-10-16T12-00-34-475Z/report.html\n\nResume\nrun 2026-10-16T12-00-34-475Z: 1 seats x 8 tasks against https://pr-1507.clarity-video.workers.dev, 1 lanes\nPASS opus           search-library     23s 3 calls 1 errors\n8/8 passed. parity 11/124 rows covered by a passing state-checked task (11/124 have a task). Report: /Users/williamlarsten/.t3/worktrees/clarity/t3-7cb96f05/.context/agent-mcp-runs/2026-10-16T12-00-34-475Z/report.html\n&quot;</pre></section><section id="L27"><h2>Line 27. Signed-in browser health after contact request</h2><pre>[
+  {
+    &quot;path&quot;: &quot;/__deploy-info&quot;,
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;branch&quot;: &quot;HEAD&quot;,
+      &quot;commitSha&quot;: &quot;2a3fba4411535da7c4fbc337674d8199109b21f5&quot;,
+      &quot;commitShort&quot;: &quot;2a3fba44-dirty&quot;,
+      &quot;release&quot;: &quot;2a3fba44-dirty&quot;,
+      &quot;headSha&quot;: &quot;2a3fba4411535da7c4fbc337674d8199109b21f5&quot;,
+      &quot;baseSha&quot;: &quot;61274a6f582d6588a3d7372ad39316dbc34c043f&quot;
+    }
+  },
+  {
+    &quot;path&quot;: &quot;/auth/me&quot;,
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;data&quot;: {
+        &quot;userId&quot;: &quot;acct_workos_user_01KSNENWMM5DQVRM6XDJWAF8X9&quot;,
+        &quot;ownerId&quot;: &quot;user_01KSNENWMM5DQVRM6XDJWAF8X9&quot;,
+        &quot;workosUserId&quot;: &quot;user_01KSNENWMM5DQVRM6XDJWAF8X9&quot;,
+        &quot;workspaceId&quot;: &quot;user:user_01KSNENWMM5DQVRM6XDJWAF8X9&quot;,
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;isSystemAdmin&quot;: false,
+        &quot;isCustomerAdmin&quot;: false,
+        &quot;isCustomerMember&quot;: false,
+        &quot;isAffiliateAdmin&quot;: false,
+        &quot;agentAccess&quot;: true
+      }
+    }
+  },
+  {
+    &quot;path&quot;: &quot;/api/contacts&quot;,
+    &quot;status&quot;: 200,
+    &quot;body&quot;: {
+      &quot;data&quot;: [
+        {
+          &quot;id&quot;: &quot;314e211c-b684-47f8-9cf6-9fa6627f0cd0&quot;,
+          &quot;family_name&quot;: null,
+          &quot;given_name&quot;: null,
+          &quot;name_prefix&quot;: null,
+          &quot;name_suffix&quot;: null,
+          &quot;title&quot;: null,
+          &quot;organization&quot;: null,
+          &quot;department&quot;: null,
+          &quot;industry_type&quot;: null,
+          &quot;email_addresses&quot;: [
+            {
+              &quot;id&quot;: &quot;52038379-57c0-478d-a022-d559f41a6f9f&quot;,
+              &quot;value&quot;: &quot;[redacted email]&quot;
+            }
+          ],
+          &quot;phone_numbers&quot;: [
+            {
+              &quot;id&quot;: &quot;bffa8034-59cd-4e2e-893a-6c5b59433df2&quot;,
+              &quot;value&quot;: &quot;5550000000&quot;,
+              &quot;type&quot;: &quot;Mobile&quot;
+            }
+          ],
+          &quot;corp_id&quot;: null,
+          &quot;shared&quot;: null,
+          &quot;source_id&quot;: &quot;[redacted email]&quot;,
+          &quot;source&quot;: &quot;journey_page_form&quot;,
+          &quot;owner_id&quot;: &quot;user_01KSNENWMM5DQVRM6XDJWAF8X9&quot;,
+          &quot;shared_contact&quot;: false
+        }
+      ]
+    }
+  }
+]</pre></section><section id="L28"><h2>Line 28. Cleanup</h2><pre>&quot;Deleted eval page d60779bd-6af5-4f17-bb4a-d12a2a23b35a\nDeleted eval page af5f8e06-3588-43d6-a004-04dde416b83f\nDeleted eval page 2e02cd9a-fe1d-4a33-aa07-63b9895627e5\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:Mev01201c401S8Bx69HfSBS3AVi8tb5hyvbcZsBe9x5J2w\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:9zm2zOJJiKD7Xj4c8E3rRqPfH8TNKfK02BywQQQ9nj2o\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:xSCr8oCMf5dg2GxtUJP01Yg029adKuHhPo3kX1pivMybA\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:Nu02800CakAtBqlr9Pkda17USQ6XI3td2KsKWWmIxzSVs\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:image:4139dbc8-01a1-477f-a98a-637cea39cf47\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:image:7ce623b2-1aca-417f-9637-ffe4d9092a86\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:image:1a600941-0215-4f74-a8b5-f7b19e03752a\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:image:77a1122d-7969-442c-a074-bd2761179c04\nDeleted eval media node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:image:42800678-e11b-4fe9-9f01-ef1ab76124b8\nDeleted eval folder folder:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:32b2b06a-d2f1-43b2-a20f-062086920fa8\nDeleted eval contact e4f900a7-e123-4dad-9015-a023f1d285ba\nDeleted eval contact 0103b1d9-20d1-43f9-be2b-6e8463de279e\n{\&quot;remainingCreated\&quot;:[],\&quot;preservedSeeded\&quot;:5,\&quot;initialSeeded\&quot;:5}\nEval runner mock profile, branding and notification settings remain on the disposable preview Pro account. Their pre-run values were not captured.\n&quot;</pre></section>
