@@ -1,0 +1,35 @@
+ci-failed.log:3739 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1715862Z # Subtest: a handler importing a fenced store goes red
+ci-failed.log:3740 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716033Z not ok 93 - a handler importing a fenced store goes red
+ci-failed.log:3741 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716125Z   ---
+ci-failed.log:3742 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716216Z   duration_ms: 5431.47442
+ci-failed.log:3743 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716296Z   type: 'test'
+ci-failed.log:3744 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716553Z   location: '/home/runner/_work/clarity/clarity/scripts/check-action-boundaries.test.mjs:17:1'
+ci-failed.log:3745 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716682Z   failureType: 'testCodeFailure'
+ci-failed.log:3746 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716798Z   error: |-
+ci-failed.log:3747 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1716950Z     Cannot read properties of undefined (reading 'match')
+ci-failed.log:3748 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1717212Z     Occurred while linting /home/runner/_work/clarity/clarity/workers/frontend-router/src/routes.ts:54
+ci-failed.log:3749 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1717334Z     Rule: "max-lines-per-function"
+ci-failed.log:3750 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1717433Z   code: 'ERR_TEST_FAILURE'
+ci-failed.log:3751 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1717530Z   name: 'TypeError'
+ci-failed.log:3752 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1717603Z   stack: |-
+ci-failed.log:3753 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1717948Z     processFunction (/home/runner/_work/clarity/clarity/node_modules/eslint/lib/rules/max-lines-per-function.js:210:15)
+ci-failed.log:3754 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1718329Z     ruleErrorHandler (/home/runner/_work/clarity/clarity/node_modules/eslint/lib/linter/linter.js:645:33)
+ci-failed.log:3794 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1723890Z # Subtest: a direct editor fetch goes red
+ci-failed.log:3795 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1724011Z not ok 99 - a direct editor fetch goes red
+ci-failed.log:3796 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1724386Z   ---
+ci-failed.log:3797 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1724487Z   duration_ms: 911.416325
+ci-failed.log:3798 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1724565Z   type: 'test'
+ci-failed.log:3799 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1724834Z   location: '/home/runner/_work/clarity/clarity/scripts/check-action-boundaries.test.mjs:41:1'
+ci-failed.log:3800 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1724930Z   failureType: 'testCodeFailure'
+ci-failed.log:3801 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725006Z   error: |-
+ci-failed.log:3802 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725157Z     Cannot read properties of undefined (reading 'match')
+ci-failed.log:3803 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725366Z     Occurred while linting /home/runner/_work/clarity/clarity/editor/src/App.tsx:40
+ci-failed.log:3804 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725474Z     Rule: "max-lines-per-function"
+ci-failed.log:3805 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725551Z   code: 'ERR_TEST_FAILURE'
+ci-failed.log:3806 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725639Z   name: 'TypeError'
+ci-failed.log:3807 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1725726Z   stack: |-
+ci-failed.log:3808 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1726034Z     processFunction (/home/runner/_work/clarity/clarity/node_modules/eslint/lib/rules/max-lines-per-function.js:210:15)
+ci-failed.log:3809 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1726310Z     ruleErrorHandler (/home/runner/_work/clarity/clarity/node_modules/eslint/lib/linter/linter.js:645:33)
+ci-failed.log:3810 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1726570Z     /home/runner/_work/clarity/clarity/node_modules/eslint/lib/linter/source-code-visitor.js:76:46
+ci-failed.log:3811 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1726671Z     Array.forEach (<anonymous>)
+ci-failed.log:3812 Typecheck, Test & Build	Typecheck, lint & test (concurrent)	2026-10-16T12:27:56.1727012Z     SourceCodeVisitor.callSync (/home/runner/_work/clarity/clarity/node_modules/eslint/lib/linter/source-code-visitor.js:76:30)

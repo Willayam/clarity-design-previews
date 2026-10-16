@@ -1,0 +1,50 @@
+[
+  {
+    "check": "signed-in settings read",
+    "method": "POST",
+    "path": "/api/actions/settings_get",
+    "status": 200,
+    "code": null,
+    "build": "678d41e6-dirty"
+  },
+  {
+    "check": "unknown action",
+    "method": "POST",
+    "path": "/api/actions/not_a_real_action",
+    "status": 404,
+    "code": "not_found",
+    "build": "678d41e6-dirty"
+  },
+  {
+    "check": "constructor action",
+    "method": "POST",
+    "path": "/api/actions/constructor",
+    "status": 404,
+    "code": "not_found",
+    "build": "678d41e6-dirty"
+  },
+  {
+    "check": "malformed JSON",
+    "method": "POST",
+    "path": "/api/actions/settings_get",
+    "status": 400,
+    "code": "invalid_input",
+    "build": "678d41e6-dirty"
+  },
+  {
+    "check": "no session",
+    "method": "POST",
+    "path": "/api/actions/settings_get",
+    "status": 401,
+    "code": "unauthorized",
+    "build": "678d41e6-dirty"
+  },
+  {
+    "check": "cross-origin POST",
+    "method": "POST",
+    "path": "/api/actions/settings_get",
+    "status": 403,
+    "code": "Forbidden",
+    "build": null
+  }
+]

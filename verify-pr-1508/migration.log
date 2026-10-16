@@ -1,0 +1,20 @@
+deploy-private.log:6647 PR Preview	Deploy PR preview	2026-10-16T12:26:33.1579504Z ───────────────────────────────────────────────
+deploy-private.log:6648 PR Preview	Deploy PR preview	2026-10-16T12:26:33.1583447Z Resource location: remote 
+deploy-private.log:6649 PR Preview	Deploy PR preview	2026-10-16T12:26:33.1583688Z 
+deploy-private.log:6650 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5615333Z Migrations to be applied:
+deploy-private.log:6651 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5638483Z ┌────────────────────────┐
+deploy-private.log:6652 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5638964Z │ name                   │
+deploy-private.log:6653 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5639326Z ├────────────────────────┤
+deploy-private.log:6654 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5639686Z │ 0049_commit_guards.sql │
+deploy-private.log:6655 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5640060Z └────────────────────────┘
+deploy-private.log:6656 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5640442Z ? About to apply 1 migration(s)
+deploy-private.log:6657 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5641012Z Your database may not be available to serve requests during the migration, continue?
+deploy-private.log:6658 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5641758Z 🤖 Using fallback value in non-interactive context: yes
+deploy-private.log:6659 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5642900Z 🌀 Executing on remote database AUTH_DB (b8a32cb1-e272-49f9-95f2-aaf88bdd0908):
+deploy-private.log:6660 PR Preview	Deploy PR preview	2026-10-16T12:26:33.5644491Z 🌀 To execute on your local development database, remove the --remote flag from your wrangler command.
+deploy-private.log:6661 PR Preview	Deploy PR preview	2026-10-16T12:26:33.7750201Z 🚣 Executed 3 commands in 3.61ms
+deploy-private.log:6662 PR Preview	Deploy PR preview	2026-10-16T12:26:33.7757089Z ┌────────────────────────┬────────┐
+deploy-private.log:6663 PR Preview	Deploy PR preview	2026-10-16T12:26:33.7757562Z │ name                   │ status │
+deploy-private.log:6664 PR Preview	Deploy PR preview	2026-10-16T12:26:33.7757996Z ├────────────────────────┼────────┤
+deploy-private.log:6665 PR Preview	Deploy PR preview	2026-10-16T12:26:33.7758429Z │ 0049_commit_guards.sql │ ✅     │
+deploy-private.log:6666 PR Preview	Deploy PR preview	2026-10-16T12:26:33.7758854Z └────────────────────────┴────────┘

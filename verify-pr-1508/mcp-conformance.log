@@ -1,0 +1,15 @@
+PASS GET /.well-known/oauth-protected-resource                                             https://pr-1508.clarity-video.workers.dev
+PASS GET /.well-known/oauth-protected-resource/mcp                                         https://pr-1508.clarity-video.workers.dev
+PASS bare POST /mcp is 401 with resource_metadata                                          Bearer error="invalid_request", error_description="missing bearer token", resource_metadata="https://pr-1508.clarity-video.workers.dev/.well-known/oauth-protected-resource"
+PASS a session cookie beside the bearer is 401                                             
+PASS GET /mcp is 405                                                                       Allow: POST, OPTIONS
+PASS OPTIONS /mcp answers CORS for any origin                                              
+PASS initialize                                                                            clarity 0.1.0
+PASS notifications/initialized is 202                                                      
+PASS tools/list names whoami with annotations                                              whoami library_list videos_get pages_get pages_edit pages_edit_help pages_leads contacts_list approvals_get library_get folders_create library_rename library_move uploads_start uploads_finish videos_transcript videos_stats videos_download pages_create pages_duplicate pages_generate pages_generation_status settings_update contacts_save pages_publish pages_unpublish pages_set_password videos_share videos_edit pages_delete library_delete contacts_delete settings_get pages_stats
+PASS tools/list lists the eight read operations, each read-only                            34 tools
+PASS tools/call whoami names the account and its connection                                user_01KSNENWMM5DQVRM6XDJWAF8X9 undefined conn_6550514e-ec92-4d98-8097-ddb873fdcdc2
+PASS tools/call pages_leads is refused with permission_required until the owner grants it  https://pr-1508.clarity-video.workers.dev/settings/agents
+PASS a batch array is -32600                                                               
+
+13 passed, 0 failed, 0 skipped
