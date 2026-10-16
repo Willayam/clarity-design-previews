@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings > Agents: readable connection names (PR 1520)</title>
+<style>body{font-family:system-ui,sans-serif;max-width:1320px;margin:24px auto;padding:0 16px;color:#111}img{max-width:100%;border:1px solid #ddd;border-radius:8px}figure{margin:0 0 32px}figcaption{margin:8px 0;color:#444}.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}.row figure{flex:1 1 380px}</style></head>
+<body>
+<h1>Settings &gt; Agents names each connection</h1>
+<p>PR 1520. Test accounts only.</p>
+<div class="row">
+<figure><img src="before-desktop.png" alt="Settings Agents on staging before the change, listing raw client ids"><figcaption>Before, on staging at main 9f0dcaf9c. Each connection is listed by its raw client id.</figcaption></figure>
+<figure><img src="after-desktop.png" alt="Settings Agents on the PR preview with readable names"><figcaption>After, on pr-1520 at ea5652c5b. Claude, ChatGPT and Clarity CLI by name with their host. A registered client WorkOS cannot name reads "Unnamed agent", and an unreachable document reads as its host. The pending card says "Asked by Claude (claude.ai)".</figcaption></figure>
+</div>
+<figure style="max-width:420px"><img src="after-phone.png" alt="Settings Agents at phone width"><figcaption>After, at 390 px wide.</figcaption></figure>
+</body></html>
