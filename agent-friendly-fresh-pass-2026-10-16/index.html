@@ -15,7 +15,9 @@
   p, li { max-width: 72ch; }
   .muted { color: var(--muted); }
   a { color: var(--accent); }
-  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+  main { overflow-wrap: break-word; }
+  html, body { overflow-x: hidden; }
   .tablewrap { overflow-x: auto; margin: 10px 0 18px; }
   table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
   th, td { text-align: left; vertical-align: top; padding: 7px 9px; border-bottom: 1px solid var(--line); }
