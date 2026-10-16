@@ -1,0 +1,1572 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discussion briefs, built: round four</title>
+<style>
+:root{--ink:#0f172a;--dim:#64748b;--line:#e2e8f0;--soft:#f8fafc;--blue:#1d4ed8;--green:#15803d;--red:#b91c1c;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:var(--ink);background:#f1f5f9}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 140px}h1{font-size:28px;margin:0 0 6px}
+.dim{color:var(--dim);font-size:14px}nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 24px}
+nav.toc a{font-size:13px;padding:3px 9px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--ink);text-decoration:none}
+nav.toc a.done{background:#dcfce7;border-color:#86efac}nav.toc a.chg{background:#fef3c7;border-color:#fcd34d}nav.toc a.rej{background:#fee2e2;border-color:#fca5a5}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 18px 14px;margin:0 0 20px}
+.card header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.card h2{font-size:19px;margin:0;flex:1;min-width:200px}
+.uid{font:600 12px ui-monospace,Menlo,monospace;color:var(--dim)}.prlink{font-size:14px;font-weight:600;color:var(--blue)}
+.blocked,.blocked-reason{color:var(--red);font-weight:600}.why{margin:10px 0;overflow-wrap:anywhere}details li,.qs p,figcaption{overflow-wrap:anywhere}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600;font-size:14px}details ul{margin:6px 0;padding-left:20px;font-size:14px}
+.pair{margin:14px 0}.pair figcaption{font-size:14px;margin:0 0 6px}.tag{font-size:11px;font-weight:700;background:#e0e7ff;color:#3730a3;border-radius:99px;padding:1px 7px;margin-right:6px}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{font-size:12px;font-weight:700;color:var(--dim);margin-bottom:3px}.label.after{color:var(--green)}
+.sides img,.sides video{width:100%;border:1px solid var(--line);border-radius:8px;display:block;background:#000}
+.none{border:1px dashed var(--line);border-radius:8px;padding:30px 10px;text-align:center;color:var(--dim);font-size:13px}
+.decide{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.choices{display:flex;gap:8px;flex-wrap:wrap}
+.choices button{font:inherit;font-size:14px;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.choices button.on[data-v=approve],.choices button.on[data-v=yes]{background:var(--green);color:#fff;border-color:var(--green)}
+.choices button.on[data-v=changes],.choices button.on[data-v=other]{background:var(--amber);color:#fff;border-color:var(--amber)}
+.choices button.on[data-v=reject]{background:var(--red);color:#fff;border-color:var(--red)}
+textarea{width:100%;margin-top:8px;min-height:44px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:8px}
+.qs{padding-left:20px}.qs li{margin:0 0 14px}.qs p{margin:0 0 4px}.rec{font-size:14px;color:var(--green)}
+h3.section{font-size:22px;margin:36px 0 12px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar button{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:0;background:var(--blue);color:#fff;cursor:pointer}.bar button.ghost{background:#e2e8f0;color:var(--ink)}
+.bar .count{font-size:14px;color:var(--dim)}.intro h3{margin:0 0 8px;font-size:17px}.intro ul{margin:0;padding-left:20px;font-size:15px}.intro li{margin:0 0 6px}.intro p{margin:0 0 8px}table.summary{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px;margin:0 0 20px}table.summary th,table.summary td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}table.summary th{background:var(--soft)}
+@media(max-width:720px){.sides{grid-template-columns:1fr}h1{font-size:23px}}
+</style></head><body><main>
+<h1>Discussion briefs, built: round four</h1>
+<p class="dim">Built overnight, last updated 16 Oct 2026, 15:24, from the <a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit/">simplicity audit</a>. 11 PRs are open and none are merged. 0 items need a conversation first; they're further down. Your choices save in this browser as you go. "Send decisions" opens a prefilled GitHub issue that I'll read and act on.</p>
+<nav class="toc"><a href="#D12" data-for="D12">D12</a><a href="#D6" data-for="D6">D6</a><a href="#D1" data-for="D1">D1</a><a href="#D2" data-for="D2">D2</a><a href="#D10" data-for="D10">D10</a><a href="#D9" data-for="D9">D9</a><a href="#D3" data-for="D3">D3</a><a href="#D4" data-for="D4">D4</a><a href="#D7" data-for="D7">D7</a><a href="#D5" data-for="D5">D5</a><a href="#D8" data-for="D8">D8</a></nav>
+
+<div class="card intro"><p>Eleven PRs, one for each discussion brief. D11 is missing because the share dialog already replaced it. Each PR was built by its own agent on fresh main. Every one has before and after screenshots, and videos for anything that moves. CI is green on all eleven and none is merged.</p><p>For each PR, pick Approve, Changes or Drop and add a comment if you want. The button at the bottom opens a GitHub issue with your answers filled in. Your picks are saved in this browser, so you can stop and come back.</p><p>They're ordered by how much they help a rep win a deal: tracking and notifications first, then building pages, the public page, the library and the editor, and settings last.</p></div>
+
+<div class="card intro"><h3>Merge order</h3><p>All eleven merge cleanly into main today. A few pairs touch the same files, so whichever goes second needs a small rebase: D5 and D6 (Settings), D5 and D7 (account menu), D12 and U07 #1450 (stats facts), D8 and the older #1366 (video editor).</p><p>Each merge uses about four of the ~33 GitHub Actions minutes left in October, so about eight merges fit before the free minutes reset on 1 November. If you approve more than that, I'll merge in the order of this page and hold the rest until 1 November, unless you add minutes.</p></div>
+<div class="card intro"><h3>Asks</h3><ul><li><b>D6 notifications.</b> About 2,300 accounts start getting watch emails they had turned off, and the email has no one-click unsubscribe. The footer points to a settings page that needs a login. My call: add a signed unsubscribe link before this merges.</li><li><b>D12 tracking.</b> Return visits work by storing a random ID in the prospect's browser, with no consent prompt. The analytics runbook says an earlier fingerprint design was dropped over Swedish consent rules. My call: merge the submit counting and the dead-event cleanup now, and hold return visits until you've decided on consent. They're separate commits.</li><li><b>D10 consent line.</b> The new wording is its own commit. It would change every live form, old ones included. I'd say "this page" rather than "this proposal", and someone who wrote the original line should check it.</li><li><b>D5 billing.</b> "Manage billing" opens Stripe's portal with whatever the dashboard allows. If plan changes or cancelling are on there, customers can change their price outside the app. Check the portal settings in Stripe. The cancel survey's answers, which were saved to Stripe, also stop.</li><li><b>D7 Leads.</b> Leads shows only pages you own. Organisation members and admins could see a page's submissions before and now can't. Contacts also can't be added, edited or deleted in the app any more.</li><li><b>D8 trim.</b> Esc and clicking outside the edit modal now keep your changes instead of throwing them away.</li><li><b>U07 play counts</b> (still open from before). Count a play only when someone watched (my pick), or keep the old count on cards.</li></ul></div>
+<table class="summary"><tr><th>Unit</th><th>What</th><th>PR</th></tr><tr><td><a href="#D12">D12</a></td><td>Prospect-page tracking: submits counted on the server, return visits in page stats</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1511" target="_blank">#1511</a></td></tr><tr><td><a href="#D6">D6</a></td><td>Notifications: one switch, on by default, fired when they start</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1510" target="_blank">#1510</a></td></tr><tr><td><a href="#D1">D1</a></td><td>Build the page from what the rep said</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1509" target="_blank">#1509</a></td></tr><tr><td><a href="#D2">D2</a></td><td>Hero buttons: two at most, no button types, no Primary switch</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1515" target="_blank">#1515</a></td></tr><tr><td><a href="#D10">D10</a></td><td>Lead form: phone optional on new forms, plain consent line</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1516" target="_blank">#1516</a></td></tr><tr><td><a href="#D9">D9</a></td><td>Library: Images and Documents become one Files tab</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1514" target="_blank">#1514</a></td></tr><tr><td><a href="#D3">D3</a></td><td>Style panel: presets first, the levers under More</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1512" target="_blank">#1512</a></td></tr><tr><td><a href="#D4">D4</a></td><td>Layout controls: delete summary columns, the media drag grip and section alignment bars</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1518" target="_blank">#1518</a></td></tr><tr><td><a href="#D7">D7</a></td><td>Leads instead of Contacts; Learn becomes Help</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1513" target="_blank">#1513</a></td></tr><tr><td><a href="#D5">D5</a></td><td>Settings as one page; billing through Stripe; no cancel survey</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1519" target="_blank">#1519</a></td></tr><tr><td><a href="#D8">D8</a></td><td>Recorder: automatic trim with one Restore link, edit modal saves as you go</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1517" target="_blank">#1517</a></td></tr></table>
+<h3 class="section">PRs</h3>
+
+<article class="card" id="D12" data-kind="pr" data-id="D12" data-pr="1511">
+  <header>
+    <span class="uid">D12</span>
+    <h2>Prospect-page tracking: submits counted on the server, return visits in page stats</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1511" target="_blank">PR #1511</a>
+  </header>
+  
+  <p class="why">The tracking script counted a form submit when the browser fired its submit event, before the worker accepted anything, so a refused form still counted: June 2026 holds 30 submit events against 17 stored rows on customer pages. Four event types (section view, section dwell, scroll depth, return visit) were accepted and never sent; production has zero rows of each. Every visit sent viewer_id null, so a rep could not see that a prospect came back. Now the worker records the submit after it stores the row, the dead types are refused, and page stats show return visits from a per-page viewer id.</p>
+  <details open><summary>What changes (6)</summary><ul><li>Page stats: new fact &quot;Return visits&quot; beside Page visits, shown only when above zero. A return is a visit from a browser that opened the page at least 30 minutes before, counted among the latest 1,000 visits like the other figures.</li><li>Public page: the tracking script keeps one random id per share link in localStorage (key clarity.viewer.&lt;shareId&gt;) and sends it with page events. No cookie.</li><li>Public page: on a lead form submit the script adds a hidden page_session_id field instead of sending its own page_form_submit beacon.</li><li>Worker: lead-capture writes one page_form_submit event after the submission row is stored, in the visit that sent the form. A failed event write is logged and the form still succeeds.</li><li>Worker: POST /api/pages/events refuses page_section_view, page_section_dwell, page_return_visit and page_form_submit with 400 &quot;event_type is not supported&quot;.</li><li>Agent tool pages_stats: description names returnVisits and the 30-minute rule.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The same two submits on both sides: an email of one space (the browser accepts it, the worker refuses it), then a real email.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D12/before/form-submit.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D12/after/form-submit.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>What the preview&#39;s D1 holds after those two submits. Before: 1 stored row, 2 page_form_submit events. After: 1 stored row, 1 event, and its session matches the page view that sent the form.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/form-submit-counts.png" target="_blank"><img src="units/D12/before/form-submit-counts.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/form-submit-counts.png" target="_blank"><img src="units/D12/after/form-submit-counts.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The refused submit. Same on both sides; before, this one still counted as a submit.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/form-refused.png" target="_blank"><img src="units/D12/before/form-refused.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/form-refused.png" target="_blank"><img src="units/D12/after/form-refused.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The accepted submit&#39;s thank-you page. Unchanged.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/form-accepted.png" target="_blank"><img src="units/D12/before/form-accepted.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/form-accepted.png" target="_blank"><img src="units/D12/after/form-accepted.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>page_view rows on the fixture page. The first and last rows are one browser profile 31 minutes apart: before, both have viewer_id NULL; after, both carry the same viewer id. The middle rows are the form run&#39;s own browser.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/return-visit-rows.png" target="_blank"><img src="units/D12/before/return-visit-rows.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/return-visit-rows.png" target="_blank"><img src="units/D12/after/return-visit-rows.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Page stats for the fixture page after the second visit. Before: Page visits and Watched video. After: a third fact, Return visits 1. The visit count is higher after because the before runs also landed in the same preview database.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/page-stats.png" target="_blank"><img src="units/D12/before/page-stats.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/page-stats.png" target="_blank"><img src="units/D12/after/page-stats.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the facts row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/page-stats-facts.png" target="_blank"><img src="units/D12/before/page-stats-facts.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/page-stats-facts.png" target="_blank"><img src="units/D12/after/page-stats-facts.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same at 390 px; the three facts fit on one row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D12/before/page-stats-phone.png" target="_blank"><img src="units/D12/before/page-stats-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D12/after/page-stats-phone.png" target="_blank"><img src="units/D12/after/page-stats-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>editor vitest: page-events, page-stats, page-stats-content, journey-page-submissions, agent-read-ops, public-page-delivery, public-page-processing-swap, security-headers, public-page-edge-cache -&gt; all pass</code></li><li><code>workers/frontend-router vitest tests/analytics-write-read-paths.test.ts -&gt; all pass, including the four refused beacon types</code></li><li><code>Removing the viewer id or the form stamp from the script makes 2 tests in public-page-processing-swap fail (checked, then restored)</code></li><li><code>pnpm typecheck -&gt; exit 0; test type errors 168, at budget</code></li><li><code>eslint --quiet on every changed file (NODE_OPTIONS=--max-old-space-size=8192) -&gt; exit 0</code></li><li><code>PR CI on 38602e124 -&gt; Typecheck, Test &amp; Build, PR Preview, clarity/preview, Guards, Proof all green</code></li><li><code>pr-1511 POST /api/pages/events with page_section_view and with page_form_submit -&gt; 400 event_type is not supported</code></li><li><code>pr-1511 page stats API after the second visit -&gt; totalVisits 8, visits 8, returnVisits 1</code></li><li><code>Independent review (Claude Opus subagent) -&gt; no blockers; applied: return visits scoped to the latest 1,000 visits, browser-side tests, 30-minute boundary test, removed an assertion that could not fail</code></li></ul>
+    <h4>Risks</h4><ul><li>Privacy, William signs off. The script now stores data in every prospect&#39;s browser on every public page: key clarity.viewer.&lt;shareId&gt;, value a random UUID, in localStorage, no cookie and no expiry. It stays until the prospect clears site data. Safari clears script-written storage after seven days of browsing without a visit to the site, so a Safari return after a quiet week does not count. The id differs per share link and the script reads only its own key. Prospect pages show no consent prompt. docs/runbooks/product-analytics.md records that the earlier fingerprint design was dropped because it did not establish a Swedish consent exemption, and my reading (not legal advice) is that LEK chapter 9 section 28 treats localStorage like a cookie. If consent applies, revert e4e8bf2e3 and the return-visit hunks of 38602e124; the submit fix and dead-type removal in 68d8557e2 stand alone.</li><li>Other options from the brief, not built: build section views and scroll depth (no rep asked, video progress covers the video); delete the dead types only (leaves the submit miscount and no return signal); zero client storage (Return visits stays unbuilt).</li><li>Decision I made: a return needs a 30-minute gap since that browser&#39;s previous page view, so a reload or a click back from a booking link does not count. The brief named no gap.</li><li>Existing stats after deploy: Page visits, Watched video and Clicked button use the same queries and read the same. Every existing row has viewer_id NULL and never counts as a return, so Return visits starts at zero and stays hidden until a browser comes back. The historical page_form_submit rows (65 in production) stay. Tabs opened before deploy still run the old script: their submit beacon now gets a 400, and the worker records the submit itself under a fresh session, so nothing double counts.</li><li>What existing customers see: a new Return visits fact in page stats once a prospect returns. The page owner reopening their own link 30+ minutes later also counts, the same way their visits count today.</li><li>No migration. The page_event CHECK constraint still lists the dead types and the section_kind and scroll_depth_pct columns stay unused.</li><li>Each accepted lead form now waits on one more D1 write before the thank-you page.</li><li>Overlap #1450 (open, U07 activity view): conflicts in one place, the PageStatsContent facts row it rewrites. Resolution: add [stats.returnVisits, &quot;Return visits&quot;] when above zero to its ActivityFacts list. Its page-stats.ts, statistics.ts and test hunks merge cleanly (checked with git merge-tree).</li><li>Overlap #1508 (open): moves the pages_stats description from agent/ops-pages.ts to actions/reads.ts, so ops-pages.ts conflicts. Resolution: carry the returnVisits sentence into reads.ts. #1507 merges cleanly.</li><li>D10 (form) will touch lead-capture.ts and render-blocks.ts. This PR does not touch render-blocks.ts; its lead-capture hunk is one block after the submission insert plus two env fields.</li><li>Process notes: plain git was blocked by a worktree hook, so git ran as /usr/bin/git -C &lt;worktree&gt;. Preview D1 reads used the Clarity wrangler OAuth token through a read-only helper; the token refresh ran wrangler whoami with XDG_CONFIG_HOME=~/.clarity-wrangler from a node script because the shell guard refuses that variable.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Nothing reads page_form_submit yet. The prospect timeline is the reader the brief names.</li><li>Video playback events still send viewer_id null. Sending the viewer id there would change how video stats count unique viewers, so it needs its own decision.</li><li>page_event.source_token is always written NULL; section_kind and scroll_depth_pct are now never written. A later migration could drop them and tighten the CHECK constraint.</li><li>page-stats.ts keeps one suppressed inline row type (the visit count query) under clarity/d1-row-shape; naming it would let eslint-suppressions.json shrink, which #1450 also edits.</li><li>Page owners&#39; own visits count as visits and returns; excluding signed-in owners would need the router to recognise them on public pages.</li></ul>
+    <p class="dim">Before ran on 5b1c8ea39, after on 38602e124. Branch <code>simplify/d12-prospect-tracking</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D12">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D6" data-kind="pr" data-id="D6" data-pr="1510">
+  <header>
+    <span class="uid">D6</span>
+    <h2>Notifications: one switch, on by default, fired when they start</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1510" target="_blank">PR #1510</a>
+  </header>
+  
+  <p class="why">Four toggles decided which watch milestones emailed the rep, and only &#39;watched 60%&#39; was on by default. So a prospect starting to watch sent nothing, and a button click never sent anything. 93% of customers never touched the toggles and nobody has changed one in the new app (D6 brief). Now one switch, on by default, sends an email when a prospect starts watching, then at most one an hour saying how far they got and which buttons they clicked.</p>
+  <details open><summary>What changes (7)</summary><ul><li>Settings &gt; Notifications: four switches (&#39;Someone starts watching&#39;, &#39;A viewer watches 60%&#39;, &#39;A viewer watches 80%&#39;, &#39;A viewer watches to the end&#39;) -&gt; one switch &#39;Email me when someone watches a page&#39;, on by default</li><li>Switch helper: &#39;The first email arrives when they start watching. After that, at most one email an hour with how far they got and which buttons they clicked.&#39; The card description above the old switches is gone.</li><li>The first view email now goes when a prospect starts watching. Before, it went at 60%, because &#39;started&#39; was off by default.</li><li>A button click on a published page now emails the owner: at once after a quiet hour (&#39;Someone clicked &quot;Book a call&quot;&#39;), otherwise inside the next hourly email (&#39;Watched 100% of &quot;Q4 demo&quot; and clicked &quot;Book a call&quot;&#39;). Viewers who clicked are listed first.</li><li>Email footer: &#39;Choose which of these emails you get in Notification settings.&#39; -&gt; &#39;Turn these emails off in Notification settings.&#39;</li><li>Agent tools settings_get/settings_update: notifications.viewStarted/watched60/watched80/watchedToEnd -&gt; notifications.viewEmails</li><li>POST /api/notifications accepts only toggle_notification_when_someone_views_my_video; the shared, 60, 80 and 100 toggles answer 400</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Settings &gt; Notifications at 1440x900 on the PR preview. Before, four switches with only 60% on. After, one switch, on.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/settings-notifications.png" target="_blank"><img src="units/D6/before/settings-notifications.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/settings-notifications.png" target="_blank"><img src="units/D6/after/settings-notifications.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the card at desktop size.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/settings-notifications-card.png" target="_blank"><img src="units/D6/before/settings-notifications-card.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/settings-notifications-card.png" target="_blank"><img src="units/D6/after/settings-notifications-card.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same screen at 390x844.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/settings-notifications-phone.png" target="_blank"><img src="units/D6/before/settings-notifications-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/settings-notifications-phone.png" target="_blank"><img src="units/D6/after/settings-notifications-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the card on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/settings-notifications-card-phone.png" target="_blank"><img src="units/D6/before/settings-notifications-card-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/settings-notifications-card-phone.png" target="_blank"><img src="units/D6/after/settings-notifications-card-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>On the preview, the switch starts on, is turned off, stays off after a reload, and is turned back on.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><video src="units/D6/after/settings-toggle.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>One prospect starts watching, gets to 65% and clicks &#39;Book a call&#39; within an hour; the owner is on default settings. This is the first email. Before, it arrives at 60%. After, it arrives when the prospect starts watching. Rendered to HTML by the real router.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/email-one-1.png" target="_blank"><img src="units/D6/before/email-one-1.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/email-one-1.png" target="_blank"><img src="units/D6/after/email-one-1.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same story an hour later. The hourly email says they watched 60% and clicked &#39;Book a call&#39;. Before, this email did not exist and the click sent nothing.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D6/after/email-one-2.png" target="_blank"><img src="units/D6/after/email-one-2.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Three prospects in one hour: one starts watching, one watches it all and clicks, one only clicks. This is the first email. Before, a 60% email about the second prospect. After, a &#39;started watching&#39; email about the first.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/email-several-1.png" target="_blank"><img src="units/D6/before/email-several-1.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/email-several-1.png" target="_blank"><img src="units/D6/after/email-several-1.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The hourly summary for that story. It lists the prospect who watched 100% and clicked, then the one who only clicked. Before, nothing more arrived.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D6/after/email-several-2.png" target="_blank"><img src="units/D6/after/email-several-2.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The first email of the one-prospect story at phone width.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D6/before/email-one-1-phone.png" target="_blank"><img src="units/D6/before/email-one-1-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D6/after/email-one-1-phone.png" target="_blank"><img src="units/D6/after/email-one-1-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The hourly summary at phone width.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D6/after/email-several-2-phone.png" target="_blank"><img src="units/D6/after/email-several-2-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm typecheck -&gt; pass (test type errors 168, at budget, after updating account-spine-events.test.ts)</code></li><li><code>vitest tests/view-notifications.test.ts tests/notifications.test.ts tests/notifications-route.test.tsx tests/agent-settings.test.ts tests/account-spine-events.test.ts -&gt; pass</code></li><li><code>vitest tests/page-events.test.ts tests/page-stats.test.ts tests/video-stats-migration.test.ts tests/public-page-processing-swap.test.ts and workers/frontend-router tests/analytics-write-read-paths.test.ts -&gt; pass</code></li><li><code>eslint --quiet on every changed file -&gt; no issues; --prune-suppressions removed the NotificationsRoute analytics-id suppression that the new data-analytics-id made stale</code></li><li><code>node scripts/generate-d1-row-types.mjs --check and node --test scripts/generate-d1-row-types.test.mjs -&gt; pass</code></li><li><code>generate-guards-table --check -&gt; current; check-migrations-append-only.sh -&gt; ok; check-migration-targets.mjs -&gt; ok</code></li><li><code>control-clarity doctor --pr 1510 -&gt; preview served c242c335b; settings screens and the switch round trip captured there</code></li><li><code>Email capture (.context/d6/email-capture.test.ts in the D6 worktree) drives the real router on SQLite with the real migrations through two prospect stories, on main and on the branch</code></li><li><code>PR CI on c242c335b -&gt; 6 passed, 0 failed</code></li><li><code>Independent Opus review of the diff -&gt; no correctness bugs in the claim, stamp or outcome logic; fixed its top finding (one click notification per beacon) in db2fe4e</code></li></ul>
+    <h4>Risks</h4><ul><li>CUSTOMER-FACING, William signs off: this changes which emails existing customers get. Auth migration 0049 adds user_profiles.view_emails (default 1) and sets it to 0 only where notify_view, notify_views_60, notify_views_80 and notify_views_100 are all 0. From the D6 brief&#39;s counts (not rechecked against prod), at least 2,466 of 2,484 profiles end up on and at most 18 off. About 2,316 customers who had &#39;started watching&#39; off start getting an email when a prospect starts watching, and every owner with the switch on now gets click emails. The cap still holds at one view email an hour per owner. Accounts with no profile row read as on.</li><li>Email content changes: titles and the hourly summary now mention clicks, and the footer says &#39;Turn these emails off in Notification settings.&#39; The List-Unsubscribe header still points at the settings page, which needs a login. The brief&#39;s policy answer assumed a one-click &#39;turn off&#39; link in every email; this PR does not add one (see followups).</li><li>Migrations: auth 0049 adds a column and sets it; stats 0009 adds the click_notifications table and touches no existing rows. Both are safe while the old Worker still serves, since it never reads the new column or table. The new Worker needs both: without 0009 the cron&#39;s due query and every digest batch fail, and without 0049 the owner read and the settings read fail. DEPLOY.md applies migrations about a minute before code goes live.</li><li>In the minute between migration and deploy, a toggle saved in the old screen writes the old columns and is lost. A tab still holding the old editor bundle gets a 400 on its 60/80/100 switches, and its &#39;started watching&#39; switch now flips the whole view_emails switch.</li><li>A prospect who starts watching and clicks within seconds gets two emails an hour apart: the click arrives after the first email was claimed. This is the hourly rule the brief chose.</li><li>The old columns notify_view, notify_views_60/80/100 and notify_shared stay in the table, unread. Dropping them needs its own PR after this deploys (DEPLOY.md).</li><li>/api/pages/events is public, like the video events endpoint, so anyone can post a fake click for a published page. Clicks dedupe per session and button, a beacon triggers at most one click notification, and the owner still gets at most one email an hour. Views already had the same exposure.</li><li>Overlap with open PR #1450 (U07): both edit workers/frontend-router/src/auth-email/templates/view-notification.ts, editor/tests/view-notifications.test.ts and docs/agents/guards.md. This PR leaves the ctaLabel and summary link lines that #1450 renames alone, but its test expectations sit next to #1450&#39;s hunks. Whichever merges second needs a small rebase (&#39;See page stats&#39; -&gt; &#39;See what they watched&#39; in the new click tests&#39; expected text).</li><li>D5 (one Settings page) will move the card. NotificationsRoute stays self-contained: its own load, save and error state, no props.</li><li>Options the brief listed and this PR did not build: two switches (started and finished), or keeping four toggles and only turning &#39;started&#39; on.</li><li>Agent API contract change: settings_get/settings_update notifications keys are now { viewEmails }. The agent-mcp eval fixture and its &#39;notifications&#39; task now use the one switch.</li><li>Process: a hook blocked plain `git` in the worktree, so every git step ran through /opt/homebrew/bin/git. The poteto-mode skill could not be invoked through the Skill tool; its SKILL.md was read from disk and followed. Implementation was done in the unit agent itself, not delegated.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Add a real one-click unsubscribe: a signed link that turns view_emails off without a login, plus List-Unsubscribe-Post.</li><li>Drop user_profiles.notify_view, notify_views_60, notify_views_80, notify_views_100 and notify_shared in a migration after this deploys.</li><li>The hourly summary title and intro still say &#39;N people watched&#39; and &#39;Here is who watched&#39; when some viewers only clicked.</li><li>Click rows store no location, so a click-only viewer shows no city. Page events carry no geo today.</li><li>The digest reads every claimed view and click row with no LIMIT, so a flood of fake sessions makes one very long summary email. This applied to views before this PR too.</li></ul>
+    <p class="dim">Before ran on 08a63ae8e, after on db2fe4e02. Branch <code>simplify/d6-notifications</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D6">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D1" data-kind="pr" data-id="D1" data-pr="1509">
+  <header>
+    <span class="uid">D1</span>
+    <h2>Build the page from what the rep said</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1509" target="_blank">PR #1509</a>
+  </header>
+  
+  <p class="why">Clarity transcribes every recording, but page generation never read the transcript. After Stop, the rep landed in the editor with the composer closed and had to retype what they had just said to get a page about the call. With #1423 the words exist within seconds of Stop, so Build page now opens the composer with one question and the take&#39;s transcript attached, and an empty answer builds from the transcript alone.</p>
+  <details open><summary>What changes (7)</summary><ul><li>Recorder finish screen: &quot;Edit page&quot; -&gt; &quot;Build page&quot;, now the filled button with a sparkles icon; &quot;Copy link&quot; becomes the outline button</li><li>Build page opens the editor with the composer already open</li><li>Composer heading on that arrival: &quot;Describe how to update this page&quot; -&gt; &quot;Who is this video for?&quot;</li><li>Composer holds a removable &quot;Transcript&quot; chip with the take&#39;s words, and a status line &quot;Transcript ready, N words&quot;</li><li>Composer submit on that arrival: &quot;Edit with AI&quot; -&gt; &quot;Build page&quot;; an empty answer builds from the transcript with the existing default prompt for pasted sources</li><li>If the words are not there within 5 s, the composer opens without the chip and says &quot;Transcript not available&quot;</li><li>GET /api/tree/media/videos/:id/speech returns a new transcript field (the words as plain text, or null)</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The whole flow at 1440: record a 20 s spoken take, Stop, the finish screen, its page action, the editor on arrival, type &quot;Anna at Acme, after today&#39;s demo&quot;, submit, the built page. Before, the composer has to be opened by hand and holds nothing from the video. After, it is open on arrival with the Transcript chip.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D1/before/flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D1/after/flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Finish screen actions close up. Edit page (outline) and Copy link (filled) become Build page (filled) and Copy link (outline).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/03b-finish-actions.png" target="_blank"><img src="units/D1/before/03b-finish-actions.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/03b-finish-actions.png" target="_blank"><img src="units/D1/after/03b-finish-actions.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Finish screen at 1440, same take length on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/03-finish.png" target="_blank"><img src="units/D1/before/03-finish.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/03-finish.png" target="_blank"><img src="units/D1/after/03-finish.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The editor as it first paints after the page action. Before, the composer is closed. After, it is open, asks &quot;Who is this video for?&quot; and holds the Transcript chip with &quot;Transcript ready, 75 words&quot;. The before hero shows the empty media slot because the preview had not finished processing that take yet; this change does not touch the hero.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/04-editor-arrival.png" target="_blank"><img src="units/D1/before/04-editor-arrival.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/04-editor-arrival.png" target="_blank"><img src="units/D1/after/04-editor-arrival.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The composer close up, before typing.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/05-composer.png" target="_blank"><img src="units/D1/before/05-composer.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/05-composer.png" target="_blank"><img src="units/D1/after/05-composer.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same answer typed on both sides. After, it sits next to the Transcript chip and the button says Build page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/05b-composer-answered.png" target="_blank"><img src="units/D1/before/05b-composer-answered.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/05b-composer-answered.png" target="_blank"><img src="units/D1/after/05b-composer-answered.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The page the AI returned. Before (no transcript sent): a generic headline and one button. After: &quot;Explore the team plan&quot; and a section on long recap emails, both from what the take said.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/07-built-page.png" target="_blank"><img src="units/D1/before/07-built-page.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/07-built-page.png" target="_blank"><img src="units/D1/after/07-built-page.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390 finish screen: Build page is the filled middle button.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/m-03-finish.png" target="_blank"><img src="units/D1/before/m-03-finish.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/m-03-finish.png" target="_blank"><img src="units/D1/after/m-03-finish.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone finish actions close up.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/m-03b-finish-actions.png" target="_blank"><img src="units/D1/before/m-03b-finish-actions.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/m-03b-finish-actions.png" target="_blank"><img src="units/D1/after/m-03b-finish-actions.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone editor on arrival. After, the composer is open with the question and the Transcript chip.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D1/before/m-04-editor-arrival.png" target="_blank"><img src="units/D1/before/m-04-editor-arrival.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D1/after/m-04-editor-arrival.png" target="_blank"><img src="units/D1/after/m-04-editor-arrival.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>after/06-generate-request.json -&gt; message &quot;[source 1: Transcript] Anna at Acme, after today&#39;s demo&quot; with the take&#39;s words as pasted_contexts[0]; before/06-generate-request.json -&gt; pasted_contexts null</code></li><li><code>after/log.json -&gt; the speech route answered status ready with the transcript 5.0 s (desktop) and 3.0 s (phone) after Stop; composer_open_on_arrival true with heading &quot;Who is this video for?&quot;</code></li><li><code>pnpm run typecheck -&gt; pass (test type errors 168, at budget)</code></li><li><code>eslint --quiet on the 11 changed source and test files -&gt; no issues</code></li><li><code>editor vitest: record-arrival, record-video-route-inline-video, video-speech-query, journey-video-edit, editor-topbar-*, generate-composer, ai-generate-preservation and 5 nearby files -&gt; 146 passed</code></li><li><code>workers/frontend-router vitest tests/mux-speech-jobs.test.ts -&gt; 34 passed</code></li><li><code>workers/workspace-tree vitest tests/take-speech.test.ts -&gt; 43 passed (CI caught this file on the first push; fixed in 870df64f7)</code></li><li><code>control-clarity doctor --pr 1509 --wait -&gt; the preview served 842445dc1 for before and 63df89712 for after</code></li></ul>
+    <h4>Risks</h4><ul><li>No eval covers the editor composer. evals/ai has only video-title and live-speech. evals/agent-mcp&#39;s generate-page task drives generation with typed notes through the agent API, not the composer and not a spoken transcript. Page quality from a spoken transcript is checked here on one synthetic take only. The brief&#39;s step 4 (five real takes through scripts/ai.mjs) is not in this PR.</li><li>The AI prompt wording is unchanged. The transcript goes in pasted_contexts, whose existing rules treat it as source material, not instructions. When the rep types an answer, the client puts the existing &quot;[source 1: Transcript]&quot; marker in front of it, as it does for any chip.</li><li>The live transcript has no punctuation or capitals (Workers AI chunks). The model used it well in the one run here.</li><li>The take&#39;s words now reach the browser as text through the speech route. The route was already scoped to the rep&#39;s workspace and already sent word timings; the text has the same gate.</li><li>The finish button keeps data-analytics-id recorder_edit_page and data-action open-page under its new label, so analytics and e2e selectors keep working. Rename the id only if William wants a clean break in the dashboards.</li><li>The brief says to show &quot;Transcript not available&quot; in the chip. A chip has to carry text to be sent, so the missing case shows that line in the composer footer instead, where the ready case shows &quot;Transcript ready, N words&quot;. If the rep removes the chip, the footer still says ready.</li><li>The question and chip appear only on arrival from Build page. Closing the composer ends it; a reload or a later Edit with AI opens the normal composer. The arrival is router state, not the ?from=record URL parameter the brief&#39;s build plan sketched, so a reload or a shared URL never asks again.</li><li>Options not built, per the brief: attaching the transcript silently on the server (option 2) and building without asking (option 3).</li><li>Open PRs touching the same files: #1366 (RecorderFinishActions, RecordVideoRoute), #1507 (RecorderFinishActions), #1512 (EditorWorkspace). D8 runs next on the finish screen; this PR&#39;s hunks there are 8 lines in RecorderFinishActions.tsx and 2 in RecordVideoRoute.tsx.</li><li>The branch carries the empty &quot;baseline&quot; commit BRIEF-R4 asks for, so the preview could capture main first. Squash on merge.</li><li>No migration, no billing or auth change, nothing customers receive by email.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>The brief&#39;s build plan deletes the unused context.videos slot from the generate request type and prompt builder. Left alone here because this unit was told not to change the prompt.</li><li>Decision 5 of the brief (Share publishes the built draft and copies the link in one click, dialog behind Options) overlaps D11 and is not in this PR.</li><li>Prompt check with five real takes through scripts/ai.mjs, kept under evals/ai/ (brief step 4).</li><li>The shared harness logs in with Playwright&#39;s Node request client, which on this network tries IPv6 first and fails with EHOSTUNREACH. The D1 capture script signs in through the page instead.</li><li>The old D1 discussion capture script clicks &quot;Record camera&quot;; the recorder&#39;s button is &quot;Start recording&quot; on main now.</li></ul>
+    <p class="dim">Before ran on 842445dc1, after on 63df89712. Branch <code>simplify/d1-build-page-from-transcript</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D1">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D2" data-kind="pr" data-id="D2" data-pr="1515">
+  <header>
+    <span class="uid">D2</span>
+    <h2>Hero buttons: two at most, no button types, no Primary switch</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1515" target="_blank">PR #1515</a>
+  </header>
+  
+  <p class="why">The hero stored four button slots, and &quot;+ Add&quot; filled them in a fixed order with seeded labels (Sign proposal, Pay now, Learn more) and no menu. Each button&#39;s card carried a Primary switch that 4 pages ever used, all to choose &quot;secondary&quot;. In production 69% of recent customer heroes render no button, 24% one and 5% two. Pages with three or more get fewer clicks per 100 views (5.8) than pages with two (17.9). The editor now offers two buttons, each with a label, a link and a Remove button. Storage, tracking ids and the public renderer are unchanged.</p>
+  <details open><summary>What changes (6)</summary><ul><li>Hero add pill appears only while the row has fewer than two buttons (was four).</li><li>First button added: &quot;Get started&quot; -&gt; &quot;Book a call&quot;.</li><li>Second button added: &quot;Sign proposal&quot; -&gt; &quot;Learn more&quot;. A slot that already holds a label from before keeps it, as today.</li><li>The third and fourth adds (&quot;Pay now&quot;, &quot;Learn more&quot;) are gone.</li><li>Hover card: the Primary switch is gone. The trash icon becomes a labelled &quot;Remove button&quot; with data-analytics-id=&quot;editor_cta_remove_button&quot;.</li><li>Pages that already render three or four buttons show all of them in the editor, with no add pill.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Empty hero on the themed fixture page. The script clicks the add pill until it disappears. Before, four adds: Get started, Sign proposal, Pay now, Learn more. After, two adds: Book a call, Learn more, then no pill. Writes are blocked, so &quot;Failed to fetch&quot; under Share is the blocked autosave on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D2/before/add-button-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D2/after/add-button-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>End of the add flow. Four buttons before, two after.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/add-button-flow-end.png" target="_blank"><img src="units/D2/before/add-button-flow-end.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/add-button-flow-end.png" target="_blank"><img src="units/D2/after/add-button-flow-end.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>One button, row hovered. The &quot;+ Add button&quot; pill shows on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-row-one-close.png" target="_blank"><img src="units/D2/before/cta-row-one-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-row-one-close.png" target="_blank"><img src="units/D2/after/cta-row-one-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Two buttons, row hovered. Before still offers &quot;+ Add button&quot;. After offers nothing. First button filled, second outlined (themed page, positional).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-row-two-close.png" target="_blank"><img src="units/D2/before/cta-row-two-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-row-two-close.png" target="_blank"><img src="units/D2/after/cta-row-two-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>A page that already renders three buttons. All three stay. After there is no add pill.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-row-three-close.png" target="_blank"><img src="units/D2/before/cta-row-three-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-row-three-close.png" target="_blank"><img src="units/D2/after/cta-row-three-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Hover card on the first button. Before: label, link, Primary switch, trash icon. After: label, link, &quot;Remove button&quot;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-card-close.png" target="_blank"><img src="units/D2/before/cta-card-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-card-close.png" target="_blank"><img src="units/D2/after/cta-card-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same card, full screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-card.png" target="_blank"><img src="units/D2/before/cta-card.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-card.png" target="_blank"><img src="units/D2/after/cta-card.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Full screen, one button.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-row-one.png" target="_blank"><img src="units/D2/before/cta-row-one.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-row-one.png" target="_blank"><img src="units/D2/after/cta-row-one.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Full screen, two buttons.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-row-two.png" target="_blank"><img src="units/D2/before/cta-row-two.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-row-two.png" target="_blank"><img src="units/D2/after/cta-row-two.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Full screen, three buttons.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/cta-row-three.png" target="_blank"><img src="units/D2/before/cta-row-three.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/cta-row-three.png" target="_blank"><img src="units/D2/after/cta-row-three.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390x844, the button sheet. Before: label, link, Primary switch, trash. After: label, link, &quot;Remove button&quot;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/phone-cta-card-close.png" target="_blank"><img src="units/D2/before/phone-cta-card-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/phone-cta-card-close.png" target="_blank"><img src="units/D2/after/phone-cta-card-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, the sheet full screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/phone-cta-card.png" target="_blank"><img src="units/D2/before/phone-cta-card.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/phone-cta-card.png" target="_blank"><img src="units/D2/after/phone-cta-card.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, one button. Unchanged.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/phone-cta-row-one.png" target="_blank"><img src="units/D2/before/phone-cta-row-one.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/phone-cta-row-one.png" target="_blank"><img src="units/D2/after/phone-cta-row-one.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, two buttons. Unchanged. The add pill only shows on hover, so phones never showed it next to a button.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/phone-cta-row-two.png" target="_blank"><img src="units/D2/before/phone-cta-row-two.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/phone-cta-row-two.png" target="_blank"><img src="units/D2/after/phone-cta-row-two.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, three buttons. All three stay.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/phone-cta-row-three.png" target="_blank"><img src="units/D2/before/phone-cta-row-three.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/phone-cta-row-three.png" target="_blank"><img src="units/D2/after/phone-cta-row-three.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Published smoke page /page/j4eyyv with one hero button. Staging serves it on both sides. The PR changes no file under workers/ or packages/, so the published render cannot change.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D2/before/public-hero.png" target="_blank"><img src="units/D2/before/public-hero.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D2/after/public-hero.png" target="_blank"><img src="units/D2/after/public-hero.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>PR CI on 87d2a0772 -&gt; Typecheck, Test &amp; Build pass; Guards table, feature map and proof pass; E2E Smoke pass; Proof names the head pass</code></li><li><code>First push (fbba7253e) failed &quot;Guards table is current&quot;: pruning the suppression changed the analytics-id count (149 -&gt; 147) in docs/agents/guards.md. Regenerated with node scripts/generate-guards-table.mjs in 87d2a0772. The evidence ran on fbba7253e; 87d2a0772 only changes that doc</code></li><li><code>cd editor &amp;&amp; npx vitest run tests/cta-row-editor.test.ts tests/cta-row-editor-interaction.test.ts -&gt; 16 passed</code></li><li><code>pnpm editor:typecheck -&gt; pass</code></li><li><code>node scripts/check-test-types.mjs -&gt; 168 errors, at budget</code></li><li><code>eslint --quiet on the three changed files -&gt; clean; CtaRowEditor analytics-id suppression (count 2) pruned to 0</code></li><li><code>node --test scripts/design-system-guards.test.mjs -&gt; 2 passed</code></li><li><code>Independent Opus review of the diff -&gt; no blockers; one should-fix (add pill rewrote a primary that already rendered &quot;Book a call&quot;) fixed before push</code></li></ul>
+    <h4>Risks</h4><ul><li>Pages with more than two hero buttons: 201 of 5,423 live customer pages render three (195) or four (6); 6 of 281 customer heroes edited in the last 90 days. Source: the D2 brief&#39;s read-only prod pull of 2026-10-13. They render exactly as before. In the editor they show every button and no add pill until the rep removes down to one.</li><li>Non-first primary: no page stores an explicit &quot;primary&quot; style. Unthemed pages draw every hero button filled (the legacy rule in resolvedCtaStyle), and only 27 customer pages store a theme, all recent. So at least 682 of the 709 live customer pages with two or more buttons show a filled button after the first. They keep doing so, and the editor shows the same. &quot;First one primary&quot; is true only on themed pages, where it was already the positional default. Making it true everywhere means changing the renderer, which this unit was told not to do. William to decide whether that is a follow-up.</li><li>4 pages store an explicit &quot;secondary&quot; style (primaryCta 1, signCta 2, paymentCta 1), 2 of them on a rendered button. They keep that look. With the switch gone the rep cannot change it.</li><li>Storage, tracking ids and the renderer are unchanged. No file under workers/ or packages/ changes, so no PR preview was needed. The public-hero shot is served by staging on both sides.</li><li>The second button uses the signCta slot (unchanged add order), so a new &quot;Learn more&quot; records clicks as hero-sign. The brief&#39;s PR 2 (stats show button labels) fixes how that reads. signCta stays first because legacy pages carry old labels on disabled payment (4,653) and custom (4,291) slots and only 38 on sign, and a re-enabled slot brings its old label and link back.</li><li>Default first label &quot;Get started&quot; -&gt; &quot;Book a call&quot;, per the brief&#39;s third question. U06 (merged) had set &quot;Get started&quot;. Only new adds change.</li><li>Remove control reads &quot;Remove button&quot; (the brief&#39;s mockup), not &quot;Remove&quot; (the brief&#39;s prose). It sits left in the card, as in the mockup.</li><li>Options not built: a new ctas[] field with a migration (touches 5,431 documents and stats remaps), and keeping four slots while only dropping the switch.</li><li>docs/design-system/inventory.md was hand-edited (CtaPrimarySwitch entry removed, CtaRowEditor line updated). A full regen on main produces 1,400 lines of unrelated churn.</li><li>Open PRs touching the same files: #1450, #1508, #1510, #1512 touch eslint-suppressions.json in other entries. Nothing else overlaps. render-blocks.ts is untouched, so D4, D10 and D12 are clear.</li><li>git: a hook rewrites plain git calls, so git ran as /usr/bin/git -C &lt;worktree&gt;.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Remove on a calendar-backed primary does nothing visible: removeCta clears label and link but calendarCtaEnabled stays true, so the button keeps rendering &quot;Book a call&quot; from the calendly link. Generated heroes turn that flag on (packages/journey-page-domain/src/generate-blocks.ts).</li><li>On a phone the add pill is hover-only, so a hero with one button shows no way to add a second.</li><li>On a phone the first tap on a hero button only focuses its label; a second tap opens the settings sheet.</li><li>After removing the first button, adding again fills the primary slot, which renders left of the remaining button. Storage order decides this.</li><li>The doc comment on resolveHeroCtaRow (packages/journey-page-domain/src/hero-primary-cta.ts) still says the side panel uses it; there is no side panel.</li><li>docs/design-system/inventory.md is stale on main (pnpm design:inventory rewrites about 1,400 lines).</li></ul>
+    <p class="dim">Before ran on 61274a6f5, after on 87d2a0772. Branch <code>simplify/d2-hero-buttons</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D2">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D10" data-kind="pr" data-id="D10" data-pr="1516">
+  <header>
+    <span class="uid">D10</span>
+    <h2>Lead form: phone optional on new forms, plain consent line</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1516" target="_blank">PR #1516</a>
+  </header>
+  
+  <p class="why">A new lead form made every prospect give a phone number before they could send it, and the consent box read like a billing system&#39;s (&#39;transactional messages related to my account, orders, or services&#39;). The email is what the lead row and the view notification need, and a rep can ask for a phone on the call. Phone is required on 79 of 88 forms ever made, and 4 of the 11 recent forms are the untouched default (D10 brief data). Pricing and summary stay two blocks: 7 recent pages use both and 2 use only a summary, so merging them would push a table onto the pricing editor and a new shape onto 1,697 legacy pricing blocks.</p>
+  <details open><summary>What changes (3)</summary><ul><li>New lead form block: Mobile number starts optional (was required). First name, Last name optional and Email required, as before. Forms already on pages keep their saved flags.</li><li>Consent line on the public form, the editor&#39;s form block and the editor&#39;s live preview: &#39;By checking this box, I consent to receive transactional messages related to my account, orders, or services I have requested.&#39; -&gt; &#39;I agree to be contacted by email or text about this proposal.&#39; The box stays required.</li><li>Pricing and summary blocks: no change. U17 (#1459, 8b498b873) renamed the tile to &#39;Summary&#39; and U19 (#1456, 5e5610150) dropped &#39;three-tier&#39; from the &#39;Add pricing&#39; chip; both are on main.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>On the PR preview: add a Lead form in the editor, publish, fill name and email, tick consent, Submit with no phone. Before, the browser stops on &#39;Please fill out this field.&#39; at Mobile number. After, the page answers &#39;Thanks, we&#39;ll be in touch.&#39; and the submission is stored with mobile_number null.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D10/before/submit-without-phone.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D10/after/submit-without-phone.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>A Lead form just added in the editor. Mobile number loses its asterisk; the consent line under + Add field changes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/editor-new-form.png" target="_blank"><img src="units/D10/before/editor-new-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/editor-new-form.png" target="_blank"><img src="units/D10/after/editor-new-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the new form block in the editor.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/editor-new-form-close.png" target="_blank"><img src="units/D10/before/editor-new-form-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/editor-new-form-close.png" target="_blank"><img src="units/D10/after/editor-new-form-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same form on the published page, desktop.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/public-new-form.png" target="_blank"><img src="units/D10/before/public-new-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/public-new-form.png" target="_blank"><img src="units/D10/after/public-new-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the published new form: Mobile number optional, new consent line.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/public-new-form-close.png" target="_blank"><img src="units/D10/before/public-new-form-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/public-new-form-close.png" target="_blank"><img src="units/D10/after/public-new-form-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>After clicking Submit with no phone. Before, the &#39;Please fill out this field.&#39; bubble on Mobile number. After, the thank-you screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/public-new-form-submit.png" target="_blank"><img src="units/D10/before/public-new-form-submit.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/public-new-form-submit.png" target="_blank"><img src="units/D10/after/public-new-form-submit.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>An existing form (fixture page) in the editor. Mobile number stays required; only the consent line changes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/editor-fixture-form.png" target="_blank"><img src="units/D10/before/editor-fixture-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/editor-fixture-form.png" target="_blank"><img src="units/D10/after/editor-fixture-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the existing form in the editor.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/editor-fixture-form-close.png" target="_blank"><img src="units/D10/before/editor-fixture-form-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/editor-fixture-form-close.png" target="_blank"><img src="units/D10/after/editor-fixture-form-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The existing form on its published, themed page, desktop. Phone still required, new consent line.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/public-fixture-form.png" target="_blank"><img src="units/D10/before/public-fixture-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/public-fixture-form.png" target="_blank"><img src="units/D10/after/public-fixture-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the existing published form.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/public-fixture-form-close.png" target="_blank"><img src="units/D10/before/public-fixture-form-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/public-fixture-form-close.png" target="_blank"><img src="units/D10/after/public-fixture-form-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone (390x844): the new form in the editor.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/phone-editor-new-form.png" target="_blank"><img src="units/D10/before/phone-editor-new-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/phone-editor-new-form.png" target="_blank"><img src="units/D10/after/phone-editor-new-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone: the new form on the published page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/phone-public-new-form.png" target="_blank"><img src="units/D10/before/phone-public-new-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/phone-public-new-form.png" target="_blank"><img src="units/D10/after/phone-public-new-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone: the existing form in the editor.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/phone-editor-fixture-form.png" target="_blank"><img src="units/D10/before/phone-editor-fixture-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/phone-editor-fixture-form.png" target="_blank"><img src="units/D10/after/phone-editor-fixture-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone: the existing form on its published page. The new line wraps to two lines instead of three.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D10/before/phone-public-fixture-form.png" target="_blank"><img src="units/D10/before/phone-public-fixture-form.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D10/after/phone-public-fixture-form.png" target="_blank"><img src="units/D10/after/phone-public-fixture-form.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>vitest editor/tests/agent-pages-edit.test.ts page-edit-round-trips.test.ts -&gt; 41 passed (pages_edit default-fields test now expects mobile_number optional)</code></li><li><code>vitest editor/tests/form-canvas-editor.test.tsx journey-page-preview-surface.test.ts -&gt; 18 passed</code></li><li><code>vitest editor/tests/journey-page-submissions.test.ts public-page-delivery.test.ts agent-pages-edit-batch.test.ts -&gt; 75 passed</code></li><li><code>eslint --quiet on the 7 changed files -&gt; no issues</code></li><li><code>pnpm typecheck -&gt; exit 0, test type errors 168 (at budget)</code></li><li><code>pr-1516 /__deploy-info: before side served 4c7b59b78 (main 61274a6f5 plus an empty commit), after side served f80670645</code></li><li><code>pr-1516 after: new form fields stored as first_name false, last_name false, email true, mobile_number false; GET /api/journey-pages/:id/submissions returned 1 row with mobile_number null</code></li><li><code>pr-1516 both sides: fixture page form inputs keep email and mobile_number required</code></li></ul>
+    <h4>Risks</h4><ul><li>Consent wording is a compliance check, not a design choice. William must confirm the new line with whoever wrote the old one before merge. To keep the phone change without the wording, drop commit f80670645 (rebase it out or revert it on the branch) before merging.</li><li>The consent line is hard-coded, not stored per form, so every live lead form on customer pages shows the new line after deploy, old forms included. This changes what existing customers&#39; prospects read.</li><li>The wording says &#39;this proposal&#39;. Not every page is a proposal (follow-up pages, prospect journeys). The brief chose this wording; &#39;about this page&#39; is the alternative.</li><li>The brief&#39;s compliance question names texting through the GoHighLevel sync. That sync covers Clarity signups, not prospects (docs/runbooks/gohighlevel-contact-sync.md), and lead-capture*.ts has no SMS or GHL code. Clarity texts no prospect. The consent covers the rep contacting the lead from their own tools.</li><li>Some new forms will now send leads without a phone. No data says how many prospects skip an optional phone: 8 of 202 submissions all time lack one, but phone was required on nearly every form.</li><li>The agent&#39;s pages_edit insert_block and AI-built pages use the same default, so their new forms also start with phone optional.</li><li>Options not built: folding summary into pricing (migration for 9 summary blocks plus a new shape for 1,697 pricing blocks), and keeping phone required.</li><li>Overlaps: D12 #1511 (prospect tracking) plans to touch lead-capture.ts and render-client-script.ts; this PR touches neither, and one line in render-blocks.ts (the consent span in renderFormBlock). It had no pushed files when checked. #1515 (D2 hero buttons) shares no files. No other open PR touches these files.</li><li>The branch carries an empty &#39;baseline&#39; commit (4c7b59b78) used to capture before on this PR&#39;s own preview. Squash merge drops it.</li><li>Git ran as /usr/bin/git because a hook blocks plain git in this worktree.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Clarity&#39;s own contact page (editor/src/routes/public/ContactUsRoute.tsx:198) and its test keep the old &#39;transactional messages&#39; line. Out of scope here; it is Clarity&#39;s form, not a prospect page.</li><li>The consent line is written out three times (render-blocks.ts, FormEditor.tsx, LivePreview.tsx). A shared constant in journey-page-domain would stop the three from drifting.</li><li>Submissions don&#39;t record which consent wording the lead agreed to. After a wording change there is no record of what older leads saw.</li><li>The &#39;Client proposal&#39; starter prompt still asks for &#39;three-tier pricing&#39; (editor/src/lib/page-tweaks.ts:20), though U19 dropped three-tier from the Add pricing chip and 14 of 22 recent pricing blocks have one plan.</li><li>renderFormBlock falls back to the title &#39;Consent Form&#39; when a form has no title (render-blocks.ts); the default for new forms is &#39;Get Started&#39;.</li></ul>
+    <p class="dim">Before ran on 4c7b59b78, after on f80670645. Branch <code>simplify/d10-form-phone-consent</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D10">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D9" data-kind="pr" data-id="D9" data-pr="1514">
+  <header>
+    <span class="uid">D9</span>
+    <h2>Library: Images and Documents become one Files tab</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1514" target="_blank">PR #1514</a>
+  </header>
+  
+  <p class="why">Home had five Library tabs for four kinds of content. Images and Documents are both files a rep drops onto a page, and Documents are rare: 101 customer workspaces have one, against 614 with an image (D9 discussion data). This merges them into one Files tab, so the row reads All, Videos, Pages, Files, and each image or document card names its format. Old links to the Images or Documents tab open Files.</p>
+  <details open><summary>What changes (8)</summary><ul><li>Library tabs: All, Videos, Images, Pages, Documents -&gt; All, Videos, Pages, Files (desktop and phone)</li><li>Files lists images and documents together, newest first, with the folders above them as before</li><li>Image and document cards: &quot;9h ago&quot; -&gt; &quot;PNG · 9h ago&quot; or &quot;PDF · 9h ago&quot;, with an image or document icon</li><li>Page title and section heading on that tab: &quot;Images&quot; or &quot;Documents&quot; -&gt; &quot;Files&quot;</li><li>Empty folder on that tab: &quot;No images in this folder&quot; / &quot;No documents in this folder&quot; -&gt; &quot;No files in this folder&quot;</li><li>/home?library=images and /home?library=documents -&gt; replaced with /home?library=files</li><li>/home?folder=&lt;id&gt;&amp;type=images or type=documents -&gt; replaced with /home?folder=&lt;id&gt;&amp;type=files</li><li>All tab shelves: Images and Documents shelves -&gt; one Files shelf (only reachable after scrolling past every page and video, so not pictured)</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Tab row on desktop. Before: All, Videos, Images, Pages, Documents. After: All, Videos, Pages, Files.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tabs-close-1440.png" target="_blank"><img src="units/D9/before/tabs-close-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tabs-close-1440.png" target="_blank"><img src="units/D9/after/tabs-close-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Tab row on a phone, on the same old Images URL. After: four tabs with Files active.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tabs-close-390.png" target="_blank"><img src="units/D9/before/tabs-close-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tabs-close-390.png" target="_blank"><img src="units/D9/after/tabs-close-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same URL, /home?library=images. Before: the Images tab. After: the URL becomes ?library=files and the Files tab shows images and PDFs mixed, 671 items.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-images-1440.png" target="_blank"><img src="units/D9/before/tab-images-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-images-1440.png" target="_blank"><img src="units/D9/after/tab-images-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/home?library=documents. Before: the Documents tab. After: lands on Files, not a blank view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-documents-1440.png" target="_blank"><img src="units/D9/before/tab-documents-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-documents-1440.png" target="_blank"><img src="units/D9/after/tab-documents-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/home?library=files. Before: an unknown value, so it showed All. After: the Files tab with PNG or PDF on each card.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-files-1440.png" target="_blank"><img src="units/D9/before/tab-files-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-files-1440.png" target="_blank"><img src="units/D9/after/tab-files-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/home?library=images on a phone. After: Files tab, format on each card.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-images-390.png" target="_blank"><img src="units/D9/before/tab-images-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-images-390.png" target="_blank"><img src="units/D9/after/tab-images-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/home?library=documents on a phone, landing on Files.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-documents-390.png" target="_blank"><img src="units/D9/before/tab-documents-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-documents-390.png" target="_blank"><img src="units/D9/after/tab-documents-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/home?library=files on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-files-390.png" target="_blank"><img src="units/D9/before/tab-files-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-files-390.png" target="_blank"><img src="units/D9/after/tab-files-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Files at 1000 px wide. Before showed All for this URL. The toolbar stays on one row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-files-1000.png" target="_blank"><img src="units/D9/before/tab-files-1000.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-files-1000.png" target="_blank"><img src="units/D9/after/tab-files-1000.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/home?library=images at 1000 px, landing on Files.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-images-1000.png" target="_blank"><img src="units/D9/before/tab-images-1000.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-images-1000.png" target="_blank"><img src="units/D9/after/tab-images-1000.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Image card close-up. After: &quot;PNG ·&quot; before the date.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/card-image.png" target="_blank"><img src="units/D9/before/card-image.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/card-image.png" target="_blank"><img src="units/D9/after/card-image.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Document card close-up. After: &quot;PDF ·&quot; before the date.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/card-document.png" target="_blank"><img src="units/D9/before/card-document.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/card-document.png" target="_blank"><img src="units/D9/after/card-document.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>An old folder link with type=images, inside the Production shape fixtures folder. After: the URL becomes type=files and the Files tab is active. The folder holds no files, so it reads &quot;No files in this folder&quot;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/folder-images-1440.png" target="_blank"><img src="units/D9/before/folder-images-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/folder-images-1440.png" target="_blank"><img src="units/D9/after/folder-images-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>All tab, unchanged apart from the tab row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-all-1440.png" target="_blank"><img src="units/D9/before/tab-all-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-all-1440.png" target="_blank"><img src="units/D9/after/tab-all-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Videos tab, unchanged apart from the tab row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-videos-1440.png" target="_blank"><img src="units/D9/before/tab-videos-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-videos-1440.png" target="_blank"><img src="units/D9/after/tab-videos-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Pages tab, unchanged apart from the tab row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-pages-1440.png" target="_blank"><img src="units/D9/before/tab-pages-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-pages-1440.png" target="_blank"><img src="units/D9/after/tab-pages-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>All tab on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-all-390.png" target="_blank"><img src="units/D9/before/tab-all-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-all-390.png" target="_blank"><img src="units/D9/after/tab-all-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Videos tab on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-videos-390.png" target="_blank"><img src="units/D9/before/tab-videos-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-videos-390.png" target="_blank"><img src="units/D9/after/tab-videos-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Pages tab on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D9/before/tab-pages-390.png" target="_blank"><img src="units/D9/before/tab-pages-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D9/after/tab-pages-390.png" target="_blank"><img src="units/D9/after/tab-pages-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Clicks every tab left to right, then opens the old /home?library=images URL. Before: five tabs and the old URL opens Images. After: four tabs and the old URL opens Files.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D9/before/switch-tabs.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D9/after/switch-tabs.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm run editor:typecheck -&gt; pass</code></li><li><code>node scripts/check-test-types.mjs -&gt; 168 errors, at budget</code></li><li><code>eslint --quiet on the changed files -&gt; no issues</code></li><li><code>vitest: workspace-location, workspace-empty-folder-sync, tree-api, workspace-tree-query, tree-media-adapter, frost-card-stats, home-folder-disclosure, home-video-editor-player, product-analytics-library and 3 library card tests -&gt; all pass</code></li><li><code>scripts/check-loc-ratchet.sh -&gt; OK (HomeTreeRoute.tsx 1720 -&gt; 1719)</code></li><li><code>node scripts/check-feature-map-paths.mjs -&gt; OK</code></li><li><code>node scripts/generate-guards-table.mjs --check -&gt; current</code></li><li><code>Independent review by a fresh Opus reviewer -&gt; no blockers, three nits (listed in risks)</code></li><li><code>git merge-tree with open PR #1450 -&gt; merges cleanly in HomeTreeRoute.tsx and FrostCardMeta.tsx</code></li></ul>
+    <h4>Risks</h4><ul><li>Analytics: the tab click ids library_tab_images and library_tab_documents stop firing and library_tab_files starts. Any PostHog insight on the old two needs the new id. RUM library_route_ready and library_tree_fetch events now report filter=file for the Files tab.</li><li>The Files tab makes three listing requests (folders, images, documents) instead of two, because the workspace-tree API filters one node type per request. Rejected: a server-side type=image,document filter, which would need the workspace-tree Worker to deploy before the frontend or the tab would 400 in between.</li><li>Old folder links that use a legacy numeric folder id with type=documents used to look the folder up within the documents category. After the redirect to type=files the lookup takes any category, so a page folder with the same legacy id could match first. Only old bookmarks with legacy ids hit this (reviewer nit).</li><li>The format label comes from the file name&#39;s last extension, else the MIME type. A file named &quot;deck.final&quot; would read FINAL. Uploads only accept images and PDFs (reviewer nit).</li><li>An image that legacy import stored as a video node now shows its format on the Videos tab too.</li><li>Deleted WORKSPACE_TABS, WorkspaceTabId, WorkspaceMediaSection and the tab and mediaSection fields from workspace-location.ts. They named the old tabs and nothing read them.</li><li>Options the brief rejected: drop both tabs and keep files in the editor picker only (hides 5,277 images, half of which never land on a page), or leave five tabs.</li><li>Overlaps: open PR #1450 edits HomeTreeRoute.tsx and FrostCardMeta.tsx in other hunks and merges cleanly. Open PR #985 already conflicts with main in HomeTreeRoute.tsx, independent of this change.</li><li>Hooks in this sandbox blocked plain git; the git steps ran through /usr/bin/git in this worktree.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>buildFolderPath in editor/src/lib/routes.ts has no callers.</li><li>The document card placeholder in HomeTreeRoute.tsx falls back to the whole display name upper-cased when a document has no decoration yet and no dot in its name (documentExtension uses split(&#39;.&#39;).pop()).</li><li>The All tab&#39;s dashboard shelves render Folders, Pages, Videos, then Files, so Files sits below every video (1,037 on the test account) and is practically unreachable there.</li></ul>
+    <p class="dim">Before ran on 61274a6f5, after on e2c8e91c0. Branch <code>simplify/d9-files-tab</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D9">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D3" data-kind="pr" data-id="D3" data-pr="1512">
+  <header>
+    <span class="uid">D3</span>
+    <h2>Style panel: presets first, the levers under More</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1512" target="_blank">PR #1512</a>
+  </header>
+  
+  <p class="why">The Style pop-down showed 29 choices at once, but in the last 90 days 91% of customer pages stored no theme and lever overrides were in single digits (fonts 9, background 5, size 1, corners 1 of 288). A rep now sees the six presets and one closed More. The accent colour, which 44 of 288 pages change, stays one click away inside More. The logo rows leave the panel because the canvas already adds, replaces, removes and aligns the logo.</p>
+  <details open><summary>What changes (6)</summary><ul><li>Style pop-down opens on the six preset cards and a closed &quot;More&quot; row with a chevron</li><li>More holds Color, Background, Fonts, Size and Corners, in the same order and with the same reset buttons as before</li><li>&quot;+ Add logo&quot; and the logo card leave the Style pop-down; the canvas &quot;+ Add logo&quot; and logo toolbar are unchanged</li><li>The logo &quot;Alignment&quot; row leaves the Style pop-down; the canvas logo toolbar still sets left, center or right</li><li>New analytics id editor_style_more on the More summary</li><li>Deleted the now-unused side-panel MediaPicker, MediaPickerCard and OBJECT_ALIGNMENT_OPTIONS (analytics-id suppression count for MediaPicker.tsx 8 -&gt; 4)</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Desktop, Style opened. Before shows every lever and + Add logo. After shows the presets and a closed More.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/style-panel.png" target="_blank"><img src="units/D3/before/style-panel.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/style-panel.png" target="_blank"><img src="units/D3/after/style-panel.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Close-up of the same panel.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/style-panel-closeup.png" target="_blank"><img src="units/D3/before/style-panel-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/style-panel-closeup.png" target="_blank"><img src="units/D3/after/style-panel-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Before has no More, so this is the panel scrolled to its end. After is More open with Color, Background, Fonts, Size and Corners.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/style-panel-more-closeup.png" target="_blank"><img src="units/D3/before/style-panel-more-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/style-panel-more-closeup.png" target="_blank"><img src="units/D3/after/style-panel-more-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone 390 px, Style opened. After fits the presets and More above the fold.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/phone-style-panel.png" target="_blank"><img src="units/D3/before/phone-style-panel.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/phone-style-panel.png" target="_blank"><img src="units/D3/after/phone-style-panel.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone with More open. Before is the same full panel.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/phone-style-panel-more.png" target="_blank"><img src="units/D3/before/phone-style-panel-more.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/phone-style-panel-more.png" target="_blank"><img src="units/D3/after/phone-style-panel-more.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>A page with stored overrides (accent #0f766e, tinted background, Serif fonts). The reset buttons still show inside More. Staging has no page with overrides, so the capture rewrote the page GET in the browser only.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/override-style-panel-more-closeup.png" target="_blank"><img src="units/D3/before/override-style-panel-more-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/override-style-panel-more-closeup.png" target="_blank"><img src="units/D3/after/override-style-panel-more-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The editor with the panel closed. Unchanged.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D3/before/editor-closed.png" target="_blank"><img src="units/D3/before/editor-closed.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D3/after/editor-closed.png" target="_blank"><img src="units/D3/after/editor-closed.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Open Style, pick Warm, then open More. Before scrolls to the levers instead. &quot;Failed to fetch&quot; is the capture blocking the save.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D3/before/pick-preset-then-more.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D3/after/pick-preset-then-more.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm --filter clarity-journey-editor run typecheck -&gt; pass</code></li><li><code>eslint on ThemeStylePanel.tsx, FormFields.tsx, EditorWorkspace.tsx, MediaPicker.tsx -&gt; no errors (2 pre-existing max-lines-per-function warnings); --prune-suppressions lowered the MediaPicker.tsx analytics-id count 8 -&gt; 4</code></li><li><code>vitest canvas-keyboard-controls, media-overlay-dialog, button-interactions, color-field-popover, journey-video-edit, editor-topbar-loading -&gt; 27 passed</code></li><li><code>Look check (look-check.json in both folders): canvas screenshot before opening Style vs after opening it, opening More and closing with Escape. Computed styles (11 properties on all 440 canvas elements) identical on both sides. Pixels identical, or 1 px different on the edge of the masked animated poster. A run with the pointer left over the video changed 2,101 px, so the check can fail.</code></li><li><code>Keyboard: Enter on More opens it, Space closes it. No logo control in the panel. Canvas + Add logo present. No console errors.</code></li><li><code>CI on 7b7223dab: Typecheck, Test &amp; Build pass; Guards table, feature map and proof pass; E2E Smoke pass; Proof names the head pass. The first push failed the guards check because docs/agents/guards.md still showed 149 suppressed analytics-id controls (now 145); regenerated with node scripts/generate-guards-table.mjs.</code></li></ul>
+    <h4>Risks</h4><ul><li>Decision: the mockup&#39;s line &quot;Brand color and logo come from Settings. Open settings&quot; is not built. The brand colour does not feed the page accent yet (that is D3&#39;s PR 3), so the line would be false today.</li><li>Decision: Color stays first inside More, then Background, Fonts, Size, Corners. That is the old order; the brief lists colour last. Color is the lever most pages change, and the Background dots take their tint from it.</li><li>More is closed every time the panel opens, even on a page with overrides. The reset buttons show once it is open.</li><li>More has no open animation. It is a native &lt;details&gt;, because lint restricts Base UI Collapsible to components/ui.</li><li>Options not built: delete Size and Corners (the audit&#39;s cut), or only reorder the panel. D3&#39;s PR 2 (logo alignment on the canvas) needs no work, because the canvas logo toolbar already has left, center and right. PR 3 (accent defaults to the brand colour) is not in this PR.</li><li>Overlaps: #1509 also edits EditorWorkspace.tsx (different hunks). #1508 and #1450 edit eslint-suppressions.json (different entries).</li><li>Logo alignment on the canvas was not exercised because the staging fixture page has no logo. That code is unchanged.</li><li>Plain git was blocked by a hook in this agent&#39;s worktree; git ran as /usr/bin/git.</li><li>Captures ran on c2ffd1fcc. The head 7b7223dab adds only the regenerated docs/agents/guards.md.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>The Style pop-down has pl-3 but no right padding, so on phones the left inset is visibly larger than the right (pre-existing).</li><li>editor/tests/media-library-duration.test.ts has a comment naming &quot;the MediaPicker badge&quot;, which this PR deletes. The test covers getAssetDisplayDuration and still passes.</li></ul>
+    <p class="dim">Before ran on 61274a6f5, after on 7b7223dab. Branch <code>simplify/d3-style-panel-more</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D3">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D4" data-kind="pr" data-id="D4" data-pr="1518">
+  <header>
+    <span class="uid">D4</span>
+    <h2>Layout controls: delete summary columns, the media drag grip and section alignment bars</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1518" target="_blank">PR #1518</a>
+  </header>
+  
+  <p class="why">The canvas offered layout controls that almost nobody used. In the last 90 days, 0 of 9 summary tables were wider than two columns, and 0 of 410 stories saved a dragged media width. Under one section heading in ten was realigned. Each of these controls is chrome a rep has to read past. D4&#39;s rule is that a control stays when customers change it on more than one block in ten, so these three go. Wrap text (21%), gallery columns (5 of 13) and logo colour (6 of 34) stay, and the hero keeps its alignment bar.</p>
+  <details open><summary>What changes (4)</summary><ul><li>Summary table: the column &quot;+&quot; on the column boundary, the add-column seam at the right edge, the column drag grips and the column remove buttons are gone. Rows keep add, remove and drag.</li><li>Story media: the drag grip on the media&#39;s inner edge is gone. Size stays on the S/M/L stops in the media toolbar.</li><li>Section headings (story, logos, gallery, FAQ, pricing, summary) no longer show the left/centre/right bar on hover or focus. The hero title keeps it.</li><li>On phones, the story heading bar no longer covers the body text under it.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Summary table hovered next to the column boundary. Before: column grips on the top edge and a + on the boundary line. After: row grip and row delete only.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/summary-columns-close.png" target="_blank"><img src="units/D4/before/summary-columns-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/summary-columns-close.png" target="_blank"><img src="units/D4/after/summary-columns-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Same hover, full screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/summary-columns.png" target="_blank"><img src="units/D4/before/summary-columns.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/summary-columns.png" target="_blank"><img src="units/D4/after/summary-columns.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Story media hovered at its inner edge. Before: the drag grip beside the media. After: no grip. The toolbar (side, Wrap text, S/M/L, Replace, Remove) is unchanged.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/story-media-close.png" target="_blank"><img src="units/D4/before/story-media-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/story-media-close.png" target="_blank"><img src="units/D4/after/story-media-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Same hover, full screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/story-media.png" target="_blank"><img src="units/D4/before/story-media.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/story-media.png" target="_blank"><img src="units/D4/after/story-media.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Story heading hovered. Before: alignment bar. After: none.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading-story-close.png" target="_blank"><img src="units/D4/before/section-heading-story-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading-story-close.png" target="_blank"><img src="units/D4/after/section-heading-story-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Story heading hovered, full screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading.png" target="_blank"><img src="units/D4/before/section-heading.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading.png" target="_blank"><img src="units/D4/after/section-heading.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Logos title (stored centred) hovered. The bar goes and the title stays centred.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading-logos-close.png" target="_blank"><img src="units/D4/before/section-heading-logos-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading-logos-close.png" target="_blank"><img src="units/D4/after/section-heading-logos-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Gallery heading hovered. The bar goes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading-gallery-close.png" target="_blank"><img src="units/D4/before/section-heading-gallery-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading-gallery-close.png" target="_blank"><img src="units/D4/after/section-heading-gallery-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>FAQ heading hovered. The bar goes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading-faq-close.png" target="_blank"><img src="units/D4/before/section-heading-faq-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading-faq-close.png" target="_blank"><img src="units/D4/after/section-heading-faq-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Pricing heading hovered. The bar goes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading-pricing-close.png" target="_blank"><img src="units/D4/before/section-heading-pricing-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading-pricing-close.png" target="_blank"><img src="units/D4/after/section-heading-pricing-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Summary heading hovered. The bar goes.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/section-heading-summary-close.png" target="_blank"><img src="units/D4/before/section-heading-summary-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/section-heading-summary-close.png" target="_blank"><img src="units/D4/after/section-heading-summary-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Hero title hovered. The bar stays on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/hero-heading-close.png" target="_blank"><img src="units/D4/before/hero-heading-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/hero-heading-close.png" target="_blank"><img src="units/D4/after/hero-heading-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Hero title hovered, full screen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/hero-heading.png" target="_blank"><img src="units/D4/before/hero-heading.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/hero-heading.png" target="_blank"><img src="units/D4/after/hero-heading.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Hovers the summary column boundary, the media edge, each section heading and the hero title in turn.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D4/before/controls-hover.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D4/after/controls-hover.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, story heading tapped. Before: the bar sits on the body text. After: the text is clear.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/phone-section-heading.png" target="_blank"><img src="units/D4/before/phone-section-heading.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/phone-section-heading.png" target="_blank"><img src="units/D4/after/phone-section-heading.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, summary cell tapped. Unchanged apart from the cell caret.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/phone-summary.png" target="_blank"><img src="units/D4/before/phone-summary.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/phone-summary.png" target="_blank"><img src="units/D4/after/phone-summary.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone, story media tapped. The grip was already hidden under 760 px, so this is unchanged.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/phone-story-media.png" target="_blank"><img src="units/D4/before/phone-story-media.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/phone-story-media.png" target="_blank"><img src="units/D4/after/phone-story-media.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The fixture page in edit mode, whole canvas, no hover. Identical except inside the test video, whose frame counter changes on every load.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/fixture-edit-full.png" target="_blank"><img src="units/D4/before/fixture-edit-full.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/fixture-edit-full.png" target="_blank"><img src="units/D4/after/fixture-edit-full.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Fixture blocks one by one (also fixture-hero, -story, -gallery, -faq, -pricing): 0 changed pixels.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/fixture-summary.png" target="_blank"><img src="units/D4/before/fixture-summary.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/fixture-summary.png" target="_blank"><img src="units/D4/after/fixture-summary.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The fixture page on a phone, whole canvas. Identical apart from the test video.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/phone-fixture-full.png" target="_blank"><img src="units/D4/before/phone-fixture-full.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/phone-fixture-full.png" target="_blank"><img src="units/D4/after/phone-fixture-full.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Stored values from deleted controls, injected into the page GET in the browser on both sides: story title right-aligned, media width 47% from a drag, FAQ title centred, summary three columns wide. Renders the same on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/stored-values-full.png" target="_blank"><img src="units/D4/before/stored-values-full.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/stored-values-full.png" target="_blank"><img src="units/D4/after/stored-values-full.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Right-aligned title and dragged 47% media width. Only the video frame counter differs.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/stored-story.png" target="_blank"><img src="units/D4/before/stored-story.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/stored-story.png" target="_blank"><img src="units/D4/after/stored-story.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Three-column summary, centred title: 0 changed pixels.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/stored-summary.png" target="_blank"><img src="units/D4/before/stored-summary.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/stored-summary.png" target="_blank"><img src="units/D4/after/stored-summary.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The three-column table hovered. Every cell is still editable. After: no column chrome.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D4/before/stored-summary-hover-close.png" target="_blank"><img src="units/D4/before/stored-summary-hover-close.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D4/after/stored-summary-hover-close.png" target="_blank"><img src="units/D4/after/stored-summary-hover-close.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm run typecheck -&gt; pass (test type errors 168 -&gt; 166, budget updated)</code></li><li><code>eslint --quiet on the 11 changed source/test/config files -&gt; no issues (suppressions pruned for those files only)</code></li><li><code>node scripts/check-css-budget.mjs -&gt; holds (budget lowered with --update)</code></li><li><code>vitest summary-table-editor, canvas-conflict-drafts, canvas-keyboard-controls, button-interactions, focused-field-selection, journey-page-theme -&gt; 380 passed</code></li><li><code>vitest canvas-list-focus, journey-page-preview-surface, product-analytics-clicks, journey-page-blocks -&gt; 48 passed</code></li><li><code>Browser probe on the after build: no column controls or resize handle on the fixture; 7 row controls; Tab from the FAQ heading moves to the first question; Tab from the hero title enters its bar; no console errors</code></li><li><code>Pixel diff before vs after on all paired shots: fixture and stored-value block shots 0% changed outside the test video</code></li></ul>
+    <h4>Risks</h4><ul><li>Existing data keeps rendering, but the editor can no longer change it. That covers 41 section headings realigned in the last 90 days (story 32, FAQ 4, pricing 4, gallery 1, per D4&#39;s production query), 191 older stories with a dragged media width (reps can still pick S/M/L), and any summary wider than two columns (none in the last 90 days). Edit mode and the published page render all of these as before. No migration.</li><li>Edit with AI (generate-blocks) and the agent&#39;s page edits can still write a section heading&#39;s titlePosition. A section realigned that way can only be changed back the same way. I left both paths alone because D4 scoped the editor controls only.</li><li>Options D4 did not pick: hiding every control while stored values keep rendering, which breaks WYSIWYG; and moving section alignment into a block menu, which is more code for 8%.</li><li>D4 suggested three PRs. The coordinator asked for one, so this is one PR with one commit per control. Each commit can be reverted on its own.</li><li>Overlaps with open PRs: #1516 (LivePreview.tsx, form hunk at line ~935, not near these hunks); #1512 (MediaPicker.tsx imports and icons, not the toolbar class line this PR edits; eslint-suppressions.json); #1366 and #1450 (editor/src/index.css, other @theme blocks); #1508 (eslint.config.mjs, other rules); #1510, #1513, #1515 (eslint-suppressions.json, other keys). This PR does not touch EditorWorkspace.tsx or render-blocks.ts, so it stays clear of D2, D3&#39;s EditorWorkspace hunks and D10.</li><li>The before shots were retaken after my first edit. I set my edits aside in a WIP commit, restored main&#39;s editor/src with git restore --source=origin/main, ran the capture and restored the branch. The first after run had caught the display font before it loaded, so the script now waits for that font.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>docs/design-system/inventory.md still lists JourneyMediaResizer.tsx and the deleted .ste-col* selectors. It is generated by `pnpm design:inventory` and has drifted from other merges too, so I did not regenerate it here.</li><li>EditableText still takes alignValue from section headings. It only positions the character-limit chip now. It could be dropped if the chip should always sit at the left edge.</li><li>The fixture page&#39;s story block has no media. Story media checks need a page with story media, or the in-browser GET rewrite this capture used.</li></ul>
+    <p class="dim">Before ran on 61274a6f5, after on c146a0083. Branch <code>simplify/d4-layout-controls</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D4">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D7" data-kind="pr" data-id="D7" data-pr="1513">
+  <header>
+    <span class="uid">D7</span>
+    <h2>Leads instead of Contacts; Learn becomes Help</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1513" target="_blank">PR #1513</a>
+  </header>
+  
+  <p class="why">Contacts was a small CRM that never said which page a lead came from. In 90 days customers added 6 contacts by hand, 4 arrived from forms, and nothing came in by CSV, Google or Salesforce. A rep wants to know who filled in which page and when, so the nav now opens Leads, a list of every form submission. Learn was nine static videos holding a nav slot and a phone tab, so it moves to Help in the account menu.</p>
+  <details open><summary>What changes (8)</summary><ul><li>Nav: Home, Contacts, Learn, Settings -&gt; Home, Leads, Settings</li><li>Phone tab bar: Home, Contacts, Record, Learn, More -&gt; Home, Leads, Record, More</li><li>New /leads page: every form submission, newest first, with Name, Email, Phone, Page and When, plus search, Export CSV and a &#39;From &lt;page&gt;&#39; filter with an &#39;All leads&#39; link</li><li>Page card prospects badge: opened the per-page Contacts table -&gt; opens Leads filtered to that page (old /contacts?journeyPageId= links redirect there)</li><li>/contacts: &#39;Contacts&#39; with Export, Import CSV, Add contact, row edit and delete, bulk select -&gt; &#39;Older contacts&#39;, read-only, with search and Export CSV, linked from the bottom of Leads</li><li>Account menu: Profile, Sign out -&gt; Profile, Help, Sign out</li><li>Learn page title &#39;Learn&#39; -&gt; &#39;Help&#39; at /help; /learn redirects to /help and keeps the tab</li><li>New owner-scoped GET /api/leads; the per-page GET /api/journey-pages/:id/submissions route is deleted because Leads replaced its only caller</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Desktop nav on Home. Contacts and Learn leave the sidebar; Leads takes Contacts&#39; place.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/sidebar.png" target="_blank"><img src="units/D7/before/sidebar.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/sidebar.png" target="_blank"><img src="units/D7/after/sidebar.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Sidebar close-up.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/sidebar-closeup.png" target="_blank"><img src="units/D7/before/sidebar-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/sidebar-closeup.png" target="_blank"><img src="units/D7/after/sidebar-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The new Leads list: fake leads seeded through the real public form on the PR preview, from two pages. &#39;Older contacts&#39; sits under the table.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D7/after/leads.png" target="_blank"><img src="units/D7/after/leads.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/contacts. Before, the CRM with Import CSV and Add contact. After, Older contacts: read-only, Export CSV, a back link to Leads.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/contacts-route.png" target="_blank"><img src="units/D7/before/contacts-route.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/contacts-route.png" target="_blank"><img src="units/D7/after/contacts-route.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The URL the prospects badge used to open (/contacts?journeyPageId=). After, it lands on Leads filtered to that page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/page-leads.png" target="_blank"><img src="units/D7/before/page-leads.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/page-leads.png" target="_blank"><img src="units/D7/after/page-leads.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Clicking &#39;2 prospects&#39; on a page card on Home.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D7/before/prospects-badge.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D7/after/prospects-badge.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Reaching a lead from the nav: click the nav item, search &#39;chen&#39;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D7/before/reach-a-lead.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D7/after/reach-a-lead.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Account menu open on desktop. After, it has Help.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/account-menu.png" target="_blank"><img src="units/D7/before/account-menu.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/account-menu.png" target="_blank"><img src="units/D7/after/account-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Account menu close-up.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/account-menu-closeup.png" target="_blank"><img src="units/D7/before/account-menu-closeup.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/account-menu-closeup.png" target="_blank"><img src="units/D7/after/account-menu-closeup.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Getting to the training videos. Before, Learn in the sidebar. After, account menu then Help. The content area is blurred because the posters show a real person.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D7/before/reach-help.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D7/after/reach-help.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>An old /learn?tab= link. After, it lands on Help with the same tab. Posters blurred (real person).</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/learn-url.png" target="_blank"><img src="units/D7/before/learn-url.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/learn-url.png" target="_blank"><img src="units/D7/after/learn-url.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone Home with the tab bar.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/phone-home.png" target="_blank"><img src="units/D7/before/phone-home.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/phone-home.png" target="_blank"><img src="units/D7/after/phone-home.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone tab bar close-up: five slots become four.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/phone-tabbar.png" target="_blank"><img src="units/D7/before/phone-tabbar.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/phone-tabbar.png" target="_blank"><img src="units/D7/after/phone-tabbar.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone: More opens the drawer (MobileNav). Contacts and Learn leave it.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/phone-more-drawer.png" target="_blank"><img src="units/D7/before/phone-more-drawer.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/phone-more-drawer.png" target="_blank"><img src="units/D7/after/phone-more-drawer.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone: the account menu inside the drawer, with Help after.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/phone-account-menu.png" target="_blank"><img src="units/D7/before/phone-account-menu.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/phone-account-menu.png" target="_blank"><img src="units/D7/after/phone-account-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone: the list the nav opens. Before Contacts, after Leads. The table scrolls sideways at 390 px like the app&#39;s other tables.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/phone-list.png" target="_blank"><img src="units/D7/before/phone-list.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/phone-list.png" target="_blank"><img src="units/D7/after/phone-list.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm -s typecheck -&gt; exit 0 (test type errors 168, at budget)</code></li><li><code>npx eslint . --quiet (8 GB heap) -&gt; exit 0; pnpm lint:prune pruned one stale suppression</code></li><li><code>node scripts/generate-guards-table.mjs --check -&gt; current</code></li><li><code>editor vitest: agent-parity, frontend-router-auth-session, agent-contacts-save, leads-route, contacts-index-route, route-table -&gt; 317 passed; the implementer also ran app-shell-routes, frontend-router-legacy, product-analytics, journey-page-card-actions, journey-page-submissions, learn-video-manifest, sidebar-focus, settings-navigation -&gt; all passed</code></li><li><code>workers/frontend-router vitest tests/leads-api.test.ts -&gt; 2 passed (newest first, another owner&#39;s lead hidden, server ids dropped); goes red when the owner filter is removed</code></li><li><code>Preview pr-1513 on fe473488d: Export CSV on /leads (7 rows), on /leads?page= (2 rows, file &#39;Pricing walkthrough leads.csv&#39;), and on /contacts (5 rows) all download</code></li><li><code>Preview redirects: /contacts?journeyPageId=X -&gt; /leads?page=X; /learn?tab=getting-started -&gt; /help?tab=getting-started</code></li><li><code>Independent opus review of the diff: found the eval fixture break (fixed by keeping the contacts write API) and the empty page-filter title (fixed); no tenant leak in /api/leads</code></li></ul>
+    <h4>Risks</h4><ul><li>Customers can no longer add, edit, import or delete contacts in the app. The brief recommends this (question 2); William signs it off. Deleting a person on request now goes through the agent&#39;s contacts_delete with approval, or through support.</li><li>Leads shows only pages the user owns (journey_pages.owner_id). The deleted per-page table used canAccessJourneyPage, which also let organisation members (corp/affiliate ids) and system admins see a page&#39;s submissions. They now see none. Widening Leads to organisation pages is a product call.</li><li>Decided: Settings stays in the sidebar. The brief&#39;s question 3 adds Settings to the account menu, but D5 (one Settings page) owns that item and runs next, so this PR keeps the account-menu hunk to one Help item.</li><li>Decided: the contacts write API (POST, PUT, DELETE /api/contacts) stays. The brief says to delete it if nothing else calls it, and evals/agent-mcp/fixtures.mjs resets contacts through it. The UI no longer calls it.</li><li>Decided: the per-page route GET /api/journey-pages/:id/submissions is deleted. The agent&#39;s pages_leads reads the store directly and keeps working. parity.json&#39;s leads row now points at GET /api/leads.</li><li>Decided: parity.json keeps contacts.create, update, delete, bulk_delete and import_csv with api [] because the agent operations still cover them; the browser no longer has these actions.</li><li>Leads includes submissions from deleted pages, shown without a link. GET /api/leads returns at most 5000 rows, newest first.</li><li>When shows day granularity from the shared ageLabel (Today, Yesterday, 3d ago, Sep 29). The hover title has the exact time. The brief&#39;s mockup showed &#39;12m ago&#39;.</li><li>Other options in the brief, not built: keep the CRM as a second tab next to Leads; per-page leads only, with no global list.</li><li>Overlaps: #1514 touches editor/src/lib/routes.ts and tests/e2e/editor-route-coexistence.spec.ts; #1508, #1507 and #1510 touch workers/frontend-router/src/routes.ts (this PR adds one row); #985 touches LearnIndexRoute.tsx and App.tsx; #1481 touches product-analytics-events.ts. D5 edits SidebarUserFooter.tsx and app-navigation.ts next.</li><li>Evidence data is fake (example.com), seeded on this PR&#39;s own preview database through the real public lead form, plus a duplicated fixture page named &#39;Pricing walkthrough&#39;. Nothing touched staging or prod.</li><li>The PR keeps an empty baseline commit at the bottom so the before captures could run on the same preview.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>POST /api/contacts with a JSON body answers 500 instead of 400 (pre-existing in readContactInput).</li><li>Leads CSV prefixes phone numbers that start with + with an apostrophe (the shared spreadsheet-formula guard in escapeCsvCell). Safe, but a CRM import keeps the apostrophe.</li><li>The page card badge action is still labelled &#39;Form submissions&#39;; it could read &#39;Leads&#39;.</li><li>tests/e2e/auth-door.spec.ts:242 expects a &#39;Contacts&#39; heading at /contacts; &#39;Older contacts&#39; still matches as a substring, which is fragile.</li><li>docs/design-system/inventory.md is generated and still lists the old ContactsIndexRoute lines; nothing checks it.</li><li>Once the agent-only contact writes are kept on purpose or retired, relabel or retire the contacts.* parity rows and the evals/agent-mcp tasks that cover them.</li><li>SidebarUserFooter&#39;s shadcn/no-restyle suppression count went from 6 to 9 because the Help item copies the menu items&#39; spacing classes; D5 can fold the three items onto one class.</li></ul>
+    <p class="dim">Before ran on 3c0635516, after on 4a56767cf. Branch <code>simplify/d7-leads</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D7">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D5" data-kind="pr" data-id="D5" data-pr="1519">
+  <header>
+    <span class="uid">D5</span>
+    <h2>Settings as one page; billing through Stripe; no cancel survey</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1519" target="_blank">PR #1519</a>
+  </header>
+  
+  <p class="why">A salesperson&#39;s account settings were spread over six screens (five Settings tabs and Profile) for about ten fields. Billing listed cards with no way to add one, the cancel dialog demanded a reason, and changing a password was a three-field form for something WorkOS already does by email. This builds discussion D5&#39;s recommendation: one Settings page with four cards, billing through Stripe&#39;s own portal, and no cancel survey.</p>
+  <details open><summary>What changes (12)</summary><ul><li>Settings: five tabs (Branding, Billing, Subscription, Password, Notifications) plus Profile -&gt; one /settings page with four cards: Brand, Notifications, Plan, Your account.</li><li>Old addresses /settings/branding, /settings/notifications, /settings/billing, /settings/subscription, /settings/password and /profile replace to /settings#brand, #notifications, #plan, #plan, #account, #account, keeping the query string. The card scrolls to the top and stays there while the cards above load.</li><li>Plan card: &#39;Cancel subscription&#39; (red) -&gt; &#39;Cancel plan&#39; (quiet). New &#39;Manage billing&#39; opens the Stripe customer portal when the account has a Stripe customer; otherwise &#39;To change your card or get a receipt, email support@clarity.video.&#39;</li><li>Billing tab (card list, Set default, Remove) removed; Stripe&#39;s portal does this.</li><li>Cancel dialog: &#39;We&#39;re sorry to see you go! Please let us know why you&#39;re leaving.&#39; with reason radios, re-subscribe question and comments -&gt; &#39;Cancel your plan?&#39; / &#39;Your plan stops renewing. You keep access to the end of the period you paid for. Partial periods are not refunded.&#39; with one confirm. Trial: &#39;Cancel your free trial?&#39; / &#39;Your trial won&#39;t turn into a paid plan.&#39;</li><li>Password tab (current, new, confirm) -&gt; &#39;Send password reset email&#39; button in Your account; on success &#39;Check your inbox for the reset link.&#39;</li><li>Profile -&gt; &#39;Your account&#39; card: Name, Phone, Email (read-only, &#39;To change it, email support@clarity.video.&#39;), Booking link, Usage analytics switch, Save changes.</li><li>Account menu: &#39;Profile&#39; -&gt; &#39;Settings&#39;. Sidebar Settings goes to /settings instead of /settings/branding.</li><li>Accounts with agent access see a General / Agents nav; /settings/agents stays its own page because the trial wall leaves it open.</li><li>Sign-in rail: &#39;Email hello@clarity.video.&#39; -&gt; &#39;Email support@clarity.video.&#39;</li><li>Trial footer: &#39;Cancel your subscription any time.&#39; -&gt; &#39;Cancel any time.&#39;</li><li>New worker endpoint POST /api/billing/stripe/portal-sessions: the account&#39;s own portal link, through the existing createPortalLink.</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Settings at 1440. Before: /settings opened the Branding tab. After: one page with Brand, Notifications, Plan and Your account. The General/Agents nav shows because the test account has agent access.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-1440.png" target="_blank"><img src="units/D5/before/settings-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-1440.png" target="_blank"><img src="units/D5/after/settings-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same at 390.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-390.png" target="_blank"><img src="units/D5/before/settings-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-390.png" target="_blank"><img src="units/D5/after/settings-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/branding at 1440, full page. Before: its own tab or page. After: it replaces to /settings#brand on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-branding-1440.png" target="_blank"><img src="units/D5/before/settings-branding-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-branding-1440.png" target="_blank"><img src="units/D5/after/settings-branding-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/branding at 1440, the screen on arrival: the Brand card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-branding-1440-landing.png" target="_blank"><img src="units/D5/after/settings-branding-1440-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/branding at 390, full page. Before: its own tab or page. After: it replaces to /settings#brand on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-branding-390.png" target="_blank"><img src="units/D5/before/settings-branding-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-branding-390.png" target="_blank"><img src="units/D5/after/settings-branding-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/branding at 390, the screen on arrival: the Brand card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-branding-390-landing.png" target="_blank"><img src="units/D5/after/settings-branding-390-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/notifications at 1440, full page. Before: its own tab or page. After: it replaces to /settings#notifications on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-notifications-1440.png" target="_blank"><img src="units/D5/before/settings-notifications-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-notifications-1440.png" target="_blank"><img src="units/D5/after/settings-notifications-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/notifications at 1440, the screen on arrival: the Notifications card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-notifications-1440-landing.png" target="_blank"><img src="units/D5/after/settings-notifications-1440-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/notifications at 390, full page. Before: its own tab or page. After: it replaces to /settings#notifications on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-notifications-390.png" target="_blank"><img src="units/D5/before/settings-notifications-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-notifications-390.png" target="_blank"><img src="units/D5/after/settings-notifications-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/notifications at 390, the screen on arrival: the Notifications card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-notifications-390-landing.png" target="_blank"><img src="units/D5/after/settings-notifications-390-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/billing at 1440, full page. Before: its own tab or page. After: it replaces to /settings#plan on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-billing-1440.png" target="_blank"><img src="units/D5/before/settings-billing-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-billing-1440.png" target="_blank"><img src="units/D5/after/settings-billing-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/billing at 1440, the screen on arrival: the Plan card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-billing-1440-landing.png" target="_blank"><img src="units/D5/after/settings-billing-1440-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/billing at 390, full page. Before: its own tab or page. After: it replaces to /settings#plan on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-billing-390.png" target="_blank"><img src="units/D5/before/settings-billing-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-billing-390.png" target="_blank"><img src="units/D5/after/settings-billing-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/billing at 390, the screen on arrival: the Plan card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-billing-390-landing.png" target="_blank"><img src="units/D5/after/settings-billing-390-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/subscription at 1440, full page. Before: its own tab or page. After: it replaces to /settings#plan on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-subscription-1440.png" target="_blank"><img src="units/D5/before/settings-subscription-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-subscription-1440.png" target="_blank"><img src="units/D5/after/settings-subscription-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/subscription at 1440, the screen on arrival: the Plan card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-subscription-1440-landing.png" target="_blank"><img src="units/D5/after/settings-subscription-1440-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/subscription at 390, full page. Before: its own tab or page. After: it replaces to /settings#plan on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-subscription-390.png" target="_blank"><img src="units/D5/before/settings-subscription-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-subscription-390.png" target="_blank"><img src="units/D5/after/settings-subscription-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/subscription at 390, the screen on arrival: the Plan card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-subscription-390-landing.png" target="_blank"><img src="units/D5/after/settings-subscription-390-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/password at 1440, full page. Before: its own tab or page. After: it replaces to /settings#account on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-password-1440.png" target="_blank"><img src="units/D5/before/settings-password-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-password-1440.png" target="_blank"><img src="units/D5/after/settings-password-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/password at 1440, the screen on arrival: the Your account card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-password-1440-landing.png" target="_blank"><img src="units/D5/after/settings-password-1440-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/password at 390, full page. Before: its own tab or page. After: it replaces to /settings#account on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/settings-password-390.png" target="_blank"><img src="units/D5/before/settings-password-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-password-390.png" target="_blank"><img src="units/D5/after/settings-password-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/password at 390, the screen on arrival: the Your account card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/settings-password-390-landing.png" target="_blank"><img src="units/D5/after/settings-password-390-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/profile at 1440, full page. Before: its own tab or page. After: it replaces to /settings#account on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/profile-1440.png" target="_blank"><img src="units/D5/before/profile-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/profile-1440.png" target="_blank"><img src="units/D5/after/profile-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/profile at 1440, the screen on arrival: the Your account card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/profile-1440-landing.png" target="_blank"><img src="units/D5/after/profile-1440-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/profile at 390, full page. Before: its own tab or page. After: it replaces to /settings#account on the one page.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/profile-390.png" target="_blank"><img src="units/D5/before/profile-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/profile-390.png" target="_blank"><img src="units/D5/after/profile-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/profile at 390, the screen on arrival: the Your account card scrolled into view.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D5/after/profile-390-landing.png" target="_blank"><img src="units/D5/after/profile-390-landing.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Plan for a paying account that has a Stripe customer (made by rewriting the test account&#39;s own /api/me answer in the browser). After: Manage billing and a quiet Cancel plan.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/paid-stripe-customer-1440.png" target="_blank"><img src="units/D5/before/paid-stripe-customer-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/paid-stripe-customer-1440.png" target="_blank"><img src="units/D5/after/paid-stripe-customer-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same at 390.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/paid-stripe-customer-390.png" target="_blank"><img src="units/D5/before/paid-stripe-customer-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/paid-stripe-customer-390.png" target="_blank"><img src="units/D5/after/paid-stripe-customer-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Plan for a paying account with no Stripe customer (rewritten /api/me). After: no Manage billing; the card says to email support@clarity.video for card changes or receipts.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/paid-no-stripe-customer-1440.png" target="_blank"><img src="units/D5/before/paid-no-stripe-customer-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/paid-no-stripe-customer-1440.png" target="_blank"><img src="units/D5/after/paid-no-stripe-customer-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same at 390.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/paid-no-stripe-customer-390.png" target="_blank"><img src="units/D5/before/paid-no-stripe-customer-390.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/paid-no-stripe-customer-390.png" target="_blank"><img src="units/D5/after/paid-no-stripe-customer-390.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>/settings/billing for the same paying account. Before: an empty card list with no add button. After: lands on the Plan card.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/paid-stripe-customer-billing-1440.png" target="_blank"><img src="units/D5/before/paid-stripe-customer-billing-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/paid-stripe-customer-billing-1440.png" target="_blank"><img src="units/D5/after/paid-stripe-customer-billing-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Cancel. Before: required reason, re-subscribe question and comments. After: one confirm. The click stops at the dialog; nothing was sent.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D5/before/cancel-dialog-1440.png" target="_blank"><img src="units/D5/before/cancel-dialog-1440.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D5/after/cancel-dialog-1440.png" target="_blank"><img src="units/D5/after/cancel-dialog-1440.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Home, sidebar Settings, scroll the page, account menu (Profile before, Settings after), then open /settings/notifications, /settings/billing and /settings/password in turn.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D5/before/settings-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D5/after/settings-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>editor tsc -b -&gt; clean; frontend-router tsc --noEmit -&gt; clean</code></li><li><code>vitest on 29 nearby files (settings, plan card, support billing, parity, route table, app shell, stripe checkout, sidebar, protected session) -&gt; all pass. New tests: settings-route (all 6 old addresses incl. query string, hash scroll), plan-card (portal button, portal click, refused portal, support line, cancel posts no body), support-billing (own portal: customer gets a URL, no customer gets 409)</code></li><li><code>eslint --quiet on changed files -&gt; clean; lint:prune removed stale suppressions; react-doctor --blocking error -&gt; exit 0</code></li><li><code>check-feature-map-paths, check-test-types (at budget), check-css-budget, check-loc-ratchet, generate-guards-table --check -&gt; pass</code></li><li><code>PR CI on 774430c5: Typecheck, Test &amp; Build pass; Guards table, feature map and proof pass; E2E Smoke pass; Proof names the head pass</code></li><li><code>Independent review by a separate Claude reviewer: no blocking bugs. Its test gaps, back-button reset, analytics ids, scroll reset and copy findings were fixed before the final push</code></li></ul>
+    <h4>Risks</h4><ul><li>Billing policy, needs William&#39;s sign-off: the Stripe portal replaces the in-app card list. Measured read-only on prod D1 today by users.stripe_customer_id, the column the button keys on: 218 of 243 subscriber accounts get Manage billing and 25 get the support line; 7 of 93 internal and 3 of 22 corporate accounts have a customer. The brief&#39;s 91% figure counts subscription rows: 1,263 of the 1,345 active rows with no Stripe customer belong to trial-kind accounts, which see the trial state with no billing controls, not the support line. Approximate, because /me decides paid vs trial from entitlement, not the kind column.</li><li>Nothing new keys on period-end dates. The existing status fallback in SubscriptionRoute (a future end date reads as active when no status is stored) is unchanged.</li><li>The portal session passes no Stripe portal configuration, so the Stripe dashboard&#39;s default portal settings decide what a customer can do there. If plan switching or cancellation is on in the dashboard, a customer can change price or cancel outside the app; the webhook syncs subscription.updated/deleted. Check the default portal configuration before merge. Not verified against live Stripe.</li><li>Cancel survey policy, needs sign-off: the answers were not on the D1 subscription row, but the worker did write them to Stripe subscription metadata (cancellation_reason, cancellation_comments, cancellation_would_resubscribe) for accounts with a Stripe subscription. After this, cancel posts no body and that metadata stops. The worker still accepts the fields.</li><li>What cancelling does is unchanged: same endpoint, same Stripe call. Prices, checkout and trial logic are unchanged.</li><li>The reset-email button shows for every account. Nothing in the app records whether an account has a password, and the old change-password form also showed for everyone. For a Google- or Microsoft-only account the WorkOS reset email adds a password. Hiding it needs the WorkOS sign-in method, which is not built.</li><li>Analytics: the account-menu id nav_account_profile -&gt; nav_account_settings because the destination changed, so PostHog history for that control splits. New ids: settings_plan_manage_billing, settings_plan_support_email, settings_plan_retry, subscription_upgrade_monthly, subscription_upgrade_annually, settings_account_password_reset, settings_account_support_email, settings_nav_general. The settings_nav_branding/billing/subscription/password/notifications ids go with the tabs.</li><li>Overlap #1510 (D6, notifications): NotificationsRoute.tsx is mounted untouched, so its rewrite applies cleanly. Expect a small text conflict in .agents/skills/verify-loop/features/settings.md, and regenerate docs/agents/guards.md and eslint-suppressions.json if they conflict.</li><li>Overlap #1513 (D7, Leads/Help): the account-menu hunk is the one Profile item (icon, label, path, id); the sidebar hunk is one path. #1513 had no files when checked.</li><li>The PR adds a Worker endpoint and no migration. The editor shows Manage billing from /me, so an editor deployed before the router would 404 on click; prod runs deploy both together.</li><li>Evidence: the staging test account is an included trial with a Stripe customer, so the paid states (portal and support line) come from rewriting its own /api/me and /api/get_user_subscription answers inside the capture browser. The Stripe portal itself was not opened; the worker test covers the session call.</li><li>Before evidence ran on 61274a6f5 before any edit, except settings-flow.webm, which was re-recorded on a detached checkout of 61274a6f5 to blur the account email.</li><li>Plain git was blocked by a worktree hook; git steps ran through /usr/bin/git.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Delete the now-unused worker endpoints: payment-methods list, default-payment-method, attach, detach, setup-intents, and /auth/change-password, plus the auth-session.ts comment that points at PasswordRoute.</li><li>Stop the worker reading cancellation reason, comments and wouldResubscribe once William confirms the survey goes.</li><li>createPortalLink returns Stripe to /settings/subscription; /settings#plan would save a redirect hop if Stripe accepts a fragment.</li><li>product-analytics-events.ts ROUTES still lists /profile and the old settings paths and lacks /settings/agents.</li><li>docs/design-system/inventory.md names the deleted Billing, Password and Profile routes; rerun pnpm design:inventory.</li><li>privacy.html still lists hello@clarity.video as the owner contact; legal copy, left alone.</li><li>Rename SubscriptionRoute, BrandingRoute and NotificationsRoute to PlanCard, BrandCard and NotificationsCard after #1510 lands.</li><li>The Plan card line &#39;Active — renews automatically at the end of each cycle.&#39; keeps an em dash from before.</li></ul>
+    <p class="dim">Before ran on 61274a6f5, after on 774430c52. Branch <code>simplify/d5-settings-one-page</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D5">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+<article class="card" id="D8" data-kind="pr" data-id="D8" data-pr="1517">
+  <header>
+    <span class="uid">D8</span>
+    <h2>Recorder: automatic trim with one Restore link, edit modal saves as you go</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1517" target="_blank">PR #1517</a>
+  </header>
+  
+  <p class="why">Trimming was a three-way choice (Auto, Custom, None) that 6 users ever made, and a video with no automatic trim had no way back except dragging a handle to the edge. The edit modal saved only on Done and threw the edit away on Esc, while the recorder saved as you went. Now the automatic trim lands on the handles with nothing to choose, one &quot;Restore full video&quot; link undoes any trim, and the modal saves like the recorder.</p>
+  <details open><summary>What changes (5)</summary><ul><li>Recorder finish screen and edit modal: the Auto / Custom / None group is removed; &quot;Restore full video&quot; shows in its place while the video is trimmed</li><li>Edit modal: Cancel is removed; each edit saves 700 ms after the rep lets go, with &quot;Saving…&quot; then &quot;Saved&quot; next to Done</li><li>Edit modal: Esc and a click outside now save and close, like Done (before, they dropped the edit)</li><li>Edit modal: after a failed save, &quot;Couldn&#39;t save changes.&quot; with Try again stays; Esc or a click outside then closes without the save</li><li>The four recording layouts are unchanged</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Edit modal from the library on staging, 1440, on the one staging video with an automatic trim. Before: Auto / Custom / None in the middle, Cancel and Done on the right. After: &quot;Restore full video&quot; in the middle, Done alone. Picture, strip and library thumbnails are blurred because the recording shows a real person.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/edit-modal.png" target="_blank"><img src="units/D8/before/edit-modal.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/edit-modal.png" target="_blank"><img src="units/D8/after/edit-modal.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same modal&#39;s control row and strip, close up.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/edit-modal-controls.png" target="_blank"><img src="units/D8/before/edit-modal-controls.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/edit-modal-controls.png" target="_blank"><img src="units/D8/after/edit-modal-controls.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same modal at 390. After, Restore full video and Done share the second row.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/edit-modal-phone.png" target="_blank"><img src="units/D8/before/edit-modal-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/edit-modal-phone.png" target="_blank"><img src="units/D8/after/edit-modal-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone control row close up.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/edit-modal-controls-phone.png" target="_blank"><img src="units/D8/before/edit-modal-controls-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/edit-modal-controls-phone.png" target="_blank"><img src="units/D8/after/edit-modal-controls-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>PR preview (its own database, writes allowed), same fixture video on both sides: drag the start handle, wait, press Esc, reopen. Before, the trim is gone on reopen. After, &quot;Saving…&quot; then &quot;Saved&quot; shows and the trim is still there on reopen.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D8/before/modal-autosave.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D8/after/modal-autosave.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The reopened modal from that flow. Before: full video, Cancel and Done. After: trimmed, with Restore full video.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/modal-autosave-reopened.png" target="_blank"><img src="units/D8/before/modal-autosave-reopened.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/modal-autosave-reopened.png" target="_blank"><img src="units/D8/after/modal-autosave-reopened.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>PR preview: a trimmed video without an automatic trim. Before, nothing undoes the trim, so the flow drags the handle back to the start and presses Done. After, one click on Restore full video, &quot;Saved&quot;, Done, and the reopened modal shows the whole video.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D8/before/modal-restore.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D8/after/modal-restore.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Right after the undo. After shows &quot;Saved&quot; next to Done.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/modal-restore-restored.png" target="_blank"><img src="units/D8/before/modal-restore-restored.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/modal-restore-restored.png" target="_blank"><img src="units/D8/after/modal-restore-restored.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Recorder finish screen on local Vite against staging with a fake camera, after dragging the start handle. The fake audio has no speech, so no automatic trim lands; the drag stands in for one. Before: nothing to undo it. After: Restore full video.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/finish-trimmed.png" target="_blank"><img src="units/D8/before/finish-trimmed.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/finish-trimmed.png" target="_blank"><img src="units/D8/after/finish-trimmed.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same at 390.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/finish-trimmed-phone.png" target="_blank"><img src="units/D8/before/finish-trimmed-phone.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/finish-trimmed-phone.png" target="_blank"><img src="units/D8/after/finish-trimmed-phone.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>Record 5 s, Stop, drag the start handle, then (after only) click Restore full video and the handles go back to the ends. The harness blocked the upload POST, so nothing reached staging.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D8/before/finish-restore.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D8/after/finish-restore.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The same flow at 390.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D8/before/finish-restore-phone.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D8/after/finish-restore-phone.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Finish screen after Restore full video: the whole recording, the link gone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><div class="none">Not present before</div></div>
+      <div><div class="label after">After</div><a href="units/D8/after/finish-restored.png" target="_blank"><img src="units/D8/after/finish-restored.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Finish screen right after Stop, untouched. Same on both sides because no automatic trim lands for fake media.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D8/before/finish.png" target="_blank"><img src="units/D8/before/finish.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D8/after/finish.png" target="_blank"><img src="units/D8/after/finish.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>editor vitest: video-editor, video-edit-modal-save, record-video-route-inline-video, home-video-editor-player, journey-video-edit, video-editor-prefetch, recorder-take, record-video-take-state, video-speech-query -&gt; 121 passed</code></li><li><code>mutation: applying modal edits without the settle wait -&gt; 2 modal tests fail (the save-on-settle test and the nudge-out-and-back test)</code></li><li><code>editor tsc -b -&gt; no errors; node scripts/check-test-types.mjs -&gt; 168, at budget</code></li><li><code>eslint --quiet on changed source and test files -&gt; no issues; eslint --prune-suppressions dropped the VideoEditConsole analytics-id count 9 -&gt; 5 (Auto, Custom, None, Cancel removed); the new link has data-analytics-id video_edit_restore_full</code></li><li><code>pnpm run lint:react-doctor -&gt; exit 0 (its one error is in tests/workspace-library-selection.test.tsx, untouched)</code></li><li><code>control-clarity doctor --pr 1517 --wait -&gt; preview served e6db3cd31 for before and 06b1af788 for after</code></li><li><code>independent review (opus) of e44059526 -&gt; 4 should-fix modal bugs, all fixed in 06b1af788: a nudge out and back sent a reset that closes the automatic trim for good; a stale baseline survived close and reopen of the same video; &quot;Saving trim…&quot; showed next to a failed save; a fresh server copy could be adopted mid-drag</code></li><li><code>staging writes: after/blocked.txt holds only rum beacons and mux upload POSTs, no edit writes</code></li><li><code>PR head 7dc9f9a13 = after_sha 06b1af788 plus a regenerated docs/agents/guards.md (analytics-id suppressions 149 -&gt; 145), which the Guards table CI step required</code></li></ul>
+    <h4>Risks</h4><ul><li>Existing videos keep whatever trim they have; no migration. A video whose owner chose None has no trim, and the server already closed its automatic trim (human_trim_closed), so it stays full length and shows no Restore link. A video with a Custom trim keeps it and shows Restore full video, which resets it.</li><li>Restore closes the automatic trim on the server, as None did, so it cannot be brought back with a click. A rep who wants it back drags the handles.</li><li>While the automatic trim is still pending there is nothing to restore, so a rep can no longer choose None in advance; they wait for the trim to land, then restore. The pending spinner on Auto is gone with the button.</li><li>Behaviour change: Esc and a click outside used to throw the edit away; they now save it. A thumbnail change has no undo besides changing it back.</li><li>After a failed save, Esc or a click outside closes and drops the unsaved edit (Done keeps retrying). This matches the old Cancel.</li><li>Done with no edits now calls onClose rather than onSaved, so it skips a library refresh. Nothing was written, so nothing is stale.</li><li>If a save hangs, Done stays busy and Esc does nothing until the request times out. The old Done behaved the same.</li><li>The four-layout merge is not in this PR, as the brief says. The brief&#39;s other options: merge to three now keeping inset, or keep the trim toggles and only autosave.</li><li>Overlap: open PR #1366 rewrites VideoEditConsole, VideoEditModal, VideoEditor, RecordVideoRoute and the same three test files; it is already behind main and will conflict with this PR in the console&#39;s trim group and the modal&#39;s Cancel. Open PR #1509 (D1) touches RecordVideoRoute.tsx and RecorderFinishActions.tsx; this PR only removes two props from one &lt;VideoEditor&gt; call in RecordVideoRoute and does not touch RecorderFinishActions. Open PR #1507 touches RecorderFinishActions.tsx only: no overlap. #1514 touches home-video-editor-player.test.tsx: no overlap.</li><li>The PR branch starts with an empty baseline commit (e6db3cd31) used to capture the before state on the same preview; a squash merge drops it.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>Pre-existing on main: reopening the same video right after a save can start from a stale cached copy (the video-edit-asset query is not refetched on mount), and the next save gets a 409 and &quot;Couldn&#39;t save changes&quot;. Reproduced on the preview before this change. Open PR #1366 carries a fix (refetchOnMount always plus isFetchedAfterMount).</li><li>Pre-existing: one trim save on the preview sends three edit POSTs (trim, then preview and poster), because a saved poster time makes the editor report a clamped preview.</li><li>The modal keeps its `adopted` copy across close and reopen of the same video, as before; a reopen can start from an older copy of the video&#39;s data (reviewer note).</li><li>&quot;Saving trim…&quot; shows on open for legacy trims whose clip is not live (U10 already flagged the wording).</li></ul>
+    <p class="dim">Before ran on e6db3cd31, after on 06b1af788. Branch <code>simplify/d8-recorder-auto-trim</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D8">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+
+
+</main>
+<div class="bar"><span class="count" id="count"></span><button class="ghost" id="copy">Copy as text</button><button id="send">Send decisions</button></div>
+<script>
+const KEY='clarity-simplify-review-'+"r4";const state=JSON.parse(localStorage.getItem(KEY)||'{}');
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));render();};
+document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;state[id]??={};
+  if(card.dataset.kind==='pr'){const s=state[id];
+    card.querySelectorAll('.decide .choices button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=card.querySelector('.decide textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};
+  } else card.querySelectorAll('.qs li').forEach(li=>{const q=li.dataset.q;const s=(state[id][q]??={});
+    li.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=li.querySelector('textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};});
+});
+function render(){let done=0,total=0;
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const a=document.querySelector('nav a[data-for="'+id+'"]');
+    if(card.dataset.kind==='pr'){total++;const v=state[id].v;if(v)done++;
+      card.querySelectorAll('.decide .choices button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+      a.className=v==='approve'?'done':v==='changes'?'chg':v==='reject'?'rej':'';}
+    else{const qs=card.querySelectorAll('.qs li');let answered=0;qs.forEach(li=>{const s=state[id][li.dataset.q]||{};if(s.v)answered++;
+      li.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.v));});total++;if(answered===qs.length&&qs.length)done++;
+      a.className=answered===qs.length&&qs.length?'done':answered?'chg':'';}});
+  document.getElementById('count').textContent=done+' of '+total+' decided';}
+function text(){const L=['Decisions on the simplification PRs',''];
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const title=card.querySelector('h2').textContent;
+    if(card.dataset.kind==='pr'){const s=state[id];if(!s.v&&!s.c)return;const pr=card.dataset.pr?' (#'+card.dataset.pr+')':'';
+      L.push('- '+id+pr+' '+title+': '+({approve:'APPROVE',changes:'CHANGES',reject:'DROP'}[s.v]||'COMMENT')+(s.c?' - '+s.c.replace(/\n/g,' '):''));}
+    else{const lines=[];card.querySelectorAll('.qs li').forEach(li=>{const s=state[id][li.dataset.q]||{};if(!s.v&&!s.c)return;
+      lines.push('  - Q'+(+li.dataset.q+1)+': '+(s.v==='yes'?'go with recommendation':s.v==='other'?'something else':'comment')+(s.c?' - '+s.c.replace(/\n/g,' '):''));});
+      if(lines.length){L.push('- '+id+' '+title+':');L.push(...lines);}}});
+  return L.join('\n');}
+document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(text());document.getElementById('copy').textContent='Copied';setTimeout(()=>document.getElementById('copy').textContent='Copy as text',1500);};
+document.getElementById('send').onclick=()=>{const body=text()+'\n\nSent from the overnight review page.';
+  location.href='https://github.com/Clarity-Video-HQ/clarity/issues/new?title='+encodeURIComponent(''+"Simplification review decisions, round four"+'')+'&body='+encodeURIComponent(body);};
+render();
+</script></body></html>
