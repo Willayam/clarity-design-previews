@@ -23,15 +23,16 @@ nav.toc a { text-decoration: none; }
 .meta { color: var(--muted); }
 </style></head>
 <body><main><nav class="toc"><a href="inventory-router.html">Router HTTP doors</a> · <a href="inventory-library.html">Library, webhooks, cron, scripts</a> · <a href="inventory-editor.html">Editor client</a> · <a href="inventory-stack.html">Parity stack</a></nav><h1 id="every-action-defined-once">Every action defined once</h1>
-<p>Design for William, 2026-10-14. Research and design only. Nothing in Clarity was changed, and no PR or issue was opened.</p>
-<p>Code read at main <code>e839a6bd5</code> and at the agent-parity stack tip <code>64d30da0b</code> (PRs #1465 to #1475, unmerged). Paths are repo-relative. <code>R/</code> is <code>workers/frontend-router/src/</code>, <code>W/</code> is <code>workers/workspace-tree/src/</code>, <code>E/</code> is <code>editor/src/</code>, and <code>S/</code> is the same path on the stack tip.</p>
+<p>Design for William, 2026-10-14. Refreshed 2026-10-16 against main <code>61274a6f5</code>, after the agent-operations stack (#1465 to #1475), the Free plan (#1473), the agent fixes (#1483 to #1489) and the share dialog (#1457) merged. Research and design only. Nothing in Clarity was changed. The GitHub issues for the remaining PRs are linked from section 4.</p>
+<p>Code read at main <code>61274a6f5</code>. Paths are repo-relative. <code>R/</code> is <code>workers/frontend-router/src/</code>, <code>W/</code> is <code>workers/workspace-tree/src/</code>, <code>E/</code> is <code>editor/src/</code>. The first measurement was taken at main <code>e839a6bd5</code> and the stack tip <code>64d30da0b</code>; section 8 lists every number and claim the refresh changed.</p>
 <h2 id="summary">Summary</h2>
-<p>Today an action such as "publish a Journey Page" is written up to four times. The browser route hand-parses its input. The trial wall decides access by HTTP method and a list of path regexes. The editor declares its own copy of the response type. The agent door has a second definition with a zod schema and an effect class. Measured on main, Clarity takes requests through 8 doors and about 140 entry points: 96 HTTP method-and-path pairs, 9 MCP operations, 12 webhook event types, 13 cron tasks, 10 data-writing scripts and a few more. 9 of them validate input with a schema, and all 9 are MCP operations. I count 28 rules restated in two or more places on main, and 17 of those copies already disagree. The unmerged parity stack brings agents to 34 operations and adds 9 more restated rules. It keeps the two definitions in step with a hand-written ledger, <code>parity.json</code>.</p>
-<p>The target has two layers. An <strong>action</strong> defines policy once: name, input and output schema, who may call it, its effect class, whether an agent needs the owner's approval, and the product event its commit writes. A <strong>store</strong> defines an invariant once. Each table or rule has one writer, fenced by a lint, as <code>clarity/videos-write-fence</code> already does for videos. The editor calls <code>act(name, input)</code> over one route, <code>POST /api/actions/:name</code>. MCP and the CLI list the same registry. Webhooks, cron jobs and scripts never call actions. They call the same stores the actions call. One kernel runs every call through the same checks in the same order, so the browser wall and the agent dispatcher can no longer drift apart. An approved change commits only if the state the owner approved is still the state in the database, checked inside the same D1 batch.</p>
-<p>The path is 14 PRs, the parity stack first and then 13 more. Approval enforcement (the "PR 5" of the agent-access plan, which is #1470 on the stack) reaches staging with the stack. The approvable actions move into the kernel first, each with an in-batch guard. Production <code>/mcp</code> stays closed until all seven of them are guarded, which happens at PR 6. At the end <code>parity.json</code>, the agent dispatcher, <code>agent/ops-*.ts</code>, the trial wall's <code>/api</code> rules, the Library's HTTP route table and about 1,400 lines of hand-written editor API modules are gone.</p>
+<p>Today an action such as "publish a Journey Page" is written up to four times. The browser route hand-parses its input. The editor declares its own copy of the response type. The agent door has a second definition with a zod schema and an effect class. Measured on main, Clarity takes requests through 8 doors and about 175 entry points: 101 HTTP method-and-path pairs, 34 MCP operations, 12 webhook event types, 14 cron tasks, 10 data-writing scripts and 4 r2-media entries. 34 of them validate input with a schema, and all 34 are MCP operations. I count 43 rules restated in two or more places, and 29 of those copies disagree. The agent stack keeps its two definitions in step with a hand-written ledger, <code>parity.json</code> (137 rows), whose test checks coverage and not behavior.</p>
+<p>Two things got better since the first measurement. The trial wall no longer decides access by HTTP method and path regex, because #1473 moved lapsed accounts to Free and the wall now refuses only suspended accounts (<code>R/trial-wall.ts</code>, 156 lines). And publication is one D1 batch in <code>R/public-page-delivery/live-pages.ts</code>, fenced by <code>clarity/live-page-writes</code>, instead of three separate writes. That store is the one this design needs, so PR 3 adopts it.</p>
+<p>The target has two layers. An <strong>action</strong> defines policy once: name, input and output schema, who may call it, its effect class, whether an agent needs the owner's approval, and the product event its commit writes. A <strong>store</strong> defines an invariant once. Each table or rule has one writer, fenced by a lint, as <code>clarity/videos-write-fence</code> does for videos and <code>clarity/live-page-writes</code> does for publication. The editor calls <code>act(name, input)</code> over one route, <code>POST /api/actions/:name</code>. MCP and the CLI list the same registry. Webhooks, cron jobs and scripts never call actions. They call the same stores the actions call. One kernel runs every call from every door through the same checks in the same order. An approved change commits only if the state the owner approved is still the state in the database, checked inside the same D1 batch.</p>
+<p>The path is 13 PRs. PR 0, merging the stack, is done. The approvable actions move into the kernel first, each with an in-batch guard. Production <code>/mcp</code> stays closed until all of them are guarded, which happens at PR 6. At the end <code>parity.json</code>, the agent dispatcher, the 5,050 lines under <code>R/agent/</code>, the Library's HTTP route table and about 1,750 lines of hand-written editor API modules are gone.</p>
 <h2 id="1-where-we-are-measured">1. Where we are, measured</h2>
 <h3 id="the-doors">The doors</h3>
-<p>Counts come from four read-only explorers (gpt-6-sol) that traced every entry point. I and three critics checked the counts that carry the argument against the code. The explorers' full tables are in the appendix. The units differ by door, so the table states each one.</p>
+<p>The first counts came from four read-only explorers (gpt-6-sol) at <code>e839a6bd5</code>, checked by three critics. The refresh re-ran the same counting method against <code>61274a6f5</code> with four explorers (opus) and I checked the numbers that carry the argument. The explorers' original tables are in the appendix. The units differ by door, so the table states each one.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -39,38 +40,38 @@ nav.toc a { text-decoration: none; }
 <th>Entry points on main</th>
 <th>Input validated by a schema</th>
 <th>Auth and ownership live in</th>
-<th>Entitlement lives in</th>
+<th>Plan rules live in</th>
 <th>Response type lives in</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Router <code>/api</code></td>
-<td>70 HTTP method-and-path pairs (22 read, 48 write). They include the 2 webhook endpoints and the public telemetry and form rows. 31 of the 44 rows in <code>R/routes.ts</code> carry them</td>
+<td>75 HTTP method-and-path pairs (24 read, 51 write) on 32 of the 46 rows in <code>R/routes.ts:82-409</code>. They include the 2 webhook endpoints, the public telemetry and form rows, and the 4 approval pairs #1470 added (<code>R/routes.ts:233-240</code>)</td>
 <td>0</td>
-<td>Each handler, after the row's <code>auth</code> word (<code>R/route-table.ts:4-9</code>)</td>
-<td><code>R/trial-wall.ts</code>, by method and path regex</td>
+<td>Each handler, after the row's <code>auth</code> word (<code>R/route-table.ts:50-71</code>)</td>
+<td>Suspension in <code>R/trial-wall.ts:57-71</code>. The live-page limit inside <code>live-pages.ts</code></td>
 <td>Handler code, restated by the editor</td>
 </tr>
 <tr>
 <td>Library <code>/api/tree</code></td>
-<td>26 pairs (12 read, 14 write), forwarded in-process</td>
+<td>26 pairs (12 read, 14 write), forwarded in-process (<code>W/index.ts:153-237</code>, <code>W/video-read-routes.ts:7-18</code>)</td>
 <td>0</td>
-<td>The router pins identity (<code>R/router-endpoints.ts:443-455</code>), Library queries bind the workspace</td>
-<td>The same wall</td>
+<td>The router pins identity (<code>R/router-endpoints.ts:441-462</code>), Library queries bind the workspace</td>
+<td>None</td>
 <td><code>W/index.ts</code>, then rewritten by <code>R/library-media.ts</code></td>
 </tr>
 <tr>
 <td>MCP agents</td>
-<td>9 operations (8 read, 1 write); 34 on the stack</td>
-<td>9 of 9, zod/mini</td>
+<td>34 operations (<code>R/agent/registry.ts:17-24</code>): 14 read, 11 write, 3 spend, 2 publish, 1 retract, 3 destroy. 7 can ask for approval</td>
+<td>34 of 34, zod/mini (<code>R/agent/operation.ts:71</code>)</td>
 <td><code>R/agent/caller.ts</code> plus each operation</td>
-<td><code>R/agent/policy.ts</code>, by effect class</td>
+<td>The same <code>live-pages.ts</code></td>
 <td>Unchecked <code>Record&lt;string, unknown&gt;</code></td>
 </tr>
 <tr>
 <td>Provider webhooks</td>
-<td>12 event types (Mux, Stripe) on 2 of the router pairs</td>
+<td>12 event types (Mux 7 at <code>packages/mux/src/webhook.ts:124-146</code>, Stripe 5 at <code>R/stripe-billing.ts:637-650</code>) on 2 of the router pairs</td>
 <td>0. Signature, then hand parsing</td>
 <td>Signature, with the Mux passthrough checked against the owner</td>
 <td>None</td>
@@ -86,7 +87,7 @@ nav.toc a { text-decoration: none; }
 </tr>
 <tr>
 <td>Cron and jobs</td>
-<td>13 scheduled tasks on the one-minute cron (<code>R/index.ts:29-43</code>)</td>
+<td>14 scheduled tasks on the one-minute cron (<code>R/index.ts:29-44</code>). #1484 added <code>lapseExpiredApprovals</code></td>
 <td>0</td>
 <td>Job row scope and lease</td>
 <td>None</td>
@@ -94,7 +95,7 @@ nav.toc a { text-decoration: none; }
 </tr>
 <tr>
 <td>Scripts</td>
-<td>10 scripts that write production data</td>
+<td>10 scripts that write production data, plus <code>packages/clarity-cli/clarity.mjs</code>, which writes through <code>/mcp</code></td>
 <td>0</td>
 <td>The operator</td>
 <td>None</td>
@@ -110,13 +111,12 @@ nav.toc a { text-decoration: none; }
 </tr>
 </tbody>
 </table></div>
-<p>The editor side mirrors the first two rows. It reaches 84 method-and-path actions from 86 call sites. Between 12 and 16 of those are raw <code>fetch</code> calls outside the shared wrapper, depending on how wrappers are counted. It declares at least 27 response types of its own and casts JSON to them without a check (<code>E/lib/editor-api.ts:293</code>). It imports 10 response types from <code>packages/</code>.</p>
-<p>Two more facts shape the design. Product events for creation come from SQL triggers, not handlers (<code>workers/frontend-router/migrations-auth/0023_move_triggers.sql:13-33</code>). And main has no Convex code. The explorer searched and found none, so Convex functions are not a door today.</p>
+<p>The editor side mirrors the first two rows. It reaches 92 method-and-path actions from 94 call sites (up from 84 and 86, from the approvals API and the live speech routes). 15 of those are raw <code>fetch</code> calls outside the shared wrapper. It declares at least 29 response types of its own and casts JSON to them without a check (<code>E/lib/editor-api.ts:292</code>). It imports 11 response types from <code>packages/</code>. The hand-written API modules (<code>tree-api.ts</code>, <code>take-api.ts</code>, <code>journey-page-sharing.ts</code>, <code>page-stats-api.ts</code>, <code>admin-user-accounts-api.ts</code>, <code>support-accounts-api.ts</code>, <code>agent-api.ts</code> and <code>editor-api.ts</code>) total 1,746 lines.</p>
+<p>Two more facts shape the design. Product events for creation come from SQL triggers, not handlers (<code>workers/frontend-router/migrations-auth/0023_move_triggers.sql:13-33</code>). And main has no Convex code, so Convex functions are not a door.</p>
 <h3 id="one-action-today-traced">One action today, traced</h3>
-<p>Publishing a page from the browser goes through <code>POST /api/journey-pages/:id/publish</code>. The wall in <code>R/trial-wall.ts</code> lets it through when the account is entitled, because it is a POST that is not on the exit list (<code>R/trial-wall.ts:210-228</code>). The handler hand-parses <code>revision</code> and checks prospect content (<code>R/journey-pages-native.ts:431-465</code>). It calls <code>publishJourneyPage</code> (<code>R/journey-page-access.ts:73-86</code>). That function makes three separate writes and reads: a revision compare-and-swap on the publication, route activation, then a sharing read. Nothing batches them. The editor's <code>E/lib/journey-page-sharing.ts:5-78</code> declares <code>PageSharing</code> and maps snake case to camel case by hand. A client PostHog event, <code>journey_page_publish_changed</code>, records the attempt (<code>E/hooks/use-page-publication.ts:184</code>). On the stack, the agent's <code>pages_publish</code> calls the same <code>publishJourneyPage</code>. It reads the page three times (exposure, facts and run, <code>S/R/agent/ops-publish.ts:112-147</code>), decides entitlement by effect class, and returns a different shape.</p>
+<p>Publishing a page from the browser goes through <code>POST /api/journey-pages/:id/publish</code>. The wall lets any account that is not suspended through (<code>R/trial-wall.ts:57-71</code>). The handler hand-parses <code>revision</code> and checks prospect content (<code>R/journey-pages-native.ts:454-492</code>), then calls <code>goLive</code> (<code>R/public-page-delivery/live-pages.ts:139-145</code>). That function writes the publication and the route in one batch of three statements, each guarded by the live-page limit in its <code>WHERE</code> (<code>live-pages.ts:51-58,161-186</code>). Nothing in the batch checks that the draft the owner saw is the draft being published, and nothing writes a product event. The editor's <code>E/lib/journey-page-sharing.ts:5-77</code> declares <code>PageSharing</code> and maps snake case to camel case by hand. A client PostHog event, <code>journey_page_publish_changed</code>, records the attempt (<code>E/hooks/use-page-publication.ts:188,229</code>). The agent's <code>pages_publish</code> reads the page three times through <code>accessiblePage</code> (<code>R/agent/ops-publish.ts:114,119,132</code>), calls the same <code>goLive</code>, and returns a different shape.</p>
 <h3 id="rules-written-twice">Rules written twice</h3>
-<p>Deduplicated from the four explorers' tables. "Differs" means the copies already give different answers today.</p>
-<p><strong>On main</strong></p>
+<p>Deduplicated from the explorers' tables and re-verified at <code>61274a6f5</code>. "Differs" means the copies give different answers today. Rows 1 to 28 were on main at the first measurement, 29 to 37 arrived with the stack, and 38 to 43 arrived with the Free plan and the fixes.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -130,91 +130,91 @@ nav.toc a { text-decoration: none; }
 <tr>
 <td>1</td>
 <td>May this account change content</td>
-<td>Browser wall by method and regex (<code>R/trial-wall.ts:191-228</code>); agent by effect class (<code>R/agent/policy.ts:9</code>, <code>R/agent/dispatch.ts:178</code>)</td>
-<td>Yes. A thrown read lets a browser write through and answers 503 to an agent. When D1 says walled and Stripe cannot be asked, the browser keeps the wall and the agent answers 503</td>
+<td>Browser wall (<code>R/trial-wall.ts:46-52,57,71</code>); agent at the bearer door (<code>R/agent/caller.ts:207,212</code>, <code>R/agent/mcp.ts:103-105</code>). Only suspension remains after #1473</td>
+<td>Yes. The codes are spelled <code>account-suspended</code> and <code>account_suspended</code>. A thrown identity read answers 503 in the browser and an uncaught throw for the agent</td>
 </tr>
 <tr>
 <td>2</td>
-<td>Wall header values</td>
-<td><code>R/trial-wall.ts:124-146</code> and <code>E/lib/editor-api.ts:216-218</code></td>
+<td>Wall header values and path</td>
+<td><code>R/trial-wall.ts:17,20-21</code>; <code>E/lib/editor-api.ts:216-217,323-325</code>, <code>E/lib/routes.ts:29</code></td>
 <td>No</td>
 </tr>
 <tr>
 <td>3</td>
 <td>Load a page the caller may see</td>
-<td><code>R/journey-pages-native.ts:617</code>, <code>R/agent/ops-pages.ts:25</code></td>
+<td>Three browser copies (<code>R/journey-pages-native.ts:237-253,658-677,726</code>), the agent's <code>accessiblePage</code> (<code>R/agent/ops-pages.ts:35-51</code>), and <code>library_rename</code> turning the browser's 403 into <code>not_found</code> (<code>R/agent/ops-library.ts:318</code>)</td>
 <td>Yes. The browser answers 403, the agent <code>not_found</code></td>
 </tr>
 <tr>
 <td>4</td>
 <td>Video ownership through the Library</td>
-<td><code>R/router-endpoints.ts:470</code>, <code>R/video-share-page.ts:108,414</code>, <code>R/agent/ops-videos.ts:77</code>, <code>R/agent/ops-pages.ts:159,203</code></td>
+<td><code>R/router-endpoints.ts:480-505</code>, <code>R/video-share-page.ts:115,452-475</code>; six agent copies (<code>R/agent/ops-pages.ts:56-70,382</code>, <code>ops-videos.ts:111-119,294</code>, <code>ops-publish.ts:228-238</code>, <code>ops-library.ts:101</code>)</td>
 <td>Yes, in error shape</td>
 </tr>
 <tr>
 <td>5</td>
 <td>Page statistics envelope</td>
-<td><code>R/journey-pages-native.ts:154,208</code>, <code>R/agent/ops-pages.ts:189</code></td>
+<td><code>R/journey-pages-native.ts:154-170,208</code>, <code>R/agent/ops-pages.ts:366-389</code></td>
 <td>Yes. <code>{data}</code> against <code>{stats}</code></td>
 </tr>
 <tr>
 <td>6</td>
 <td>Leads and contacts reads</td>
-<td><code>R/journey-pages-native.ts:284</code>, <code>R/contacts-api.ts:172</code>, <code>R/agent/ops-pages.ts:214</code>, <code>R/agent/ops-library.ts:101</code></td>
-<td>Yes. Contacts scope differs</td>
+<td><code>R/journey-pages-native.ts:284-302</code>, <code>R/contacts-api.ts:57,156-240</code>, <code>R/agent/ops-pages.ts:393-409</code>, <code>R/agent/ops-library.ts:365-389</code></td>
+<td>Yes. The browser lets customer members see corp contacts, the agent is owner-only</td>
 </tr>
 <tr>
 <td>7</td>
 <td>Update video metadata</td>
-<td>Two HTTP doors, <code>R/media-videos-native.ts:39</code> and <code>/api/tree/nodes/:id</code> (<code>W/index.ts:209</code>)</td>
+<td>Two HTTP doors, <code>R/media-videos-native.ts:39-104</code> and <code>/api/tree/nodes/:id</code> (<code>W/index.ts:198-201,808</code>)</td>
 <td>Yes, in response</td>
 </tr>
 <tr>
 <td>8</td>
 <td>Checkout session rules</td>
-<td><code>R/stripe-billing.ts:115</code>, <code>R/account-billing.ts:170</code></td>
-<td>Yes, auth and errors</td>
+<td><code>R/stripe-billing.ts:115-159</code>, <code>R/account-billing.ts:170,219-234</code></td>
+<td>Yes. <code>no_customer</code> is 502 on one and 409 on the other</td>
 </tr>
 <tr>
 <td>9</td>
 <td>Create a video share page</td>
-<td>Direct, recorder claim and legacy <code>/watch</code> (<code>R/video-share-page.ts:82,182</code>, <code>R/public-video-watch.ts:109</code>)</td>
-<td>Yes, publication rules</td>
+<td>Direct share, recorder claim, the agent's <code>videos_share</code> (all through <code>shareOwnedVideo</code>, <code>R/video-share-page.ts:85-238</code>, <code>R/agent/ops-publish.ts:300</code>), legacy <code>/watch</code> (<code>R/public-video-watch.ts:105-111</code>), and the grant-time take page (<code>R/video-share-page-port.ts:32-53</code>)</td>
+<td>Yes. At the Free limit the direct share answers 409, the recorder claim 200 with <code>shareHeld</code>, the agent <code>live_page_limit</code>. The grant-time page reads the plan without asking Stripe</td>
 </tr>
 <tr>
 <td>10</td>
 <td>Same-origin check</td>
-<td>Global <code>R/security-headers.ts:57</code>; local <code>R/admin-accounts-native.ts:155</code>, <code>R/mux-unshare-jobs.ts:293</code>, <code>R/rum-events.ts:236</code></td>
+<td>Global <code>R/security-headers.ts:57-66</code>; local <code>R/admin-accounts-native.ts:156</code>, <code>R/mux-unshare-jobs.ts:293</code>, <code>R/rum-events.ts:272-275</code></td>
 <td>Yes, local is stricter</td>
 </tr>
 <tr>
 <td>11</td>
 <td>Password at least 8 characters</td>
-<td><code>R/auth-session.ts:64</code> and three editor routes (<code>E/routes/AuthRoute.tsx:185</code>, <code>E/routes/ResetPasswordRoute.tsx:21</code>, <code>E/routes/settings/PasswordRoute.tsx:15</code>)</td>
+<td><code>R/auth-session.ts:65</code> and three editor routes (<code>E/routes/AuthRoute.tsx:186</code>, <code>E/routes/ResetPasswordRoute.tsx:21</code>, <code>E/routes/settings/PasswordRoute.tsx:15</code>)</td>
 <td>No, kept in sync by a comment</td>
 </tr>
 <tr>
 <td>12</td>
 <td>Bound on a page event's <code>page_id</code></td>
-<td><code>R/page-events.ts:160</code> truncates, <code>R/video-stats.ts:238</code> drops</td>
+<td><code>R/page-events.ts:160</code> truncates, <code>R/video-stats.ts:238-241</code> drops</td>
 <td>Yes</td>
 </tr>
 <tr>
 <td>13</td>
 <td>Library node creation checks</td>
-<td><code>W/index.ts:647-661</code> and <code>W/workspace-tree-core.ts:111-150</code></td>
+<td><code>W/index.ts:128,642-668</code> and <code>W/workspace-tree-core.ts:99,111-150</code></td>
 <td>Yes, in scope</td>
 </tr>
 <tr>
 <td>14</td>
 <td>Server-owned video facts</td>
-<td>PATCH filter <code>W/workspace-tree-core.ts:267-301</code>, edit commit <code>W/video-edit-routes.ts:123-232</code>, ingest <code>W/video-row.ts:278-330</code></td>
+<td>PATCH filter <code>W/workspace-tree-core.ts:267-301</code>, edit commit <code>W/video-edit-routes.ts:121-232</code>, ingest <code>W/video-row.ts:279-331</code></td>
 <td>Related rules on separate paths</td>
 </tr>
 <tr>
 <td>15</td>
 <td>Action addresses the owner's workspace</td>
-<td>Router pin, Library queries, the Mux passthrough check <code>R/mux-webhook.ts:79-88</code>, scripts</td>
+<td>Router pin, Library queries, the Mux passthrough check <code>R/mux-webhook.ts:79-88</code>, the agent's WorkOS <code>sub</code> mapping (<code>R/agent/caller.ts:207-224</code>), scripts</td>
 <td>Yes, the proof differs by door</td>
 </tr>
 <tr>
@@ -226,50 +226,50 @@ nav.toc a { text-decoration: none; }
 <tr>
 <td>17</td>
 <td>Apply a Stripe subscription</td>
-<td>Webhook, Checkout return and wall reconciliation all call <code>applyStripeSubscription</code>. Reconciliation adds a filter (<code>R/stripe-subscription-sync.ts:59-92</code>)</td>
+<td>Checkout return (<code>R/stripe-billing.ts:219</code>), webhook (<code>:656</code>) and plan reconciliation (<code>R/stripe-subscription-sync.ts:67</code>) all call <code>applyStripeSubscription</code>. Reconciliation adds <code>wouldGrantAccess</code> (<code>:80-92</code>)</td>
 <td>Yes, admission</td>
 </tr>
 <tr>
 <td>18</td>
 <td>Library listing</td>
-<td>The agent's sort vocabulary and its own limit (<code>R/agent/ops-library.ts:31,77-81</code>) against <code>W/index.ts:312-380</code></td>
-<td>Yes</td>
+<td>The agent's sort vocabulary and its own limit (<code>R/agent/ops-library.ts:42,189,216-232</code>) against <code>W/tree-query.ts:38-45</code> and <code>W/index.ts:302,420</code></td>
+<td>Yes. Three sorts against five, different defaults</td>
 </tr>
 <tr>
 <td>19</td>
 <td>Response shapes</td>
-<td>About 27 editor DTOs (<code>E/lib/tree-api.ts:40-126</code>, <code>E/lib/take-api.ts:10-31</code>, <code>E/lib/admin-user-accounts-api.ts:37</code>, <code>E/lib/trial-access.ts:7</code>)</td>
+<td>About 29 editor DTOs (<code>E/lib/tree-api.ts:40-126</code>, <code>E/lib/take-api.ts:9-34</code>, <code>E/lib/admin-user-accounts-api.ts:28-36</code>, <code>E/lib/trial-access.ts:7-9</code>, <code>E/lib/agent-api.ts:5,40</code>)</td>
 <td>Some, by omission</td>
 </tr>
 <tr>
 <td>20</td>
 <td>Checkout cadence <code>monthly</code> or <code>annually</code></td>
-<td><code>E/lib/billing-checkout.ts:3</code>, <code>R/stripe-checkout.ts:58-62</code></td>
+<td><code>E/lib/billing-checkout.ts:3</code>, <code>R/stripe-checkout.ts:13,58-62</code></td>
 <td>No</td>
 </tr>
 <tr>
 <td>21</td>
 <td>Notification preference names</td>
-<td><code>E/routes/settings/NotificationsRoute.tsx:16-45</code>, <code>R/account-profile.ts:121-125,412-424</code></td>
+<td><code>E/routes/settings/NotificationsRoute.tsx:16-45</code>, <code>R/account-profile.ts:126-132,405-424</code>, and a third copy in <code>R/agent/ops-settings.ts:76-81</code></td>
 <td>No</td>
 </tr>
 <tr>
 <td>22</td>
 <td>Admin create-account caps</td>
-<td>A 120-character name in both; a 20-address cap only in <code>E/routes/admin/CreateAccountDialog.tsx:32</code></td>
+<td>A 120-character name in both; a 20-address cap only in <code>E/routes/admin/CreateAccountDialog.tsx:32,143</code></td>
 <td>Yes</td>
 </tr>
 <tr>
 <td>23</td>
 <td>Server-owned page fields</td>
-<td><code>R/journey-pages-native.ts:638-682</code>, <code>E/lib/journey-page-document-store.ts:133-139</code></td>
+<td><code>R/journey-pages-native.ts:679-724</code>, <code>E/lib/journey-page-document-store.ts:132-140</code></td>
 <td>Different purposes</td>
 </tr>
 <tr>
 <td>24</td>
 <td>Upload kinds and size</td>
-<td><code>E/lib/upload-manager.ts:154-169</code>, <code>R/router-endpoints.ts:521-531</code>, <code>W/index.ts:647-695</code></td>
-<td>The byte limit is shared, the kinds are not</td>
+<td><code>E/lib/upload-manager.ts:154-170</code>, <code>R/router-endpoints.ts:531-541</code>, <code>W/index.ts:642-690</code>, <code>R/agent/ops-uploads.ts:122,153,162</code></td>
+<td>The byte limit is shared. The editor sorts kinds by MIME prefix, the others use <code>isLibraryContentType</code></td>
 </tr>
 <tr>
 <td>25</td>
@@ -280,98 +280,122 @@ nav.toc a { text-decoration: none; }
 <tr>
 <td>26</td>
 <td>Stale revision answer</td>
-<td><code>R/journey-pages-native.ts:394-421</code>, parsed by hand in <code>E/lib/editor-api.ts:277-286</code> and <code>E/lib/generation-runs.ts:78-85</code></td>
+<td><code>R/journey-pages-native.ts:417-445,481-487</code>, parsed by hand in <code>E/lib/editor-api.ts:276-285</code> and <code>E/lib/generation-runs.ts:79-84</code></td>
 <td>No</td>
 </tr>
 <tr>
 <td>27</td>
 <td>"Video added" event</td>
-<td>The Library insert trigger and a manual copy in <code>W/video-row.ts:475-500</code></td>
+<td>The Library insert trigger (<code>0023_move_triggers.sql:22</code>) and a manual copy in <code>W/video-row.ts:476-501</code></td>
 <td>No, kept in sync by a comment</td>
 </tr>
 <tr>
 <td>28</td>
 <td>Publication and upload analytics</td>
-<td>Client attempt events and server outbox events</td>
-<td>Yes, the meanings differ</td>
+<td>Client attempt events (<code>E/lib/product-analytics-events.ts:2-7</code>) and server outbox triggers</td>
+<td>Yes. Agent publishes and uploads emit no product event at all</td>
 </tr>
-</tbody>
-</table></div>
-<p>Three more pairs look alike but are intentional, and the design keeps them. They are the human and machine branches of <code>commitVideoEdit</code> (<code>W/video-auto-trim.ts:118-120</code>), Mux facts from the webhook and from read repair (<code>settleMuxVideos</code>), and the editor's whole-document save against the agent's ordered edits.</p>
-<p><strong>Added by the parity stack</strong></p>
-<div class="table-wrap"><table>
-<thead>
-<tr>
-<th>#</th>
-<th>Rule</th>
-<th>Where on the stack</th>
-<th>Differs</th>
-</tr>
-</thead>
-<tbody>
 <tr>
 <td>29</td>
 <td>Page needs prospect content before publish</td>
-<td><code>S/R/agent/ops-publish.ts:117</code>, <code>S/R/journey-pages-native.ts:465</code></td>
-<td>Point of check</td>
+<td><code>R/agent/ops-publish.ts:118-122</code> (in the card, so at the ask and again at the click), <code>R/journey-pages-native.ts:465-476</code>, and the editor's disabled button (<code>E/hooks/use-page-publication.ts:111</code>). All call <code>journeyPageHasProspectContent</code></td>
+<td>Point of check. <code>goLive</code> itself never checks, so a video share publishes without it</td>
 </tr>
 <tr>
 <td>30</td>
 <td>Change a page password</td>
-<td><code>S/R/agent/ops-publish.ts:181</code>, <code>S/R/journey-page-access.ts:103</code></td>
-<td>Yes. Input, approval and compare-and-swap</td>
+<td><code>R/agent/ops-publish.ts:173-226</code>, <code>R/journey-page-access.ts:82-114</code></td>
+<td>Yes. The agent takes one nullable field, asks the owner for every call on a gated live page (#1489) and compares and swaps on <code>updated_at</code>. The browser takes two fields and passes no stamp</td>
 </tr>
 <tr>
 <td>31</td>
 <td>Share a video whose link is off</td>
-<td><code>S/R/agent/ops-publish.ts:275</code>, <code>S/R/video-share-page.ts:124</code></td>
-<td>Yes. The agent turns it on, the browser keeps it off</td>
+<td><code>R/agent/ops-publish.ts:247-307</code>, <code>R/video-share-page.ts:85-129</code>, both through <code>shareOwnedVideo</code></td>
+<td>No longer. Since #1473 the browser's share calls <code>goLive</code>, which sets the route back to <code>active</code>. The agent does the same after the owner's click (#1483). The comment at <code>R/video-share-page.ts:132-134</code> saying the link stays off is stale</td>
 </tr>
 <tr>
 <td>32</td>
 <td>Delete a contact</td>
-<td>SQL in <code>S/R/agent/ops-destroy.ts:257</code> and <code>S/R/contacts-api.ts:94</code></td>
-<td>Yes. Open to a lapsed agent, walled for a lapsed browser</td>
+<td>SQL in <code>R/agent/ops-destroy.ts:257-269</code> and <code>R/contacts-api.ts:94-112</code></td>
+<td>Yes. The agent answers <code>not_found</code> when no row matches, the browser always 204. The lapsed difference went with #1473</td>
 </tr>
 <tr>
 <td>33</td>
 <td>Save a contact</td>
-<td>Input mapping in <code>S/R/contacts-api.ts:483</code> and <code>S/R/agent/ops-library.ts:391</code></td>
+<td>Input mapping in <code>R/contacts-api.ts:483</code> and <code>R/agent/ops-library.ts:391-438</code></td>
 <td>Yes, <code>keepSharing</code></td>
 </tr>
 <tr>
 <td>34</td>
 <td>Profile, notification and brand fields</td>
-<td><code>S/R/agent/ops-settings.ts:57,123</code>, <code>S/R/account-profile.ts:352,412</code>, <code>S/W/index.ts:729</code></td>
+<td><code>R/agent/ops-settings.ts:57,123</code>, <code>R/account-profile.ts:356,416</code>, <code>W/index.ts:733</code></td>
 <td>Shapes differ</td>
 </tr>
 <tr>
 <td>35</td>
 <td>Video edit intent</td>
-<td><code>S/R/agent/ops-publish.ts:288,360</code>, <code>S/W/video-edit-routes.ts:75,121</code></td>
-<td>Yes. The agent approves a batch and commits edits one by one</td>
+<td><code>R/agent/ops-publish.ts:398-494</code>, <code>W/video-edit-routes.ts:75,121</code></td>
+<td>Yes. The agent approves a batch and commits edits one by one through a synthesized request (<code>:463-488</code>)</td>
 </tr>
 <tr>
 <td>36</td>
 <td>Upload kind, size, owner and folder</td>
-<td><code>S/R/agent/ops-uploads.ts:121-235</code>, <code>S/W/mux-video-routes.ts:99</code>, <code>S/R/media-recording-sessions.ts:45</code></td>
-<td>Yes. The agent adds a daily cap</td>
+<td><code>R/agent/ops-uploads.ts:121-235</code>, <code>W/mux-video-routes.ts:99</code>, <code>R/media-recording-sessions.ts:45</code></td>
+<td>Yes. The agent adds a daily cap of 20</td>
 </tr>
 <tr>
 <td>37</td>
 <td>Approval card type</td>
-<td><code>S/R/agent/approvals.ts:156</code>, <code>S/E/lib/agent-api.ts:5</code></td>
-<td>No</td>
+<td><code>R/agent/approvals.ts:162-178</code>, <code>E/lib/agent-api.ts:5-28</code></td>
+<td>Yes, since #1473. The server added <code>refusal</code>, the editor type lacks it and restates the target-kind union</td>
+</tr>
+<tr>
+<td>38</td>
+<td>Daily AI generation cap (#1487)</td>
+<td>The limit is enforced once (<code>R/jobs-store.ts:23,52-88</code>). Its refusal text is written three times (<code>R/journey-page-generation.ts:116-122</code>, <code>R/agent/ops-page-drafts.ts:201-209</code>, <code>E/lib/generation-runs.ts:85-88,102-108</code>)</td>
+<td>The wording differs on each door</td>
+</tr>
+<tr>
+<td>39</td>
+<td>Free live-page limit (#1473)</td>
+<td><code>FREE_LIVE_PAGE_LIMIT = 3</code> (<code>packages/auth-identity/src/entitlement.ts:28</code>), hard-coded again in <code>live-pages.ts:29-31</code> and <code>E/components/RecorderFinishActions.tsx:75</code>. Pre-counts outside the batch in <code>R/video-share-page.ts:150-153</code> and <code>R/video-share-page-port.ts:32-35</code></td>
+<td>No, while the limit is 3. The grant-time pre-count never asks Stripe</td>
+</tr>
+<tr>
+<td>40</td>
+<td>Is this account Free</td>
+<td><code>liveSlotsFor</code> (<code>live-pages.ts:23-25</code>), the badge (<code>R/public-page-delivery/index.ts:175-180</code>), <code>whoami</code> (<code>R/agent/ops-account.ts:36-38</code>), the profile (<code>R/account-profile.ts:244-245</code>), <code>/api/trial-offer</code> (<code>R/trial-offer.ts:43-50</code>)</td>
+<td>Yes. With no plan row the slot rule says limited, the badge says Pro, <code>whoami</code> says free. Only <code>/trial-offer</code> always asks Stripe</td>
+</tr>
+<tr>
+<td>41</td>
+<td>Is the agent door open (#1486)</td>
+<td><code>agentDoorOpen</code> (<code>R/agent/caller.ts:136-140</code>) for <code>/mcp</code> and <code>/auth/me</code>; <code>authorizationServers().length</code> for discovery (<code>R/agent/mcp.ts:57-58,77</code>); <code>gate()</code> for <code>/api/agent/*</code> (<code>R/agent/connections-api.ts:24-29</code>)</td>
+<td>Yes, three tests. The editor reads one flag and does not restate it</td>
+</tr>
+<tr>
+<td>42</td>
+<td>Is this video's link live</td>
+<td><code>liveShareLink</code> (<code>R/agent/ops-publish.ts:241-245</code>), <code>liveShareUrls</code> (<code>R/agent/ops-library.ts:145-158</code>), <code>R/agent/ops-destroy.ts:157</code>, <code>livePagesOfOwnerSql</code> (<code>live-pages.ts:38-43</code>). The browser share uses none of them</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>43</td>
+<td>Publication stage</td>
+<td><code>publicationStage</code> (<code>packages/journey-page-domain/src/publication.ts:7-17</code>) for the editor; restated in <code>R/agent/ops-pages.ts:92</code> and <code>R/agent/ops-library.ts:169-188</code></td>
+<td>Yes. Different order and stage names</td>
 </tr>
 </tbody>
 </table></div>
-<h3 id="what-the-parity-stack-does-and-does-not-change">What the parity stack does and does not change</h3>
-<p>The stack is real progress for agents. It adds 25 operations, owner approval for publish and destroy with a claim state and a facts digest (<code>S/R/agent/approvals.ts:267-367</code>), a CLI that discovers tools at runtime (<code>S/packages/clarity-cli/clarity.mjs:381</code>), and evals. Fresh agents passed 383 of 385 tasks on the stack tip, against 115 of 275 on main (issue #1463).</p>
-<p>It does not define actions once. Its Library operations call the browser's HTTP handler with a synthesized <code>Request</code> and read the status code for meaning. <code>library_delete</code> treats a 400 as "this is a page card" (<code>S/R/agent/ops-destroy.ts:205-209</code>). The editor still calls the old routes. <code>parity.json</code> (137 rows) records which browser path each operation should match. Its test checks syntax and coverage only, so it cannot show that the two doors validate, authorize or answer alike (<code>S/editor/tests/agent-parity.test.ts:128-179</code>).</p>
-<p>It also leaves one class of gap that matters before production. Every approval recomputes the card's facts at the owner's click, compares their digest, then runs a separate write that does not check them again. A folder delete removes whatever the folder holds when its batch runs (<code>S/W/workspace-tree-store.ts:333-410</code>). A video edit checks for live pages in JavaScript, then commits through the Library (<code>S/R/agent/ops-publish.ts:391,435</code>). A change in the milliseconds between the check and the write commits something the owner never saw. The same pattern covers page delete and video share.</p>
+<p>Three more pairs look alike but are intentional, and the design keeps them. They are the human and machine branches of <code>commitVideoEdit</code> (<code>W/video-auto-trim.ts:51-53</code>, <code>W/video-edit-routes.ts:111-283</code>), Mux facts from the webhook and from read repair (<code>W/mux-video-ingest.ts:336-345,368,571-596</code>), and the editor's whole-document save against the agent's ordered edits (<code>R/journey-pages-native.ts:430</code>, <code>R/journey-page-edits.ts:23-56</code>).</p>
+<p>Three comments are stale after #1473 and say the wall still has exits. <code>R/routes.ts:230-232</code>, <code>R/routes.ts:402-404</code> and <code>R/trial-wall.ts:24-25</code>. PR 1 deletes them.</p>
+<h3 id="what-the-merged-stack-changed">What the merged stack changed</h3>
+<p>The stack is real progress for agents. It brought 34 operations, owner approval for publish and destroy with a claim state and a facts digest (<code>R/agent/approvals.ts:273-363</code>), a CLI that discovers tools at runtime (<code>packages/clarity-cli/clarity.mjs:381-388</code>), and evals. Fresh agents passed 383 of 385 tasks on the stack tip, against 115 of 275 on main before it (issue #1463). Production <code>/mcp</code> answers 503 <code>not_configured</code> because <code>AGENT_AUTH_ISSUER</code> is set for staging only (<code>wrangler.jsonc:114-117</code>, <code>R/agent/mcp.ts:117-118</code>), and #1486 hides Settings &gt; Agents while the door is closed.</p>
+<p>It does not define actions once. Its Library operations call the browser's HTTP handler with a synthesized <code>Request</code> at nine sites (<code>R/agent/ops-library.ts:79,311</code>, <code>ops-destroy.ts:66,206</code>, <code>ops-publish.ts:466</code>, <code>ops-settings.ts:45</code>, <code>ops-uploads.ts:166,292</code>, <code>ops-videos.ts:292</code>) and read the status code for meaning. <code>library_delete</code> treats a 400 as "this is a page card" (<code>R/agent/ops-destroy.ts:205-207</code>). The editor still calls the old routes. <code>parity.json</code> (137 rows and 10 <code>notUserFacing</code>) records which browser path each operation should match. Its test checks syntax and coverage only (<code>editor/tests/agent-parity.test.ts:128-201</code>).</p>
+<p>The fixes closed the no-card half of the approval race. After #1483, <code>videos_share</code> without an approved card only reads, and <code>videos_edit</code> without a card rereads the live pages just before its first edit. The destroys always ask. What #1483 did not close is the approved half. Every approval recomputes the card's facts at the owner's click, compares their digest (<code>R/agent/approvals.ts:336-340</code>), then runs a separate write that does not check them again. A folder delete removes whatever the folder holds when its batch runs (<code>W/workspace-tree-store.ts:339-413</code>). An approved video edit still commits through the Library one edit at a time (<code>R/agent/ops-publish.ts:463-488</code>), with a window between the recheck read and the edit write that #1483's own description names. A change in the milliseconds between the owner's click and the write commits something the owner never saw. That is the gap the commit guard in section 2 closes, inside the batch, for every approvable action.</p>
 <h2 id="2-the-target">2. The target</h2>
 <h3 id="two-layers">Two layers</h3>
-<p>An <strong>action</strong> is one thing a signed-in person or their agent can ask Clarity to do or tell them, with one input and one output. It owns policy. A <strong>store</strong> is the module that writes a table or keeps a rule. It owns the invariant, including the guard that checks an approved state inside its batch. Clarity already has stores of this kind for videos (<code>clarity/videos-write-fence</code>, so only <code>W/video-row.ts</code> writes <code>videos</code>) and machine edits (<code>boundaries/machine-commit</code>). Draft #1473 adds one for publication (<code>clarity/live-page-writes</code>). The design extends that pattern and puts one action layer on top.</p>
+<p>An <strong>action</strong> is one thing a signed-in person or their agent can ask Clarity to do or tell them, with one input and one output. It owns policy. A <strong>store</strong> is the module that writes a table or keeps a rule. It owns the invariant, including the guard that checks an approved state inside its batch. Clarity has three stores of this kind today: videos (<code>clarity/videos-write-fence</code>, so only <code>W/video-row.ts</code> writes <code>videos</code>), machine edits (<code>boundaries/machine-commit</code>) and publication (<code>clarity/live-page-writes</code>, so only <code>live-pages.ts</code> inserts a publication, activates a route or writes <code>kept_reason</code>). The design extends that pattern and puts one action layer on top.</p>
 <p>Doors adapt. The editor, MCP and the CLI call actions. Webhooks, jobs and scripts call stores, never actions, because they carry a provider's signature or a job lease, not a person's intent. A capability that has no person behind it, such as a legacy <code>/watch</code> link publishing on first visit, is defined once in its store function, and the store's fence lists every caller. Policy lives in an action, an invariant lives in a store, and a lint fences each.</p>
 <pre><code>editor ── act() ──► POST /api/actions/:name ─┐
 agent ── MCP tools/call ─────────────────────┼─► kernel ─► action.resolve, card, run ─► stores ─► D1, Mux, R2
@@ -397,8 +421,8 @@ export const publish = action.approvable(pagesPublish, {
   agent: { title: 'Publish a Journey Page', description: PUBLISH_HELP, destructiveHint: true, idempotentHint: true },
   event: { writtenBy: 'store', name: 'journey_page_published' },
   resolve: (ctx, principal, input) =&gt; publishablePage(ctx, principal, input.pageId),
-  card: (ctx, page, input) =&gt; publication.plan(ctx.db, page, input.revision),        // the card and its bound, one read
-  run: (ctx, principal, page, input, bound) =&gt; publication.goLive(ctx.db, principal, page, bound),
+  card: (ctx, page, input) =&gt; livePages.plan(ctx.db, page, input.revision),          // the card and its bound, one read
+  run: (ctx, principal, page, input, bound) =&gt; livePages.goLive(ctx.db, principal, page, bound),
 });
 </code></pre>
 <p>The editor:</p>
@@ -447,26 +471,28 @@ export type ActionOutput&lt;N extends ActionName&gt; = z.output&lt;(typeof CONTR
 // The editor reads it to retry reads, without bundling every schema.
 export const EFFECTS: Readonly&lt;Record&lt;ActionName, Effect&gt;&gt;;
 
-// One refusal vocabulary. It starts as the union of today's reason vocabularies
-// (JourneyPageRejection in packages/journey-page-domain/src/journey-pages-api.ts:110, the stack's
-// S/R/agent/refusal.ts, the wall's codes), so no existing answer is lost.
+// One refusal vocabulary. It is the union of today's three vocabularies
+// (JourneyPageRejection in packages/journey-page-domain/src/journey-pages-api.ts:109-116,
+// the agent's R/agent/refusal.ts, and the live-page refusal in live-pages.ts:10-14), so no existing answer is lost.
 export type Refusal =
   | { code: 'invalid_input'; message: string; issues: InputIssue[] }
   | { code: 'not_found'; message: string }
   | { code: 'caller_not_allowed'; message: string }
   | { code: 'permission_required'; permission: Permission; settingsUrl: string }
-  | { code: 'rate_limited' | 'daily_limit'; retryAfterSeconds: number; message: string }
-  | { code: 'access_walled'; wallCause: WallCause }
+  | { code: 'rate_limited' | 'daily_limit' | 'generation_limit'; retryAfterSeconds: number; resetsAt?: string; message: string }
   | { code: 'account_suspended'; message: string }
+  | { code: 'live_page_limit'; livePages: { count: number; limit: number }; pageId?: string; message: string }
   | { code: 'stale_revision' | 'already_created'; message: string; current: JourneyPageDraftWire }   // the autosave merge needs the draft
   | { code: 'stale_base' | 'generation_running' | 'workspace_limit' | 'reload_required'; message: string }
-  | { code: 'stale_approval'; message: string }
-  | { code: 'empty_page' | 'live_page_limit' | 'not_ready' | 'unavailable'; message: string }
+  | { code: 'stale'; message: string }              // the state the card bound changed before the commit; send it again
+  | { code: 'stale_approval'; message: string }     // an approval whose card no longer matches, or whose action version moved
+  | { code: 'empty_page' | 'not_ready' | 'unavailable' | 'rejected'; message: string }
   | { code: 'edit_refused'; at: number; message: string; refusal: EditRefusal; revision: number }
   | { code: 'idempotency_conflict' | 'recently_denied'; message: string };
 
 // Rules that live outside the registry but are shared by both sides.
 export const PASSWORD = z.string().check(z.minLength(8));   // auth-session.ts and the three editor password screens
+export const FREE_LIVE_PAGE_LIMIT = 3;                        // today in packages/auth-identity/src/entitlement.ts:28, restated twice
 </code></pre>
 <pre><code class="language-ts">// workers/frontend-router/src/actions/action.ts
 export type Principal =
@@ -479,13 +505,9 @@ export type AgentDoor =
   | { readonly title: string; readonly description: string; readonly destructiveHint: boolean; readonly idempotentHint: boolean;
       readonly requires?: Permission;
       // A keyed replay answers the stored output only while still valid (an upload grant unexpired,
-      // a created folder not deleted), as S/R/agent/dispatch.ts:111-124 does today.
+      // a created folder not deleted), as R/agent/dispatch.ts:92-107 does today.
       readonly idempotency?: { kind: 'natural'; field: string } | { kind: 'input'; replayStillValid?: ReplayCheck } }
   | { readonly hidden: string };   // why agents cannot call it; this replaces parity.json's &quot;excluded&quot;
-
-// What a lapsed account may still do. The default derives from the effect: reads, retracts and destroys
-// stay open. Exceptions are declared, as checkout start is today (R/trial-wall.ts:40).
-export type WhileLapsed = 'open' | 'refused';
 
 export type ApprovalCard&lt;B&gt; = {
   readonly target: { kind: ApprovalTargetKind; id: string; name: string };
@@ -498,7 +520,6 @@ export type ApprovalCard&lt;B&gt; = {
 type Common&lt;C extends Contract&gt; = {
   readonly session: SessionAccess;
   readonly agent: AgentDoor;
-  readonly whileLapsed?: WhileLapsed;
 };
 type In&lt;C extends Contract&gt; = z.output&lt;C['input']&gt;;
 type Out&lt;C extends Contract&gt; = z.output&lt;C['output']&gt;;
@@ -534,6 +555,7 @@ type Registered = RegisteredName&lt;typeof ACTIONS&gt;;
 const complete: [Exclude&lt;ActionName, Registered&gt; | Exclude&lt;Registered, ActionName&gt;] extends [never] ? true : never = true;
 </code></pre>
 <p>The sketch is a design, not compiled code. Two critics compiled the previous version with the repo's TypeScript 6.0.3 and zod 4.4.3. A single builder whose parameter held a conditional type inferred every target as <code>unknown</code>. Opus's critic checked that separate builders like these infer with 0 errors. The kernel PR's first commit is a compile test of exactly these examples: a publish, a plain write, a promotable write, a loose-object contract, a missing card, a wrong output, an extra action and a duplicate name.</p>
+<p>The first version of this sketch carried a <code>whileLapsed</code> property and an <code>access_walled</code> refusal. Both are gone. After #1473 no account is walled for writes, and the only plan-dependent rule, the live-page limit, is a store invariant that answers <code>live_page_limit</code>.</p>
 <pre><code class="language-ts">// workers/frontend-router/src/actions/kernel.ts
 export type Performed =
   | { kind: 'done'; output: unknown }
@@ -544,30 +566,30 @@ export type Performed =
 // Every call from every door, in this order:
 //   1. find the action                                           not_found
 //   2. admit the principal: session access, agent door,          caller_not_allowed, not_found for a hidden
-//      impersonation rule, suspension from the identity row      action, account_suspended
+//      impersonation rule, suspension from the identity row.     action, account_suspended; unavailable when
+//      onStandingUnreadable answers when that row cannot be read the identity read throws
 //   3. parse input with the contract                             invalid_input
 //   4. agent permission grant                                    permission_required
 //   5. agent rate tier, per connection                           rate_limited
 //   6. agent keyed replay, if still valid                        stored output, or idempotency_conflict
 //   7. resolve the target                                        what resolve refuses
-//   8. read: run and return. No standing read, so a lapsed account's reads never call Stripe
+//   8. read: run and return. No plan read, so a Free account's reads never call Stripe
 //   9. approvable: card, which yields bound and the effect now from one read
-//  10. lapsed standing, for write, spend and publish unless      access_walled, or the principal's rule
-//      whileLapsed is open                                       when standing cannot be read
-//  11. agent, and the effect now is publish or destroy: store    asked, or recently_denied
+//  10. agent, and the effect now is publish or destroy: store    asked, or recently_denied
 //      the ask (action name and version, canonical input,
 //      card digest) and stop
-//  12. run(…, bound). The store prepends its commit guard        stale_approval, stale_revision
-//  13. agent audit row
+//  11. run(…, bound). The store prepends its commit guard and     stale, stale_revision, live_page_limit
+//      keeps its own invariants
+//  12. agent audit row
 export function perform(ctx: ActionContext, principal: Principal, name: string, raw: unknown): Promise&lt;Performed&gt;;
 
 // The owner's Approve click. Rebuilds the agent principal from the connection row, parses the stored
-// input against the current contract (a different version is stale_approval), reruns steps 2 to 4, 7, 9
-// and 10 (no rate charge, no replay), compares the card digest with the approved one, claims
-// pending to executing, then runs 12 and 13 once.
+// input against the current contract (a different version is stale_approval), reruns steps 2 to 4, 7 and 9
+// (no rate charge, no replay), compares the card digest with the approved one, claims
+// pending to executing, then runs 11 and 12 once.
 export function resume(ctx: ActionContext, owner: Principal &amp; { kind: 'session' }, approvalId: string): Promise&lt;ApprovalOutcome&gt;;
 </code></pre>
-<p>The kernel is the deep module. It hides parsing, door admission, permission, rate, replay, target loading, account standing, approval and audit behind <code>perform</code> and <code>resume</code>. A door is transport only. The HTTP door is about 150 lines. The MCP door is today's <code>R/agent/mcp.ts</code> calling <code>perform</code>. The editor's <code>act</code> is about 80 lines over the existing <code>apiFetch</code>. An action author writes <code>resolve</code> and <code>run</code>, plus <code>card</code> when the builder demands it.</p>
+<p>The kernel is the deep module. It hides parsing, door admission, permission, rate, replay, target loading, suspension, approval and audit behind <code>perform</code> and <code>resume</code>. A door is transport only. The HTTP door is about 150 lines. The MCP door is today's <code>R/agent/mcp.ts</code> calling <code>perform</code>. The editor's <code>act</code> is about 80 lines over the existing <code>apiFetch</code>. An action author writes <code>resolve</code> and <code>run</code>, plus <code>card</code> when the builder demands it.</p>
 <h3 id="the-commit-guard">The commit guard</h3>
 <p>An approval means something only if the commit checks the approved state in the same transaction. D1 runs a batch as one transaction and rolls the whole batch back when any statement fails (<a href="https://developers.cloudflare.com/d1/worker-api/d1-database/#batch">Cloudflare D1 batch docs</a>). SQLite has no <code>RAISE</code> outside triggers, but a <code>CHECK</code> violation is a statement failure. One shared helper turns any condition into a statement that aborts the batch when the condition is false:</p>
 <pre><code class="language-sql">-- migrations-auth: one table, empty between batches
@@ -580,7 +602,7 @@ export function commitGuard(db: D1Database, condition: string, binds: unknown[])
   return db.prepare(`INSERT INTO commit_guards (ok) SELECT CASE WHEN (${condition}) THEN 1 ELSE 0 END`).bind(...binds);
 }
 </code></pre>
-<p>Each approvable store function takes the expected state, prepends its guard, and appends the cleanup statement. The store owns both the plan and the guard, so the rule for "what counts as unchanged" lives in one module.</p>
+<p>Each approvable store function takes the expected state, prepends its guard, and appends the cleanup statement. The store owns both the plan and the guard, so the rule for "what counts as unchanged" lives in one module. <code>live-pages.ts</code> already guards the live-page limit this way, with the limit in each statement's <code>WHERE</code> (<code>live-pages.ts:51-58</code>). The commit guard is the same idea for the state the owner approved.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -592,12 +614,12 @@ export function commitGuard(db: D1Database, condition: string, binds: unknown[])
 <tbody>
 <tr>
 <td><code>pages_publish</code>, <code>pages_unpublish</code></td>
-<td>Draft revision and <code>updated_at</code> (a password change bumps <code>updated_at</code> but not the revision, <code>R/public-page-delivery/journey-page-content-store.ts:252-265</code>), publication revision, route state</td>
+<td>Draft revision and <code>updated_at</code> (a password change bumps <code>updated_at</code> but not the revision, <code>R/public-page-delivery/journey-page-content-store.ts:248-279</code>), publication revision, route state</td>
 <td>Each column equals its bound value</td>
 </tr>
 <tr>
 <td><code>pages_set_password</code></td>
-<td>Draft <code>updated_at</code>, link state</td>
+<td>Draft <code>updated_at</code>, link state. The agent's compare-and-swap on <code>updated_at</code> exists today (<code>journey-page-content-store.ts:251-278</code>) and moves into the guard</td>
 <td>The same columns</td>
 </tr>
 <tr>
@@ -612,7 +634,7 @@ export function commitGuard(db: D1Database, condition: string, binds: unknown[])
 </tr>
 <tr>
 <td><code>videos_edit</code></td>
-<td>Manifest digest and revision (already guarded, <code>W/video-edit-routes.ts:202</code>) plus a live-page fingerprint</td>
+<td>Manifest digest and revision (already guarded, <code>W/video-edit-routes.ts:202-212</code>) plus a live-page fingerprint</td>
 <td>The fingerprint query equals the bound. The publication store owns that query and hands the video store a guard statement, so the video store never reads page tables itself</td>
 </tr>
 <tr>
@@ -627,42 +649,41 @@ export function commitGuard(db: D1Database, condition: string, binds: unknown[])
 </tr>
 </tbody>
 </table></div>
-<p>The live-page fingerprint is coarser than today's JavaScript rule (<code>livePagesUsingVideo</code> parses each published document, <code>S/R/agent/ops-publish.ts:70-97</code>). It is the sorted set of <code>(page id, publication revision)</code> pairs with an active route whose published document contains the asset id, which SQL can compute with <code>instr</code>. A harmless change can therefore refuse an edit as stale. The agent then asks again, and that is the safe direction.</p>
-<p>The guard also fixes a reporting gap. <code>deleteNodeAndDescendants</code> returns only video rows, because <code>RETURNING</code> does not report rows a cascade removed (<code>S/W/workspace-tree-store.ts:333-337</code>). Once the guard proves the committed subtree equals the bound set, the deleted ids can come from the bound, and the answer is exact.</p>
+<p>The live-page fingerprint is coarser than today's JavaScript rule (<code>livePagesUsingVideo</code> parses each published document, <code>R/agent/ops-publish.ts:71-98</code>). It is the sorted set of <code>(page id, publication revision)</code> pairs with an active route whose published document contains the asset id, which SQL can compute with <code>instr</code>. A harmless change can therefore refuse an edit as stale. The agent then asks again, and that is the safe direction.</p>
+<p>The guard also fixes a reporting gap. <code>deleteNodeAndDescendants</code> returns only video rows, because <code>RETURNING</code> does not report rows a cascade removed (<code>W/workspace-tree-store.ts:383-387</code>). Once the guard proves the committed subtree equals the bound set, the deleted ids can come from the bound, and the answer is exact.</p>
 <p>For the browser, the card is computed in the same request, so the guard closes only the milliseconds between that read and the batch. It does not bind to what the owner's confirm dialog showed. Publish is the exception, because the editor sends the revision it knows. The editor can later send the ids its delete dialog listed if that matters.</p>
 <h3 id="two-real-actions">Two real actions</h3>
-<p><strong>Publishing a Journey Page.</strong> Publication gets one store, <code>R/publication.ts</code>. Its writer fence lists every caller: the <code>pages_publish</code>, <code>pages_unpublish</code>, <code>pages_set_password</code> and <code>videos_share</code> actions, <code>uploads_finish</code> with a share page, and the legacy <code>/watch</code> first hit. This is the store draft #1473 builds as <code>live-pages.ts</code>, which also enforces the three-live-page limit and keeps legacy <code>/watch</code> pages out of that count. If #1473 lands first, this design adopts its store. If not, PR 3 builds the minimal version and #1473 rebases onto it.</p>
+<p><strong>Publishing a Journey Page.</strong> Publication has one store, <code>R/public-page-delivery/live-pages.ts</code> (187 lines, from #1473). It exports <code>goLive</code>, <code>bornLiveStatements</code>, <code>bornLiveDraftStatement</code>, <code>withLiveSlotsAfterRefusal</code>, <code>countLivePages</code>, <code>livePagesOfOwnerSql</code>, <code>liveSlotsFor</code> and <code>livePageLimitRefusal</code>. Its fence, <code>clarity/live-page-writes</code> (<code>scripts/lint-live-page-writes.mjs</code>), exempts only the store itself, and its callers today are the browser publish (<code>R/journey-pages-native.ts:477</code>), the share page (<code>R/video-share-page.ts:177,290-292</code>), the grant-time take page (<code>R/video-share-page-port.ts:50</code>) and the agent's <code>pages_publish</code> (<code>R/agent/ops-publish.ts:142</code>). The legacy <code>/watch</code> hit passes <code>kept: true</code> and stays outside the live-page count (<code>R/public-video-watch.ts:105-111</code>). PR 3 adds three things to the store: <code>plan</code> (the card and its bound from one read), the commit guard leading the batch, and the <code>journey_page_published</code> outbox row in the same batch. The pre-counts outside the batch (<code>R/video-share-page.ts:150-153</code>, <code>R/video-share-page-port.ts:32-35</code>) go, because the batch already decides.</p>
 <pre><code class="language-ts">type PageTarget = { id: string; document: JourneyPageDocument };
 
-// The one page loader. Replaces readAccessibleJourneyPage (R/journey-pages-native.ts:617) and the
-// agent's accessiblePage (S/R/agent/ops-pages.ts:35). An inaccessible page is not_found for every door.
+// The one page loader. Replaces the three browser copies (R/journey-pages-native.ts:237-253,658-677,726) and the
+// agent's accessiblePage (R/agent/ops-pages.ts:35-51). An inaccessible page is not_found for every door (decision 5).
 async function publishablePage(ctx: ActionContext, principal: Principal, pageId: string): Promise&lt;PageTarget&gt; {
-  // findStoredJourneyPage, canAccessJourneyPage(page, principal.identity) (R/journey-pages-native.ts:747),
+  // findStoredJourneyPage, canAccessJourneyPage(page, principal.identity) (R/journey-pages-native.ts:788),
   // normalizeJourneyPageDocument; refuse empty_page unless journeyPageHasProspectContent(document),
   // checked before any ask
   throw new Error('not implemented');
 }
 
-// R/publication.ts
+// R/public-page-delivery/live-pages.ts gains
 //   plan(db, page, revision): ApprovalCard&lt;PublishBound&gt;
 //     one read of draft, publication and route; effect is 'write' when the link already serves this
 //     revision, else 'publish'
 //   goLive(db, principal, page, bound): publication + route activation + the journey_page_published outbox
-//     row (with via: principal.kind), in one batch led by commitGuard on bound
+//     row (with via: principal.kind), in one batch led by commitGuard on bound and still guarded by slotSql
 </code></pre>
-<p>The password leaves the publish output. The share dialog reads it through <code>pages_access_get</code>, whose agent door is <code>{ hidden: 'returns the page password' }</code>. One output per action forces that split, and the stack's promise that an agent never sees the password (<code>S/R/agent/ops-publish.ts:191</code>) becomes structural.</p>
+<p>The password leaves the publish output. The share dialog reads it through <code>pages_access_get</code>, whose agent door is <code>{ hidden: 'returns the page password' }</code>. One output per action forces that split, and the stack's promise that an agent never sees the password, enforced today by a strip in <code>defineOperation</code> (<code>R/agent/operation.ts:112-125</code>, #1485) and by clearing a decided approval's input (#1484), becomes structural.</p>
 <p><strong>Deleting a Library item.</strong> The Library grows typed functions, so nothing synthesizes a browser request again.</p>
 <pre><code class="language-ts">// W/library.ts gains, beside assetNode and updateNode:
 //   findNode(user, idOrAssetId): Promise&lt;WorkspaceNode | null&gt;
 //   deletePlan(user, nodeId): Promise&lt;ApprovalCard&lt;DeleteBound&gt;&gt;   // subtree by kind, share pages retired, pages moved to the root
 //   deleteNode(user, nodeId, bound): Promise&lt;{ kind: 'deleted'; deletedIds: string[]; movedToRoot: MovedPage[] } | { kind: 'changed' }&gt;
-//     store.deleteNodeAndDescendants (W/workspace-tree-store.ts:333-410) led by commitGuard on bound.
-//     discardSelectionStatements (W/video-row.ts) joins the same batch, inside the videos write fence.
+//     store.deleteNodeAndDescendants (W/workspace-tree-store.ts:339-413) led by commitGuard on bound.
+//     discardSelectionStatements (W/video-row.ts:540-570) joins the same batch, inside the videos write fence.
 
 export const remove = action.approvable(libraryDelete, {
   session: 'account',
   agent: { title: 'Delete a Library item', description: LIBRARY_DELETE_HELP, destructiveHint: true, idempotentHint: true },
-  whileLapsed: 'open',                 // a takedown, as today's wall exit for DELETE /api/tree/nodes/:id
   event: { writtenBy: 'store', name: 'library_item_deleted' },
   async resolve(ctx, principal, input) {
     const user = libraryUser(principal);
@@ -674,21 +695,22 @@ export const remove = action.approvable(libraryDelete, {
   card: (ctx, { user, node }) =&gt; ctx.library.deletePlan(user, node.id),
   async run(ctx, _principal, { user, node }, _input, bound) {
     const outcome = await ctx.library.deleteNode(user, node.id, bound);
-    if (outcome.kind === 'changed') refuse({ code: 'stale_approval', message: 'The folder changed after the card was made. Ask again.' });
+    if (outcome.kind === 'changed') refuse({ code: 'stale', message: 'The folder changed after the card was made. Ask again.' });
     return { deleted: outcome.deletedIds, movedToRoot: outcome.movedToRoot };
   },
 });
 </code></pre>
 <h3 id="approval">Approval</h3>
-<p>The rule is one line in the kernel. A call from an agent principal whose effect, read from the card, is publish or destroy stores an ask and stops. The <code>approvable</code> builder makes a card mandatory wherever that can happen. A write that can expose something must say so in its contract (<code>exposes</code>), and the publication and video stores' fences admit only actions built with <code>approvable</code>. That keeps a future <code>videos_edit</code> from being written as a plain write. This is the "Agent 5" plan from the agent-access design (approvals, publish, share page, delete, live-media edits), now owned by the kernel instead of the agent dispatcher.</p>
-<p>The browser never asks. A session principal is the owner, or support acting for them, and the click is the decision that approval stands in for. The browser still runs <code>card</code> and passes <code>bound</code> to <code>run</code>, so both doors share one <code>run</code> body and one commit guard. An approval decision requires the owner's own session. An impersonated session cannot approve (<code>S/R/agent/approvals-api.ts:8</code>).</p>
+<p>The rule is one line in the kernel. A call from an agent principal whose effect, read from the card, is publish or destroy stores an ask and stops. The <code>approvable</code> builder makes a card mandatory wherever that can happen. A write that can expose something must say so in its contract (<code>exposes</code>), and the publication and video stores' fences admit only actions built with <code>approvable</code>. That keeps a future <code>videos_edit</code> from being written as a plain write. This is the "Agent 5" plan from the agent-access design, now owned by the kernel instead of the agent dispatcher.</p>
+<p>The browser never asks. A session principal is the owner, or support acting for them, and the click is the decision that approval stands in for. The browser still runs <code>card</code> and passes <code>bound</code> to <code>run</code>, so both doors share one <code>run</code> body and one commit guard. An approval decision requires the owner's own session. An impersonated session cannot approve (<code>R/agent/connections-api.ts:28</code>).</p>
 <p>Exposure and the card come from one read, so the effect cannot be decided on one snapshot and committed on another. <code>videos_edit</code> computes the live-page fingerprint once. That read yields both the effect (publish when any live page uses the video) and the bound. If a page goes live after the read, the guard refuses the commit as stale. The agent asks again, now as a publish, and the owner sees the live page on the card.</p>
-<p><code>uploads_finish</code> with <code>sharePage: true</code> births a published share page, as the recorder does today (<code>R/video-share-page.ts:99-130</code>). Its contract declares <code>exposes: 'share-page'</code>, so an agent that sends it gets an approval card. Without the flag it stays a private write.</p>
-<p>What the stack already built carries over: the <code>agent_approvals</code> table, the claim state, the 24-hour expiry, the 10-minute denial block and the approval screens. Four things change. Approval rows gain an <code>action_version</code> column (migration, nullable for rows the legacy executor wrote). <code>resume</code> parses stored input against the current contract instead of casting it (<code>S/R/agent/approvals.ts:329-345</code>). The commit binds to <code>bound</code> inside the store's batch. And until the last approvable operation moves, the approve and deny API routes each row by name: a name in <code>ACTIONS</code> goes to <code>resume</code>, anything else to the stack's <code>approveApproval</code>.</p>
-<h3 id="account-standing-and-entitlement">Account standing and entitlement</h3>
-<p>Today the browser decides access by method and path, and the agent by effect class. The kernel decides it in two places. Suspension is checked at admission, from the identity row the session already holds, as both doors do today (<code>R/trial-wall.ts:79-81</code>, <code>S/R/agent/caller.ts:206</code>). Lapsed standing is checked only for write, spend and publish, after the card has fixed the effect. Reads never trigger a standing read, so a lapsed rep browsing the editor costs no Stripe calls, exactly as today. Retracts and destroys stay open to a lapsed account, because it may still take down what it published. Checkout start declares <code>whileLapsed: 'open'</code>. The trial wall keeps only app-shell redirects, the suspended answer, and the <code>/api</code> rows that stay outside the registry and write (the upload relay and the speech window) unless each of them requires a grant from an action that already refused a lapsed account.</p>
-<p>Draft PR #1473 changes what "lapsed" means. It moves lapsed accounts to Free, keeps writes open, and enforces a three-live-page limit inside the publish batch. If it lands first, step 10 shrinks to "Free or Pro, both continue", <code>whileLapsed</code> disappears, and the live-page limit stays a store invariant that answers <code>live_page_limit</code>.</p>
-<p>Two failure modes differ by door today, and the kernel keeps both answers in one function, <code>onStandingUnreadable(principal, cause)</code>. When the standing read throws, the browser lets a nonsuspended account through (<code>R/trial-wall.ts:91-98</code>) and the agent answers 503 (<code>R/agent/dispatch.ts:178-186</code>). When D1 says walled and Stripe cannot be asked, the browser keeps D1's walled verdict (<code>R/trial-offer-with-stripe-sync.ts:27</code>) and the agent answers 503 rather than cache a denial Stripe might lift (<code>S/R/agent/policy.ts:38</code>). Changing either is a product call, not part of this migration.</p>
+<p><strong><code>videos_share</code> and a link the owner turned off (decision 6).</strong> The one action turns the link on for both doors. The browser's share already does, since #1473 routed it through <code>goLive</code> (<code>R/video-share-page.ts:177</code>). The agent's call reaches the same <code>run</code> only through approval, and the card keeps the summary main already shows: "Turn this video's share link back on, so its page is public again." (<code>R/agent/ops-publish.ts:274</code>). The card's bound gains the draft revision, because today it binds only the page id and so would also publish unpublished draft edits without saying so.</p>
+<p><strong><code>pages_set_password</code> (#1489).</strong> Any call that touches a live gate asks the owner, and nothing compares the sent password with the stored one. That rule lives in <code>card</code>: when the page is live and gated, the effect is publish. Two follow-ups #1489 listed land in PR 4. The publish card names a password the agent set while the link was off, so the owner never approves a gate they did not choose. And the ask's input digest stops including secret fields, because <code>input_hash</code> is an unsalted SHA-256 of the input today (<code>R/agent/approvals.ts</code>, <code>R/agent/audit.ts</code>).</p>
+<p><code>uploads_finish</code> with <code>sharePage: true</code> births a published share page, as the recorder does today (<code>R/video-share-page.ts:102-134</code>). Its contract declares <code>exposes: 'share-page'</code>, so an agent that sends it gets an approval card. Without the flag it stays a private write.</p>
+<p>What the stack built carries over: the <code>agent_approvals</code> table (<code>0042_agent_access.sql</code>, facts in <code>0046_agent_approval_facts.sql</code>), the claim state, the 24-hour expiry, the 10-minute denial block, the sweep (#1484) and the approval screens. Four things change. Approval rows gain an <code>action_version</code> column (migration, nullable for rows the legacy executor wrote). <code>resume</code> parses stored input against the current contract instead of casting it (<code>R/agent/approvals.ts:325-326</code>). The commit binds to <code>bound</code> inside the store's batch. And until the last approvable operation moves, the approve and deny API routes each row by name: a name in <code>ACTIONS</code> goes to <code>resume</code>, anything else to the stack's <code>approveApproval</code>.</p>
+<h3 id="account-standing">Account standing</h3>
+<p>Standing is suspended, Free or Pro (#1473). The kernel checks suspension once, at admission, from the identity row the session already holds, as both doors do today (<code>R/trial-wall.ts:57</code>, <code>R/agent/caller.ts:212</code>). It spells the refusal one way, <code>account_suspended</code>, with the <code>X-Clarity-Access</code> header the editor's redirect reads (<code>E/lib/editor-api.ts:321-329</code>). No step reads the plan. The only plan-dependent rule, the live-page limit, is an invariant inside <code>live-pages.ts</code>, which asks Stripe only after D1 refuses (<code>withLiveSlotsAfterRefusal</code>, <code>live-pages.ts:147-159</code>) and answers <code>live_page_limit</code>. Reads never trigger a plan read, so a Free rep browsing the editor costs no Stripe calls. The trial wall keeps only the app-shell redirects and the suspended answer for the <code>/api</code> rows that stay outside the registry.</p>
+<p>The first version of this design kept two door-specific answers for an unreadable standing, and decision 4 asked to keep them. Measured on main they are gone. When the identity read throws, the browser answers 503 with <code>Retry-After</code> (<code>R/trial-wall.ts:46-52</code>), and the agent throws uncaught, because <code>authenticateBearer</code> runs outside any try (<code>R/agent/caller.ts:207</code>, <code>R/agent/mcp.ts:214</code>). When D1 says Free and Stripe cannot be asked, both doors keep D1's verdict (<code>R/account-plan.ts:41-45</code>). So <code>onStandingUnreadable(principal, cause)</code> declares one answer, <code>unavailable</code>, which the HTTP door maps to 503 with <code>Retry-After: 5</code> and the MCP door to a transport error. That fixes the agent's uncaught throw. The function stays one place to change if William wants a door to fail open.</p>
 <h3 id="errors">Errors</h3>
 <p>One <code>Refusal</code> union, one status table in the HTTP door.</p>
 <div class="table-wrap"><table>
@@ -706,7 +728,7 @@ export const remove = action.approvable(libraryDelete, {
 <td>Tool error result with the issues</td>
 </tr>
 <tr>
-<td><code>not_found</code></td>
+<td><code>not_found</code>, including a page the caller may not see (decision 5)</td>
 <td>404</td>
 <td>Tool error result</td>
 </tr>
@@ -714,11 +736,6 @@ export const remove = action.approvable(libraryDelete, {
 <td><code>caller_not_allowed</code>, <code>permission_required</code></td>
 <td>403</td>
 <td>Tool error result with the settings URL</td>
-</tr>
-<tr>
-<td><code>access_walled</code></td>
-<td>402 with <code>X-Clarity-Access: trial-expired</code></td>
-<td>Tool error result</td>
 </tr>
 <tr>
 <td><code>account_suspended</code></td>
@@ -731,7 +748,7 @@ export const remove = action.approvable(libraryDelete, {
 <td>Tool error result</td>
 </tr>
 <tr>
-<td><code>stale_approval</code>, <code>stale_base</code>, <code>edit_refused</code>, <code>idempotency_conflict</code>, <code>not_ready</code>, <code>live_page_limit</code>, <code>generation_running</code></td>
+<td><code>stale</code>, <code>stale_approval</code>, <code>stale_base</code>, <code>edit_refused</code>, <code>idempotency_conflict</code>, <code>not_ready</code>, <code>live_page_limit</code>, <code>generation_running</code>, <code>rejected</code></td>
 <td>409 with the refusal</td>
 <td>Tool error result</td>
 </tr>
@@ -741,13 +758,13 @@ export const remove = action.approvable(libraryDelete, {
 <td>Tool error result</td>
 </tr>
 <tr>
-<td><code>rate_limited</code>, <code>daily_limit</code>, <code>workspace_limit</code></td>
+<td><code>rate_limited</code>, <code>daily_limit</code>, <code>generation_limit</code>, <code>workspace_limit</code></td>
 <td>429 with <code>Retry-After</code> where it applies</td>
 <td>Tool error result</td>
 </tr>
 <tr>
 <td><code>unavailable</code></td>
-<td>503</td>
+<td>503 with <code>Retry-After</code></td>
 <td>Transport error</td>
 </tr>
 <tr>
@@ -762,13 +779,15 @@ export const remove = action.approvable(libraryDelete, {
 </tr>
 </tbody>
 </table></div>
-<p>The 402 and 403 headers keep <code>apiFetch</code>'s wall redirect working unchanged (<code>E/lib/editor-api.ts:322-330</code>).</p>
-<p><code>act</code> retries a read up to three times on 502, 503 and 504 with today's backoff, because <code>apiRequest</code> does that for GET and HEAD today (<code>E/lib/editor-api.ts:219-260</code>) and every read now travels as a POST. It reads the effect from the generated <code>EFFECTS</code> map. It never retries a write.</p>
+<p>Today the browser answers 403 for a page the caller may not see (<code>R/journey-pages-native.ts:658-677</code>) and the agent <code>not_found</code>. Decision 5 makes it 404 on every door, so an id leaks nothing. PR 1 makes that change when it builds the one loader.</p>
+<p>The 403 header keeps <code>apiFetch</code>'s suspended redirect working unchanged (<code>E/lib/editor-api.ts:321-329</code>). The 402 branch went with #1473.</p>
+<p><code>act</code> retries a read up to three times on 502, 503 and 504 with today's backoff, because <code>apiRequest</code> does that for GET and HEAD today (<code>E/lib/editor-api.ts:245-262</code>) and every read now travels as a POST. It reads the effect from the generated <code>EFFECTS</code> map. It never retries a write.</p>
 <h3 id="open-editor-tabs-across-a-deploy">Open editor tabs across a deploy</h3>
 <p>Each family PR moves the editor to new URLs, and an open tab still holds the old bundle. An old tab cannot learn a new behavior, and a forced reload can discard edits the document store has not sent yet (<code>E/lib/journey-page-document-store.ts:295,595</code>). So the plan never forces a reload on a write.</p>
 <p>Instead, each family PR replaces its old handlers with thin <strong>legacy adapters</strong>. An old row keeps its URL and wire format, maps the old input onto the action, calls <code>perform</code>, and maps the output back to the old envelope. An adapter holds no rules, so the action is still the one definition. PR 2 adds a deploy-aware notice. Every action response carries <code>X-Clarity-Build</code>, and when it differs from the bundle's own build, the editor shows "A new version is ready" and reloads only after the document store reports nothing pending. The adapters go in the last PR, once Workers logs show no hits on them for two weeks.</p>
 <h3 id="analytics">Analytics</h3>
-<p>State-change events stay where they are atomic and door-independent: D1 triggers and store batches. They fire for every writer, including jobs, scripts and the legacy <code>/watch</code> hit, which is correct. Moving them into the kernel would lose events on a crash and miss internal writers. The action declares which event its commit writes, or why it writes none. A kernel test runs each action on the SQLite D1 helper and asserts that the declared outbox row appears exactly once. New events such as <code>journey_page_published</code> are written by the store in the same batch as the change, with a <code>via</code> property that records the provenance (<code>session</code>, <code>agent</code>, <code>job</code>, <code>watch-link</code>). That property is a label for analytics, not policy, so it does not bring a principal back into the store. Client events that restate a server fact, such as <code>journey_page_publish_changed</code>, go. Clicks (<code>data-analytics-id</code>), RUM and upload progress stay as they are, because they describe interaction, not commits.</p>
+<p>State-change events stay where they are atomic and door-independent: D1 triggers and store batches. They fire for every writer, including jobs, scripts and the legacy <code>/watch</code> hit, which is correct. Moving them into the kernel would lose events on a crash and miss internal writers. The action declares which event its commit writes, or why it writes none. A kernel test runs each action on the SQLite D1 helper and asserts that the declared outbox row appears exactly once.</p>
+<p>Decision 8 renames the publish event. The server event <code>journey_page_published</code> replaces the client event <code>journey_page_publish_changed</code> (<code>E/hooks/use-page-publication.ts:188,229</code>, vocabulary at <code>E/lib/product-analytics-events.ts:6</code>). The store writes it in the same batch as the change, with a <code>via</code> property that records the provenance (<code>session</code>, <code>agent</code>, <code>job</code>, <code>watch-link</code>). That property is a label for analytics, not policy, so it does not bring a principal back into the store. Today <code>goLive</code> writes no event at all, so agent publishes are invisible to PostHog (rule 28). Any PostHog chart on the old name moves to the new one. Clicks (<code>data-analytics-id</code>), RUM and upload progress stay as they are, because they describe interaction, not commits.</p>
 <h3 id="where-the-line-falls">Where the line falls</h3>
 <p>An action acts for an account holder and answers a JSON value. Reads belong in it. The duplicated loaders and restated response types are mostly reads, and leaving reads out would keep the agent's reads as a second registry. Everything else stays a route-table row that states why.</p>
 <div class="table-wrap"><table>
@@ -786,7 +805,7 @@ export const remove = action.approvable(libraryDelete, {
 <td>No account principal. HTML, cookies and cache. The legacy <code>/watch</code> first hit calls the publication store, which lists it in its fence</td>
 </tr>
 <tr>
-<td><code>PUT /api/media/upload</code>, the speech-window PCM stream, signed R2 and Mux PUTs, the admin CSV export</td>
+<td><code>PUT /api/media/upload</code>, the speech chunk and seal PUTs, signed R2 and Mux PUTs, the admin CSV export</td>
 <td><code>byte-stream</code></td>
 <td>Bytes, ranges and ETags. The JSON grant and finish around them are actions (<code>uploads_start</code>, <code>uploads_finish</code>)</td>
 </tr>
@@ -803,10 +822,10 @@ export const remove = action.approvable(libraryDelete, {
 <tr>
 <td>RUM, page events, playback events, analytics config, contact form</td>
 <td><code>telemetry</code> or <code>public-prospect</code></td>
-<td>Public and unauthenticated, and they must work for a lapsed rep's prospects</td>
+<td>Public and unauthenticated, and they must work for a Free rep's prospects</td>
 </tr>
 <tr>
-<td><code>/mcp</code>, <code>/.well-known/*</code>, robots, sitemap, deploy info, assets</td>
+<td><code>/mcp</code>, <code>/cli/oauth-client.json</code>, <code>/.well-known/*</code>, robots, sitemap, deploy info, assets</td>
 <td><code>door</code></td>
 <td>Doors and plumbing</td>
 </tr>
@@ -817,9 +836,9 @@ export const remove = action.approvable(libraryDelete, {
 </tr>
 </tbody>
 </table></div>
-<p>That leaves about 70 actions. The editor's JSON calls account for about 68, the agent-only reads (<code>pages_edit_help</code>, <code>settings_get</code>) add a few, and several REST paths fold into one action. Of the 31 <code>/api</code> rows in <code>R/routes.ts</code> today, about 15 stay outside.</p>
+<p>That leaves about 75 actions. The editor's JSON calls account for about 70, the agent-only reads (<code>pages_edit_help</code>, <code>settings_get</code>, <code>whoami</code>) add a few, and several REST paths fold into one action. Of the 32 <code>/api</code> rows in <code>R/routes.ts</code> today, about 16 stay outside.</p>
 <h3 id="internal-callers">Internal callers</h3>
-<p>There is no system principal. An action answers "may this caller do this to this account, and must a human say yes". A cron job is the continuation of a call that already passed that question, and it carries a lease (<code>R/jobs-store.ts:6-27</code>). A webhook carries a provider's signature. Running either through the kernel would add a fake principal and skip every step but <code>run</code>.</p>
+<p>There is no system principal. An action answers "may this caller do this to this account, and must a human say yes". A cron job is the continuation of a call that already passed that question, and it carries a lease (<code>R/jobs-store.ts:6-31</code>). A webhook carries a provider's signature. Running either through the kernel would add a fake principal and skip every step but <code>run</code>.</p>
 <p>A lease or a signature proves where a call came from. It does not define the capability. The store does. So every internal capability is defined once in a store function, and its fence names its callers. The table shows the ones the critics asked about.</p>
 <div class="table-wrap"><table>
 <thead>
@@ -832,8 +851,8 @@ export const remove = action.approvable(libraryDelete, {
 <tbody>
 <tr>
 <td>Legacy <code>/watch</code> link publishes on first visit</td>
-<td><code>R/publication.ts</code> (#1473's <code>live-pages.ts</code>), as a kept page outside the live-page limit</td>
-<td>Built in PR 3 or adopted from #1473</td>
+<td><code>live-pages.ts</code>, as a kept page outside the live-page limit (<code>R/public-video-watch.ts:105-111</code>)</td>
+<td>Done by #1473</td>
 </tr>
 <tr>
 <td>Recorder claim with a share page</td>
@@ -843,12 +862,12 @@ export const remove = action.approvable(libraryDelete, {
 <tr>
 <td>Auto-trim edits a video</td>
 <td><code>commitVideoEdit</code>'s machine branch, fenced by <code>boundaries/machine-commit</code></td>
-<td>Exists (<code>W/video-auto-trim.ts:118-120</code>)</td>
+<td>Exists (<code>W/video-auto-trim.ts:51-53</code>)</td>
 </tr>
 <tr>
 <td>Stripe facts update a subscription</td>
 <td><code>applyStripeSubscription</code> (<code>R/stripe-checkout.ts:184</code>). Reconciliation's <code>wouldGrantAccess</code> filter moves into it as an explicit <code>source</code> rule, so the admission difference is stated once</td>
-<td>PR 12</td>
+<td>PR 10</td>
 </tr>
 <tr>
 <td>Mux facts settle a video</td>
@@ -859,32 +878,32 @@ export const remove = action.approvable(libraryDelete, {
 </table></div>
 <p>Admin product changes are actions with <code>session: 'staff'</code>. Routine scripts call those actions through an admin session or call stores. One-off repairs stay scripts.</p>
 <h3 id="guards">Guards</h3>
-<p>Each fails CI and lands in <code>docs/agents/guards.md</code> through <code>scripts/generate-guards-table.mjs</code>, which reads lint messages and script headers.</p>
+<p>Each fails CI and lands in <code>docs/agents/guards.md</code> through <code>scripts/generate-guards-table.mjs</code>, which reads lint messages and script headers. The table lists 11 lint rules and 13 scripts today.</p>
 <ol>
-<li><strong>A new <code>/api</code> row must say why it is not an action.</strong> <code>editor/tests/route-table.test.ts</code> already walks every row. It gains a check that every row serving an <code>/api/</code> path is the <code>actions</code> row or carries an <code>outside</code> reason. A <code>legacy</code> reason must name an issue, and the number of legacy rows has a budget that only shrinks, as <code>css-budget.json</code> does.</li>
-<li><strong>Doors reach actions only through the kernel.</strong> <code>action()</code> returns an opaque handle. A <code>boundaries/action-kernel</code> lint, built like <code>boundaries/machine-commit</code>, lets only <code>actions/kernel.ts</code> and <code>actions/registry.ts</code> import action modules.</li>
-<li><strong>Stores are reached only from their listed callers.</strong> A <code>boundaries/store-callers</code> lint gives each fenced store an allowlist: action modules, plus named webhook, job and script modules. A new handler that imports <code>publication.goLive</code> or <code>library.deleteNode</code> fails lint. This closes the real way past the kernel, which is calling a store directly.</li>
+<li><strong>A new <code>/api</code> row must say why it is not an action.</strong> <code>editor/tests/route-table.test.ts</code> already walks every row (<code>ROWS</code> at <code>:18</code>, per-auth cases at <code>:205-275</code>). It gains a check that every row serving an <code>/api/</code> path is the <code>actions</code> row or carries an <code>outside</code> reason. A <code>legacy</code> reason must name an issue, and the number of legacy rows has a budget that only shrinks, as <code>css-budget.json</code> does.</li>
+<li><strong>Doors reach actions only through the kernel.</strong> <code>action()</code> returns an opaque handle. A <code>boundaries/action-kernel</code> lint, built like <code>boundaries/machine-commit</code> (<code>eslint.config.mjs:641-676</code>), lets only <code>actions/kernel.ts</code> and <code>actions/registry.ts</code> import action modules.</li>
+<li><strong>Stores are reached only from their listed callers.</strong> A <code>boundaries/store-callers</code> lint gives each fenced store an allowlist: action modules, plus named webhook, job and script modules. <code>clarity/live-page-writes</code> fences the SQL today but lets any module import <code>goLive</code>; the allowlist closes that. A new handler that imports <code>goLive</code> or <code>library.deleteNode</code> fails lint. This closes the real way past the kernel, which is calling a store directly.</li>
 <li><strong>MCP lists only the registry.</strong> <code>tools/list</code> is computed from <code>ACTIONS</code> where the agent door is open, and <code>tools/call</code> calls only <code>perform</code>. A lint bans <code>tools/call</code> handling anywhere else.</li>
-<li><strong>The editor calls the API only through <code>act</code> and named protocol modules.</strong> The lint bans importing <code>apiRequest</code>, <code>apiFetch</code> or <code>workspaceTreeRequest</code>, and bans calling <code>fetch</code> at all, outside <code>E/lib/actions.ts</code> and <code>E/lib/protocols/</code> (uploads, telemetry). Banning the call rather than a URL literal also catches paths built at runtime. Its baseline goes in <code>eslint-suppressions.json</code> and shrinks per family.</li>
+<li><strong>The editor calls the API only through <code>act</code> and named protocol modules.</strong> The lint bans importing <code>apiRequest</code>, <code>apiFetch</code> or <code>workspaceTreeRequest</code>, and bans calling <code>fetch</code> at all, outside <code>E/lib/actions.ts</code> and <code>E/lib/protocols/</code> (uploads, telemetry, WorkOS). Banning the call rather than a URL literal also catches paths built at runtime. Its baseline goes in <code>eslint-suppressions.json</code> and shrinks per family.</li>
 <li><strong>Every action is complete.</strong> The builders, the conditional <code>event</code> type and the <code>complete</code> constant make a missing card, a missing event declaration, a missing action or an orphan action a compile error. <code>scripts/check-actions.mjs</code> runs <code>tsc</code> over the action compile tests and regenerates <code>EFFECTS</code>. Its header names the rule, so the guards table lists it.</li>
 <li><strong>The guards are proven red.</strong> <code>scripts/check-action-boundaries.test.mjs</code> holds four fixtures: an <code>/api</code> row with no <code>outside</code> reason, a handler that imports a fenced store, a second MCP tool handler, and an editor <code>fetch</code>. Each must fail its rule. A guard that cannot fail is worse than none.</li>
 </ol>
 <h3 id="why-not-a-framework-and-why-not-rest">Why not a framework, and why not REST</h3>
 <p>tRPC, oRPC, Hono RPC and ts-rest give a typed client and schema plumbing. None knows effect classes, approval cards, commit guards, replay or two principal kinds. We would write all of that as middleware anyway, then an adapter from their router to MCP, and carry their runtime in both the Worker and the editor. The kernel, the HTTP door, the MCP door change and <code>act</code> total about 500 lines of our own code.</p>
-<p>Keeping resource URLs and deriving each route row from the action (the gpt-6-astra runner's design) is the serious alternative. It keeps URLs stable for open tabs, along with GET semantics and today's retry. It costs a path-template language, a mapping from path, query and body into the input, and per-family codecs that keep today's envelope quirks (<code>{data}</code> against <code>{stats}</code>, snake case) as permanent vocabulary. Clarity's <code>/api</code> has no outside consumer. The editor ships with the Worker that serves it, and MCP is the public contract. The one route therefore pays three transitional costs: legacy adapters for a migration window, a retry map, and a build notice. In return it removes a permanent mapping layer. I think that trade is right. It is a judgment call, and the decisions section asks William to confirm it.</p>
+<p>Keeping resource URLs and deriving each route row from the action (the gpt-6-astra runner's design) was the serious alternative. It keeps URLs stable for open tabs, along with GET semantics and today's retry. It costs a path-template language, a mapping from path, query and body into the input, and per-family codecs that keep today's envelope quirks (<code>{data}</code> against <code>{stats}</code>, snake case) as permanent vocabulary. Clarity's <code>/api</code> has no outside consumer. The editor ships with the Worker that serves it, and MCP is the public contract. The one route therefore pays three transitional costs: legacy adapters for a migration window, a retry map, and a build notice. In return it removes a permanent mapping layer. William confirmed the one route (decision 2).</p>
 <h3 id="tradeoffs-accepted">Tradeoffs accepted</h3>
 <ul>
 <li>We accept a URL change for every editor call, legacy adapters until old tabs are gone, and a build notice, in exchange for one HTTP row and no per-action path mapping.</li>
 <li>We accept one output per action. The editor loses some snake-case fields and the agent some condensed views. A door that needs a different view gets a second read action.</li>
 <li>We accept zod/mini in the editor bundle for input schemas, so screens can reuse them for validation. The size is unmeasured. PR 2 measures it.</li>
 <li>We accept that the editor trusts output types at runtime. The kernel test parses every action's output against its schema, and the editor ships with the Worker.</li>
-<li>We accept that the agent audit row lands after the effect, outside the store batch, as today (<code>S/R/agent/audit.ts:54</code>). That is safe only when the effect deduplicates itself. So every keyed create carries a client-chosen id into its store, derived from the connection and the idempotency key, as page create already does with its client UUID. A retry after a crash then hits the store's own uniqueness, not a second insert. <code>folders_create</code> needs this change, because the Library mints a fresh UUID today (<code>W/index.ts:688</code>).</li>
+<li>We accept that the agent audit row lands after the effect, outside the store batch, as today (<code>R/agent/audit.ts:54-61</code>). That is safe only when the effect deduplicates itself. So every keyed create carries a client-chosen id into its store, derived from the connection and the idempotency key, as page create already does with its client UUID. A retry after a crash then hits the store's own uniqueness, not a second insert. <code>folders_create</code> needs this change, because the Library mints a fresh UUID today (<code>W/index.ts:683</code>).</li>
 <li>We accept that browser calls stay unrated by the kernel, as today. Autosave would trip a per-user write tier.</li>
 <li>We accept computing the card on browser publish and delete too. That costs a few reads per click, and it gives both doors one <code>run</code> body and one guard.</li>
 <li>We accept a coarser live-page fingerprint than today's rule, so a harmless change can refuse an agent's video edit as stale.</li>
 </ul>
 <h2 id="3-the-gap">3. The gap</h2>
-<p>From main, assuming the parity stack merges first. Sizes are estimates from the named files' line counts, not measurements.</p>
+<p>From main <code>61274a6f5</code>. Sizes are estimates from the named files' line counts, not measurements.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -897,26 +916,26 @@ export const remove = action.approvable(libraryDelete, {
 <tbody>
 <tr>
 <td>1</td>
-<td>Contract package: contract type, refusal union, shared <code>PASSWORD</code> and upload-kind contracts, <code>CONTRACTS</code>, generated <code>EFFECTS</code></td>
+<td>Contract package: contract type, refusal union, shared <code>PASSWORD</code>, <code>FREE_LIVE_PAGE_LIMIT</code> and upload-kind contracts, <code>CONTRACTS</code>, generated <code>EFFECTS</code></td>
 <td>New <code>packages/actions/</code></td>
 <td>S to start, about 1,200 lines at the end</td>
 </tr>
 <tr>
 <td>2</td>
 <td>Kernel, principal, builders, registry, HTTP door; the MCP door calls <code>perform</code></td>
-<td>New <code>R/actions/</code>; <code>S/R/agent/dispatch.ts</code>, <code>policy.ts</code> and <code>audit.ts</code> absorbed; <code>S/R/agent/mcp.ts</code></td>
-<td>M, about 500 lines, then minus 500 when the agent files go</td>
+<td>New <code>R/actions/</code>; <code>R/agent/dispatch.ts</code>, <code>policy.ts</code> and <code>audit.ts</code> absorbed; <code>R/agent/mcp.ts</code></td>
+<td>M, about 500 lines, then minus 5,050 when <code>R/agent/</code> goes</td>
 </tr>
 <tr>
 <td>3</td>
 <td>Commit guard helper and table</td>
-<td>New <code>R/commit-guard.ts</code>, one migration</td>
+<td>New <code>R/commit-guard.ts</code>, migration 0049</td>
 <td>S</td>
 </tr>
 <tr>
 <td>4</td>
 <td>Editor client <code>act</code>, read retry, build notice</td>
-<td>New <code>E/lib/actions.ts</code>; <code>E/lib/editor-api.ts:219-334</code></td>
+<td>New <code>E/lib/actions.ts</code>; <code>E/lib/editor-api.ts:218-332</code></td>
 <td>S</td>
 </tr>
 <tr>
@@ -927,128 +946,132 @@ export const remove = action.approvable(libraryDelete, {
 </tr>
 <tr>
 <td>6</td>
-<td>One loader per target kind</td>
-<td>Pages at <code>R/journey-pages-native.ts:617</code> and <code>S/R/agent/ops-pages.ts:35</code>; videos at the five sites in rule 4; contacts</td>
-<td>M, net minus 200</td>
+<td>One loader per target kind, and the other restated rules of section 1</td>
+<td>Pages at <code>R/journey-pages-native.ts:237-253,658-677,726</code> and <code>R/agent/ops-pages.ts:35-51</code>; videos at the eight sites in rule 4; contacts; the live-link query (rule 42), the publication stage (rule 43), the limit constant (rule 39), the approval card type (rule 37), the notification names (rule 21)</td>
+<td>M, net minus 300</td>
 </tr>
 <tr>
 <td>7</td>
-<td>Publication store with its fence</td>
-<td>New <code>R/publication.ts</code> (or #1473's <code>live-pages.ts</code>); callers <code>R/journey-page-access.ts:73-135</code>, <code>R/video-share-page.ts:82-200</code>, <code>R/public-video-watch.ts:109-134</code></td>
-<td>M</td>
+<td>Publication store: card, guard and event</td>
+<td><code>R/public-page-delivery/live-pages.ts</code> (exists); <code>R/video-share-page.ts:150-153</code>, <code>R/video-share-page-port.ts:32-35</code> pre-counts; <code>boundaries/store-callers</code> allowlist</td>
+<td>S</td>
 </tr>
 <tr>
 <td>8</td>
 <td>Approvable actions, kernel approval, dual executor</td>
-<td><code>S/R/agent/ops-publish.ts</code>, <code>ops-destroy.ts</code>, <code>approvals.ts</code>, <code>approvals-api.ts</code>; <code>R/journey-pages-native.ts</code> publish, delete and password branches; editor <code>E/lib/journey-page-sharing.ts</code>, <code>E/hooks/use-page-publication.ts</code></td>
+<td><code>R/agent/ops-publish.ts</code>, <code>ops-destroy.ts</code>, <code>approvals.ts</code>, <code>approvals-api.ts</code>; <code>R/journey-pages-native.ts</code> publish, delete and password branches; <code>R/journey-page-access.ts</code>; editor <code>E/lib/journey-page-sharing.ts</code>, <code>E/hooks/use-page-publication.ts</code>, <code>E/components/JourneyPageShareDialog.tsx</code> (#1457)</td>
 <td>L</td>
 </tr>
 <tr>
 <td>9</td>
 <td>Typed Library functions with the guarded delete</td>
-<td><code>W/library.ts</code> gains about 12 functions; <code>W/index.ts</code> (1,123 lines) handler bodies call them; <code>W/workspace-tree-store.ts:333-410</code> and <code>W/video-row.ts</code> discard statements take the guard</td>
+<td><code>W/library.ts</code> gains about 12 functions; <code>W/index.ts</code> (1,085 lines) handler bodies call them; <code>W/workspace-tree-store.ts:339-413</code> and <code>W/video-row.ts:540-570</code> discard statements take the guard</td>
 <td>L</td>
 </tr>
 <tr>
 <td>10</td>
 <td>Guarded video edit and contact delete</td>
-<td><code>W/video-edit-routes.ts</code>, <code>W/video-row.ts</code>, <code>R/publication.ts</code> fingerprint guard; <code>R/contacts-api.ts</code></td>
+<td><code>W/video-edit-routes.ts</code>, <code>W/video-row.ts</code>, <code>live-pages.ts</code> fingerprint guard; <code>R/contacts-api.ts</code></td>
 <td>M</td>
 </tr>
 <tr>
 <td>11</td>
 <td>Remaining Journey Page actions</td>
-<td>Most of <code>R/journey-pages-native.ts</code> (771 lines), <code>R/journey-page-generation.ts:81-165</code>; <code>S/R/agent/ops-pages.ts</code>, <code>ops-page-drafts.ts</code>; editor page calls in <code>E/lib/editor-api.ts</code>, <code>page-stats-api.ts</code>, <code>journey-page-duplicate.ts</code></td>
+<td>Most of <code>R/journey-pages-native.ts</code> (812 lines), <code>R/journey-page-generation.ts:81-201</code>; <code>R/agent/ops-pages.ts</code> (409 lines), <code>ops-page-drafts.ts</code>; editor page calls in <code>E/lib/editor-api.ts</code>, <code>page-stats-api.ts</code>, <code>journey-page-duplicate.ts</code>, <code>generation-runs.ts</code></td>
 <td>L</td>
 </tr>
 <tr>
 <td>12</td>
 <td>Library actions</td>
-<td><code>W/index.ts:165-249</code> <code>TREE_ROUTES</code>, <code>W/library.ts:60</code> <code>handleBrowserRequest</code>, <code>R/router-endpoints.ts:431-464</code>, <code>R/library-media.ts:33-167</code> becomes output projection; <code>S/R/agent/ops-library.ts</code>; <code>E/lib/tree-api.ts</code> (615 lines)</td>
+<td><code>W/index.ts:153-237</code> <code>TREE_ROUTES</code>, <code>W/library.ts:61</code> <code>handleBrowserRequest</code>, <code>R/router-endpoints.ts:441-467</code>, <code>R/library-media.ts:33-167</code> becomes output projection; <code>R/agent/ops-library.ts</code>; <code>E/lib/tree-api.ts</code> (615 lines)</td>
 <td>L</td>
 </tr>
 <tr>
 <td>13</td>
 <td>Video and upload actions</td>
-<td><code>W/mux-video-routes.ts</code>, <code>R/media-videos-native.ts</code>, <code>R/media-recording-sessions.ts</code> (the grant only); <code>S/R/agent/ops-videos.ts</code>, <code>ops-uploads.ts</code>; the JSON half of <code>E/lib/take-api.ts</code></td>
+<td><code>W/mux-video-routes.ts</code>, <code>R/media-videos-native.ts</code>, <code>R/media-recording-sessions.ts</code> (the grant only); <code>R/agent/ops-videos.ts</code>, <code>ops-uploads.ts</code>; the JSON half of <code>E/lib/take-api.ts</code></td>
 <td>L</td>
 </tr>
 <tr>
 <td>14</td>
 <td>Account, settings, contacts, plan, agent connections</td>
-<td><code>R/account-profile.ts:385-430</code>, <code>R/contacts-api.ts</code>, <code>R/trial-offer.ts</code>, <code>R/agent/connections-api.ts</code>, <code>S/R/agent/ops-settings.ts</code>; editor settings routes, <code>E/lib/agent-api.ts</code></td>
+<td><code>R/account-profile.ts:389-435</code>, <code>R/contacts-api.ts</code> (693 lines), <code>R/trial-offer.ts</code>, <code>R/agent/connections-api.ts</code>, <code>ops-settings.ts</code>, <code>ops-account.ts</code>; editor settings routes, <code>E/lib/agent-api.ts</code> (99 lines)</td>
 <td>M</td>
 </tr>
 <tr>
 <td>15</td>
 <td>Billing actions</td>
-<td><code>R/stripe-billing.ts:115-486</code> JSON routes, <code>R/stripe-subscription-sync.ts:59-92</code>; <code>E/lib/billing-checkout.ts</code> and the settings billing routes</td>
+<td><code>R/stripe-billing.ts:115-539</code> JSON routes, <code>R/stripe-subscription-sync.ts:58-92</code>; <code>E/lib/billing-checkout.ts</code> and the settings billing routes</td>
 <td>M</td>
 </tr>
 <tr>
 <td>16</td>
 <td>Staff actions</td>
-<td><code>R/admin-accounts-native.ts</code>, <code>R/admin-commands.ts</code> (eight commands), <code>R/admin-account-search.ts</code>, <code>R/account-billing.ts:170</code>, <code>R/admin-organizations.ts</code>, <code>R/preview-ticks.ts</code>; <code>E/lib/admin-user-accounts-api.ts</code> (244 lines), <code>support-accounts-api.ts</code>, <code>admin-organizations-api.ts</code></td>
+<td><code>R/admin-accounts-native.ts</code>, <code>R/admin-commands.ts</code> (eight commands), <code>R/admin-account-search.ts</code>, <code>R/account-billing.ts:170</code>, <code>R/admin-organizations.ts</code>, <code>R/preview-ticks.ts</code>; <code>E/lib/admin-user-accounts-api.ts</code> (245 lines), <code>support-accounts-api.ts</code>, <code>admin-organizations-api.ts</code></td>
 <td>L</td>
 </tr>
 <tr>
 <td>17</td>
-<td>Wall collapse</td>
-<td><code>R/trial-wall.ts:77-100,191-228</code></td>
-<td>S</td>
+<td>Suspension into the kernel, the wall shrinks to the app shell and the outside rows</td>
+<td><code>R/trial-wall.ts</code> (156 lines), <code>R/agent/caller.ts:212</code>, <code>R/agent/mcp.ts:103-105</code></td>
+<td>S. #1473 already removed the method and regex rules</td>
 </tr>
 <tr>
 <td>18</td>
 <td>Delete adapters, the ledger, update docs</td>
-<td>Legacy adapters; <code>S/R/agent/parity.json</code>, <code>S/editor/tests/agent-parity.test.ts</code>, <code>S/scripts/agent-parity.mjs</code>; <code>ARCHITECTURE.md</code> rule 6 and code map, <code>CONTEXT.md</code> Operation entry, <code>docs/agents/guards.md</code></td>
+<td>Legacy adapters; <code>R/agent/parity.json</code>, <code>editor/tests/agent-parity.test.ts</code>, <code>scripts/agent-parity.mjs</code>; <code>ARCHITECTURE.md</code> rules 6 and 8 and the code map, <code>CONTEXT.md</code> Operation entry, <code>docs/agents/guards.md</code></td>
 <td>S</td>
 </tr>
 </tbody>
 </table></div>
 <p>Astra's runner estimated 30 to 45 engineering days for a comparable scope. That is a planning allowance, not a measurement.</p>
 <h2 id="4-the-path">4. The path</h2>
-<p>Each PR ships alone and keeps production and open editor tabs working. The approvable actions move first, because production <code>/mcp</code> waits on them.</p>
-<p><strong>PR 0. Merge the parity stack, #1465 to #1471, with #1474 and #1475 on their merits.</strong> These are seven sequential merges, and each one is a production deploy. Production <code>/mcp</code> stays closed, because <code>AGENT_AUTH_ISSUER</code> is set for staging only (<code>wrangler.jsonc:109-112</code>). Before the first merge, confirm that <code>prod-router</code> has no <code>AGENT_AUTH_ISSUER</code> secret either, since <code>R/agent/caller.ts</code> reads it from <code>env</code>. Approval enforcement arrives in #1470 with the first publish and destroy operations, so on staging no publish or destroy reaches an agent without approval. The stack also changes production browser paths: page create, duplicate and rename, contact save, the Library index, generation, two wall exits, and migrations 0046 and 0047. List those migrations under the production migration rule. Verify the browser paths with the verify loop on the stack preview (pages, contacts, generation, Library), as well as the evals on staging. Hide Settings &gt; Agents in production until <code>/mcp</code> opens, because the door answers 503 there. Deletes nothing.</p>
-<p><strong>PR 1. Subtract the duplicated rules.</strong> One page loader, one owned-video loader and one contact delete, used by both the browser handlers and the stack operations. The <code>PASSWORD</code> rule moves into a shared package that <code>auth-session.ts</code> and the three editor screens import. Each door keeps its own refusal mapping for now, so behavior does not change. Verify with the editor and agent test suites and the route-table test. Deletes the duplicate loaders and the second contact SQL.</p>
-<p><strong>PR 2. Kernel, doors, guards and the build notice, proven on reads.</strong> Adds <code>packages/actions</code>, the kernel with its compile tests, the <code>actions</code> row above the wall, <code>act</code> with read retry, <code>X-Clarity-Build</code> and the notice, the commit guard helper and table, and guards 1 to 7 with baselines. Moves <code>pages_get</code> and <code>pages_stats</code> to both doors. Their old rows become legacy adapters. The MCP door lists actions plus the shrinking legacy <code>OPERATIONS</code>. Verify with kernel tests on the SQLite D1 helper, a test that a false commit guard rolls back a whole D1 batch, red fixtures for every guard, the agent read evals, and the page stats panel on a preview. Measure the editor bundle change from zod/mini. Deletes <code>E/lib/page-stats-api.ts</code>, the stats handler bodies and <code>pagesGet</code> and <code>pagesStats</code> in the agent files.</p>
-<p><strong>PR 3. The publication store.</strong> Either adopt #1473's <code>live-pages.ts</code> or build <code>R/publication.ts</code>: publication, route activation and the outbox row in one batch led by the commit guard, with <code>clarity/live-page-writes</code> fencing its four callers (browser publish, video share, recorder claim and the legacy <code>/watch</code> hit). No door changes its contract. Verify with store tests on SQLite: a draft that moved, a password changed after the plan, a route already active, and a crash between statements (none can happen, because it is one batch). Deletes the three-step <code>publishJourneyPage</code> and the direct route activations in <code>R/video-share-page.ts</code> and <code>R/public-video-watch.ts</code>.</p>
-<p><strong>PR 4. Approval in the kernel, with the page approvables.</strong> <code>resume</code> arrives, and the approve and deny API routes each row by name. <code>pages_publish</code>, <code>pages_unpublish</code>, <code>pages_access_get</code>, <code>pages_set_password</code>, <code>pages_delete</code> and <code>videos_share</code> move to both doors, through the publication store, with <code>revision</code> required on publish for every caller. This is where "PR 5" lands in the new shape: the kernel's approval rule ships with the first approvable actions, and the stack's approval tests rerun against <code>resume</code>. The MCP contract for <code>pages_publish</code> changes, so the evals and the <code>/agents</code> docs from #1475 change with it. Verify that the owner publishes with no ask, that an agent gets <code>approval_required</code> and the owner's click runs it once, that a second click does nothing, that a change after approval answers <code>stale_approval</code>, and that an empty page refuses before any ask. Then run the publish, delete and share evals on a preview, and the share dialog in the verify loop. Deletes the matching branches in <code>R/journey-pages-native.ts</code> and <code>R/video-share-page.ts</code>, the matching stack operations, <code>E/lib/journey-page-sharing.ts</code> (its URL helper moves to <code>E/lib/share-url.ts</code> for the recorder) and the client <code>journey_page_publish_changed</code> calls.</p>
-<p><strong>PR 5. Typed Library functions and the guarded delete.</strong> <code>W/library.ts</code> gains <code>findNode</code>, <code>list</code>, <code>search</code>, <code>path</code>, <code>folders</code>, <code>createNode</code> (taking a client id), <code>updateNode</code>, <code>moveNode</code>, <code>deletePlan</code>, <code>deleteNode</code>, <code>attachThumbnail</code> and <code>brand</code>. The existing handlers call them. <code>library_delete</code> moves to both doors. The stack's remaining Library and video operations call these functions instead of synthesized requests. Verify with the Library tests on SQLite, plus a race test that runs a move as a statement between plan and batch and expects <code>changed</code> with no lifecycle row written. Deletes the synthesized <code>Request</code> calls in the agent files and the delete branch of <code>TREE_ROUTES</code>.</p>
-<p><strong>PR 6. Guarded video edit and contact delete.</strong> <code>videos_edit</code> moves to both doors, with the live-page fingerprint from the publication store as its guard, and commits a whole approved batch of edits together. <code>contacts_delete</code> moves with its row guard. After this PR every approvable action runs through the kernel with a commit guard, so the legacy <code>approveApproval</code> goes. <strong>Production <code>/mcp</code> can open after this PR.</strong> That decision stays William's. Verify that a page going live between an edit's card and its commit fails as stale, and run the recorder trim flow and the edit evals. Deletes <code>approveApproval</code>, <code>videosEdit</code>, <code>contactsDelete</code> and the remaining publish and destroy operations in the agent files.</p>
-<p><strong>PR 7. The rest of Journey Pages.</strong> Get, create, duplicate, save draft (whose <code>stale_revision</code> and <code>already_created</code> refusals carry the current draft for the merge), edit, edit help, rename, generate, generation status and submissions. Split generation into its own PR if the diff passes about 1,500 lines. Verify with the editor page tests, generation tests, the page evals and the editor flows in the verify loop, including an autosave from a tab opened before the deploy. Deletes <code>S/R/agent/ops-pages.ts</code>, <code>ops-page-drafts.ts</code> and the page functions in <code>E/lib/editor-api.ts</code>. The old rows become adapters.</p>
-<p><strong>PR 8. Library actions, videos and uploads.</strong> List, search, children, path, folders, get, decorations, folder create, rename, move, thumbnail, brand, take, speech, reset trim, download, stats, transcript, <code>uploads_start</code> (Mux and R2 grants), <code>uploads_finish</code> (with <code>exposes: 'share-page'</code>), and metadata update in place of <code>/api/media/videos/:id</code>. Byte transfer stays outside. Split it in two if the diff is large. Verify with the Library evals, the Library in the verify loop at 390, 1000 and 1440 widths, the recorder end-to-end test and a real upload on a preview. Deletes <code>TREE_ROUTES</code>, <code>handleBrowserRequest</code>, the router's Library proxy, <code>R/library-media.ts</code> response rewriting, <code>R/media-videos-native.ts</code>, <code>S/R/agent/ops-library.ts</code>, <code>ops-videos.ts</code>, <code>ops-uploads.ts</code>, most of <code>E/lib/tree-api.ts</code> and the JSON half of <code>E/lib/take-api.ts</code>.</p>
-<p><strong>PR 9. Account, settings, contacts, plan, agent connections.</strong> Contacts get a store with a fence. Agent connections and approval decisions use <code>session: 'account-not-impersonated'</code>. Verify Settings and Contacts in the verify loop, and run the agent settings and contact evals. Deletes the handler bodies in <code>R/contacts-api.ts</code> and <code>R/account-profile.ts</code>, <code>S/R/agent/ops-settings.ts</code>, <code>R/agent/connections-api.ts</code> routing and <code>E/lib/agent-api.ts</code>.</p>
-<p><strong>PR 10. Billing.</strong> Checkout start (<code>whileLapsed: 'open'</code>), payment methods, cancel, reactivate and subscription. All use <code>session: 'account-not-impersonated'</code> and <code>agent: { hidden }</code>. <code>applyStripeSubscription</code> takes the reconciliation filter as an explicit <code>source</code> rule. This is billing policy, so it routes <code>steer</code> under the merge rule. Verify in Stripe test mode on staging, and check that an impersonated session gets 403. Deletes the JSON branches of <code>R/stripe-billing.ts</code>. The return and webhook rows stay.</p>
+<p>Each PR ships alone and keeps production and open editor tabs working. The approvable actions move first, because production <code>/mcp</code> waits on them. Each PR has a GitHub issue; the tracking issue links them all.</p>
+<p><strong>PR 0. Done.</strong> The stack (#1465 to #1471, #1474, #1475) merged on 2026-10-15 and is in production with <code>/mcp</code> closed. #1486 hides Settings &gt; Agents there. #1483, #1484, #1485, #1487 and #1489 closed the readiness items of issue #1482 that had a PR.</p>
+<p><strong>PR 1. Subtract the duplicated rules.</strong> One page loader, one owned-video loader, one contact delete and one live-link query, used by both the browser handlers and the agent operations. One publication stage, from <code>packages/journey-page-domain</code>. <code>FREE_LIVE_PAGE_LIMIT</code> imported where it is hard-coded. The <code>PASSWORD</code> rule moves into a shared package that <code>auth-session.ts</code> and the three editor screens import. The editor imports <code>ApprovalCard</code> and <code>ApprovalTargetKind</code> from the package the server uses. The three stale wall comments go. Each door keeps its own refusal mapping, with one intended behavior change: the one loader answers <code>not_found</code>, so the browser's 403 for a page the caller may not see becomes 404 (decision 5). Verify with the editor and agent test suites and the route-table test. Deletes the duplicate loaders, the second contact SQL and the agent's two live-link queries.</p>
+<p><strong>PR 2. Kernel, doors, guards and the build notice, proven on reads.</strong> Adds <code>packages/actions</code>, the kernel with its compile tests, the <code>actions</code> row above the wall, <code>act</code> with read retry, <code>X-Clarity-Build</code> and the notice, the commit guard helper and table, <code>onStandingUnreadable</code>, and guards 1 to 7 with baselines. Moves <code>settings_get</code> and <code>pages_stats</code> to both doors. Their old rows become legacy adapters. The MCP door lists actions plus the shrinking legacy <code>OPERATIONS</code>. Verify with kernel tests on the SQLite D1 helper, a test that a false commit guard rolls back a whole D1 batch, red fixtures for every guard, the agent read evals, and the page stats panel on a preview. Measure the editor bundle change from zod/mini. Deletes <code>E/lib/page-stats-api.ts</code>, the stats handler bodies and <code>pagesStats</code> and <code>settingsGet</code> in the agent files.</p>
+<p>PR 1 and PR 2 can run in parallel in separate worktrees. They share two files, <code>R/journey-pages-native.ts</code> and <code>R/agent/ops-pages.ts</code>, in disjoint hunks (PR 1 edits the loaders at <code>:237-253</code>, <code>:658-677</code> and <code>:726</code> and <code>accessiblePage</code> at <code>:35-51</code>; PR 2 edits the stats handlers at <code>:154-208</code> and deletes <code>pagesStats</code>). The second to merge rebases. PR 2 does not move <code>pages_get</code>, because its <code>resolve</code> wants PR 1's loader; <code>pages_get</code> moves in PR 7.</p>
+<p><strong>PR 3. The publication store, completed.</strong> <code>live-pages.ts</code> gains <code>plan</code> (the card and its bound from one read), the commit guard leading the <code>goLive</code> batch, and the <code>journey_page_published</code> outbox row in the same batch, with <code>via</code>. The pre-counts outside the batch in <code>R/video-share-page.ts</code> and <code>R/video-share-page-port.ts</code> go, and the grant-time path stops reading the plan without Stripe. <code>boundaries/store-callers</code> gives the store its allowlist (browser publish, share page, recorder claim, the legacy <code>/watch</code> hit, and from PR 4 the actions). No door changes its contract. Verify with store tests on SQLite: a draft that moved, a password changed after the plan, a route already active, the limit reached between plan and batch, and that the event row appears exactly once. Deletes the two pre-counts.</p>
+<p><strong>PR 4. Approval in the kernel, with the page approvables.</strong> <code>resume</code> arrives, and the approve and deny API routes each row by name. <code>pages_publish</code>, <code>pages_unpublish</code>, <code>pages_access_get</code>, <code>pages_set_password</code>, <code>pages_delete</code> and <code>videos_share</code> move to both doors, through the publication store, with <code>revision</code> required on publish for every caller. The kernel's approval rule ships with the first approvable actions, and the stack's approval tests rerun against <code>resume</code>. <code>videos_share</code> turns a disabled link back on for both doors, through approval for an agent (decision 6), and its card binds the draft revision. <code>pages_set_password</code> keeps #1489's rule in <code>card</code>, and the two follow-ups from #1489 land here: the publish card names a password the agent set while the link was off, and the ask digest excludes secret fields. The share dialog from #1457 (<code>E/components/JourneyPageShareDialog.tsx</code>, <code>E/hooks/use-page-publication.ts</code>) calls <code>act</code> for publish, unpublish and access. The MCP contract for <code>pages_publish</code> changes, so the evals and the <code>/agents</code> docs from #1475 change with it. Verify that the owner publishes with no ask, that an agent gets <code>approval_required</code> and the owner's click runs it once, that a second click does nothing, that a change after approval answers <code>stale_approval</code>, and that an empty page refuses before any ask. Then run the publish, delete and share evals on a preview, and the share dialog in the verify loop. Deletes the matching branches in <code>R/journey-pages-native.ts</code>, <code>R/journey-page-access.ts</code> and <code>R/video-share-page.ts</code>, the matching agent operations, <code>E/lib/journey-page-sharing.ts</code> (its URL helper moves to <code>E/lib/share-url.ts</code> for the recorder) and the client <code>journey_page_publish_changed</code> calls (decision 8).</p>
+<p><strong>PR 5. Typed Library functions and the guarded delete.</strong> <code>W/library.ts</code> gains <code>findNode</code>, <code>list</code>, <code>search</code>, <code>path</code>, <code>folders</code>, <code>createNode</code> (taking a client id), <code>updateNode</code>, <code>moveNode</code>, <code>deletePlan</code>, <code>deleteNode</code>, <code>attachThumbnail</code> and <code>brand</code>. The existing handlers call them. <code>library_delete</code> moves to both doors. The remaining agent Library and video operations call these functions instead of synthesized requests. Verify with the Library tests on SQLite, plus a race test that runs a move as a statement between plan and batch and expects <code>changed</code> with no lifecycle row written. Deletes the nine synthesized <code>Request</code> calls in the agent files and the delete branch of <code>TREE_ROUTES</code>.</p>
+<p><strong>PR 6. Guarded video edit and contact delete.</strong> <code>videos_edit</code> moves to both doors, with the live-page fingerprint from the publication store as its guard, and commits a whole approved batch of edits together. <code>contacts_delete</code> moves with its row guard. After this PR every approvable action runs through the kernel with a commit guard, so the legacy <code>approveApproval</code> goes. <strong>Production <code>/mcp</code> can open after this PR.</strong> That decision stays William's, and issue #1482 holds the opening steps. Verify that a page going live between an edit's card and its commit fails as stale, and run the recorder trim flow and the edit evals. Deletes <code>approveApproval</code>, <code>videosEdit</code>, <code>contactsDelete</code> and the remaining publish and destroy operations in the agent files.</p>
+<p><strong>PR 7. The rest of Journey Pages.</strong> Get, create, duplicate, save draft (whose <code>stale_revision</code> and <code>already_created</code> refusals carry the current draft for the merge), edit, edit help, rename, generate (with the daily cap's one refusal text, rule 38), generation status, leads and submissions. Split generation into its own PR if the diff passes about 1,500 lines. Verify with the editor page tests, generation tests, the page evals and the editor flows in the verify loop, including an autosave from a tab opened before the deploy. Deletes <code>R/agent/ops-pages.ts</code>, <code>ops-page-drafts.ts</code> and the page functions in <code>E/lib/editor-api.ts</code>. The old rows become adapters.</p>
+<p><strong>PR 8. Library actions, videos and uploads.</strong> List, search, children, path, folders, get, decorations, folder create, rename, move, thumbnail, brand, take, speech, reset trim, download, stats, transcript, <code>uploads_start</code> (Mux and R2 grants), <code>uploads_finish</code> (with <code>exposes: 'share-page'</code>), and metadata update in place of <code>/api/media/videos/:id</code>. Byte transfer stays outside. Split it in two if the diff is large. Verify with the Library evals, the Library in the verify loop at 390, 1000 and 1440 widths, the recorder end-to-end test and a real upload on a preview. Deletes <code>TREE_ROUTES</code>, <code>handleBrowserRequest</code>, the router's Library proxy, <code>R/library-media.ts</code> response rewriting, <code>R/media-videos-native.ts</code>, <code>R/agent/ops-library.ts</code>, <code>ops-videos.ts</code>, <code>ops-uploads.ts</code>, most of <code>E/lib/tree-api.ts</code> and the JSON half of <code>E/lib/take-api.ts</code>.</p>
+<p><strong>PR 9. Account, settings, contacts, plan, agent connections.</strong> Contacts get a store with a fence. Agent connections and approval decisions use <code>session: 'account-not-impersonated'</code>. <code>whoami</code>, the profile and the trial-offer read answer the plan from one function (rule 40). Verify Settings and Contacts in the verify loop, and run the agent settings and contact evals. Deletes the handler bodies in <code>R/contacts-api.ts</code> and <code>R/account-profile.ts</code>, <code>R/agent/ops-settings.ts</code>, <code>ops-account.ts</code>, <code>R/agent/connections-api.ts</code> routing and <code>E/lib/agent-api.ts</code>.</p>
+<p><strong>PR 10. Billing.</strong> Checkout start, payment methods, cancel, reactivate and subscription. All use <code>session: 'account-not-impersonated'</code> and <code>agent: { hidden }</code>. <code>applyStripeSubscription</code> takes the reconciliation filter as an explicit <code>source</code> rule. This is billing policy, so it routes <code>steer</code> under the merge rule. Verify in Stripe test mode on staging, and check that an impersonated session gets 403. Deletes the JSON branches of <code>R/stripe-billing.ts</code>. The return and webhook rows stay.</p>
 <p><strong>PR 11. Staff actions.</strong> The eight admin commands as eight actions, plus account search, panel, billing links, impersonation, email change, organizations, GoHighLevel sync, Mux unshare and preview ticks. All use <code>session: 'staff'</code> and <code>agent: { hidden: 'staff only' }</code>. Verify the admin screens on staging as a staff account. Deletes <code>R/admin-accounts-native.ts</code> routing, the admin handler bodies except the CSV export, and the three editor admin API modules.</p>
-<p><strong>PR 12. Collapse the wall.</strong> Deletes <code>isWallExit</code>, <code>OPEN_WHILE_WALLED_PATHS</code>, <code>isReadRequest</code> and the <code>/api</code> branches of <code>maybeEnforceTrialWall</code> for action paths, unless #1473 has already done it. The wall keeps any outside row that writes without a grant. Verify that the trial-wall tests shrink to shell routes, suspension and those rows, and that the standing matrix runs once per principal kind against the kernel.</p>
+<p><strong>PR 12. Suspension into the kernel.</strong> The kernel's admission is the one suspension check, with one code spelling. <code>R/trial-wall.ts</code> keeps the app-shell redirect, the <code>/trial-expired</code> page and the suspended answer for the outside rows that write. <code>R/agent/caller.ts</code> stops checking suspension itself. Verify that the trial-wall tests shrink to shell routes and those rows, and that the suspension matrix runs once per principal kind against the kernel. Deletes the <code>/api</code> branch of <code>maybeEnforceTrialWall</code> for action paths and the agent's own check.</p>
 <p><strong>PR 13. Close.</strong> The legacy adapters go, once Workers logs show no hits for two weeks. The <code>legacy</code> outside reason and its budget go to zero, and so does the editor lint baseline. <code>parity.json</code>, its test and its script go. <code>docs/agents/guards.md</code> is regenerated, and <code>ARCHITECTURE.md</code> and <code>CONTEXT.md</code> are updated. Verify with full CI, the full eval suite on staging and the logs.</p>
-<p>That is 13 PRs after PR 0. PR 3 shrinks to adoption if #1473 lands first.</p>
+<p>That is 13 PRs. PR 1 and PR 2 first and in parallel. PR 3 after PR 2. PR 4 after PRs 1, 2 and 3. PR 5 after PR 4. PR 6 after PRs 3 and 5. PR 7 after PR 4. PR 8 after PR 5. PRs 9, 10 and 11 after PR 4. PR 12 after PRs 7 to 11. PR 13 after PR 12 and the two-week log check.</p>
 <p><strong>What is gone at the end.</strong> These files and code paths:</p>
 <ul>
-<li><code>R/agent/operation.ts</code>, <code>dispatch.ts</code>, <code>policy.ts</code>, <code>registry.ts</code>, <code>approvals.ts</code>' executor and every <code>ops-*.ts</code>.</li>
+<li><code>R/agent/operation.ts</code>, <code>dispatch.ts</code>, <code>policy.ts</code>, <code>registry.ts</code>, <code>approvals.ts</code>' executor and every <code>ops-*.ts</code>. About 5,050 lines today.</li>
 <li><code>parity.json</code>, <code>agent-parity.test.ts</code> and <code>scripts/agent-parity.mjs</code>.</li>
 <li>The Library's <code>TREE_ROUTES</code>, <code>handleBrowserRequest</code>, the router's Library proxy and <code>R/library-media.ts</code>' response rewriting.</li>
 <li><code>R/journey-pages-native.ts</code> and <code>R/media-videos-native.ts</code> routing.</li>
-<li>The three-step publish and the trial wall's method and path rules for <code>/api</code>.</li>
-<li>About 1,400 lines of editor API modules (<code>tree-api.ts</code>, the JSON half of <code>take-api.ts</code>, <code>journey-page-sharing.ts</code>, <code>page-stats-api.ts</code>, <code>admin-user-accounts-api.ts</code>, <code>support-accounts-api.ts</code>, <code>agent-api.ts</code> and the page calls in <code>editor-api.ts</code>), together with about 27 hand-written response types.</li>
+<li>The agent's own suspension check and the wall's <code>/api</code> branch for action paths.</li>
+<li>About 1,750 lines of editor API modules (<code>tree-api.ts</code>, the JSON half of <code>take-api.ts</code>, <code>journey-page-sharing.ts</code>, <code>page-stats-api.ts</code>, <code>admin-user-accounts-api.ts</code>, <code>support-accounts-api.ts</code>, <code>agent-api.ts</code> and the page calls in <code>editor-api.ts</code>), together with about 29 hand-written response types.</li>
 </ul>
-<p>Of today's 31 <code>/api</code> rows, about 15 stay and state why. The rest become one <code>actions</code> row.</p>
-<h2 id="5-decisions-for-william">5. Decisions for William</h2>
+<p>Of today's 32 <code>/api</code> rows, about 16 stay and state why. The rest become one <code>actions</code> row.</p>
+<h2 id="5-decisions">5. Decisions</h2>
+<p>William decided these on 2026-10-16. They are final, and the body above reflects each one.</p>
 <ol>
-<li><strong>Merge the parity stack first, as is.</strong> Recommended: yes, with production <code>/mcp</code> closed until PR 6, Settings &gt; Agents hidden in production, and the browser paths verified. The alternative is to reshape the stack before merging, which the cross-judge preferred. I think the approval races belong in PRs 3 to 6 and not in a rebase of 13,000 lines.</li>
-<li><strong>One route for every action, <code>POST /api/actions/:name</code>, instead of today's resource URLs.</strong> Recommended: yes. The costs are legacy adapters until old tabs are gone, a read-retry map and a build notice.</li>
-<li><strong>Order against draft #1473 (Free plan).</strong> Its <code>live-pages.ts</code> is the publication store this plan needs. Recommended: if Free is going ahead, land #1473 first and PR 3 becomes adoption. If not, PR 3 builds the store and #1473 rebases onto it.</li>
-<li><strong>When account standing cannot be read.</strong> Today a thrown read lets a browser write through and gets an agent a 503. When Stripe cannot be asked, the browser keeps D1's wall and the agent gets 503. Recommended: keep both answers, declared in one kernel function.</li>
-<li><strong>An inaccessible page answers 404 for every door.</strong> Today the browser can answer 403. Recommended: 404, so an id leaks nothing.</li>
-<li><strong>An agent sharing a video whose link the owner turned off.</strong> The stack turns it back on after approval, and the browser keeps it off. One action needs one answer. Recommended: keep it off, because the owner turned it off on purpose.</li>
-<li><strong>Contact delete for a lapsed account.</strong> The agent can, the browser cannot. Recommended: open, like every other takedown. This question goes away if #1473 lands.</li>
-<li><strong>Event names.</strong> The server event <code>journey_page_published</code> replaces the client <code>journey_page_publish_changed</code>. Any PostHog chart on the old name needs moving.</li>
+<li><strong>The stack merged as is.</strong> Done on 2026-10-15. Production <code>/mcp</code> is closed and Settings &gt; Agents is hidden there (#1486).</li>
+<li><strong>One route for every action, <code>POST /api/actions/:name</code>.</strong> No per-action REST URLs. The costs are legacy adapters until old tabs are gone, a read-retry map and a build notice.</li>
+<li><strong>Free landed first.</strong> #1473 merged on 2026-10-15. PR 3 adopts its <code>live-pages.ts</code> as the publication store and adds the card, the commit guard and the event.</li>
+<li><strong>Unreadable account standing.</strong> The decision was to keep today's split, declared once in <code>onStandingUnreadable</code>. Measured on main, the split no longer exists. The browser already fails closed with 503 when the identity read throws, the agent throws uncaught, and both doors keep D1's plan when Stripe is unreachable. So the function declares one answer, 503 on both doors, and fixes the agent's uncaught throw. William can tell me to let the browser through on a thrown identity read instead; that is one branch in the same function.</li>
+<li><strong>An inaccessible page answers 404 on every door.</strong> PR 1 applies it with the one loader.</li>
+<li><strong>An agent's <code>videos_share</code> may turn an owner-disabled link back on, through approval.</strong> Changed from the first draft, which kept the link off. The browser's share already turns it on since #1473, so the one action does so for both doors, and the agent reaches it only through the owner's click. The card keeps main's summary, "Turn this video's share link back on, so its page is public again."</li>
+<li><strong>Contact delete for a lapsed account.</strong> Moot. After #1473 a lapsed account is Free and not walled, so both doors already let it delete a contact.</li>
+<li><strong>Event names.</strong> The server event <code>journey_page_published</code> replaces the client <code>journey_page_publish_changed</code>. Any PostHog chart on the old name moves.</li>
 </ol>
+<p><strong>Still open.</strong> Opening production <code>/mcp</code> after PR 6. Issue #1482 holds the readiness list and the opening steps.</p>
 <h2 id="6-how-this-design-was-made">6. How this design was made</h2>
 <p>The <strong>how</strong> step ran four read-only explorers (gpt-6-sol), one per slice: router HTTP doors, the Library and non-browser doors, the editor client, and the parity stack. Their inventories are in the appendix.</p>
 <p>The <strong>architect</strong> step ran three runners on the same brief, each with a different starting lean, so the result could not quietly converge on one shape. Fable kept "operations are the API", with one route and a generated type file. Opus started from "capability modules, no central dispatcher", dropped that lean, and arrived at a contract package with one kernel. gpt-6-astra kept resource URLs with route rows derived from each action, opaque action handles and commit-bound approval.</p>
 <p>A blind cross-judge scored them 15, 17 and 25 of 30 and recommended astra's design. The judge ran on gpt-6-astra, the only cross-family seat in the pool, so it may favor its own runner's style. It checked claims with a compiler. Opus's <code>satisfies</code> registry did not tie keys to names. Fable's <code>name: string</code> widened every name to <code>string</code>. Opus's analytics key would merge repeated publish and unpublish events. And <code>reload_required</code> does not reload today.</p>
 <p>The synthesis takes opus's shape as the base: the contract package, <code>resolve</code> and <code>run</code>, and one kernel. It keeps one route, against the judge, for the reasons in "Why not a framework, and why not REST". From astra it takes approval bound to state checked inside the store batch, action versions on approval rows, opaque handles, and red fixtures for every guard. From fable it takes state-change analytics staying in store batches, every outside row stating its reason, and the commit guard's constraint-violation mechanism.</p>
+<p>The refresh on 2026-10-16 re-ran the measurement with four read-only explorers (opus) against main <code>61274a6f5</code>, one per slice: doors and counts, rules 1 to 28, rules 29 to 37 plus the rules the fixes introduced, and the gap table's file references.</p>
 <h2 id="7-critic-round">7. Critic round</h2>
 <p>Three adversarial reviewers attacked the first synthesis: fable (15 findings), opus (20) and gpt-6-astra (13). Each read the design end to end and checked claims against both trees. Two of them compiled the type sketch. Findings raised by two or three reviewers independently carry the most weight. The design above already includes every change in the first table.</p>
 <p><strong>Acted on</strong></p>
@@ -1089,7 +1112,7 @@ export const remove = action.approvable(libraryDelete, {
 <tr>
 <td>The publish "batch" does not exist on main. <code>publishJourneyPage</code> is three separate writes, and a password change does not bump the revision</td>
 <td>Fable, astra</td>
-<td>PR 3 builds or adopts the publication store. The bound includes <code>updated_at</code> and route state</td>
+<td>PR 3 builds or adopts the publication store. The bound includes <code>updated_at</code> and route state. #1473 has since made publish one batch</td>
 </tr>
 <tr>
 <td>Exposure and the card read live pages in two queries, so the effect could be decided on one snapshot and committed on another</td>
@@ -1124,7 +1147,7 @@ export const remove = action.approvable(libraryDelete, {
 <tr>
 <td>The kernel checked standing before reads returned, so a lapsed account's reads would call Stripe</td>
 <td>Opus, fable</td>
-<td>Suspension at admission; lapsed standing only for write, spend and publish</td>
+<td>Suspension at admission; no plan read in the kernel at all after #1473</td>
 </tr>
 <tr>
 <td>The new kernel dropped <code>replayStillValid</code>, and replay ran after <code>resolve</code></td>
@@ -1149,12 +1172,12 @@ export const remove = action.approvable(libraryDelete, {
 <tr>
 <td>PR 0 changes production browser paths and adds two migrations, but was verified only by agent evals</td>
 <td>Fable, opus</td>
-<td>PR 0 lists both, adds browser verify-loop passes, and hides Settings &gt; Agents in production</td>
+<td>PR 0 listed both, added browser verify-loop passes, and hid Settings &gt; Agents in production (#1486)</td>
 </tr>
 <tr>
 <td>"Stripe failure keeps D1's verdict for both doors" was wrong</td>
 <td>Astra</td>
-<td>Corrected. The agent answers 503</td>
+<td>Corrected at the time. Since #1473 it is true, and section 2 says so</td>
 </tr>
 <tr>
 <td>PR 3 deleted the password client before password changes moved</td>
@@ -1164,7 +1187,7 @@ export const remove = action.approvable(libraryDelete, {
 <tr>
 <td>Deleting the wall's <code>/api</code> branches would open the outside rows that write</td>
 <td>Opus</td>
-<td>The wall keeps any outside row that writes without a grant</td>
+<td>The wall keeps the suspended answer for any outside row that writes</td>
 </tr>
 <tr>
 <td>Counts mixed units. The webhooks were counted twice, 17 rules differ rather than 16, and 31 of the 44 rows are <code>/api</code> rows</td>
@@ -1207,8 +1230,106 @@ export const remove = action.approvable(libraryDelete, {
 </table></div>
 <p><strong>Dismissed</strong></p>
 <p>None. Every finding was either acted on or is listed above.</p>
+<h2 id="8-what-the-refresh-changed">8. What the refresh changed</h2>
+<p>Measured at main <code>61274a6f5</code> on 2026-10-16 against the first measurement at <code>e839a6bd5</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Was</th>
+<th>Is now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entry points</td>
+<td>About 140</td>
+<td>About 175. Router pairs 70 to 75, MCP 9 to 34, cron 13 to 14</td>
+</tr>
+<tr>
+<td>Schema-validated entry points</td>
+<td>9, all MCP</td>
+<td>34, all MCP</td>
+</tr>
+<tr>
+<td>Rules restated</td>
+<td>28 on main, 9 more on the stack</td>
+<td>43 on main. 6 new ones from the Free plan and the fixes (rows 38 to 43)</td>
+</tr>
+<tr>
+<td>Copies that disagree</td>
+<td>17 of 28</td>
+<td>29 of 43. Row 31 no longer differs. Row 37 now does</td>
+</tr>
+<tr>
+<td>Editor API modules</td>
+<td>"About 1,400 lines"</td>
+<td>1,746 lines (the first number was an estimate; the files measured 1,646 then)</td>
+</tr>
+<tr>
+<td>Editor actions and call sites</td>
+<td>84 from 86</td>
+<td>92 from 94</td>
+</tr>
+<tr>
+<td>Trial wall</td>
+<td>Method and regex rules, <code>isWallExit</code>, 402 <code>trial-expired</code></td>
+<td>Suspension only, 156 lines. PR 12 shrinks from a collapse to moving one check</td>
+</tr>
+<tr>
+<td>Publish</td>
+<td><code>publishJourneyPage</code>, three separate writes</td>
+<td><code>goLive</code> in <code>live-pages.ts</code>, one batch guarded by the limit. PR 3 shrinks to adding the card, the guard and the event</td>
+</tr>
+<tr>
+<td>Legacy <code>/watch</code> capability</td>
+<td>PR 3</td>
+<td>Done by #1473 as a kept page</td>
+</tr>
+<tr>
+<td>Browser share of a disabled link</td>
+<td>Keeps it off</td>
+<td>Turns it on through <code>goLive</code>. The code already matches decision 6</td>
+</tr>
+<tr>
+<td>Unreadable standing</td>
+<td>Browser lets through, agent 503</td>
+<td>Browser 503, agent uncaught throw. <code>onStandingUnreadable</code> answers 503 on both doors</td>
+</tr>
+<tr>
+<td><code>whileLapsed</code>, <code>access_walled</code>, kernel step 10</td>
+<td>In the sketch</td>
+<td>Removed. No plan read in the kernel</td>
+</tr>
+<tr>
+<td>Refusal union</td>
+<td>24 codes</td>
+<td>Adds <code>live_page_limit</code>, <code>generation_limit</code>, <code>stale</code>, <code>rejected</code>, <code>resetsAt</code> on <code>daily_limit</code></td>
+</tr>
+<tr>
+<td>PR 0</td>
+<td>First PR</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>PR 2's first reads</td>
+<td><code>pages_get</code>, <code>pages_stats</code></td>
+<td><code>settings_get</code>, <code>pages_stats</code>, so PR 2 does not wait for PR 1's loader</td>
+</tr>
+<tr>
+<td>PR 4</td>
+<td>Page approvables</td>
+<td>Also #1489's rule and two follow-ups, and #1457's share dialog calls</td>
+</tr>
+<tr>
+<td>Decisions section</td>
+<td>Eight questions</td>
+<td>Eight answers, one open item (production <code>/mcp</code>)</td>
+</tr>
+</tbody>
+</table></div>
 <h2 id="appendix-measured-inventories">Appendix: measured inventories</h2>
-<p>Four explorers traced every entry point, one slice each. Their tables list, per action, where input validation, auth and ownership, entitlement, side effects, analytics and the response shape live. Paths prefixed <code>stack/</code> are on the parity stack tip.</p>
+<p>Four explorers traced every entry point at main <code>e839a6bd5</code> on 2026-10-14, one slice each. Their tables list, per action, where input validation, auth and ownership, entitlement, side effects, analytics and the response shape live. Paths prefixed <code>stack/</code> were on the parity stack tip, which has since merged. Section 1 of the design holds the counts re-measured at <code>61274a6f5</code> on 2026-10-16; these pages are the original evidence and are unchanged.</p>
 <ul>
 <li><a href="inventory-router.html">Router HTTP doors</a></li>
 <li><a href="inventory-library.html">Library, webhooks, cron, scripts</a></li>
