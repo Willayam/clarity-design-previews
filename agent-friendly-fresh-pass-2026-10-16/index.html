@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-friendly Clarity, fresh pass, 2026-10-16</title>
+<style>
+  :root { --fg:#16181d; --muted:#5d6470; --line:#e3e6ea; --bg:#fbfbfc; --accent:#2f5bd3; --ok:#1f7a4d; --no:#a23b2a; --mid:#8a6a12; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#e8eaee; --muted:#9aa2ae; --line:#2b3038; --bg:#121418; --accent:#8fb0ff; --ok:#6fcf9b; --no:#f08f7d; --mid:#e2c060; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
+  main { max-width: 940px; margin: 0 auto; padding: 28px 18px 80px; }
+  h1 { font-size: 26px; line-height:1.25; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 40px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: 16px; margin: 24px 0 6px; }
+  p, li { max-width: 72ch; }
+  .muted { color: var(--muted); }
+  a { color: var(--accent); }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .tablewrap { overflow-x: auto; margin: 10px 0 18px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; vertical-align: top; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; color: var(--muted); white-space: nowrap; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .v { font-weight: 600; white-space: nowrap; }
+  .v.ok { color: var(--ok); } .v.no { color: var(--no); } .v.mid { color: var(--mid); }
+  .bar { display:inline-block; height: 9px; background: var(--accent); border-radius: 2px; opacity: .75; vertical-align: middle; }
+  .pyr { display:grid; gap:6px; margin: 14px 0; }
+  .pyr div { padding: 9px 12px; border:1px solid var(--line); border-radius: 6px; }
+  .pyr b { display:inline-block; min-width: 11ch; }
+  .call { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Agent-friendly Clarity: a fresh pass</h1>
+<p class="muted">2026-10-16, main at <code>ab26a17ce</code>. A plan only; nothing here has merged. Evidence store: <code>~/.clarity-scratch/agent-friendly-2026-10-16/</code> on the mini, with the decision trail in <code>decisions.tsv</code>.</p>
+
+<p>This pass asks which mistakes agents keep making in Clarity, and what change to the code would make each one impossible. It reads every fix commit since the repo began, your corrections in 210 Claude and Codex sessions, the GitHub and Linear issues, and every guard WIL-3525 added. It then tests each proposed fix against the real commits where the mistake happened, before recommending it.</p>
+
+<div class="pyr">
+  <div><b>Codebase</b> 7 changes. One already has an owner in #1493, so this plan amends it.</div>
+  <div><b>Static checks</b> 4 checks proven on past fixes, plus 2 that need a prototype first.</div>
+  <div><b>Prose</b> Two process rules turned into defaults. AGENTS.md stays as it is.</div>
+  <div><b>Your review</b> 3 calls, listed at the end.</div>
+</div>
+
+<h2>The evidence</h2>
+<div class="tablewrap"><table>
+<tr><th>Source</th><th class="n">Rows</th><th>What it gave</th></tr>
+<tr><td>Commits on main since 2025-06-30</td><td class="n">3,407</td><td>713 shaped like fixes and 7 reverts. 1,436 cases where a fix touched a file within four days of a feature commit touching it.</td></tr>
+<tr><td>Your mid-session messages</td><td class="n">2,626</td><td>76 corrections of an agent. These came from 30 Claude project directories and 127 interactive Codex sessions.</td></tr>
+<tr><td>GitHub issues, PR and issue comments, Linear archive</td><td class="n">455 + 1,372</td><td>88 defect reports. Most comments under your login are agent-written, so your own voice comes from the transcripts.</td></tr>
+<tr><td>Guards on main</td><td class="n">~50</td><td>41 held, 2 leaked, 5 weakened, 2 never run by CI.</td></tr>
+</table></div>
+<p>Codex lanes classified 864 mistakes. A Fable pass regrouped them by mechanism, meaning why an agent that sees only the files it opened and copies the nearest example made the mistake. 484 rows fall into 14 mechanism classes. The other 380 are one-offs on a single surface with no repeat a structural change would remove.</p>
+
+<h2>Did WIL-3525's guards hold?</h2>
+<p>Mostly. The route table, the videos write fence, the live-page writer, the package index, the LOC ratchet and the design-system lints all held, and most of their suppression counts fell. The CSS budget and the test-type budget (250 down to 168) shrank as designed.</p>
+<div class="tablewrap"><table>
+<tr><th>Guard</th><th>Verdict</th><th>Evidence</th></tr>
+<tr><td>Fenced store callers</td><td class="v no">leaked</td><td>Agents reached the store through namespace imports, dynamic imports and re-exports until <a href="https://github.com/Clarity-Video-HQ/clarity/commit/c9ff98368">c9ff98368</a> closed them.</td></tr>
+<tr><td>Analytics id on controls</td><td class="v no">leaked</td><td>Three fixes on 10-14 added ids the lint should have demanded (<a href="https://github.com/Clarity-Video-HQ/clarity/commit/349893374">349893374</a>, d75ad97b4, 815010d2c).</td></tr>
+<tr><td>Legacy route limit</td><td class="v mid">weakened</td><td>Rose from 20 to 22 (4bf5a0c81, a7a9fac4f). That limit was meant only to shrink.</td></tr>
+<tr><td>Query-text fake tests</td><td class="v mid">weakened</td><td>Baseline fell from 201 to 183, but 13 new inline disables were added.</td></tr>
+<tr><td>Proof names the head</td><td class="v mid">weakened</td><td>The step now tolerates failure and posts a pending status (820a43416).</td></tr>
+<tr><td>Migration numbers</td><td class="v no">bypassed</td><td>Two migrations numbered 0045 sat on main together. The check runs only on PRs, and that PR's run predated main taking 0045 (<a href="https://github.com/Clarity-Video-HQ/clarity/commit/4a9502de8">4a9502de8</a>).</td></tr>
+<tr><td>Design inventory, post-edit lint hook</td><td class="v mid">local only</td><td>No CI step reaches either.</td></tr>
+</table></div>
+<p>Total ESLint suppressions rose from 547 to 610. All of that growth is the first baselines of two new rules (analytics ids 149, editor actions 35). Suppressions for existing rules fell from 547 to 426.</p>
+
+<h2>The mistake classes, ranked</h2>
+<p class="muted">Score = rows × (0.5 + share since 10-05) × cost ÷ size. Cost runs 1 to 3 (3 means data loss, security, or paying customers affected). Size is S=1, M=2, L=3.</p>
+<div class="tablewrap"><table>
+<tr><th>#</th><th>Mechanism</th><th class="n">Rows</th><th class="n">Since 10-05</th><th class="n">Score</th><th></th></tr>
+<tr><td>C10</td><td>Each agent operation re-implements kernel policy (approval facts, staleness, replay, exposure, redaction)</td><td class="n">43</td><td class="n">100%</td><td class="n">96.8</td><td><span class="bar" style="width:97px"></span></td></tr>
+<tr><td>C1</td><td>Editor draft and server copy have two owners and no reconciliation contract</td><td class="n">42</td><td class="n">55%</td><td class="n">66.2</td><td><span class="bar" style="width:66px"></span></td></tr>
+<tr><td>C6</td><td>The sign-in return target is rebuilt at every exit</td><td class="n">14</td><td class="n">86%</td><td class="n">57.1</td><td><span class="bar" style="width:57px"></span></td></tr>
+<tr><td>C11</td><td>An outcome is reported before the owning write lands</td><td class="n">22</td><td class="n">23%</td><td class="n">48.2</td><td><span class="bar" style="width:48px"></span></td></tr>
+<tr><td>C5</td><td>External or stored data is used without a parse at the boundary</td><td class="n">50</td><td class="n">38%</td><td class="n">44.0</td><td><span class="bar" style="width:44px"></span></td></tr>
+<tr><td>C9</td><td>Video state is derived at each consumer</td><td class="n">55</td><td class="n">20%</td><td class="n">38.5</td><td><span class="bar" style="width:38px"></span></td></tr>
+<tr><td>C8</td><td>A multi-row invariant is enforced by a sequence of statements</td><td class="n">33</td><td class="n">27%</td><td class="n">38.1</td><td><span class="bar" style="width:38px"></span></td></tr>
+<tr><td>C2</td><td>List rows addressed by position, not a durable id</td><td class="n">30</td><td class="n">77%</td><td class="n">38.1</td><td><span class="bar" style="width:38px"></span></td></tr>
+<tr><td>C7</td><td>Access decided from competing fields</td><td class="n">21</td><td class="n">10%</td><td class="n">37.8</td><td><span class="bar" style="width:38px"></span></td></tr>
+<tr><td>C4</td><td>Hand-synced lists (migration counter, parity columns)</td><td class="n">41</td><td class="n">32%</td><td class="n">33.6</td><td><span class="bar" style="width:34px"></span></td></tr>
+<tr><td>C14</td><td>A guard with a bypass or a stale run</td><td class="n">15</td><td class="n">47%</td><td class="n">29.1</td><td><span class="bar" style="width:29px"></span></td></tr>
+<tr><td>C13</td><td>Tests and eval judges read implementation, not behavior</td><td class="n">34</td><td class="n">59%</td><td class="n">18.5</td><td><span class="bar" style="width:18px"></span></td></tr>
+<tr><td>C3</td><td>Two renderers of one page (editor preview, public page)</td><td class="n">34</td><td class="n">26%</td><td class="n">17.2</td><td><span class="bar" style="width:17px"></span></td></tr>
+<tr><td>C12</td><td>A shared control re-composed per surface</td><td class="n">51</td><td class="n">47%</td><td class="n">16.5</td><td><span class="bar" style="width:16px"></span></td></tr>
+</table></div>
+
+<h2>What the prototypes settled</h2>
+<p>For each proposed lint, type or test, a Codex lane wrote it for real in a throwaway worktree. The lane then restored the files from the parent of each past fix and checked whether the guard catches the bug. It also measured the baseline on main. A guard that can't catch a past mistake doesn't make the plan.</p>
+<div class="tablewrap"><table>
+<tr><th>Question</th><th>Result</th><th>What decided it</th></tr>
+<tr><td>C1: is the remaining draft loss in the store or in the editors' own copies?</td><td class="v ok">store owns focus</td><td>A seeded interleaving test against the document store fails at the parents of 639cf6ff8, 646c6a144 and 2a71862cb and passes on main. Four text components still hold field text in <code>useState</code>, so the loss sits in those copies.</td></tr>
+<tr><td>C11: extend the "drops the answer" lint to the editor's writers?</td><td class="v ok">adopt</td><td>Fires at all 3 fix parents (281cd928f, 38afae010, e7958e3fd). Zero hits on main, so it lands with no baseline.</td></tr>
+<tr><td>C9: fence reads of video state keys?</td><td class="v ok">adopt, shrink-only</td><td>Fires at all 4 fix parents (f11b7f1e1, 5352b6c0b, 236adcfa4, 49310f5e0). 16 files on main read the keys today, so it starts as a ratchet.</td></tr>
+<tr><td>C14: refuse suppression growth for existing rules?</td><td class="v ok">adopt</td><td>Replayed over every change to the suppressions file. It refused one real older increase. Every increase since 10-05 was a new rule's first baseline.</td></tr>
+<tr><td>C4: timestamp migration names, or rerun the check on push to main?</td><td class="v ok">rerun</td><td>Replaying the 10-14 sequence, a rerun against the moved main refuses the second 0045. Wrangler's sort puts numbered files before timestamped ones, so timestamps can apply in a different order on a fresh database than on an existing one.</td></tr>
+<tr><td>C3: one renderer, or shared presentation rules?</td><td class="v ok">shared rules</td><td>Rendering the editor's pricing block inside the Worker added 966,043 bytes (75%) to its JavaScript and dropped the CTA's href and tracking. Pure functions in <code>journey-page-domain</code> cost 338 bytes. They don't catch every past fix, since markup still lives in both renderers.</td></tr>
+<tr><td>C6: a lint on hand-built sign-in redirects?</td><td class="v no">rejected</td><td>Flags 42 sites on main, including <code>/auth</code> links that are fine. It's also blind to the real cause of 3f421dedd, an async session check finishing after navigation.</td></tr>
+<tr><td>C6 round 2: brand the return target, or one sign-in owner?</td><td class="v ok">one owner</td><td>The brand caught 0 of the past parents. The editor has 6 programmatic sign-in exits, and the two recent fixes landed in different ones, so one owner plus the existing behavioral race tests is the fix.</td></tr>
+<tr><td>C2: make list row ids required?</td><td class="v mid">revised</td><td>A required string still allows duplicate and empty ids, so the positional fallback stays reachable. Making it required gives 31 type errors in 8 files, and the MCP <code>pages_edit</code> input doesn't change. The fix becomes an id assigned and de-duplicated at load, then required.</td></tr>
+<tr><td>C8: move caps into triggers?</td><td class="v mid">inconclusive</td><td>The trigger works for a cap counted on one table. Neither past fix was that case: one counted another table, the other counted jobs. Dropped from the program.</td></tr>
+<tr><td>C10/C13: generate the eval judge's glossary from an output schema?</td><td class="v no">rejected</td><td>Covers 1 of 3 past fixes.</td></tr>
+<tr><td>C10: a per-target snapshot in the kernel?</td><td class="v no">rejected</td><td>The sketch still branched on operation name, and 0 of 6 pinned behaviors moved into it. Settled by the arena below instead.</td></tr>
+</table></div>
+
+<h2>The agent kernel (C10), designed three ways</h2>
+<p>This class ranks first: 43 mistakes, all since 10-05, several of which put passwords in answers or published without approval. Three models designed it independently (fable-5.1, gpt-6-astra, opus-5.5). A gpt-6-astra cross-judge then checked their claims against all nine fix diffs.</p>
+<p>Two of the three converged on one shape. An operation file binds a tool name to a command owned by the store, and supplies no run code, approval facts, exposure, replay check or answer mapper. The command's proposal is a list of consequences. Each consequence records what the owner reads, which stored values it relies on, and the check that runs inside the write. The card, the stale digest and the guarded write all derive from that one list. Answers go through a private projector, and secrets never enter a snapshot.</p>
+<p>This is #1493's direction ("one definition per action and per invariant"), so the plan amends #1496 to #1499 rather than starting a parallel program. Concretely: extend the action kernel from #1495, retire the unused <code>action.plain</code> and <code>action.approvable</code> builders, and keep conditional D1 batches. Library and pages share one database in-process, so the reservations one candidate wanted aren't needed. Of the nine pinned fixes, the base design makes four unrepresentable or type errors and the other five fixes in one place. These are design-level verdicts, not compiled.</p>
+
+<h2>The plan</h2>
+<h3>Wave 1. Static checks proven on past fixes (S each, this week)</h3>
+<ol>
+<li>Extend "drops the answer" to <code>updateWorkspaceTreeNode</code>, <code>updateJourneyPage</code>, the draft savers, the brand logo writers and the recorder save, including console-only <code>.catch</code> (C11).</li>
+<li>Refuse suppression growth for any rule that already has a baseline (C14). Make the proof-head step fail its job again.</li>
+<li>Rerun the migration-number check on push to main, and refuse the deploy on a clash (C4).</li>
+<li>Fence video state reads to <code>video-readiness.ts</code> and <code>served-file-policy</code> as a shrink-only ratchet from 16 files (C9). The projection gains <code>settled</code>, so caches stop deriving it.</li>
+</ol>
+<h3>Wave 2. Architecture with a proven test (M each)</h3>
+<ol start="5">
+<li>The document store owns the focused draft (C1). Text components stop holding field text, <code>focused-canvas-draft.ts</code> and <code>sync-editable-text.ts</code> are deleted, and the seeded interleaving test lands with it.</li>
+<li>One editor sign-in exit (C6). It checks the current path just before navigating, sanitizes the captured target and owns <code>/login</code>. The API 401 handler and the protected layout both call it.</li>
+<li>The agent kernel amendment, delivered inside #1496 to #1499 (C10).</li>
+</ol>
+<h3>Wave 3. Larger moves, sized by the prototypes</h3>
+<ol start="8">
+<li>List row ids assigned and de-duplicated at load, then required. Address rows by id, keep <code>seqNo</code> as an agent alias, and delete <code>row-keys.ts</code> (C2). This touches 31 type errors in 8 files and 15 <code>rowKeys</code> calls.</li>
+<li>Presentation rules for blocks whose editor and public output have diverged, as pure functions in <code>journey-page-domain</code>. Start with pricing (C3).</li>
+</ol>
+<h3>Not yet proven, so not in a wave</h3>
+<ul>
+<li>C5 parsed external clients plus a ratchet on <code>as Type</code> and <code>JSON.parse</code> (about 254 and 63 on main). This needs the same replay before it earns a slot.</li>
+<li>C7 finish the access-field lint (3 admin files). This is small but wasn't prototyped.</li>
+<li>C12 one inline field, one play control, dialogs only through <code>ui/dialog</code>. This class has the most rows but costs the least, and the change is large.</li>
+<li>C13 a statement-counting helper to replace the 13 new inline disables of the query-text-fake rule.</li>
+</ul>
+
+<h2>Prose, kept to judgment calls</h2>
+<p>Two of your corrections came back after they were written down, which is what a written rule predicts. "Put it on a public URL" was encoded on 09-14 and corrected again on 09-22 and 10-02. "Use my normal signed-in Chrome" was corrected four times and never encoded. Both belong in the tool, not in AGENTS.md. Make the signed-in Chrome profile the default in the verify-loop's browser driver, and have <code>/publish-artifact</code> print the line the reply must carry. Other repeated corrections were about plain language, doing computer-use steps instead of handing them over, and merging when ready rather than on a clock. Those are already covered by your global rules and pstack, so they need no new text. AGENTS.md stays unchanged.</p>
+
+<h2>Your calls</h2>
+<div class="call"><b>1. #1497's required <code>revision</code>.</b> PR 4 makes <code>revision</code> required on <code>pages_publish</code> for every caller, which changes the MCP input contract. The arena kept the contract unchanged and binds the revision read when the agent asks. My default is to keep the MCP contract and bind at ask time. The other option is to accept the contract change in #1497 as written.</div>
+<div class="call"><b>2. Fold the kernel amendment into #1493.</b> My default is to post it as a comment on #1493 with the arena designs attached, and let PRs 3 to 6 absorb it. The other option is to file it as its own issue.</div>
+<div class="call"><b>3. Run waves 1 and 2.</b> My default is to file one GitHub issue per item, inbox status, linked to this page, then build wave 1 as four small PRs. Nothing gets the agent-ready label until you say so.</div>
+
+<p class="muted">Method: pstack figure-it-out, with correct and architect. Classification and prototypes ran on gpt-6-sol, synthesis on fable-5.1, and the arena on fable-5.1, gpt-6-astra and opus-5.5 with a gpt-6-astra judge. The judge shares a provider with the winning candidate. The pick was re-read and stands on the convergence of two candidates. Every number above comes from a command recorded in the evidence store.</p>
+</main>
+</body>
+</html>
