@@ -1,0 +1,202 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leads, rebuilt</title>
+<style>
+:root{--ink:#0f172a;--dim:#64748b;--line:#e2e8f0;--soft:#f8fafc;--blue:#1d4ed8;--green:#15803d;--red:#b91c1c;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:var(--ink);background:#f1f5f9}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 140px}h1{font-size:28px;margin:0 0 6px}
+.dim{color:var(--dim);font-size:14px}nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 24px}
+nav.toc a{font-size:13px;padding:3px 9px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--ink);text-decoration:none}
+nav.toc a.done{background:#dcfce7;border-color:#86efac}nav.toc a.chg{background:#fef3c7;border-color:#fcd34d}nav.toc a.rej{background:#fee2e2;border-color:#fca5a5}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 18px 14px;margin:0 0 20px}
+.card header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.card h2{font-size:19px;margin:0;flex:1;min-width:200px}
+.uid{font:600 12px ui-monospace,Menlo,monospace;color:var(--dim)}.prlink{font-size:14px;font-weight:600;color:var(--blue)}
+.blocked,.blocked-reason{color:var(--red);font-weight:600}.why{margin:10px 0;overflow-wrap:anywhere}details li,.qs p,figcaption{overflow-wrap:anywhere}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600;font-size:14px}details ul{margin:6px 0;padding-left:20px;font-size:14px}
+.pair{margin:14px 0}.pair figcaption{font-size:14px;margin:0 0 6px}.tag{font-size:11px;font-weight:700;background:#e0e7ff;color:#3730a3;border-radius:99px;padding:1px 7px;margin-right:6px}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{font-size:12px;font-weight:700;color:var(--dim);margin-bottom:3px}.label.after{color:var(--green)}
+.sides img,.sides video{width:100%;border:1px solid var(--line);border-radius:8px;display:block;background:#000}
+.none{border:1px dashed var(--line);border-radius:8px;padding:30px 10px;text-align:center;color:var(--dim);font-size:13px}
+.decide{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.choices{display:flex;gap:8px;flex-wrap:wrap}
+.choices button{font:inherit;font-size:14px;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.choices button.on[data-v=approve],.choices button.on[data-v=yes]{background:var(--green);color:#fff;border-color:var(--green)}
+.choices button.on[data-v=changes],.choices button.on[data-v=other]{background:var(--amber);color:#fff;border-color:var(--amber)}
+.choices button.on[data-v=reject]{background:var(--red);color:#fff;border-color:var(--red)}
+textarea{width:100%;margin-top:8px;min-height:44px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:8px}
+.qs{padding-left:20px}.qs li{margin:0 0 14px}.qs p{margin:0 0 4px}.rec{font-size:14px;color:var(--green)}
+h3.section{font-size:22px;margin:36px 0 12px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar button{font:inherit;font-weight:600;padding:10px 16px;border-radius:10px;border:0;background:var(--blue);color:#fff;cursor:pointer}.bar button.ghost{background:#e2e8f0;color:var(--ink)}
+.bar .count{font-size:14px;color:var(--dim)}.intro h3{margin:0 0 8px;font-size:17px}.intro ul{margin:0;padding-left:20px;font-size:15px}.intro li{margin:0 0 6px}.intro p{margin:0 0 8px}table.summary{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px;margin:0 0 20px}table.summary th,table.summary td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}table.summary th{background:var(--soft)}
+@media(max-width:720px){.sides{grid-template-columns:1fr}h1{font-size:23px}}
+</style></head><body><main>
+<h1>Leads, rebuilt</h1>
+<p class="dim">Built overnight, last updated 19 Oct 2026, 16:08, from the <a href="https://willayam.github.io/clarity-design-previews/clarity-simplicity-audit/">simplicity audit</a>. 1 PRs are open and none are merged. 0 items need a conversation first; they're further down. Your choices save in this browser as you go. "Send decisions" opens a prefilled GitHub issue that I'll read and act on.</p>
+<nav class="toc"><a href="#D7" data-for="D7">D7</a></nav>
+
+<div class="card intro"><p>On round four you asked "what's with the old leads page?" about Older contacts, the read-only list round four left at <code>/contacts</code>. You picked two changes, and D7 #1513 now has both. It is still unmerged.</p><ul><li><b>Older contacts is gone.</b> The bottom of Leads has "Download older contacts (CSV)". It downloads the file the old page's Export CSV gave, every contact the account holds: form submitters and people imported or added by hand. On the preview the two files are byte-identical. Old <code>/contacts</code> links land on Leads, and old per-page links land on Leads filtered to that page.</li><li><b>Team members see leads on pages they can open.</b> Leads now uses the same rule that lets someone open a page in the editor. A colleague in the page owner's organisation and a system admin see that page's leads, filter included. Round four showed only pages you own.</li></ul><p>The before side is the round-four PR on its own preview, and the after side is the new head on the same preview with the same fake data. The last three pairs are from round four and compare against main. Pick Approve, Changes or Drop and add a comment if you want. The button at the bottom opens a GitHub issue with your answer filled in.</p></div>
+
+
+<div class="card intro"><h3>Asks</h3><ul><li><b>Imported contacts are only reachable by download.</b> Nobody can see, search or edit the old contacts in the app any more. The CSV link is the only way to them, and it shows for every account, even one with no contacts.</li><li><b>Team members and admins now see leads on pages they can open.</b> For the 7 system admins, Leads lists every customer's leads: 480 from 41 pages in production today. Team members gain nothing yet, because no production page carries an organisation id, and new pages never get one.</li><li><b>The open-a-page rule is loose.</b> It matches any of a page's ids against any of the user's ids, so two customers referred by the same affiliate would see each other's leads on legacy pages. Production has no such case today. Tightening it means changing the rule that also decides who can open a page, so I left it as a follow-up for you to call.</li></ul></div>
+<table class="summary"><tr><th>Unit</th><th>What</th><th>PR</th></tr><tr><td><a href="#D7">D7</a></td><td>Leads, rebuilt: a CSV link replaces Older contacts, team members see leads on pages they can open</td><td><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1513" target="_blank">#1513</a></td></tr></table>
+<h3 class="section">PRs</h3>
+
+<article class="card" id="D7" data-kind="pr" data-id="D7" data-pr="1513">
+  <header>
+    <span class="uid">D7</span>
+    <h2>Leads, rebuilt: a CSV link replaces Older contacts, team members see leads on pages they can open</h2>
+    <a class="prlink" href="https://github.com/Clarity-Video-HQ/clarity/pull/1513" target="_blank">PR #1513</a>
+  </header>
+  
+  <p class="why">Contacts was a small CRM that never said which page a lead came from, so the nav now opens Leads, a list of every form submission. On round four William asked &quot;what&#39;s with the old leads page?&quot; about the read-only Older contacts page, and picked two changes. The page goes, and a CSV link at the bottom of Leads hands over the same export. Leads now covers every page a user can open, as the per-page table did before this PR, so organisation members and system admins see those leads too.</p>
+  <details open><summary>What changes (8)</summary><ul><li>Nav: Home, Contacts, Learn, Settings -&gt; Home, Leads, Settings. Phone tabs: Home, Contacts, Record, Learn, More -&gt; Home, Leads, Record, More</li><li>/leads lists every form submission, newest first (Name, Email, Phone, Page, When), with search, Export CSV and a &#39;From &lt;page&gt;&#39; filter. The page card&#39;s prospects badge opens the filter</li><li>Leads covers every page canAccessJourneyPage allows: own pages, pages carrying the user&#39;s corp or affiliate id, and every page for a system admin. Round four showed only owned pages</li><li>Older contacts page (read-only list with Export CSV) -&gt; gone. Bottom of Leads: &#39;Older contacts&#39; link -&gt; &#39;Download older contacts (CSV)&#39;, which downloads the same contacts.csv</li><li>/contacts -&gt; redirects to /leads. /contacts?journeyPageId=&lt;id&gt; -&gt; /leads?page=&lt;id&gt;</li><li>Leads reads through the new leads_list action (POST /api/actions/leads_list). Round four&#39;s GET /api/leads is gone. The CSV is GET /api/contacts?format=csv</li><li>Account menu: Profile, Sign out -&gt; Profile, Help, Sign out. Learn page &#39;Learn&#39; -&gt; &#39;Help&#39; at /help, and /learn redirects there</li><li>The per-page GET /api/journey-pages/:id/submissions route is deleted. Leads replaced its only caller</li></ul></details>
+  
+  <figure class="pair">
+    <figcaption>Leads on desktop, signed in as the page owner. Before is round four, with the &#39;Older contacts&#39; link under the table. After, &#39;Download older contacts (CSV)&#39;.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-leads-bottom.png" target="_blank"><img src="units/D7/before/r6-leads-bottom.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-leads-bottom.png" target="_blank"><img src="units/D7/after/r6-leads-bottom.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The same on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-phone-leads-bottom.png" target="_blank"><img src="units/D7/before/r6-phone-leads-bottom.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-phone-leads-bottom.png" target="_blank"><img src="units/D7/after/r6-phone-leads-bottom.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>The downloaded contacts.csv, drawn as a table. Before from Older contacts&#39; Export CSV, after from the new link. The two files are byte-identical: the old header and 5 fake rows.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-older-contacts-csv.png" target="_blank"><img src="units/D7/before/r6-older-contacts-csv.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-older-contacts-csv.png" target="_blank"><img src="units/D7/after/r6-older-contacts-csv.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Opening /contacts. Before, the Older contacts page. After, it lands on Leads.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-contacts-url.png" target="_blank"><img src="units/D7/before/r6-contacts-url.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-contacts-url.png" target="_blank"><img src="units/D7/after/r6-contacts-url.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Opening /contacts on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-phone-contacts-url.png" target="_blank"><img src="units/D7/before/r6-phone-contacts-url.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-phone-contacts-url.png" target="_blank"><img src="units/D7/after/r6-phone-contacts-url.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>An old per-page link, /contacts?journeyPageId=&lt;Pricing walkthrough&gt;. It lands on Leads filtered to that page on both sides.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-contacts-page-url.png" target="_blank"><img src="units/D7/before/r6-contacts-page-url.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-contacts-page-url.png" target="_blank"><img src="units/D7/after/r6-contacts-page-url.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Leads for Robin Teammate, a second account in the page owner&#39;s organisation (a fake corp id on the preview database). Before, empty. After, the owner&#39;s 7 fake leads.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-teammate-leads.png" target="_blank"><img src="units/D7/before/r6-teammate-leads.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-teammate-leads.png" target="_blank"><img src="units/D7/after/r6-teammate-leads.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Robin Teammate with the page filter on the owner&#39;s &#39;Pricing walkthrough&#39;. Before, empty. After, its 2 leads.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-teammate-leads-filtered.png" target="_blank"><img src="units/D7/before/r6-teammate-leads-filtered.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-teammate-leads-filtered.png" target="_blank"><img src="units/D7/after/r6-teammate-leads-filtered.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Robin Teammate&#39;s Leads on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-phone-teammate-leads.png" target="_blank"><img src="units/D7/before/r6-phone-teammate-leads.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-phone-teammate-leads.png" target="_blank"><img src="units/D7/after/r6-phone-teammate-leads.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Robin Teammate&#39;s filtered Leads on a phone.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/r6-phone-teammate-leads-filtered.png" target="_blank"><img src="units/D7/before/r6-phone-teammate-leads-filtered.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/r6-phone-teammate-leads-filtered.png" target="_blank"><img src="units/D7/after/r6-phone-teammate-leads-filtered.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption><span class="tag">Video</span>The owner&#39;s flow: &#39;2 prospects&#39; on the page card opens Leads filtered to that page, then All leads, then the link at the bottom. Before, it opens Older contacts and exports there. After, it downloads straight from Leads.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><video src="units/D7/before/r6-leads-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+      <div><div class="label after">After</div><video src="units/D7/after/r6-leads-flow.mp4" controls playsinline preload="metadata" muted></video></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Desktop nav on Home, from round four (before is main). Contacts and Learn leave the sidebar. Leads takes Contacts&#39; place.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/sidebar.png" target="_blank"><img src="units/D7/before/sidebar.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/sidebar.png" target="_blank"><img src="units/D7/after/sidebar.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Account menu open on desktop, from round four (before is main). After, it has Help.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/account-menu.png" target="_blank"><img src="units/D7/before/account-menu.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/account-menu.png" target="_blank"><img src="units/D7/after/account-menu.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <figure class="pair">
+    <figcaption>Phone tab bar, from round four (before is main). Five slots become four.</figcaption>
+    <div class="sides">
+      <div><div class="label">Before</div><a href="units/D7/before/phone-tabbar.png" target="_blank"><img src="units/D7/before/phone-tabbar.png" alt="before" loading="lazy"></a></div>
+      <div><div class="label after">After</div><a href="units/D7/after/phone-tabbar.png" target="_blank"><img src="units/D7/after/phone-tabbar.png" alt="after" loading="lazy"></a></div>
+    </div>
+  </figure>
+  <details><summary>Checks, risks and follow-ups</summary>
+    <h4>Checks</h4><ul><li><code>pnpm -s typecheck -&gt; exit 0 (test type errors 168, at budget)</code></li><li><code>npx eslint . --quiet (8 GB heap) -&gt; no issues. node scripts/check-actions.mjs --check -&gt; ok. node scripts/generate-guards-table.mjs -&gt; regenerated (editor-action suppressions 35 -&gt; 34, analytics-id 145 -&gt; 119)</code></li><li><code>workers/frontend-router vitest leads.test.ts, contacts-csv.test.ts, action-kernel.test.ts -&gt; 14 passed. leads.test.ts covers the owner (newest first, no server ids), a teammate (sees the organisation page&#39;s lead), an outsider (none) and a system admin (every page), and goes red, 2 of 3, when the rule is put back to owner only</code></li><li><code>editor vitest leads-route, app-shell-routes, agent-parity, agents-page-claims, frontend-router-legacy, frontend-router-auth-session, journey-page-card-actions, agent-contacts-save, agent-settings, page-stats-auth, journey-page-submissions, route-table, actions, settings-navigation, sidebar-focus, product-analytics -&gt; all passed</code></li><li><code>Preview pr-1513 serving 16e330f4d (deploy-info): /contacts -&gt; /leads, /contacts?journeyPageId=X -&gt; /leads?page=X, the link downloads a contacts.csv byte-identical to round four&#39;s export, the teammate account lists 7 leads and 2 under the page filter</code></li><li><code>Independent opus review of the diff: no blockers. Adopted two fixes: an owner keeps leads on a page whose document the reader rejects, and /contacts is back in the app-shell route test. Its tenant-leak question was answered with read-only production queries (see risks)</code></li><li><code>CI on 16e330f4d: Typecheck, Test &amp; Build; Guards table, feature map and proof; Proof names the head; PR Preview -&gt; all pass</code></li></ul>
+    <h4>Risks</h4><ul><li>Customers can no longer see, add, edit, import or delete contacts in the app. They can download them as CSV from the bottom of Leads. Deleting a person on request goes through the agent&#39;s contacts_delete with approval, or support.</li><li>Leads now uses canAccessJourneyPage, the rule that lets a user open a page in the editor. A system admin&#39;s Leads lists every customer&#39;s leads: 480 rows from 41 pages in production on 2026-10-19 (read-only query).</li><li>Team members gain nothing in production today. No production page carries a corp or affiliate id (all 7,326 checked on 2026-10-19), and new pages are created with both blank, so only legacy pages with those ids could ever be shared this way.</li><li>The rule admits a page when any of its owner, user, editor, corp or affiliate ids equals any of the user&#39;s owner, corp or affiliate ids. Two customers referred by the same affiliate would see each other&#39;s leads on legacy pages. A read-only production query found no such overlap today. Tightening the rule means changing canAccessJourneyPage itself, which also decides who opens a page.</li><li>Leads became an action (leads_list) instead of a GET /api/leads route. Main&#39;s route table holds legacy API rows at their budget of 22, and the editor&#39;s lint sends JSON reads through act(). The agent cannot call leads_list. Its pages_leads is unchanged.</li><li>The download link shows for every account. An account with no contacts downloads a header-only file. An expired session shows as a failed browser download.</li><li>Teammates see leads from deleted organisation pages, unlinked, as the owner does.</li><li>Decided: the contacts write API (POST, PUT, DELETE /api/contacts) stays. evals/agent-mcp/fixtures.mjs resets contacts through it.</li><li>Decided: Settings stays in the sidebar here. D5 moves it into the account menu.</li><li>Evidence data is fake (example.com). On the pr-1513 preview database only, the e2e pro and basic accounts share the fake corp id corp-example-team, the basic account is named Robin Teammate, and the owner&#39;s two lead pages carry that corp id. The e2e accounts&#39; addresses are blurred.</li><li>The PR keeps an empty baseline commit at the bottom from round four.</li></ul>
+    <h4>Not fixed, noticed nearby</h4><ul><li>POST /api/contacts with a JSON body answers 500 instead of 400 (pre-existing in readContactInput).</li><li>Both CSVs prefix phone numbers that start with + with an apostrophe (the shared spreadsheet-formula guard), as the old export did. Safe, but a CRM import keeps the apostrophe.</li><li>The page card badge action is still labelled &#39;Form submissions&#39;. It could read &#39;Leads&#39;.</li><li>docs/design-system/inventory.md is generated and still lists ContactsIndexRoute. Nothing checks it (pnpm design:inventory).</li><li>canAccessJourneyPage compares every page id field with every user id field. Owner to owner and corp to corp would be the narrower rule.</li><li>product-analytics-events.ts still lists /contacts and /learn as page-view routes. Both only redirect now.</li></ul>
+    <p class="dim">Before ran on fe473488d, after on 16e330f4d. Branch <code>simplify/d7-leads</code>.</p>
+  </details>
+  <div class="decide">
+    <div class="choices" role="radiogroup" aria-label="Decision for D7">
+      <button type="button" data-v="approve">Approve</button>
+      <button type="button" data-v="changes">Request changes</button>
+      <button type="button" data-v="reject">Drop it</button>
+    </div>
+    <textarea placeholder="Comment (optional)"></textarea>
+  </div>
+</article>
+
+
+</main>
+<div class="bar"><span class="count" id="count"></span><button class="ghost" id="copy">Copy as text</button><button id="send">Send decisions</button></div>
+<script>
+const KEY='clarity-simplify-review-'+"r6";const state=JSON.parse(localStorage.getItem(KEY)||'{}');
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));render();};
+document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;state[id]??={};
+  if(card.dataset.kind==='pr'){const s=state[id];
+    card.querySelectorAll('.decide .choices button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=card.querySelector('.decide textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};
+  } else card.querySelectorAll('.qs li').forEach(li=>{const q=li.dataset.q;const s=(state[id][q]??={});
+    li.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.v=s.v===b.dataset.v?undefined:b.dataset.v;save();});
+    const t=li.querySelector('textarea');t.value=s.c||'';t.oninput=()=>{s.c=t.value;save();};});
+});
+function render(){let done=0,total=0;
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const a=document.querySelector('nav a[data-for="'+id+'"]');
+    if(card.dataset.kind==='pr'){total++;const v=state[id].v;if(v)done++;
+      card.querySelectorAll('.decide .choices button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+      a.className=v==='approve'?'done':v==='changes'?'chg':v==='reject'?'rej':'';}
+    else{const qs=card.querySelectorAll('.qs li');let answered=0;qs.forEach(li=>{const s=state[id][li.dataset.q]||{};if(s.v)answered++;
+      li.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.v));});total++;if(answered===qs.length&&qs.length)done++;
+      a.className=answered===qs.length&&qs.length?'done':answered?'chg':'';}});
+  document.getElementById('count').textContent=done+' of '+total+' decided';}
+function text(){const L=['Decisions on the simplification PRs',''];
+  document.querySelectorAll('.card[data-id]').forEach(card=>{const id=card.dataset.id;const title=card.querySelector('h2').textContent;
+    if(card.dataset.kind==='pr'){const s=state[id];if(!s.v&&!s.c)return;const pr=card.dataset.pr?' (#'+card.dataset.pr+')':'';
+      L.push('- '+id+pr+' '+title+': '+({approve:'APPROVE',changes:'CHANGES',reject:'DROP'}[s.v]||'COMMENT')+(s.c?' - '+s.c.replace(/\n/g,' '):''));}
+    else{const lines=[];card.querySelectorAll('.qs li').forEach(li=>{const s=state[id][li.dataset.q]||{};if(!s.v&&!s.c)return;
+      lines.push('  - Q'+(+li.dataset.q+1)+': '+(s.v==='yes'?'go with recommendation':s.v==='other'?'something else':'comment')+(s.c?' - '+s.c.replace(/\n/g,' '):''));});
+      if(lines.length){L.push('- '+id+' '+title+':');L.push(...lines);}}});
+  return L.join('\n');}
+document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(text());document.getElementById('copy').textContent='Copied';setTimeout(()=>document.getElementById('copy').textContent='Copy as text',1500);};
+document.getElementById('send').onclick=()=>{const body=text()+'\n\nSent from the overnight review page.';
+  location.href='https://github.com/Clarity-Video-HQ/clarity/issues/new?title='+encodeURIComponent(''+"Simplification review decisions, Leads"+'')+'&body='+encodeURIComponent(body);};
+render();
+</script></body></html>
