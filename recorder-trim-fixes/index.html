@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recorder trim fixes: before and after</title>
+<style>
+:root{color-scheme:light dark;--fg:#111;--muted:#666;--bg:#fff;--card:#f5f5f7;--line:#ddd}
+@media (prefers-color-scheme:dark){:root{--fg:#eee;--muted:#999;--bg:#111;--card:#1c1c1f;--line:#333}}
+body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--fg);background:var(--bg)}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:26px;margin:0 0 8px}h2{font-size:21px;margin:0 0 6px}h3{font-size:15px;margin:0 0 8px}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media (max-width:760px){.pair{grid-template-columns:1fr}}
+video,img{width:100%;border-radius:8px;border:1px solid var(--line);display:block;background:#000}
+figure{margin:10px 0 0}figcaption{font-size:13px;color:var(--muted);margin-top:4px}
+pre{white-space:pre-wrap;font-size:13px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto}
+.hold{border-left:4px solid #d97706;padding:8px 12px;background:var(--bg);border-radius:6px}.muted{color:var(--muted);font-weight:400}.links{font-size:14px}code{font-size:13px}a{color:#2b6cf6}
+</style></head><body><main>
+<h1>Recorder trim fixes: before and after</h1>
+<p>A customer recorded an 11-minute take from a journey page, trimmed both ends, and inserted it. They could not hear the ending they had cut, the zoomed strip went dark while they set the start, and the inserted video played the parts they had trimmed off. Three stacked PRs, one per problem.</p>
+<p class="links"><a href="https://github.com/Clarity-Video-HQ/clarity/issues/1539">Issue #1539</a> · Fake-camera takes on the staging QA account. Before runs main's editor on staging. After runs the PR's editor against the same staging backend.</p>
+<section>
+  <h2>1. Play the last seconds before an end cut</h2>
+  <p class="links"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1540">PR #1540</a> · base <code>main</code> · head <code>70c78c4b3</code></p>
+  <p>After dragging the end handle, Play ran one frame and stopped at the cut. A second Play jumped to the start. There was no way to hear whether the ending landed.</p>
+  <p><strong>Fix.</strong> Moving the end handle cues the next Play to start 3 s before the cut and stop at it. The Play after that starts from the trim start, as before.</p>
+  <div class="pair">
+    <div><h3>Before <span class="muted">main on staging</span></h3><video src="./pr1-before.mp4" poster="./pr1-before-poster.jpg" controls muted playsinline loop preload="metadata"></video>
+<figure><img src="./pr1-before-2-during-first-play.png" alt="before-2-during-first-play.png" loading="lazy"><figcaption>First Play after the end drag: stopped at the cut, 0:17 of 0:17</figcaption></figure></div>
+    <div><h3>After <span class="muted">this PR</span></h3><video src="./pr1-after.mp4" poster="./pr1-after-poster.jpg" controls muted playsinline loop preload="metadata"></video>
+<figure><img src="./pr1-after-2-during-first-play.png" alt="after-2-during-first-play.png" loading="lazy"><figcaption>First Play after the end drag: playing the last seconds, 0:15 of 0:17</figcaption></figure></div>
+  </div>
+  
+  <h3>Measured</h3><ul><li>Before, staging: the first Play starts at 17.16 s and stops at 17.19 s. The second starts at 0.00 s.</li><li>After: the first Play starts at 14.18 s and plays to the cut at 17.18 s. The second starts at 0.00 s.</li><li>Arrow keys instead of a drag behave the same. The Edit video modal gets the same fix.</li></ul>
+  
+</section>
+<section>
+  <h2>2. Real frames in the zoomed strip for a fresh recording</h2>
+  <p class="links"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1542">PR #1542</a> · base <code>fix/trim-end-cue</code> · head <code>c14a9f9f6</code></p>
+  <p>Holding a handle zooms the strip to 12 s. A recording not yet on Mux had no frames for that window, so every tile repeated one picture. On the customer's take that picture was black.</p>
+  <p><strong>Fix.</strong> The strip decodes each zoomed tile's own frame from the local recording, starting under the held handle. A tile shows the nearest frame it has until its own arrives.</p>
+  <div class="pair">
+    <div><h3>Before <span class="muted">main on staging</span></h3><video src="./pr2-before.mp4" poster="./pr2-before-poster.jpg" controls muted playsinline loop preload="metadata"></video>
+<figure><img src="./pr2-before-11min-zoom-start.png" alt="before-11min-zoom-start.png" loading="lazy"><figcaption>11-minute take, holding the start handle: one picture across all tiles</figcaption></figure>
+<figure><img src="./pr2-before-11min-zoom-end.png" alt="before-11min-zoom-end.png" loading="lazy"><figcaption>11-minute take, holding the end handle: one picture across all tiles</figcaption></figure></div>
+    <div><h3>After <span class="muted">this PR</span></h3><video src="./pr2-after.mp4" poster="./pr2-after-poster.jpg" controls muted playsinline loop preload="metadata"></video>
+<figure><img src="./pr2-after-11min-zoom-start.png" alt="after-11min-zoom-start.png" loading="lazy"><figcaption>11-minute take, holding the start handle: each tile shows its own second</figcaption></figure>
+<figure><img src="./pr2-after-11min-zoom-end.png" alt="after-11min-zoom-end.png" loading="lazy"><figcaption>11-minute take, holding the end handle: each tile shows its own second</figcaption></figure></div>
+  </div>
+  
+  <h3>Measured</h3><ul><li>Before, staging: 1 distinct picture across 10 zoomed tiles.</li><li>After: 10 of 10 tiles show their own frame 233 ms (start handle) and 305 ms (end handle) after the zoom lands.</li><li>A full-speed pan stays at most one tile behind, for at most 173 ms.</li></ul>
+  
+</section>
+<section>
+  <h2>3. Play a saved trim before its clip exists</h2>
+  <p class="links"><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1541">PR #1541</a> · base <code>fix/trim-zoom-frames</code> · head <code>2695715ec</code></p>
+  <p>After Insert, the trimmed clip takes Mux a while to cut. Until then the editor and the public page played the whole take, and the open editor never switched to the clip without a reload.</p>
+  <p><strong>Fix.</strong> Until the clip exists, playback serves the source limited to the saved trim. The editor polls while the clip job runs, and the clip takes over without a reload.</p>
+  <div class="pair">
+    <div><h3>Before <span class="muted">main on staging</span></h3><video src="./pr3-before.mp4" poster="./pr3-before-poster.jpg" controls muted playsinline loop preload="metadata"></video>
+<figure><img src="./pr3-before-playing-plus11s.png" alt="before-playing-plus11s.png" loading="lazy"><figcaption>About 11 s after Insert: plays from 0:00, inside the part trimmed off, full 20.18 s take</figcaption></figure></div>
+    <div><h3>After <span class="muted">this PR</span></h3><video src="./pr3-after.mp4" poster="./pr3-after-poster.jpg" controls muted playsinline loop preload="metadata"></video>
+<figure><img src="./pr3-after-playing-plus12s.png" alt="after-playing-plus12s.png" loading="lazy"><figcaption>About 12 s after Insert: plays inside the trim, span 7.24 to 15.16 s on the source</figcaption></figure></div>
+  </div>
+  <figure><video src="./pr3-after-preview-handover.mp4" poster="./pr3-after-preview-handover-poster.jpg" controls muted playsinline loop preload="metadata"></video><figcaption>PR preview: the trimmed span plays at once, then the cut clip takes over at +48 s with no reload</figcaption></figure>
+  <h3>Measured</h3><ul><li>Before, staging: the editor played the whole 20.18 s take and never switched, although the clip existed from +12 s. The public page served the untrimmed take for 22 s after Insert.</li><li>After, PR preview: the editor played the trimmed span from +2 s and switched to the 7.56 s clip at +48 s with no reload. The public page served the span for 17 s, then the clip.</li><li>Until the clip lands the cut is approximate. Mux cuts the source at 5 s segment boundaries, so up to a segment of trimmed-off video can show at each end. The clip that follows is exact.</li></ul>
+  <p class="hold"><strong>Hold.</strong> Do not land yet. Prod has 12 imported videos whose Mux asset is already the trimmed render while their saved trim still uses the longer original's timeline. This PR would cut another 3 to 11 s off the start of each. Their saved trims need repairing first.</p>
+</section>
+</main></body></html>
