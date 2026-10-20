@@ -1,1 +1,33 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clarity staging verification</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#182238;background:#f6f8ff}h1{font-size:28px}li{margin-bottom:12px}</style><h1>Clarity staging verification</h1><p>Tested https://staging.clarity.video at commit c8940722 in Chromium at 1440×900 and 390×844.</p><ul><li>Settings navigation passed. The desktop account menu lists Settings, Help, Sign out. The phone More drawer provides the same account menu.</li><li>The settings tabs and profile form passed. Notifications has one watch-email switch. Billing shows included Pro access with no Manage billing button.</li><li>All four legacy settings redirects passed and preserved a test query string. Contacts redirects to Leads. Learn redirects to Help.</li><li>Leads data remains unverified. Its POST to /api/actions/leads_list was blocked under the required safety rule. Desktop and phone showed a fetch error.</li><li>The untouched analytics consent prompt covers some lower content. Phone settings tabs scroll horizontally.</li></ul><p>No settings were changed. No exports or billing portal were opened. Production was not used. Full screenshots, blocked-request logs, console errors, and the numbered report remain in the requested local evidence folder.</p></html>
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Settings and Leads, checked on staging</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;max-width:1100px;margin:40px auto;padding:0 20px;color:#182238;background:#f6f8ff}h1{font-size:28px;margin-bottom:4px}h2{margin-top:40px}ul{padding-left:20px}li{margin-bottom:6px}.grid{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}figure{margin:0;background:#fff;border:1px solid #dde3f0;border-radius:10px;padding:10px}figure.d{flex:1 1 100%}figure.p{flex:0 0 260px}img{width:100%;display:block;border-radius:6px}figcaption{font-size:14px;color:#556;margin-top:8px}.meta{color:#556}</style>
+<h1>Settings and Leads, checked on staging</h1>
+<p class="meta">2026-10-20. Staging runs c8940722, the same version as production. Codex (gpt-6.1-sol) drove Chromium at 1440 and 390 wide, signed in as the test account. Every write and tracking call was blocked except sign-in and the read that loads Leads. Names and emails are blacked out or blurred.</p>
+<h2>What passed</h2>
+<ul>
+<li>The account menu lists Settings, Help and Sign out. The sidebar has no Settings link.</li>
+<li>Settings opens on Profile. The tabs are Profile, Branding, Notifications, Billing and Agents.</li>
+<li>Notifications has one switch: "Email me when someone watches my pages", with "The first email comes when they start watching. After that, at most one an hour."</li>
+<li>Billing shows the plan card. This test account has included access, so it has no Manage billing button, as intended.</li>
+<li>/settings, /profile and /settings/password go to /settings/profile. /settings/subscription goes to /settings/billing. The query string is kept.</li>
+<li>On a phone the tab bar reads Home, Leads, Record, More. More opens the account menu, and Settings is reachable from it.</li>
+<li>Leads loads 255 leads, 15 per page, with search and relative times. The older contacts link shows because this account has older contacts.</li>
+<li>Opening Leads for one page shows "From" that page, 2 of 255 leads, and an All leads link that clears it.</li>
+<li>/contacts goes to /leads and /learn goes to /help.</li>
+</ul>
+<h2>Not checked</h2>
+<ul><li>Manage billing and the Stripe portal. The test account has no Stripe customer, and opening a portal session is a write.</li><li>An account with no older contacts, where the CSV link should be hidden. Every account checked here has them.</li></ul>
+<h2>Noticed, not caused by these changes</h2>
+<ul><li>The analytics consent prompt covers the lower middle of every page until it is answered, including part of the password form and the older contacts link.</li><li>On a phone the Settings tabs run past the right edge, so Billing and Agents need a sideways scroll.</li></ul>
+<h2>Desktop</h2><div class="grid">
+<figure class="d"><img src="01-account-menu.png" alt="Account menu: Settings, Help, Sign out"><figcaption>Account menu: Settings, Help, Sign out</figcaption></figure>
+<figure class="d"><img src="02-profile.png" alt="Settings opens on Profile"><figcaption>Settings opens on Profile</figcaption></figure>
+<figure class="d"><img src="03-notifications.png" alt="Notifications: one switch, approved wording"><figcaption>Notifications: one switch, approved wording</figcaption></figure>
+<figure class="d"><img src="04-billing.png" alt="Billing: plan card for an included account"><figcaption>Billing: plan card for an included account</figcaption></figure>
+<figure class="d"><img src="11-leads-bottom.png" alt="Leads with search, pagination and the older contacts link"><figcaption>Leads with search, pagination and the older contacts link</figcaption></figure>
+<figure class="d"><img src="13-leads-filtered.png" alt="Leads filtered to one page, with All leads to clear"><figcaption>Leads filtered to one page, with All leads to clear</figcaption></figure>
+</div><h2>Phone</h2><div class="grid">
+<figure class="p"><img src="06-phone-home.png" alt="Tab bar: Home, Leads, Record, More"><figcaption>Tab bar: Home, Leads, Record, More</figcaption></figure>
+<figure class="p"><img src="06-phone-account-menu.png" alt="More, then the account menu"><figcaption>More, then the account menu</figcaption></figure>
+<figure class="p"><img src="06-phone-settings.png" alt="Settings reached from the phone"><figcaption>Settings reached from the phone</figcaption></figure>
+<figure class="p"><img src="12-phone-leads.png" alt="Leads on a phone"><figcaption>Leads on a phone</figcaption></figure>
+</div></html>
