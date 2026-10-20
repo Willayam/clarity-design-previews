@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live training banner: five variants</title>
+<style>
+  :root { --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --bg:#f8fafc; --accent:#2563eb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color:var(--ink); background:var(--bg); }
+  main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 30px; line-height:1.2; margin: 0 0 12px; }
+  h2 { font-size: 20px; margin: 0 0 6px; }
+  section { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--line); }
+  p { margin: 0 0 12px; color: var(--muted); max-width: 76ch; }
+  .lede { color: var(--ink); font-size: 17px; }
+  figure { margin: 12px 0 0; }
+  img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .row { display:grid; grid-template-columns: minmax(0,3.6fr) minmax(0,1fr); gap: 20px; align-items:start; }
+  @media (max-width: 760px) { .row { grid-template-columns: 1fr; } }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Live training banner: five variants</h1>
+  <p class="lede">Five different takes on the Home banner for Clarity Live Training. Each one runs in the real app with Clarity's own buttons, fonts and colors, so these are screenshots, not mockups. All five link to <a href="https://lp.clarity.video/live-training">lp.clarity.video/live-training</a> and can be dismissed for one session.</p>
+  <p>Captured 20 October 2026 on the e2e test account, in Pacific time. Pull request: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/985">#985</a>.</p>
+
+  <section>
+    <h2>Today&#x27;s banner (for reference)</h2>
+    <p>Three small stacked lines and a lone button at the far edge. The date is hard to find, and the row reads as empty space.</p>
+    <div class="row">
+      <figure><img src="img/vcurrent-desktop.png" alt="Today&#x27;s banner (for reference) on desktop"><figcaption>Desktop, 1440 px</figcaption></figure>
+      <figure><img src="img/vcurrent-mobile.png" alt="Today&#x27;s banner (for reference) on a phone"><figcaption>Phone, 390 px</figcaption></figure>
+    </div>
+  </section>
+  <section>
+    <h2>1. Calendar tile</h2>
+    <p>A tear-off calendar date on the left, so the day reads at a glance. The title and time sit beside it, with a quiet outline button. It&#x27;s calm enough to stay on Home every day.</p>
+    <div class="row">
+      <figure><img src="img/v1-desktop.png" alt="1. Calendar tile on desktop"><figcaption>Desktop, 1440 px</figcaption></figure>
+      <figure><img src="img/v1-mobile.png" alt="1. Calendar tile on a phone"><figcaption>Phone, 390 px</figcaption></figure>
+    </div>
+  </section>
+  <section>
+    <h2>2. Slim strip</h2>
+    <p>One thin tinted line with a dot, the title and the date, and a Details link. It takes the least room and is the easiest to ignore. On a phone it wraps to two lines.</p>
+    <div class="row">
+      <figure><img src="img/v2-desktop.png" alt="2. Slim strip on desktop"><figcaption>Desktop, 1440 px</figcaption></figure>
+      <figure><img src="img/v2-mobile.png" alt="2. Slim strip on a phone"><figcaption>Phone, 390 px</figcaption></figure>
+    </div>
+  </section>
+  <section>
+    <h2>3. Brand feature</h2>
+    <p>A blue-tinted card with a broadcast icon, a countdown chip, date and time with icons, and a solid primary button. It&#x27;s the most promotional of the five and takes about twice the height.</p>
+    <div class="row">
+      <figure><img src="img/v3-desktop.png" alt="3. Brand feature on desktop"><figcaption>Desktop, 1440 px</figcaption></figure>
+      <figure><img src="img/v3-mobile.png" alt="3. Brand feature on a phone"><figcaption>Phone, 390 px</figcaption></figure>
+    </div>
+  </section>
+  <section>
+    <h2>4. Host</h2>
+    <p>Todd&#x27;s face with a LIVE tag and a sentence like a notification: Todd Hartley is teaching a free Clarity live training, in 2 days. It&#x27;s personal. The photo is a frame from his Learn video, so a real headshot would look better.</p>
+    <div class="row">
+      <figure><img src="img/v4-desktop.png" alt="4. Host on desktop"><figcaption>Desktop, 1440 px</figcaption></figure>
+      <figure><img src="img/v4-mobile.png" alt="4. Host on a phone"><figcaption>Phone, 390 px</figcaption></figure>
+    </div>
+  </section>
+  <section>
+    <h2>5. Dark spotlight</h2>
+    <p>A dark navy card with a blue glow that matches the dark landing page it opens. It has the strongest contrast, and it may feel heavy as a permanent fixture of a light Home page.</p>
+    <div class="row">
+      <figure><img src="img/v5-desktop.png" alt="5. Dark spotlight on desktop"><figcaption>Desktop, 1440 px</figcaption></figure>
+      <figure><img src="img/v5-mobile.png" alt="5. Dark spotlight on a phone"><figcaption>Phone, 390 px</figcaption></figure>
+    </div>
+  </section>
+</main>
+</body>
+</html>
