@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live training: one landing page, automatic schedule</title>
+<style>
+  :root { color-scheme: light; --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --bg:#f8fafc; --accent:#2563eb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; color:var(--ink); background:var(--bg); }
+  main { max-width: 1120px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 30px; line-height:1.2; margin: 0 0 12px; }
+  h2 { font-size: 20px; margin: 48px 0 6px; }
+  p { margin: 0 0 12px; color: var(--muted); max-width: 72ch; }
+  .lede { font-size: 17px; color: var(--ink); }
+  figure { margin: 16px 0 0; }
+  img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .row { display:grid; grid-template-columns: minmax(0,3fr) minmax(0,1fr); gap: 20px; align-items:start; }
+  .pair { display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .row, .pair { grid-template-columns: 1fr; } }
+  code { font-size: 14px; background:#eef2ff; padding: 1px 5px; border-radius: 4px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Live training: one landing page, automatic schedule</h1>
+  <p class="lede">Every live training link in Clarity now opens <a href="https://lp.clarity.video/live-training">lp.clarity.video/live-training</a>. The app works out the next session by itself: every other Thursday at 11:00 AM Pacific, starting Thursday, October 22, 2026. Nobody has to add an entry for each session.</p>
+  <p>Screenshots come from the branch running locally on 20 October 2026, signed in as the e2e test account. Times appear in each viewer's own timezone. Most shots use Pacific time. The last one shows a viewer in Europe.</p>
+  <p>Pull request: <a href="https://github.com/Clarity-Video-HQ/clarity/pull/985">Clarity-Video-HQ/clarity#985</a>.</p>
+
+  <h2>Home: the banner</h2>
+  <p>The banner sits above the library on the Home dashboard. "View details" opens the landing page in a new tab.</p>
+  <div class="row">
+    <figure><img src="img/home-desktop.png" alt="Home on desktop with the Next live training banner"><figcaption>Desktop. Next live training, Thu, Oct 22, 11:00 AM PDT.</figcaption></figure>
+    <figure><img src="img/home-mobile.png" alt="Home on a phone with the banner"><figcaption>Phone, 390 px wide.</figcaption></figure>
+  </div>
+
+  <h2>Dismissing hides one session</h2>
+  <p>The × hides the banner for that session only, and it stays hidden after a reload. When the next session comes up, the banner shows again.</p>
+  <figure><img src="img/home-after-dismiss.png" alt="Home after dismissing the banner"><figcaption>After dismissing and reloading.</figcaption></figure>
+
+  <h2>After October 22 it moves on by itself</h2>
+  <p>Once the first session ends at noon Pacific, the banner shows the next one, two weeks later. Daylight saving time ends on November 1, so the start time reads PST, and it is still 11:00 AM.</p>
+  <figure><img src="img/banner-after-oct-22.png" alt="Banner showing Thu, Nov 5, 11:00 AM PST"><figcaption>The browser clock set to October 22, 12:05 PM Pacific.</figcaption></figure>
+
+  <h2>Help: the upcoming session card</h2>
+  <p>Main renamed Learn to Help and moved it into the account menu (#1513), so the card now sits on Help. Once you add the first recording, a "Live Trainings" tab of recordings appears here. Until then the tab stays hidden.</p>
+  <div class="row">
+    <figure><img src="img/help-desktop.png" alt="Help page with the Upcoming live training card"><figcaption>Desktop.</figcaption></figure>
+    <figure><img src="img/help-mobile.png" alt="Help page on a phone"><figcaption>Phone.</figcaption></figure>
+  </div>
+
+  <h2>Where "View details" goes</h2>
+  <p>The landing page belongs to the training team. It carries the topic, the date and the add-to-calendar buttons, and they update it for each session.</p>
+  <figure><img src="img/landing.png" alt="The lp.clarity.video/live-training landing page"><figcaption>The tab that opens after clicking View details.</figcaption></figure>
+
+  <h2>Site footer</h2>
+  <p>The public site footer gets a "Live Training" link to the same page.</p>
+  <figure><img src="img/footer-desktop.png" alt="Site footer with a Live Training link"><figcaption>Desktop footer.</figcaption></figure>
+
+  <h2>A viewer in Europe</h2>
+  <p>The same session shows in the viewer's local time.</p>
+  <div class="pair">
+    <figure><img src="img/banner-pacific.png" alt="Banner in Pacific time"><figcaption>Pacific: 11:00 AM PDT.</figcaption></figure>
+    <figure><img src="img/banner-europe.png" alt="Banner in Central European time"><figcaption>Stockholm: 8:00 PM GMT+2.</figcaption></figure>
+  </div>
+</main>
+</body>
+</html>
