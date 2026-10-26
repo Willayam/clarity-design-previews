@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>clarity.video/todd: handle UI playground</title>
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./playground.css">
+</head>
+<body>
+  <header class="pg-top">
+    <b>clarity.video/<span data-handle></span></b>
+    <span class="pg-handle-bar">Try a handle <input data-handle-input aria-label="Handle to try" spellcheck="false" autocomplete="off"></span>
+    <span class="pg-spacer"></span>
+    <span class="pg-count"></span>
+    <a class="pg-link" href="#combo-title">Combination</a>
+    <a class="pg-link" href="#gallery-title">All variants</a>
+    <button id="copy">Copy feedback</button>
+    <button id="download">Download</button>
+    <button id="reset">Reset</button>
+  </header>
+
+  <div class="pg-wrap">
+    <div class="pg-intro">
+      <h1>Handle UI playground</h1>
+      <p>A handle gives each person one address they can say on a podcast, clarity.video/todd. It points at whichever Journey Page they choose, and they can change that page any time without changing the address.</p>
+      <p>Every variant below is a mock with fake data. The top section stitches one variant from each step into a single flow. Change a step with its dropdown, or press "Use in combination" on any card. Type a handle in the bar to see it carry through every screen. Try <code>todd</code>, <code>pricing</code>, <code>sarah</code> and <code>todd-ellis</code>.</p>
+      <p>Like or drop cards and write notes as you go. They save in this browser. When you're done, press Copy feedback and paste it into the chat. <span class="pg-variant-count"></span>.</p>
+    </div>
+
+    <h2 class="pg-h2" id="combo-title">Your combination</h2>
+    <p class="pg-sub">One variant per step, in the order Todd meets them.</p>
+    <div id="combo"></div>
+
+    <h2 class="pg-h2" id="gallery-title">All variants</h2>
+    <p class="pg-sub">Grouped by step. Press "Open at full size" to see a variant at 1:1.</p>
+    <div id="gallery"></div>
+
+    <section class="pg-overall">
+      <h3>Overall</h3>
+      <textarea id="overall" class="pg-note" placeholder="Anything about the whole idea: the rules, the name, what's missing"></textarea>
+    </section>
+  </div>
+
+  <div class="pg-focus" data-open="false"><button class="pg-chip pg-focus-close">Close</button><div class="pg-focus-inner"></div></div>
+  <div class="pg-toast" role="status"></div>
+
+  <script src="./buttons.js"></script>
+  <script src="./inputs.js"></script>
+  <script src="./reserved.js"></script>
+  <script src="./shell.js"></script>
+  <script>
+    PG.surface({ id: 'entry', title: 'Where Todd claims it', question: 'Where does Todd first see the offer to claim his handle, and where does he change it later?' });
+    PG.surface({ id: 'field', title: 'Picking the name', question: 'The field itself. Type any handle into a card: availability, the reserved list and the spoken version all respond. The handle you type carries through every other step.' });
+    PG.surface({ id: 'point', title: 'Choosing the page it opens', question: 'The handle belongs to Todd, not to one page. How does he pick, and later swap, the page clarity.video/todd opens?' });
+    PG.surface({ id: 'share', title: 'The share dialog', question: 'Every page keeps its own link for one prospect. How does the dialog show the handle next to that link without mixing the two up?' });
+    PG.surface({ id: 'listener', title: 'What the listener sees', question: 'Someone heard clarity.video/todd on a podcast and typed it into their phone. What do they get, including when the page Todd chose is offline?' });
+    PG.surface({ id: 'stats', title: 'Knowing the podcast worked', question: 'Listeners type the address, so the browser records no source. Visits through the handle are the only sign the podcast sent them. Where does Todd see that?' });
+  </script>
+  <script src="./variants/entry-field.js"></script>
+  <script src="./variants/point-share.js"></script>
+  <script src="./variants/listener-stats.js"></script>
+  <script>PG.start();</script>
+</body>
+</html>
