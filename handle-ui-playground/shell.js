@@ -66,7 +66,7 @@
   const DIGITS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
   const PAGES = [
     { id: 'p1', title: 'Podcast listeners: start here', share: 'k7m2xq', visits: 142, viaHandle: 118, leads: 9, updated: '2d ago', live: true },
-    { id: 'p2', title: 'Acme Corp proposal', share: 'xk2u4q', visits: 6, viaHandle: 0, leads: 1, updated: '3d ago', live: true },
+    { id: 'p2', title: 'Acme Corp proposal', share: 'h4vn8c', visits: 6, viaHandle: 0, leads: 1, updated: '3d ago', live: true },
     { id: 'p3', title: 'Q4 webinar follow-up', share: 'm3pq8r', visits: 38, viaHandle: 0, leads: 4, updated: '1w ago', live: true },
     { id: 'p4', title: 'Northwind onboarding', share: 't9wd2e', visits: 0, viaHandle: 0, leads: 0, updated: '2w ago', live: false },
   ];
