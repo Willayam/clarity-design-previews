@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Change the page link: the smallest version</title>
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./playground.css">
+  <style>
+    body { margin: 0; background: oklch(0.965 0.004 255); color: var(--foreground); font-family: var(--font-sans); font-size: 14px; line-height: 1.45; }
+    .m-wrap { max-width: 980px; margin: 0 auto; padding: 40px 20px 80px; }
+    .m-wrap h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 10px; }
+    .m-wrap > h2, .m-feedback > h2 { font-size: 18px; font-weight: 600; margin: 56px 0 6px; }
+    .m-lede { max-width: 620px; color: oklch(0.4 0.02 260); font-size: 15px; margin: 0 0 6px; }
+    .m-stage { display: grid; grid-template-columns: 420px 1fr; gap: 40px; align-items: start; margin-top: 28px; }
+    .m-try { display: grid; gap: 10px; padding-top: 6px; }
+    .m-try p { margin: 0; color: oklch(0.4 0.02 260); }
+    .m-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .m-chip { height: 30px; padding: 0 10px; border-radius: 99px; border: 1px solid var(--border); background: white; font: inherit; font-size: 13px; cursor: pointer; }
+    .m-chip small { color: var(--muted-foreground); margin-left: 4px; }
+    .m-dialog { width: 420px; max-width: 100%; box-sizing: border-box; grid-template-columns: minmax(0, 1fr); }
+    .m-states { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 20px; margin-top: 18px; }
+    .m-state { display: grid; gap: 8px; min-width: 0; align-content: start; }
+    .m-state > .m-card { min-width: 0; }
+    .m-state > b { font-size: 13px; font-weight: 600; }
+    .m-state > .m-card { background: oklch(0.99 0.002 248); border-radius: 14px; box-shadow: 0 0 0 1px oklch(0 0 0 / 0.06), 0 6px 20px oklch(0 0 0 / 0.06); padding: 18px 20px; }
+    .m-list { margin: 10px 0 0; padding-left: 20px; max-width: 680px; display: grid; gap: 8px; }
+    .m-feedback { margin-top: 56px; display: grid; gap: 10px; max-width: 680px; }
+    .m-feedback textarea { min-height: 110px; border-radius: 10px; border: 1px solid var(--border); padding: 10px 12px; font: inherit; resize: vertical; background: white; }
+    .m-feedback div { display: flex; gap: 10px; align-items: center; }
+
+    /* The link row: today's muted box, plus a pencil that turns it into a field. */
+    .lk { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .lk-box { display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 4px; border-radius: 10px; background: oklch(0.955 0.006 255); box-sizing: border-box; }
+    .lk-text { flex: 1; min-width: 0; padding: 6px 8px; text-decoration: underline; text-decoration-color: oklch(0.7 0.02 260); text-underline-offset: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lk-box .pgb[data-size="icon-sm"] { color: var(--muted-foreground); }
+    .lk-edit { flex: 1; min-width: 0; display: flex; align-items: center; height: 36px; border: 1px solid var(--input); border-radius: 8px; background: white; }
+    .lk-edit:focus-within { border-color: var(--ring); box-shadow: 0 0 0 3px oklch(0.546 0.215 262.9 / 0.25); }
+    .lk-edit span { padding: 0 1px 0 10px; color: var(--muted-foreground); white-space: nowrap; }
+    .lk-edit input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 0 10px 0 0; font: inherit; color: var(--foreground); background: transparent; }
+    .lk-status { font-size: 12.5px; color: var(--muted-foreground); margin: 0; padding: 0 2px; }
+    .lk-status[data-state="free"], .lk-status[data-state="saved"] { color: oklch(0.5 0.13 163); }
+    .lk-status[data-state="reserved"], .lk-status[data-state="taken"], .lk-status[data-state="invalid"] { color: var(--destructive); }
+    .lk-status[data-state="yours"] { color: oklch(0.45 0.2 263); }
+    .lk-tip { position: relative; display: inline-flex; }
+    .lk-tip[data-show="true"]::after { content: "Copied"; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--foreground); color: var(--background); font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+
+    @media (max-width: 760px) {
+      .m-wrap { padding: 24px 16px 60px; }
+      .m-stage { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+      .m-states { grid-template-columns: minmax(0, 1fr); }
+      .m-state > .m-card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="m-wrap">
+    <h1>Change the page link</h1>
+    <p class="m-lede">The smallest version. The link in the share dialog gets a pencil. Todd presses it, types a new ending and saves. Nothing else in the app changes.</p>
+    <p class="m-lede">This is the real dialog at real size, with fake data. Press the pencil and try a few names.</p>
+
+    <div class="m-stage">
+      <div class="app-dialog m-dialog" data-live-dialog></div>
+      <div class="m-try">
+        <p>Names to try while the field is open:</p>
+        <div class="m-chips">
+          <button class="m-chip" data-try="todd">todd<small>free</small></button>
+          <button class="m-chip" data-try="todd-webinar">todd-webinar<small>on another page</small></button>
+          <button class="m-chip" data-try="pricing">pricing<small>Clarity's</small></button>
+          <button class="m-chip" data-try="sarah">sarah<small>someone else's</small></button>
+          <button class="m-chip" data-try="todd-smith">todd-smith<small>same as toddsmith</small></button>
+          <button class="m-chip" data-try="todd_ellis">todd_ellis<small>not allowed</small></button>
+        </div>
+        <p>Enter saves and Escape cancels. Clearing the field and saving goes back to the original link.</p>
+      </div>
+    </div>
+
+    <h2>Every state</h2>
+    <p class="m-lede">The same row, frozen in each case, at real size.</p>
+    <div class="m-states" data-states></div>
+
+    <h2>What else happens</h2>
+    <ul class="m-list">
+      <li>clarity.video/todd opens the page, and the short link stays in the browser bar. The old link keeps working, so nothing Todd already sent breaks.</li>
+      <li>A link Todd used stays his. If he changes it again, the old one keeps opening the page. If he deletes the page, it shows his name instead of a 404.</li>
+      <li>Dashes don't count when names are compared, so nobody can take todd-smith next to toddsmith. A listener who skips the dash still lands on the page.</li>
+      <li>Each account can hold about five custom links. The limit only shows up when Todd reaches it.</li>
+      <li>This version leaves out suggestions, the spoken version and a separate stats split. Visits to the page already count, whichever link brought them.</li>
+    </ul>
+
+    <section class="m-feedback">
+      <h2 style="margin:0">Feedback</h2>
+      <textarea placeholder="What works, what doesn't, what's missing" data-note></textarea>
+      <div><button data-copy data-btn="outline">Copy feedback</button><span class="app-muted" data-copied></span></div>
+    </section>
+  </div>
+
+  <script src="./buttons.js"></script>
+  <script src="./inputs.js"></script>
+  <script src="./reserved.js"></script>
+  <script src="./shell.js"></script>
+  <script>
+  (() => {
+    const c = PG.ctx;
+    const ORIGINAL = 'page/k7m2xq';
+    let current = ORIGINAL;
+
+    // The real Button classes; the data attributes are what ui/button.tsx sets for the app CSS.
+    function wire(root) {
+      root.querySelectorAll('.pgb').forEach((node) => {
+        const variant = [...node.classList].find((name) => name.startsWith('pgb-v-'))?.slice(6);
+        const size = [...node.classList].find((name) => name.startsWith('pgb-s-'))?.slice(6);
+        Object.assign(node.dataset, { slot: 'button', buttonVariant: variant, buttonSize: size, variant, size });
+      });
+    }
+    document.querySelectorAll('[data-btn]').forEach((node) => { node.className = c.btn(node.dataset.btn); });
+    wire(document.querySelector('.m-feedback'));
+    const iconBtn = (name, label, attr = '') => `<button class="${c.btn('ghost', 'icon-sm')}" aria-label="${label}" title="${label}" ${attr}>${c.icon(name)}</button>`;
+
+    function statusOf(raw) {
+      const value = c.normalize(raw);
+      if (!value && current === ORIGINAL) return { state: 'empty', message: 'Pick a short ending people can say and type.', canSave: false, label: 'Save' };
+      if (!value) return { state: 'empty', message: `Save it empty to go back to clarity.video/${ORIGINAL}.`, canSave: true, label: 'Save' };
+      if (value === current) return { state: 'empty', message: 'This is the link now.', canSave: false, label: 'Save' };
+      const result = c.check(value);
+      if (result.state === 'yours') return { ...result, message: `You use this on "${result.page.title}". Saving moves it here.`, canSave: true, label: 'Move here' };
+      return { ...result, canSave: result.state === 'free', label: 'Save' };
+    }
+
+    // One link row, in view or edit mode. `frozen` renders a fixed state for the gallery.
+    function row({ mode, value = '', saved = false, frozen = false }) {
+      if (mode === 'view') {
+        const custom = current !== ORIGINAL || saved;
+        return `<div class="lk">
+          <div class="lk-box">
+            <span class="lk-text">clarity.video/${frozen && saved ? value : current}</span>
+            ${iconBtn('pencil', 'Change link', 'data-act="edit"')}
+            <span class="lk-tip" data-tip>${iconBtn('copy', 'Copy link', 'data-act="copy"')}</span>
+          </div>
+          ${custom ? `<p class="lk-status" data-state="${saved ? 'saved' : 'empty'}">${saved ? `Saved. clarity.video/${ORIGINAL} still works too.` : `clarity.video/${ORIGINAL} still works too.`}</p>` : ''}
+        </div>`;
+      }
+      const s = statusOf(value);
+      return `<div class="lk">
+        <div class="lk-box">
+          <label class="lk-edit"><span>clarity.video/</span><input data-field value="${value}" placeholder="your-name" spellcheck="false" autocomplete="off" aria-label="New ending for the link" ${frozen ? 'tabindex="-1"' : ''}></label>
+          <button class="${c.btn('default', 'sm')}" data-act="save" ${s.canSave ? '' : 'disabled'}>${s.label}</button>
+          ${iconBtn('x', 'Cancel', 'data-act="cancel"')}
+        </div>
+        <p class="lk-status" data-state="${s.state}" data-status>${s.message}</p>
+      </div>`;
+    }
+
+    function dialogBody(linkRow) {
+      return `<h2 class="app-dialog-title">Share</h2><span class="app-dialog-x">${c.icon('x')}</span>
+        ${linkRow}
+        <div class="app-row"><span class="app-row-label">${c.icon('globe')}Who can open it</span><span class="app-select">Anyone with the link ${c.icon('chevron-down')}</span></div>
+        <div class="app-row"><span class="app-row-label">${c.icon('lock')}Password protected</span><span class="app-switch"></span></div>
+        <div class="app-live"><b>Live</b><small>Published 2d ago.</small></div>
+        <button class="${c.btn('default', 'lg')} app-wide" data-act="copy-main">${c.icon('copy')}Copy link</button>`;
+    }
+
+    // ---------- the live dialog ----------
+    const host = document.querySelector('[data-live-dialog]');
+    let mode = 'view';
+    let justSaved = false;
+    function render(focus = false, draft = '') {
+      host.innerHTML = dialogBody(row({ mode, value: draft, saved: justSaved }));
+      wire(host);
+      if (mode === 'edit') {
+        const field = host.querySelector('[data-field]');
+        field.addEventListener('input', () => update(field.value));
+        field.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') { event.preventDefault(); save(field.value); }
+          if (event.key === 'Escape') { event.preventDefault(); cancel(); }
+        });
+        if (focus) { field.focus(); field.select(); }
+      }
+    }
+    function update(raw) {
+      const s = statusOf(raw);
+      const status = host.querySelector('[data-status]');
+      status.dataset.state = s.state;
+      status.textContent = s.message;
+      const button = host.querySelector('[data-act="save"]');
+      button.disabled = !s.canSave;
+      button.textContent = s.label;
+    }
+    function edit() { mode = 'edit'; justSaved = false; render(true, current === ORIGINAL ? '' : current); }
+    function cancel() { mode = 'view'; render(); host.querySelector('[data-act="edit"]').focus(); }
+    function save(raw) {
+      const s = statusOf(raw);
+      if (!s.canSave) return;
+      current = c.normalize(raw) || ORIGINAL;
+      mode = 'view';
+      justSaved = current !== ORIGINAL;
+      render();
+    }
+    function copied() {
+      const tip = host.querySelector('[data-tip]');
+      if (!tip) return;
+      tip.dataset.show = 'true';
+      setTimeout(() => { tip.dataset.show = 'false'; }, 1200);
+    }
+    host.addEventListener('click', (event) => {
+      const act = event.target.closest('[data-act]')?.dataset.act;
+      if (act === 'edit') edit();
+      if (act === 'cancel') cancel();
+      if (act === 'save') save(host.querySelector('[data-field]').value);
+      if (act === 'copy' || act === 'copy-main') copied();
+    });
+    document.querySelectorAll('[data-try]').forEach((chip) => chip.addEventListener('click', () => {
+      if (mode !== 'edit') { mode = 'edit'; justSaved = false; render(); }
+      const field = host.querySelector('[data-field]');
+      field.value = chip.dataset.try;
+      update(field.value);
+      field.focus();
+    }));
+    render();
+
+    // ---------- the frozen states ----------
+    const STATES = [
+      ['Before', { mode: 'view' }],
+      ['Pencil pressed', { mode: 'edit', value: '' }],
+      ['A free name', { mode: 'edit', value: 'todd' }],
+      ['A name he uses on another page', { mode: 'edit', value: 'todd-webinar' }],
+      ['A name Clarity keeps', { mode: 'edit', value: 'pricing' }],
+      ['Someone else has it', { mode: 'edit', value: 'todd-smith' }],
+      ['Characters that are not allowed', { mode: 'edit', value: 'todd_ellis' }],
+      ['After saving', { mode: 'view', value: 'todd', saved: true }],
+    ];
+    const grid = document.querySelector('[data-states]');
+    grid.innerHTML = STATES.map(([label, spec]) => `<div class="m-state"><b>${label}</b><div class="m-card" inert>${row({ ...spec, frozen: true })}</div></div>`).join('');
+    wire(grid);
+
+    // ---------- feedback ----------
+    const note = document.querySelector('[data-note]');
+    note.value = localStorage.getItem('address-minimal-note') ?? '';
+    note.addEventListener('input', () => localStorage.setItem('address-minimal-note', note.value));
+    document.querySelector('[data-copy]').addEventListener('click', async () => {
+      const text = `# Change the page link, feedback\n\n${note.value.trim() || '(no notes)'}\n\nLink while testing: clarity.video/${current}\n${location.href}`;
+      const label = document.querySelector('[data-copied]');
+      try { await navigator.clipboard.writeText(text); label.textContent = 'Copied. Paste it into the chat.'; }
+      catch { prompt('Copy your feedback', text); }
+    });
+  })();
+  </script>
+</body>
+</html>
