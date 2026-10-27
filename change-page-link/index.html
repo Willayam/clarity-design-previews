@@ -66,9 +66,8 @@
         <div class="m-chips">
           <button class="m-chip" data-try="todd">todd<small>free</small></button>
           <button class="m-chip" data-try="todd-webinar">todd-webinar<small>on another page</small></button>
-          <button class="m-chip" data-try="pricing">pricing<small>Clarity's</small></button>
-          <button class="m-chip" data-try="sarah">sarah<small>someone else's</small></button>
-          <button class="m-chip" data-try="todd-smith">todd-smith<small>same as toddsmith</small></button>
+          <button class="m-chip" data-try="pricing">pricing<small>Clarity keeps it</small></button>
+          <button class="m-chip" data-try="sarah">sarah<small>another account has it</small></button>
           <button class="m-chip" data-try="todd_ellis">todd_ellis<small>not allowed</small></button>
         </div>
         <p>Enter saves and Escape cancels. Clearing the field and saving goes back to the original link.</p>
@@ -124,7 +123,10 @@
       if (value === current) return { state: 'empty', message: 'This is the link now.', canSave: false, label: 'Save' };
       const result = c.check(value);
       if (result.state === 'yours') return { ...result, message: `You use this on "${result.page.title}". Saving moves it here.`, canSave: true, label: 'Move here' };
-      return { ...result, canSave: result.state === 'free', label: 'Save' };
+      // Clients only learn that a name is unavailable, never whose it is or why.
+      if (result.state === 'reserved' || result.state === 'taken') return { ...result, state: 'taken', message: `clarity.video/${value} is unavailable.`, canSave: false, label: 'Save' };
+      if (result.state === 'free') return { ...result, message: `clarity.video/${value} is available.`, canSave: true, label: 'Save' };
+      return { ...result, canSave: false, label: 'Save' };
     }
 
     // One link row, in view or edit mode. `frozen` renders a fixed state for the gallery.
@@ -224,8 +226,7 @@
       ['Pencil pressed', { mode: 'edit', value: '' }],
       ['A free name', { mode: 'edit', value: 'todd' }],
       ['A name he uses on another page', { mode: 'edit', value: 'todd-webinar' }],
-      ['A name Clarity keeps', { mode: 'edit', value: 'pricing' }],
-      ['Someone else has it', { mode: 'edit', value: 'todd-smith' }],
+      ['Unavailable, whether Clarity keeps it or another account has it', { mode: 'edit', value: 'pricing' }],
       ['Characters that are not allowed', { mode: 'edit', value: 'todd_ellis' }],
       ['After saving', { mode: 'view', value: 'todd', saved: true }],
     ];
