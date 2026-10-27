@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>clarity.video/todd: page address UI playground</title>
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./playground.css">
+</head>
+<body>
+  <header class="pg-top">
+    <b>clarity.video/<span data-address></span></b>
+    <span class="pg-address-bar">Try an address <input data-address-input aria-label="Address to try" spellcheck="false" autocomplete="off"></span>
+    <span class="pg-spacer"></span>
+    <span class="pg-count"></span>
+    <a class="pg-link" href="#combo-title">Combination</a>
+    <a class="pg-link" href="#gallery-title">All variants</a>
+    <button id="copy">Copy feedback</button>
+    <button id="download">Download</button>
+    <button id="reset">Reset</button>
+  </header>
+
+  <div class="pg-wrap">
+    <div class="pg-intro">
+      <h1>Page address playground</h1>
+      <p>Every Journey Page keeps its share link, clarity.video/page/k7m2xq. Now it can also get an address people can say and type, like clarity.video/todd. Todd sets it on the page he wants people to find. He can move it to another page later, and it never goes to another account.</p>
+      <p>Every variant below is a mock with fake data. The top section stitches one variant from each step into a single flow. Change a step with its dropdown, or press "Use in combination" on any card. Type an address in the bar to see it carry through every screen. Try <code>todd</code>, <code>todd-webinar</code>, <code>pricing</code>, <code>todd-smith</code> and <code>todd_ellis</code>.</p>
+      <p>Like or drop cards and write notes as you go. They save in this browser. When you're done, press Copy feedback and paste it into the chat. <span class="pg-variant-count"></span>.</p>
+    </div>
+
+    <h2 class="pg-h2" id="combo-title">Your combination</h2>
+    <p class="pg-sub">One variant per step, in the order Todd and his listeners meet them.</p>
+    <div id="combo"></div>
+
+    <h2 class="pg-h2" id="gallery-title">All variants</h2>
+    <p class="pg-sub">Grouped by step. Press "Open at full size" to see a variant at 1:1.</p>
+    <div id="gallery"></div>
+
+    <section class="pg-overall">
+      <h3>Overall</h3>
+      <textarea id="overall" class="pg-note" placeholder="Anything about the whole idea, like the rules, the wording or what's missing"></textarea>
+    </section>
+  </div>
+
+  <div class="pg-focus" data-open="false"><button class="pg-chip pg-focus-close">Close</button><div class="pg-focus-inner"></div></div>
+  <div class="pg-toast" role="status"></div>
+
+  <script src="./buttons.js"></script>
+  <script src="./inputs.js"></script>
+  <script src="./reserved.js"></script>
+  <script src="./shell.js"></script>
+  <script>
+    PG.surface({ id: 'where', title: 'Where Todd sets it', question: 'Todd has a podcast page at clarity.video/page/k7m2xq. Where does he give it a readable address, and how does he tell which link he is copying afterwards?' });
+    PG.surface({ id: 'field', title: 'Picking the address', question: 'The field itself. Type into any card: reserved names, other people\'s names, names Todd already uses on another page and the spoken version all respond. The address you type carries through every step.' });
+    PG.surface({ id: 'listener', title: 'What the listener sees', question: 'Someone heard clarity.video/todd on a podcast and typed it into their phone. What do they get, including when the page is offline or they mistype it?' });
+    PG.surface({ id: 'stats', title: 'Knowing the podcast worked', question: 'Listeners type the address, so the browser records no source. Visits through the address are the only sign the podcast sent them. Where does Todd see that?' });
+  </script>
+  <script src="./variants/where.js"></script>
+  <script src="./variants/field.js"></script>
+  <script src="./variants/listener-stats.js"></script>
+  <script>PG.start();</script>
+</body>
+</html>
