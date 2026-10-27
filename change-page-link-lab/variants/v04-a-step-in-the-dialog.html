@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v04 A step in the dialog</title>
+<script type="application/json" id="lab-meta">
+{"id":"v04","name":"A step in the dialog","axis":"a second view inside the same dialog","idea":"A pencil opens Change link in the same dialog, with a full-width field and Save at the bottom.","cost":"Changing the link takes another step and hides the sharing controls.","model":"gpt-6-astra","round":1,"parents":[],"recommended":false,"why":"","baseline":false}
+</script>
+<script src="../kit/theme.js"></script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/link.css">
+<style>
+.v04-title { display: block; padding-left: 32px; }
+.v04-back { position: absolute; top: 18px; left: 18px; }
+.v04-back .lk-icon { transform: rotate(180deg); }
+.v04-editor { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.v04-editor .lk-field { flex: none; width: 100%; height: 44px; }
+.v04-editor .lk-status { min-height: 36px; overflow-wrap: anywhere; }
+.v04-editor .lk-wide { margin-top: auto; flex: none; }
+.v04-note { overflow-wrap: anywhere; }
+.v04-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.v04-link:hover { background: var(--background); }
+@media (max-width: 760px) { .v04-back { top: 16px; left: 12px; } }
+</style>
+</head>
+<body>
+<script src="../kit/buttons.js"></script>
+<script src="../kit/reserved.js"></script>
+<script src="../kit/shell.js"></script>
+<script src="../kit/link.js"></script>
+<script>
+(() => {
+  const { ORIGINAL, statusOf, savedNote, linkRow, field, status, dialog, iconBtn, btn, copied } = LINK;
+  const escape = (value) => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  function share(current, saved = false) {
+    return dialog({ link: linkRow({
+      link: escape(current),
+      actions: iconBtn('pencil', 'Change link', 'data-act="edit"'),
+      below: saved && current !== ORIGINAL ? `<p class="lk-status v04-note" data-state="saved">Saved. ${savedNote()}</p>` : ''
+    }).replace('class="lk-text" href="#" data-act="open"', `class="lk-text v04-link" href="https://clarity.video/${escape(current)}" target="_blank" rel="noopener"`) });
+  }
+  function editor(value, current, frozen = false) {
+    const s = statusOf(value, current);
+    return dialog({
+      title: '<span class="v04-title">Change link</span>',
+      head: `<span class="v04-back">${iconBtn('arrow', 'Back to Share', 'data-act="back"')}</span>`,
+      body: `<form class="v04-editor">${field({ value: escape(value), frozen })}${status(s)}<button type="submit" class="${btn('default', 'lg')} lk-wide" data-act="save" ${s.canSave ? '' : 'disabled'}>${s.label}</button></form>`
+    });
+  }
+  LINK.page({
+    mount(host) {
+      let current = ORIGINAL;
+      let editing = false;
+      let saved = false;
+      let bodyHeight = 276;
+      const reopen = document.createElement('button');
+      reopen.type = 'button';
+      reopen.className = btn('outline');
+      reopen.textContent = 'Share';
+      reopen.hidden = true;
+      host.after(reopen);
+      LINK.wire(reopen.parentElement);
+      function render(value = '') {
+        host.setAttribute('aria-label', editing ? 'Change link' : 'Share');
+        host.innerHTML = editing ? editor(value, current) : share(current, saved);
+        if (editing) {
+          host.querySelector('form').style.minHeight = `${bodyHeight}px`;
+          const input = host.querySelector('[data-field]');
+          const line = host.querySelector('[data-status]');
+          line.id = 'v04-live-status';
+          input.setAttribute('aria-describedby', line.id);
+          update(value);
+          input.focus();
+          input.select();
+        }
+      }
+      function update(raw) {
+        const s = statusOf(raw, current);
+        const line = host.querySelector('[data-status]');
+        line.textContent = s.message;
+        line.dataset.state = s.state;
+        host.querySelector('[data-field]').setAttribute('aria-invalid', String(s.state === 'invalid' || s.state === 'taken'));
+        const button = host.querySelector('[data-act="save"]');
+        button.disabled = !s.canSave;
+        button.textContent = s.label;
+      }
+      function open(value) {
+        host.style.removeProperty('display');
+        reopen.hidden = true;
+        if (!editing) {
+          const row = host.querySelector('.lk-link');
+          const bottom = host.querySelector('[data-act="copy-main"]');
+          bodyHeight = bottom.getBoundingClientRect().bottom - row.getBoundingClientRect().top;
+        }
+        editing = true;
+        render(value ?? (current === ORIGINAL ? '' : current));
+      }
+      function back() {
+        editing = false;
+        render();
+        host.querySelector('[data-act="edit"]').focus();
+      }
+      function save() {
+        const s = statusOf(host.querySelector('[data-field]').value, current);
+        if (!s.canSave) return;
+        current = s.value || ORIGINAL;
+        saved = true;
+        back();
+      }
+      function close() {
+        if (editing) back();
+        host.style.display = 'none';
+        reopen.hidden = false;
+        reopen.focus();
+      }
+      reopen.addEventListener('click', () => {
+        host.style.removeProperty('display');
+        reopen.hidden = true;
+        host.querySelector('[data-act="edit"]').focus();
+      });
+      host.addEventListener('input', event => {
+        if (event.target.matches('[data-field]')) update(event.target.value);
+      });
+      host.addEventListener('submit', event => { event.preventDefault(); save(); });
+      host.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopPropagation();
+          if (editing) back(); else close();
+        }
+      });
+      host.addEventListener('click', async event => {
+        const act = event.target.closest('[data-act]')?.dataset.act;
+        if (act === 'edit') open();
+        if (act === 'back') back();
+        if (act === 'close') close();
+        if (act === 'copy' || act === 'copy-main') {
+          const url = `https://clarity.video/${current}`;
+          try {
+            await navigator.clipboard.writeText(url);
+            copied(host);
+          } catch {
+            window.prompt('Copy link', url);
+          }
+        }
+      });
+      render();
+      return { tryName: value => open(value) };
+    },
+    frozen(state) {
+      if (state.id === 'before') return share(ORIGINAL);
+      if (state.id === 'saved') return share(state.value, true);
+      return editor(state.value, ORIGINAL, true);
+    }
+  });
+})();
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

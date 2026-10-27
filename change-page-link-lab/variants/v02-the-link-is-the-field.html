@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v02 The link is the field</title>
+<script type="application/json" id="lab-meta">
+{"id": "v02", "name": "The link is the field", "axis": "no edit mode, the ending is always a field", "idea": "The link row is a field from the start. clarity.video/ sits in front and opens the page, the ending is typed in place. Save and the status line show up only while the typed ending differs from the saved one.", "cost": "Opening the page hides behind the prefix, and the row keeps an empty line under it so nothing jumps", "model": "fable", "round": 1, "parents": [], "recommended": false, "why": "", "baseline": false}
+</script>
+<script src="../kit/theme.js"></script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/link.css">
+<style>
+  /* clarity.video/ is the part Todd cannot change, so it doubles as the way to open the page. */
+  .v02-prefix { flex: none; padding: 0 2px 0 8px; color: var(--muted-foreground); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; border-radius: 6px; white-space: nowrap; transition: color 120ms ease-out, text-decoration-color 120ms ease-out; }
+  .v02-prefix:hover, .v02-prefix:focus-visible { color: var(--foreground); text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent); }
+  .v02-prefix:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  /* The ending is the kit's field without the prefix inside it. */
+  .v02-field input, .v02-text { padding: 0 10px; }
+  .v02-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .v02-sel { background: color-mix(in oklab, var(--primary) 30%, transparent); border-radius: 2px; }
+  .v02-focus { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 25%, transparent); }
+  .v02-actions { display: contents; }
+  /* The line under the row keeps its height while empty, so Save and the status never push the dialog. */
+  .v02-link .lk-status { min-height: 18px; }
+  @media (prefers-reduced-motion: reduce) { .v02-prefix { transition: none; } }
+</style>
+</head>
+<body>
+<script src="../kit/buttons.js"></script>
+<script src="../kit/reserved.js"></script>
+<script src="../kit/shell.js"></script>
+<script src="../kit/link.js"></script>
+<script>
+(() => {
+  const { ORIGINAL, statusOf, savedNote, dialog, iconBtn, btn, copied } = LINK;
+  const prefix = `<a class="v02-prefix" href="#" data-act="open" title="Open the page" aria-label="Open the page">clarity.video/</a>`;
+  const copy = `<span class="lk-tip" data-tip>${iconBtn('copy', 'Copy link', 'data-act="copy"')}</span>`;
+  const saveButton = (s) => `<button type="button" class="${btn('default', 'sm')}" data-act="save" ${s.canSave ? '' : 'disabled'}>${s.label}</button>`;
+
+  // The row. `value` is what the field shows, `current` the saved ending. Save and the status line
+  // exist only while they differ. `look` is rest, focus, or selected (focused with the ending selected).
+  function row({ value, current, look = 'rest', note = null, frozen = false }) {
+    const dirty = value !== current;
+    const s = dirty ? statusOf(value, current) : null;
+    const line = s ?? note ?? { state: 'empty', message: '' };
+    const ending = look === 'selected'
+      ? `<span class="v02-text"><span class="v02-sel">${value}</span></span>`
+      : `<input data-field value="${value}" placeholder="your-name" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Ending of the link" ${frozen ? 'tabindex="-1"' : ''}>`;
+    return `<div class="lk-link v02-link">
+      <div class="lk-box">
+        ${prefix}
+        <label class="lk-field v02-field${look === 'rest' ? '' : ' v02-focus'}">${ending}</label>
+        <span class="v02-actions" data-actions>${dirty ? saveButton(s) : ''}</span>
+        ${copy}
+      </div>
+      <p class="lk-status" data-status data-state="${line.state}" aria-live="polite">${line.message}</p>
+    </div>`;
+  }
+
+  LINK.page({
+    mount(host) {
+      let current = ORIGINAL;
+      let justSaved = false;
+      const note = () => current === ORIGINAL ? null : { state: justSaved ? 'saved' : 'empty', message: justSaved ? `Saved. ${savedNote()}` : savedNote() };
+      host.innerHTML = dialog({ link: row({ value: current, current, note: note() }) });
+      const input = host.querySelector('[data-field]');
+      const line = host.querySelector('[data-status]');
+      const actions = host.querySelector('[data-actions]');
+
+      function update() {
+        if (input.value === current) {
+          const n = note();
+          line.dataset.state = n?.state ?? 'empty';
+          line.textContent = n?.message ?? '';
+          actions.innerHTML = '';
+          return;
+        }
+        const s = statusOf(input.value, current);
+        line.dataset.state = s.state;
+        line.textContent = s.message;
+        const button = actions.querySelector('[data-act="save"]');
+        if (button) { button.disabled = !s.canSave; button.textContent = s.label; }
+        else actions.innerHTML = saveButton(s);
+      }
+      function save() {
+        if (input.value === current) return;
+        const s = statusOf(input.value, current);
+        if (!s.canSave) return;
+        current = s.value || ORIGINAL;
+        justSaved = current !== ORIGINAL;
+        input.value = current;
+        update();
+        focusQuietly();
+      }
+      function revert() { input.value = current; update(); }
+
+      // Focusing selects the ending so typing replaces it. The first click keeps that selection;
+      // a second click places the caret. focusQuietly() skips the selection after Save or a chip.
+      let selectOnUp = false;
+      let quiet = false;
+      function focusQuietly() { quiet = true; input.focus(); quiet = false; selectOnUp = false; }
+      input.addEventListener('focus', () => { if (quiet) return; input.select(); selectOnUp = true; });
+      input.addEventListener('mouseup', (event) => { if (selectOnUp) event.preventDefault(); selectOnUp = false; });
+      input.addEventListener('blur', () => { selectOnUp = false; });
+      input.addEventListener('input', () => { justSaved = false; update(); });
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { event.preventDefault(); save(); }
+        if (event.key === 'Escape' && input.value !== current) { event.preventDefault(); event.stopPropagation(); revert(); }
+      });
+      host.addEventListener('click', (event) => {
+        const act = event.target.closest('[data-act]')?.dataset.act;
+        if (act === 'save') save();
+        if (act === 'copy' || act === 'copy-main') copied(host);
+      });
+      return {
+        tryName(value) {
+          justSaved = false;
+          input.value = value;
+          update();
+          focusQuietly();
+          input.setSelectionRange(value.length, value.length);
+        },
+      };
+    },
+    frozen(state) {
+      if (state.id === 'before') return dialog({ link: row({ value: ORIGINAL, current: ORIGINAL, frozen: true }) });
+      if (state.id === 'open') return dialog({ link: row({ value: ORIGINAL, current: ORIGINAL, look: 'selected', frozen: true }) });
+      if (state.id === 'saved') return dialog({ link: row({ value: state.value, current: state.value, note: { state: 'saved', message: `Saved. ${savedNote()}` }, frozen: true }) });
+      return dialog({ link: row({ value: state.value, current: ORIGINAL, look: 'focus', frozen: true }) });
+    },
+  });
+})();
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

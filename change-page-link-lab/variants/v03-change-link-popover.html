@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v03 Change link popover</title>
+<script type="application/json" id="lab-meta">
+{"id": "v03", "name": "Change link popover", "axis": "a layer instead of an in-place swap", "idea": "A Change button in the link row opens a small popover under it with the field, the status line, Cancel and Save. The dialog under it never moves.", "cost": "A popover on a dialog is one more layer, and it covers the rows below while open", "model": "opus", "round": 1, "parents": [], "recommended": false, "why": "", "baseline": false}
+</script>
+<script src="../kit/theme.js"></script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/link.css">
+<style>
+  /* The popover hangs from the link box at the box's width, like the app's popups (w-anchor-width). */
+  .lk-box:has(> .v03-pop) { position: relative; }
+  .v03-pop {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20;
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px; box-sizing: border-box;
+    background: var(--popover); color: var(--popover-foreground); border-radius: 12px; outline: none;
+    /* The dropdown popup's ring-1 ring-foreground/10 and shadow-lg. */
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent),
+      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transform-origin: top center;
+  }
+  [data-live] .v03-pop { animation: v03-in 120ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @keyframes v03-in { from { opacity: 0; transform: translateY(-4px) scale(0.97); } }
+  @media (prefers-reduced-motion: reduce) { [data-live] .v03-pop { animation: none; } }
+  /* The status sits beside Cancel and Save, its first line centred on them. It holds room for its longest
+     message, two lines or three on a phone, so the popover keeps one height as the message changes. */
+  .v03-pop { container-type: inline-size; }
+  .v03-foot { display: flex; align-items: flex-start; gap: 8px; }
+  .v03-foot .lk-status { flex: 1; min-width: 0; padding-top: 5px; line-height: 1.43; min-height: calc(5px + 2em * 1.43); }
+  @container (max-width: 340px) { .v03-foot .lk-status { min-height: calc(5px + 3em * 1.43); } }
+  .v03-actions { display: flex; gap: 6px; flex: none; }
+  /* Frozen states show the field as it is live, with focus in it. */
+  .v03-pop[data-frozen] .lk-field { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 25%, transparent); }
+</style>
+</head>
+<body>
+<script src="../kit/buttons.js"></script>
+<script src="../kit/reserved.js"></script>
+<script src="../kit/shell.js"></script>
+<script src="../kit/link.js"></script>
+<script>
+(() => {
+  const { ORIGINAL, statusOf, savedNote, linkRow, field, status, dialog, btn, copied, c } = LINK;
+
+  function trigger(open, live) {
+    return `<button type="button" class="${btn('ghost', 'sm')}" data-act="change" aria-haspopup="dialog" aria-expanded="${open}" ${live ? 'aria-controls="v03-pop"' : ''}>Change</button>`;
+  }
+  function popover(value, current, frozen = false) {
+    const s = statusOf(value, current);
+    return `<div class="v03-pop" role="dialog" aria-label="Change link" tabindex="-1" ${frozen ? 'data-frozen' : 'id="v03-pop"'}>
+      ${field({ value, frozen })}
+      <div class="v03-foot">
+        ${status(s)}
+        <div class="v03-actions">
+          <button type="button" class="${btn('ghost', 'sm')}" data-act="cancel">Cancel</button>
+          <button type="button" class="${btn('default', 'sm')}" data-act="save" ${s.canSave ? '' : 'disabled'}>${s.label}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  function row(link, { note = null, pop = '', live = false } = {}) {
+    return linkRow({
+      link,
+      actions: trigger(Boolean(pop), live) + pop,
+      below: note ? `<p class="lk-status" data-state="${note.state}" data-note>${note.text}</p>` : '',
+    });
+  }
+
+  LINK.page({
+    mount(host) {
+      let current = ORIGINAL;
+      let justSaved = false;
+      const pop = () => host.querySelector('.v03-pop');
+      const triggerEl = () => host.querySelector('[data-act="change"]');
+      const isChip = (node) => Boolean(node?.closest?.('[data-try]'));
+
+      function render() {
+        const note = current === ORIGINAL ? null : { state: justSaved ? 'saved' : 'empty', text: justSaved ? `Saved. ${savedNote()}` : savedNote() };
+        host.innerHTML = dialog({ link: row(current, { note, live: true }) });
+      }
+      function open(draft) {
+        if (pop()) return;
+        if (justSaved) {
+          justSaved = false;
+          const line = host.querySelector('[data-note]');
+          if (line) { line.dataset.state = 'empty'; line.textContent = savedNote(); }
+        }
+        const button = triggerEl();
+        button.insertAdjacentHTML('afterend', popover(draft ?? (current === ORIGINAL ? '' : current), current));
+        button.setAttribute('aria-expanded', 'true');
+        const input = pop().querySelector('[data-field]');
+        input.addEventListener('input', () => update(input.value));
+        input.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') { event.preventDefault(); save(input.value); }
+        });
+        input.focus();
+        input.select();
+      }
+      function close(restoreFocus = true) {
+        const layer = pop();
+        if (!layer) return;
+        layer.remove();
+        const button = triggerEl();
+        button.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) button.focus();
+      }
+      function update(raw) {
+        const s = statusOf(raw, current);
+        const line = pop().querySelector('[data-status]');
+        line.dataset.state = s.state;
+        line.textContent = s.message;
+        const button = pop().querySelector('[data-act="save"]');
+        button.disabled = !s.canSave;
+        button.textContent = s.label;
+      }
+      function save(raw) {
+        if (!statusOf(raw, current).canSave) return;
+        current = c.normalize(raw) || ORIGINAL;
+        justSaved = current !== ORIGINAL;
+        render();
+        triggerEl().focus();
+      }
+
+      host.addEventListener('click', (event) => {
+        const act = event.target.closest('[data-act]')?.dataset.act;
+        if (act === 'change') { if (pop()) close(); else open(); }
+        if (act === 'cancel') close();
+        if (act === 'save') save(pop().querySelector('[data-field]').value);
+        if (act === 'copy' || act === 'copy-main') copied(host);
+      });
+      host.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || !pop()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      });
+      // Tabbing out of the popover closes it. Focus stays where it went.
+      host.addEventListener('focusout', (event) => {
+        const layer = pop();
+        const to = event.relatedTarget;
+        if (!layer || !layer.contains(event.target) || !to || layer.contains(to) || to === triggerEl() || isChip(to)) return;
+        close(false);
+      });
+      // A press anywhere outside the popover and its trigger closes it, and the press still lands.
+      document.addEventListener('pointerdown', (event) => {
+        const layer = pop();
+        if (!layer || layer.contains(event.target) || triggerEl().contains(event.target) || isChip(event.target)) return;
+        close(false);
+      }, true);
+
+      render();
+      return {
+        tryName(value) {
+          if (!pop()) { open(value); return; }
+          const input = pop().querySelector('[data-field]');
+          input.value = value;
+          update(value);
+          input.focus();
+        },
+      };
+    },
+    frozen(state) {
+      if (state.id === 'before') return dialog({ link: row(ORIGINAL) });
+      if (state.id === 'saved') return dialog({ link: row(state.value, { note: { state: 'saved', text: `Saved. ${savedNote()}` } }) });
+      return dialog({ link: row(ORIGINAL, { pop: popover(state.value, ORIGINAL, true) }) });
+    },
+  });
+})();
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

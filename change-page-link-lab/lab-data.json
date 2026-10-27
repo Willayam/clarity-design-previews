@@ -1,0 +1,110 @@
+{
+  "lab": {
+    "title": "Change the page link",
+    "scope": "component",
+    "fidelity": "native",
+    "created": "2026-10-27 17:49",
+    "round": 1,
+    "rounds": [
+      {
+        "n": 1,
+        "question": "Where does Todd change the link, and how much of the dialog moves when he does?",
+        "note": "v01 is the pencil design from the chat. v00 is today's dialog."
+      }
+    ],
+    "widths": [
+      1440,
+      390
+    ],
+    "screens": [],
+    "parts": [
+      "dialog",
+      "states"
+    ],
+    "controls": {},
+    "pageHead": [],
+    "external": [],
+    "view": "parts",
+    "part": "dialog"
+  },
+  "variants": [
+    {
+      "id": "v00",
+      "name": "Current share dialog",
+      "axis": "today",
+      "idea": "The share dialog as it ships. The link can be copied and opened, not changed.",
+      "cost": "",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "recommended": false,
+      "why": "",
+      "baseline": true,
+      "file": "variants/v00-current.html",
+      "mtime": 1793119990.901898
+    },
+    {
+      "id": "v01",
+      "name": "Pencil on the link",
+      "axis": "edit in place behind a pencil",
+      "idea": "A pencil next to the copy icon turns the link row into a field with Save and Cancel. Nothing else in the dialog moves.",
+      "cost": "The pencil is easy to miss",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "recommended": true,
+      "why": "The smallest change that works. One icon, and the row it edits is the row that shows the link.",
+      "baseline": false,
+      "file": "variants/v01-pencil-on-the-link.html",
+      "mtime": 1793119990.9053962
+    },
+    {
+      "id": "v02",
+      "name": "The link is the field",
+      "axis": "no edit mode, the ending is always a field",
+      "idea": "The link row is a field from the start. clarity.video/ sits in front and opens the page, the ending is typed in place. Save and the status line show up only while the typed ending differs from the saved one.",
+      "cost": "Opening the page hides behind the prefix, and the row keeps an empty line under it so nothing jumps",
+      "model": "fable",
+      "round": 1,
+      "parents": [],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v02-the-link-is-the-field.html",
+      "mtime": 1793120446.6008992
+    },
+    {
+      "id": "v03",
+      "name": "Change link popover",
+      "axis": "a layer instead of an in-place swap",
+      "idea": "A Change button in the link row opens a small popover under it with the field, the status line, Cancel and Save. The dialog under it never moves.",
+      "cost": "A popover on a dialog is one more layer, and it covers the rows below while open",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v03-change-link-popover.html",
+      "mtime": 1793120711.8981988
+    },
+    {
+      "id": "v04",
+      "name": "A step in the dialog",
+      "axis": "a second view inside the same dialog",
+      "idea": "A pencil opens Change link in the same dialog, with a full-width field and Save at the bottom.",
+      "cost": "Changing the link takes another step and hides the sharing controls.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v04-a-step-in-the-dialog.html",
+      "mtime": 1793120324.9759943
+    }
+  ],
+  "slots": [],
+  "state": {},
+  "static": true
+}
