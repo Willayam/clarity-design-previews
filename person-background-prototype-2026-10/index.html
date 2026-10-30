@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Person and background · Clarity prototype</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0f17; --panel: #121826; --line: #232c3d; --text: #e7ecf3; --dim: #8b97ab;
+    --accent: #5b8cff; --accent-ink: #fff; --good: #3ecf8e; --warn: #f5a524; --bad: #f2555a;
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font-size: 18px; margin: 0 0 4px; }
+  p { margin: 0 0 10px; }
+  .lede { color: var(--dim); max-width: 760px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-top: 20px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .stage { position: relative; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16 / 9; display: grid; place-items: center; }
+  .stage canvas, .stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .stage .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); text-align: center; padding: 20px; }
+  .stage .empty[hidden], .hud[hidden] { display: none; }
+  .hud { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.62); backdrop-filter: blur(6px); border-radius: 8px; padding: 6px 9px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #dfe6f1; white-space: pre; pointer-events: none; }
+  .rec-dot { position: absolute; right: 12px; top: 12px; background: var(--bad); color: #fff; border-radius: 999px; padding: 3px 10px; font: 600 12px/1.6 ui-monospace, Menlo, monospace; display: none; }
+  .rec-dot.on { display: block; }
+  .controls { display: flex; flex-direction: column; gap: 14px; }
+  .group > .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin-bottom: 6px; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button, .btn { appearance: none; border: 1px solid var(--line); background: #0f1420; color: var(--text); border-radius: 9px; padding: 7px 10px; font: inherit; font-size: 13.5px; cursor: pointer; text-align: left; }
+  .seg button small { display: block; color: var(--dim); font-size: 11.5px; }
+  .seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .seg button[aria-pressed="true"] small { color: rgba(255,255,255,.8); }
+  .seg button:disabled, .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .seg.stack { flex-direction: column; }
+  .seg.stack button { width: 100%; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; text-align: center; }
+  .btn.danger { background: var(--bad); border-color: var(--bad); color: #fff; font-weight: 600; text-align: center; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .note { font-size: 13px; color: var(--dim); }
+  .note b { color: var(--text); font-weight: 600; }
+  .status { font-size: 13px; min-height: 1.4em; }
+  .status.warn { color: var(--warn); }
+  .status.bad { color: var(--bad); }
+  input[type="range"] { width: 100%; }
+  label.check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; }
+  .meter { height: 6px; background: #0f1420; border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+  .meter > i { display: block; height: 100%; width: 0; background: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; display: block; overflow-x: auto; }
+  @media (max-width: 700px) { table { font-size: 12.5px; } td { min-width: 96px; } td:nth-child(2) { min-width: 210px; } .hud { font-size: 9.5px; padding: 4px 6px; } }
+  th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-top: 0; }
+  td small { color: var(--dim); }
+  .tag { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--dim); white-space: nowrap; }
+  .tag.yes { color: var(--good); border-color: rgba(62,207,142,.4); }
+  .tag.no { color: var(--bad); border-color: rgba(242,85,90,.4); }
+  .packed { margin-top: 10px; position: absolute; width: 2px; height: 2px; overflow: hidden; opacity: 0.01; pointer-events: none; }
+  .packed.on { position: static; width: auto; height: auto; opacity: 1; pointer-events: auto; }
+  .packed video { width: 100%; border-radius: 8px; background: #000; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; }
+  .kv dt { color: var(--dim); }
+  .kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Separating the person from the background</h1>
+  <p class="lede">A throwaway prototype for Clarity's recorder. Everything runs in this browser tab. Nothing is uploaded. Try each engine on your own camera, record a short take, then change the background after the fact.</p>
+
+  <section id="live">
+    <h2>1. While recording</h2>
+    <p class="note">The engine finds the person in each camera frame. The look decides what happens to everything else.</p>
+    <div class="grid">
+      <div>
+        <div class="stage">
+          <canvas id="liveCanvas" width="1280" height="720"></canvas>
+          <div class="empty" id="liveEmpty"><div><button class="btn primary" id="startCam">Start camera</button><p class="note" style="margin-top:10px">Allow camera access when asked. No microphone.</p></div></div>
+          <div class="hud" id="liveHud" hidden></div>
+          <div class="rec-dot" id="recDot">REC 0.0 s</div>
+        </div>
+        <div class="status" id="liveStatus"></div>
+      </div>
+      <div class="controls">
+        <div class="group">
+          <div class="label">Engine</div>
+          <div class="seg stack" id="engineSeg">
+            <button data-value="off">Off<small>Raw camera</small></button>
+            <button data-value="mp-fast">MediaPipe selfie<small>Google · 0.25 MB · the Meet approach</small></button>
+            <button data-value="mp-multi">MediaPipe multiclass<small>Google · 16 MB · hair, skin, clothes</small></button>
+            <button data-value="rvm">Robust Video Matting<small>ONNX · 15 MB · true alpha, remembers past frames · CPU · GPL</small></button>
+            <button data-value="native">Browser or OS effect<small>No model here, what the platform offers</small></button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="label">Look</div>
+          <div class="seg" id="lookSeg">
+            <button data-value="blur">Blur</button>
+            <button data-value="backdrop">Backdrop</button>
+            <button data-value="overlay">In front of screen</button>
+            <button data-value="matte">Matte</button>
+            <button data-value="original">Original</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="shareScreen">Share a screen</button>
+            <label class="btn" style="text-align:center">Backdrop image<input type="file" id="bgFile" accept="image/*" hidden></label>
+          </div>
+        </div>
+        <div class="group">
+          <div class="label">Edge</div>
+          <input type="range" id="edge" min="0" max="1" step="0.05" value="0.35">
+          <div class="row note" style="justify-content:space-between"><span>Soft</span><span>Crisp</span></div>
+          <label class="check"><input type="checkbox" id="steady" checked> Steady edges (blend each mask with the last one)</label>
+        </div>
+        <div class="group">
+          <div class="label">Record</div>
+          <div class="seg" id="recordSeg">
+            <button data-value="bake">Bake the look<small>What Clarity records today</small></button>
+            <button data-value="matte">Keep the matte<small>Camera and matte side by side</small></button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn primary" id="recordBtn" disabled>Record</button>
+            <span class="note">Takes stop at 20 s.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="after">
+    <h2>2. After recording</h2>
+    <p class="note" id="afterIntro">Record a take above. A baked take is final. A take that kept its matte can change its background here, and the matte can be redone with a slower, better pass.</p>
+    <div class="grid">
+      <div>
+        <div class="stage">
+          <canvas id="afterCanvas" width="1280" height="720"></canvas>
+          <div class="empty" id="afterEmpty"><div class="note">No take yet.</div></div>
+          <div class="hud" id="afterHud" hidden></div>
+        </div>
+        <div class="status" id="afterStatus"></div>
+        <div class="packed" id="packedWrap">
+          <p class="note">This is the file the recorder stored. Camera on the left, matte on the right. One ordinary video, so Mux and every player can carry it.</p>
+          <video id="afterVideo" muted playsinline loop></video>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="group">
+          <div class="label">Look after the fact</div>
+          <div class="seg" id="afterLookSeg">
+            <button data-value="blur">Blur</button>
+            <button data-value="backdrop">Backdrop</button>
+            <button data-value="overlay">In front of screen</button>
+            <button data-value="matte">Matte</button>
+            <button data-value="original">Original</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="label">Matte source</div>
+          <div class="seg" id="matteSrcSeg">
+            <button data-value="live">From recording<small>The matte made live</small></button>
+            <button data-value="refined" disabled>Refined<small>Matting pass after the take</small></button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="refineBtn" disabled>Refine matte</button>
+            <span class="note" id="refineNote"></span>
+          </div>
+          <div class="meter" style="margin-top:8px"><i id="refineBar"></i></div>
+        </div>
+        <div class="group">
+          <div class="label">Take</div>
+          <dl class="kv" id="takeKv"><dt>None</dt><dd></dd></dl>
+          <label class="check" style="margin-top:8px"><input type="checkbox" id="showPacked"> Show the stored file</label>
+          <div class="row" style="margin-top:8px"><a class="btn" id="downloadTake" download hidden>Download take</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="options">
+    <h2>3. The wider menu</h2>
+    <p class="note">What each place in the pipeline can do. The first rows are in this prototype. The rest need a server or a vendor.</p>
+    <div id="optionsTable"></div>
+  </section>
+
+  <section id="measured">
+    <h2>4. What the test run showed</h2>
+    <p class="note">Measured on 30 October 2026 in headless Chromium on a Mac with Apple GPU, fed a 960×540 talking-head clip as a fake camera. Your own camera and browser will give different numbers. The HUD on the stage shows yours.</p>
+    <table>
+      <thead><tr><th>Engine</th><th>Edges</th><th>Per frame</th><th>Mattes per second</th><th>Preview</th></tr></thead>
+      <tbody>
+        <tr><td><b>MediaPipe selfie</b><br><small>GPU via WebGL</small></td><td>Clean head and shoulders. Loses fast hands.</td><td>9 to 12 ms</td><td>60</td><td>60 fps</td></tr>
+        <tr><td><b>MediaPipe multiclass</b><br><small>GPU via WebGL</small></td><td>Smoother outline, same trouble with hands.</td><td>14 to 21 ms</td><td>59</td><td>50 to 61 fps</td></tr>
+        <tr><td><b>Robust Video Matting</b><br><small>CPU, one thread, in a worker</small></td><td>Best hair and hands. The matte trails motion by a few frames.</td><td>64 ms</td><td>15</td><td>60 fps</td></tr>
+        <tr><td><b>Robust Video Matting</b><br><small>WebGPU</small></td><td>Wrong matte. 26 to 68% of pixels off against the CPU result, in onnxruntime-web 1.31.1 and the 1.32 nightly. Add <code>?ep=webgpu</code> to try it in your browser.</td><td>25 to 33 ms</td><td>about 30</td><td></td></tr>
+        <tr><td><b>Refine pass</b><br><small>Robust Video Matting at 960×540, every frame, CPU</small></td><td>About 7.5× the take's length. A 2 minute take would wait about 15 minutes in the tab.</td><td>about 260 ms</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:12px"><b>Same frame, live matte against refined matte.</b> Columns are live matte, refined matte, live backdrop, refined backdrop. The live MediaPipe matte drops the gesturing hand or smears it with brick. The refine pass keeps it.</p>
+    <img src="evidence/live-vs-refined.jpg" alt="Live MediaPipe matte beside the refined matte at three moments of the same take" style="width:100%;border-radius:8px">
+    <p class="note" style="margin-top:12px"><b>Each engine live.</b> Top row is the matte, bottom row is the blur look. Left to right: MediaPipe selfie, MediaPipe multiclass, Robust Video Matting.</p>
+    <img src="evidence/grid-engines.jpg" alt="Matte and blur for each engine" style="width:100%;border-radius:8px">
+    <p class="note" style="margin-top:12px"><b>Two looks.</b> A brand backdrop, and the person cut out in front of a slide.</p>
+    <img src="evidence/grid-looks.jpg" alt="Backdrop look and in-front-of-screen look" style="width:100%;border-radius:8px">
+    <p class="note" style="margin-top:12px"><b>The stored file when the matte is kept.</b> 6.1 s came to 1.87 MB at the 2.5 Mbps I asked for. The baked take came to 1.47 MB at 2.0 Mbps.</p>
+    <img src="evidence/packed.jpg" alt="Camera and matte side by side in one video frame" style="width:100%;border-radius:8px">
+    <p class="note" style="margin-top:12px">Test footage: frames from <a href="https://commons.wikimedia.org/wiki/File:Ward_Cunningham,_Inventor_of_the_Wiki.webm">Ward Cunningham, Inventor of the Wiki</a>, Wikimedia Commons, CC BY-SA 3.0. The screenshots above are shared under the same licence.</p>
+  </section>
+</main>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
