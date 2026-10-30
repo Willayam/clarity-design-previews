@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v00 Current popover</title>
+<script type="application/json" id="lab-meta">
+{"id": "v00", "name": "Current popover", "axis": "today", "idea": "The Write page popover: one prompt, one generation, no thread, no tools beyond writing the page.", "cost": "No follow-ups, no library, stats or publishing from the prompt", "model": "orchestrator", "round": 1, "baseline": true, "recommended": false, "why": ""}
+</script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/journey.css">
+<script src="../kit/dom.js"></script>
+<script src="../kit/fixtures.js"></script>
+<script src="../kit/shell.js"></script>
+</head>
+<body>
+<div id="app" data-part="app"></div>
+<script>
+  function render() {
+    const screen = location.hash.slice(1) || 'empty';
+    const app = document.getElementById('app');
+    if (screen === 'home') { Kit.home(app); return; }
+    const open = screen === 'empty' || screen === 'working';
+    const r = Kit.editor(app, { page: open ? 'blank' : 'edited', popover: open });
+    if (screen === 'working') {
+      const box = app.querySelector('[role="textbox"]');
+      box.textContent = KIT_FIXTURES.conversation.working.messages[0].text;
+      box.setAttribute('data-disabled', 'true');
+      box.removeAttribute('contenteditable');
+      box.nextElementSibling?.remove();
+      const buttons = Array.from(app.querySelectorAll('button')).filter((b) => /Write page/.test(b.textContent));
+      buttons.forEach((b) => { b.setAttribute('aria-busy', 'true'); b.lastChild.textContent = 'Writing'; });
+      app.querySelectorAll('button[data-size="xs"], .mask-r-from-85\\%').forEach((n) => n.remove());
+    }
+  }
+  render();
+  addEventListener('hashchange', render);
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

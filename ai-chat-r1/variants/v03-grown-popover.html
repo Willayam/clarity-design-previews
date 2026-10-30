@@ -1,0 +1,95 @@
+<script type="application/json" id="lab-meta">
+{"id":"v03","name":"Grown popover","axis":"placement","idea":"The familiar Write page popover grows into a thread, with live work carried by its header button when closed.","cost":"A compact thread needs scrolling, and the page moves left while chat is open.","model":"gpt-6-astra","round":1,"parents":[]}
+</script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grown popover · Clarity</title>
+<link rel="stylesheet" href="../kit/app.css"><link rel="stylesheet" href="../kit/journey.css">
+<script src="../kit/dom.js"></script><script src="../kit/fixtures.js"></script><script src="../kit/shell.js"></script>
+<style>
+.v03-app{font-family:var(--font-sans);color:var(--foreground);font-variant-numeric:tabular-nums}
+.v03-app.v03-open .v03-canvas{width:calc(100% - 540px)}
+.v03-app .v03-canvas{height:calc(100dvh - 56px);overflow-y:auto}
+.v03-app .v03-preview{width:100%;max-width:760px;margin-inline:auto}
+.v03-panel{transform:translateZ(0);position:fixed;z-index:45;top:58px;right:114px;width:420px;height:min(70dvh,680px);display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 2px 5px color-mix(in srgb,var(--foreground) 8%,transparent);overflow:hidden;font-size:13px;line-height:1.5}
+.v03-panel[hidden]{display:none}
+.v03-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.v03-head strong{font-size:14px;font-weight:600}.v03-head .v03-iconbtn{margin-left:auto}
+.v03-context{color:var(--muted-foreground);font-size:11px;margin-left:4px}
+.v03-panel svg,.v03-trigger svg{width:16px;height:16px;flex-shrink:0}
+.v03-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:30px;padding:5px 9px;background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font:inherit;cursor:pointer}
+.v03-btn:hover,.v03-panel summary:hover,.v03-change:hover{background:var(--accent)}
+.v03-primary{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}.v03-primary:hover{background:color-mix(in srgb,var(--primary) 90%,var(--foreground))}
+.v03-iconbtn{padding:6px;width:30px;height:30px;border-color:transparent;background:transparent}
+.v03-panel :is(button,a,summary,textarea):focus-visible,.v03-trigger:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.v03-thread{overflow:auto;min-height:0;flex:1;padding:16px;scrollbar-width:thin;scroll-padding:12px}
+.v03-message{margin-bottom:18px}.v03-message:last-child{margin-bottom:0}
+.v03-user{display:flex;flex-direction:column;align-items:flex-end}
+.v03-user .v03-bubble{max-width:80%;background:var(--muted);border-radius:var(--radius);padding:10px 12px}
+.v03-bubble p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.v03-attachment{margin-top:8px;display:block;width:fit-content;max-width:100%;font-size:11px}
+.v03-attachment summary{display:flex;align-items:center;gap:5px;cursor:pointer}.v03-attachment p{color:var(--muted-foreground);padding-top:6px}
+.v03-tools{margin:0 0 10px;color:var(--muted-foreground);font-size:12px}
+.v03-tools details{margin:3px 0}.v03-tools summary{display:flex;gap:7px;align-items:center;padding:4px 0;cursor:pointer;border-radius:calc(var(--radius) - 4px);list-style:none}
+.v03-tools summary::-webkit-details-marker{display:none}.v03-tools summary .v03-time{margin-left:auto;font-size:11px}.v03-tools details[open] summary{color:var(--foreground)}
+.v03-tool-detail{padding:5px 0 9px 23px;overflow-wrap:anywhere}.v03-tool-detail pre{white-space:pre-wrap;font-size:10px;margin-top:8px}
+.v03-live{color:var(--foreground)}.v03-live .v03-status{ text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:5px}
+.v03-progress{width:16px;height:16px;display:inline-block;border:2px solid var(--border);border-top-color:var(--foreground);border-right-color:var(--foreground);border-radius:50%;flex-shrink:0}
+.v03-changes{margin-top:12px;border-left:2px solid var(--border);padding-left:10px;display:grid;gap:4px}
+.v03-change{display:block;text-align:left;cursor:pointer;padding:5px 4px;border-radius:calc(var(--radius) - 4px);background:transparent;border:0;color:var(--foreground);font:inherit}
+.v03-change-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500}.v03-change-label svg:last-child{margin-left:auto;color:var(--muted-foreground)}
+.v03-before,.v03-after{display:block;font-size:12px;margin-top:5px;line-height:1.45}.v03-before{color:var(--muted-foreground);text-decoration:line-through}.v03-after{color:var(--foreground)}
+.v03-undo{margin-top:9px;font-size:12px}.v03-highlight{outline:2px solid var(--ring)!important;outline-offset:8px}
+.v03-empty{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:8px}.v03-empty h2{font-size:17px;font-weight:600;line-height:1.4;margin:12px 0 20px;max-width:260px}.v03-suggestions{display:grid;gap:8px}.v03-suggestions .v03-btn{justify-content:flex-start;font-size:12px}
+.v03-foot{padding:12px;border-top:1px solid var(--border);flex-shrink:0;background:var(--card)}
+.v03-input-wrap{border:1px solid var(--input);border-radius:var(--radius);padding:10px;background:var(--background)}.v03-input-wrap:focus-within{border-color:var(--ring);outline:2px solid color-mix(in srgb,var(--ring) 25%,transparent)}
+.v03-input{display:block;width:100%;min-height:62px;max-height:100px;resize:none;border:0;outline:none!important;background:transparent;color:var(--foreground);font:inherit;font-size:13px;line-height:1.5;padding:0}.v03-input::placeholder{color:var(--muted-foreground)}
+.v03-input-actions{display:flex;align-items:center;gap:7px;margin-top:8px}.v03-shortcut{font-size:10px;color:var(--muted-foreground);margin-left:auto}.v03-note{font-size:10px;color:var(--muted-foreground);margin:9px 2px 0;line-height:1.4}
+.v03-approval{border-top:1px solid var(--border);padding-top:12px}.v03-approval h3{font-size:14px;font-weight:600;margin:0 0 6px}.v03-approval ul{list-style:none;padding:10px 0;font-size:12px;color:var(--muted-foreground);overflow-wrap:anywhere}.v03-approval li{margin-bottom:5px}.v03-approval-actions{display:flex;gap:8px}.v03-published a{display:block;margin:10px 0;text-decoration:underline;overflow-wrap:anywhere}
+.v03-stat{border-top:1px solid var(--border);padding:11px 0}.v03-stat:first-child{margin-top:14px}.v03-stat-name{display:flex;justify-content:space-between;gap:12px}.v03-stat small{display:block;color:var(--muted-foreground);font-size:11px;margin-top:3px}.v03-stat-metrics{display:flex;gap:14px;font-size:11px;margin-top:7px}
+.v03-trigger{max-width:230px}.v03-trigger .v03-status{overflow:hidden;text-overflow:ellipsis}.v03-home .v03-panel{right:24px;top:72px}
+@media(max-width:1100px){.v03-app.v03-open .v03-canvas{width:calc(100% - 450px)}.v03-panel{right:16px}}
+@media(max-width:700px){.v03-app.v03-open .v03-canvas{width:100%}.v03-panel,.v03-home .v03-panel{top:auto!important;bottom:0;left:0;right:0!important;width:100%;height:72dvh;border-radius:var(--radius) var(--radius) 0 0}.v03-head{padding:10px 12px}.v03-thread{padding:14px}.v03-context{font-size:10px}.v03-foot{padding-bottom:max(12px,env(safe-area-inset-bottom))}.v03-shortcut{visibility:hidden}.v03-app .v03-header{padding-inline:12px}.v03-app .v03-header>div{gap:8px}.v03-app .v03-header [data-slot="page-header-actions"]{gap:4px}.v03-app .v03-header [data-slot="page-header-actions"]>button:nth-child(-n+3){display:none}.v03-app .v03-preview{min-width:0}.v03-btn{min-height:34px}.v03-home .v03-header>div{flex-wrap:wrap}.v03-trigger{max-width:190px}}
+@media(prefers-reduced-motion:reduce){.v03-app *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head><body><div id="app" class="v03-app" data-part="app"></div>
+<script>
+const F=KIT_FIXTURES,C=Kit.copy,I=Kit.icon;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const button=(label,icon,extra='')=>`<button type="button" class="v03-btn ${extra}" aria-label="${esc(label)}">${icon?I(icon):''}${esc(label)}</button>`;
+function attachment(a){return `<details class="v03-attachment" data-slot="attachment"><summary>${I('file')}${esc(a.label)}</summary><p>${esc(a.detail)}</p></details>`}
+function toolsHTML(steps){return `<div class="v03-tools">${steps.map(s=>`<details data-slot="marker" class="${s.status==='running'?'v03-live':''}"><summary ${s.status==='running'?'role="status"':''}>${s.status==='running'?'<span class="v03-progress"></span>':I('check')}<span class="v03-status ${s.status==='running'?'shimmer':''}">${C.toolLabel(s.tool,s.status)}</span><span class="v03-time">${s.seconds}s</span>${I('chevronDown')}</summary><div class="v03-tool-detail">${esc(s.detail)}${s.result?`<pre>${esc(JSON.stringify(s.result,null,2))}</pre>`:''}</div></details>`).join('')}</div>`}
+function message(m,index){return `<article class="v03-message ${m.role==='user'?'v03-user':''}" data-slot="message" data-align="${m.role==='user'?'end':'start'}">${m.steps?toolsHTML(m.steps):''}<div class="v03-bubble" data-slot="bubble" data-variant="${m.role==='user'?'muted':'ghost'}">${m.text?`<p>${esc(m.text)}</p>`:''}${(m.attachments||[]).map(attachment).join('')}</div>${m.changes?`<div class="v03-changes">${m.changes.map(c=>`<button class="v03-change" data-block="${c.block}"><span class="v03-change-label">${I('pencil')}${esc(c.label)}${I('chevronRight')}</span>${c.before?`<span class="v03-before">${esc(c.before)}</span>`:''}${c.after?`<span class="v03-after">${esc(c.after)}</span>`:''}</button>`).join('')}</div>`:''}${m.undo?button(C.undo,'undo','v03-undo'):''}${m.approval?`<section class="v03-approval" data-approval="${index}"><h3>${esc(m.approval.title)}</h3><p>${esc(m.approval.summary)}</p><ul>${m.approval.facts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="v03-approval-actions">${button(C.approve,'globe','v03-primary v03-publish')}${button(C.deny,null,'v03-deny')}</div></section>`:''}${m.stats?`<div>${m.stats.map(s=>`<div class="v03-stat"><div class="v03-stat-name"><strong>${esc(s.lead||s.page)}</strong><span>${esc(s.when)}</span></div>${s.lead?`<small>${esc(s.page)}</small>`:''}<div class="v03-stat-metrics"><span>${s.views} views</span><span>${s.watched} watched</span></div><small>${esc(s.action)}</small></div>`).join('')}</div>`:''}</article>`}
+function render(){
+ const screen=F.conversation[location.hash.slice(1)]?location.hash.slice(1):'empty',data=F.conversation[screen];
+ const app=document.getElementById('app');app.className='v03-app v03-open'+(screen==='home'?' v03-home':'');
+ const r=screen==='home'?Kit.home(app):Kit.editor(app,{page:data.page,popover:false});
+ r.header?.classList.add('v03-header');r.canvas?.classList.add('v03-canvas');r.preview?.classList.add('v03-preview');
+ let trigger=r.aiButton;
+ if(!trigger){trigger=document.createElement('button');trigger.className='v03-btn';const record=[...r.header.querySelectorAll('button')].find(x=>/Record video/.test(x.textContent));if(record)record.before(trigger);else r.header.append(trigger)}
+ trigger.classList.add('v03-trigger');trigger.innerHTML=I('sparkles')+C.title;trigger.setAttribute('aria-controls','v03-chat');trigger.setAttribute('aria-expanded','true');
+ const panel=document.createElement('section');panel.id='v03-chat';panel.className='v03-panel';panel.dataset.part='chat';panel.setAttribute('aria-label',C.title);
+ let running=screen==='working';let pasted=[];
+ const messages=screen==='home'?data.messages.slice(0,-1):data.messages;
+ panel.innerHTML=`<header class="v03-head">${I('sparkles')}<strong>${C.title}</strong><span class="v03-context">${screen==='home'?'Home':'Draft'}</span><button class="v03-btn v03-iconbtn v03-close" aria-label="${C.close}">${I('x')}</button></header><div class="v03-thread scroll-fade" data-slot="message-scroller">${screen==='empty'?`<div class="v03-empty">${I('message')}<h2>Describe the page you want to create</h2><div class="v03-suggestions">${data.suggestions.map(s=>button(s,'plus','v03-suggest')).join('')}</div></div>`:messages.map(message).join('')}</div><footer class="v03-foot" data-slot="composer"><div class="v03-input-wrap"><div class="v03-attachments"></div><textarea class="v03-input" aria-label="Message Clarity AI" placeholder="${esc(screen==='empty'?C.composerPlaceholderNew:screen==='home'?C.composerPlaceholderHome:C.composerPlaceholderEdit)}">${screen==='home'?esc(data.messages.at(-1).text):''}</textarea><div class="v03-input-actions"><button class="v03-btn v03-iconbtn v03-attach" aria-label="${C.attach}">${I('paperclip')}</button><input class="v03-file" type="file" multiple hidden><span class="v03-shortcut">⌘ Enter</span><button class="v03-btn ${running?'':'v03-primary'} v03-send" aria-label="${running?C.stop:C.send}">${I(running?'stop':'send')}${running?C.stop:''}</button></div></div><p class="v03-note">${C.disclaimer}</p></footer>`;
+ app.append(panel);
+ const thread=panel.querySelector('.v03-thread'),input=panel.querySelector('textarea'),send=panel.querySelector('.v03-send');
+ function anchor(){if(innerWidth>1100&&screen!=='home'){const rect=trigger.getBoundingClientRect();panel.style.right=Math.max(16,innerWidth-rect.right)+'px';panel.style.top=rect.bottom+8+'px'}}anchor();window.onresize=anchor;
+ function toggle(open){panel.hidden=!open;app.classList.toggle('v03-open',open);trigger.setAttribute('aria-expanded',String(open));trigger.innerHTML=running&&!open?'<span class="v03-progress"></span><span class="v03-status shimmer">'+C.toolLabel('pages_generate','running')+'</span>':I('sparkles')+C.title;if(open){anchor();input.focus()}else trigger.focus()}
+ trigger.onclick=()=>toggle(panel.hidden);panel.querySelector('.v03-close').onclick=()=>toggle(false);panel.onkeydown=e=>{if(e.key==='Escape')toggle(false)};
+ panel.querySelectorAll('.v03-suggest').forEach(b=>b.onclick=()=>{input.value=b.textContent==='Follow-up page'?C.composerPlaceholderNew:b.textContent;input.focus()});
+ function attachments(){panel.querySelector('.v03-attachments').innerHTML=pasted.map((a,i)=>`<span class="v03-btn v03-attachment" data-slot="attachment">${esc(a.label)} <button class="v03-remove" data-remove="${i}" aria-label="Remove ${esc(a.label)}">×</button></span>`).join('');panel.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{pasted.splice(+b.dataset.remove,1);attachments()})}
+ input.onpaste=e=>{const text=e.clipboardData.getData('text/plain');if(text.length>500){e.preventDefault();pasted.push({label:'Pasted text',detail:text});attachments()}};
+ const file=panel.querySelector('.v03-file');panel.querySelector('.v03-attach').onclick=()=>file.click();function addFiles(files){pasted.push(...Array.from(files).map(f=>({label:f.name,detail:f.type||'File'})));attachments()}file.onchange=()=>addFiles(file.files);panel.ondragover=e=>e.preventDefault();panel.ondrop=e=>{e.preventDefault();addFiles(e.dataTransfer.files)};
+ function sendMessage(){if(running){running=false;const live=panel.querySelector('.v03-live');live.querySelector('.v03-status').textContent='Stopped';live.querySelector('.v03-progress').outerHTML=I('stop');live.classList.remove('v03-live');send.innerHTML=I('send');send.setAttribute('aria-label',C.send);send.classList.add('v03-primary');return}if(!input.value.trim()&&!pasted.length)return;panel.querySelector('.v03-empty')?.remove();thread.insertAdjacentHTML('beforeend',message({role:'user',text:input.value.trim(),attachments:pasted}));input.value='';pasted=[];attachments();thread.scrollTop=thread.scrollHeight;input.focus()}
+ send.onclick=sendMessage;input.onkeydown=e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();sendMessage()}};
+ panel.querySelectorAll('[data-block]').forEach(b=>b.onclick=()=>{const target=r.blocks[b.dataset.block];if(!target)return;Object.values(r.blocks).forEach(n=>n.classList.remove('v03-highlight'));if(innerWidth<=700)toggle(false);target.classList.add('v03-highlight');target.scrollIntoView({block:'center',behavior:'auto'});setTimeout(()=>target.classList.remove('v03-highlight'),2400)});
+ panel.querySelector('.v03-undo')?.addEventListener('click',e=>{r.blocks.title.textContent=F.page.title;r.blocks['faq-added'].hidden=true;const a=e.currentTarget.closest('article');a.querySelector('.v03-changes').remove();e.currentTarget.outerHTML='<p class="v03-note" role="status">Changes undone. The previous draft is restored.</p>'});
+ panel.querySelector('.v03-publish')?.addEventListener('click',()=>{const card=panel.querySelector('.v03-approval'),after=data.messages[+card.dataset.approval].after;card.innerHTML=`<div class="v03-published" role="status"><p>${I('check')} ${esc(after.text)}</p><a href="https://${esc(after.link)}" target="_blank" rel="noopener">${esc(after.link)}</a>${button(C.copyLink,'copy','v03-copy')}</div>`;card.querySelector('.v03-copy').onclick=async e=>{const copyButton=e.currentTarget;try{await navigator.clipboard.writeText('https://'+after.link);copyButton.textContent='Copied'}catch{copyButton.textContent=after.link}}});
+ panel.querySelector('.v03-deny')?.addEventListener('click',()=>{panel.querySelector('.v03-approval').innerHTML='<p class="v03-note" role="status">Not published. Your changes are saved in the draft.</p>'});
+ if(screen==='empty')input.focus({preventScroll:true});if(screen==='review'||screen==='approve')requestAnimationFrame(()=>thread.scrollTop=thread.scrollHeight);
+}
+render();addEventListener('hashchange',render);
+</script><script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>

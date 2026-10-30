@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v02 Chat and preview</title>
+<script type="application/json" id="lab-meta">
+{"id": "v02", "name": "Chat and preview", "axis": "Chat-first split: the conversation on the left, the page on the right as its output", "idea": "Opening the chat turns the editor into two columns. Each turn that changed the page ends in a numbered draft revision card, and matching numbered markers on the page point back to that turn.", "cost": "While the chat is open the editor header becomes a thin preview toolbar and the page narrows by 420 px; Style and Share wait in the full editor", "model": "opus", "round": 1, "parents": []}
+</script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/journey.css">
+<script src="../kit/dom.js"></script>
+<script src="../kit/fixtures.js"></script>
+<script src="../kit/shell.js"></script>
+<style>
+/* ---------- split layout ---------- */
+.v02-chat, .v02-tabbar { display: none; }
+.v02-on .v02-chat { display: flex; }
+.v02-chat {
+  flex-direction: column; flex: none; width: 420px; min-width: 0;
+  height: 100svh; position: sticky; top: 0; color: var(--foreground);
+}
+@media (min-width: 768px) {
+  .v02-on main[data-slot="sidebar-inset"] { flex-direction: row; }
+  .v02-on .v02-pagecol { flex: 1 1 0; min-width: 0; }
+  .v02-on .v02-kit-header { display: none; }
+  .v02-on [data-slot="preview-panel"] {
+    height: calc(100svh - 3.5rem); max-height: none;
+    border-top: 1px solid var(--border); border-left: 1px solid var(--border);
+    border-top-left-radius: calc(var(--radius) + 4px);
+  }
+}
+.v02-bar { display: none; }
+.v02-on .v02-bar {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center; gap: 12px; height: 3.5rem; padding: 0 16px 0 20px;
+}
+.v02-on [data-slot="preview-panel"] { position: relative; }
+
+/* ---------- chat column ---------- */
+.v02-chat-head {
+  flex: none; height: 3.5rem; display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 0 12px 0 20px;
+}
+.v02-chat-title { font-size: 14px; font-weight: 600; letter-spacing: -0.005em; }
+.v02-quiet { color: var(--muted-foreground); }
+.v02-scroller {
+  flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; padding: 4px 20px 20px; scrollbar-width: thin;
+}
+.v02-scroller[data-scrolled] { mask-image: linear-gradient(to bottom, transparent 0, black 20px); }
+.v02-thread { display: flex; flex-direction: column; gap: 24px; margin-top: auto; }
+
+/* message, bubble, attachment */
+.v02-msg { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.v02-msg[data-align="end"] { align-items: flex-end; gap: 6px; }
+.v02-bubble {
+  max-width: 85%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 16px;
+  background: var(--card); font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.v02-prose { margin: 0; font-size: 14px; line-height: 1.6; text-wrap: pretty; overflow-wrap: anywhere; }
+.v02-atts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 100%; }
+.v02-att {
+  display: inline-flex; align-items: center; gap: 10px; height: 44px; max-width: 100%; min-width: 0;
+  padding: 0 12px 0 6px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+}
+.v02-att-icon {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px;
+  border-radius: calc(var(--radius) - 4px); background: var(--muted); color: var(--muted-foreground);
+}
+.v02-att-text { display: grid; min-width: 0; line-height: 1.3; }
+.v02-att-label, .v02-att-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v02-att-label { font-size: 13px; font-weight: 500; }
+.v02-att-meta { font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.v02-att-x {
+  flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-right: -6px;
+  border: 0; border-radius: 6px; background: transparent; color: var(--muted-foreground); cursor: pointer;
+}
+.v02-att-x:hover { background: var(--muted); color: var(--foreground); }
+
+/* marker rows: tool steps and notes */
+.v02-mk {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 28px; max-width: 100%;
+  font-size: 13px; line-height: 1.3; color: var(--muted-foreground);
+}
+button.v02-mk {
+  margin: 0 -6px; padding: 2px 6px; border: 0; border-radius: 6px; background: transparent;
+  font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+}
+button.v02-mk:hover { color: var(--foreground); background: color-mix(in oklch, var(--foreground) 5%, transparent); }
+.v02-mk-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v02-mk svg { flex: none; }
+.v02-chev { flex: none; color: var(--muted-foreground); transition: transform .15s ease-out; }
+[aria-expanded="true"] > .v02-chev { transform: rotate(90deg); }
+.v02-secs { min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+.v02-steps { display: grid; justify-items: start; width: 100%; }
+.v02-steps-list {
+  display: grid; gap: 8px; width: 100%; margin: 4px 0 2px 7px; padding: 2px 0 2px 15px;
+  border-left: 1px solid var(--border);
+}
+.v02-step { display: grid; gap: 1px; font-size: 13px; line-height: 1.35; min-width: 0; }
+.v02-step-label { color: var(--foreground); }
+.v02-step-detail { color: var(--muted-foreground); font-size: 12px; overflow-wrap: anywhere; }
+.v02-mono { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+.v02-live { display: grid; gap: 2px; width: 100%; }
+.v02-live-row { display: grid; justify-items: start; }
+.v02-live-more { margin: 0 0 6px 24px; display: grid; gap: 2px; }
+.v02-shimmer {
+  color: transparent; background: linear-gradient(90deg, var(--muted-foreground) 0%, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%, var(--muted-foreground) 100%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text;
+  animation: v02-shimmer 1.8s linear infinite;
+}
+@keyframes v02-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.v02-spin { animation: v02-spin .8s linear infinite; }
+@keyframes v02-spin { to { transform: rotate(360deg); } }
+
+/* cards: draft revision, approval, result */
+.v02-card {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+  transition: border-color .2s ease-out, box-shadow .2s ease-out;
+}
+.v02-card[data-flash] { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 25%, transparent); }
+.v02-rev-head { display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 6px; }
+.v02-rev-focus, .v02-rev-static {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 30px; padding: 0 6px;
+  border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; font-weight: 500;
+  color: var(--foreground); text-align: left;
+}
+.v02-rev-focus { cursor: pointer; }
+.v02-rev-focus:hover { background: var(--muted); }
+.v02-rev-static { color: var(--muted-foreground); }
+.v02-rev-list { list-style: none; margin: 0; padding: 4px; border-top: 1px solid var(--border); display: grid; gap: 1px; }
+.v02-change {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 16px; align-items: center; gap: 8px;
+  padding: 7px 8px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px;
+  line-height: 1.4; color: var(--foreground); text-align: left; cursor: pointer;
+}
+.v02-change:hover { background: var(--muted); }
+.v02-change-body { display: grid; gap: 2px; min-width: 0; }
+.v02-change-cap { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.v02-before { color: var(--muted-foreground); text-decoration: line-through; text-decoration-color: color-mix(in oklch, var(--muted-foreground) 70%, transparent); }
+.v02-num {
+  flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground);
+  font-size: 11px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums;
+  transition: background-color .15s ease-out, color .15s ease-out, border-color .15s ease-out;
+}
+.v02-num[data-on] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.v02-approval { display: grid; gap: 12px; padding: 14px 14px 12px; }
+.v02-approval-title { margin: 0; font-size: 14px; font-weight: 600; }
+.v02-approval-sum { margin: 2px 0 0; font-size: 13px; color: var(--muted-foreground); }
+.v02-facts { list-style: none; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--border); display: grid; gap: 6px; font-size: 13px; }
+.v02-facts li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.v02-facts li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v02-facts svg { flex: none; color: var(--muted-foreground); }
+.v02-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.v02-linkrow { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 12px; }
+.v02-linkrow > svg { flex: none; color: var(--muted-foreground); }
+.v02-link-text { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v02-copy { min-width: 92px; }
+.v02-result-link {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px 0 12px; font: inherit;
+  font-size: 13px; font-weight: 500; color: var(--foreground); text-align: left; cursor: pointer;
+}
+.v02-result-link:hover { background: var(--muted); }
+.v02-result-link > span { flex: 1 1 auto; }
+.v02-result-link > svg:first-child { color: var(--muted-foreground); }
+
+/* empty state */
+.v02-empty { display: grid; gap: 12px; padding-bottom: 4px; }
+.v02-empty-title { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.v02-sugs { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* composer */
+.v02-composer-wrap { flex: none; padding: 0 16px 12px; }
+.v02-composer {
+  display: grid; gap: 6px; padding: 10px 8px 8px 12px; border: 1px solid var(--input);
+  border-radius: calc(var(--radius) + 4px); background: var(--card);
+  transition: border-color .15s ease-out, box-shadow .15s ease-out;
+}
+.v02-composer:focus-within, .v02-composer[data-drop] { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }
+.v02-composer-atts { display: flex; flex-wrap: wrap; gap: 6px; }
+.v02-composer-atts:empty { display: none; }
+.v02-input {
+  min-height: 44px; max-height: 168px; overflow-y: auto; padding: 1px 4px 0 0; outline: none;
+  font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text;
+}
+.v02-input:empty::before { content: attr(data-placeholder); color: var(--muted-foreground); pointer-events: none; }
+.v02-composer-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-left: -4px; }
+.v02-note { margin: 8px 0 0; font-size: 12px; line-height: 1.4; color: var(--muted-foreground); text-align: center; }
+
+/* toolbar over the page */
+.v02-bar-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.v02-bar-name { min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v02-status {
+  flex: none; display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--card);
+  font-size: 12px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap;
+}
+.v02-bar-end { justify-self: end; display: flex; align-items: center; gap: 8px; }
+.v02-seg {
+  display: inline-flex; align-items: center; gap: 1px; height: 32px; padding: 3px;
+  border-radius: var(--radius); background: var(--muted);
+}
+.v02-seg > button {
+  height: 100%; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 10px; border: 1px solid transparent; border-radius: calc(var(--radius) - 3px); background: transparent;
+  font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  color: color-mix(in oklch, var(--foreground) 60%, transparent); transition: color .15s ease-out, background-color .15s ease-out;
+}
+.v02-seg > button:hover { color: var(--foreground); }
+.v02-seg > button:is([aria-checked="true"], [aria-selected="true"]) {
+  background: var(--card); color: var(--foreground); border-color: var(--border);
+}
+
+/* page canvas: markers, highlight, phone frame, writing */
+.v02-pins { position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 3; }
+.v02-pin { position: absolute; cursor: pointer; padding: 0; }
+.v02-pin:hover { border-color: var(--ring); color: var(--foreground); }
+.v02-pin[data-on]:hover { color: var(--primary-foreground); }
+.v02-pins[data-on-page] .v02-pin:not([data-on]) { background: var(--v02-pg-bg); border-color: var(--v02-pg-border); color: var(--v02-pg-muted); }
+.v02-pins[data-on-page] .v02-pin:not([data-on]):hover { border-color: var(--ring); color: var(--v02-pg-fg); }
+.v02 [data-kit-block] { outline: 2px solid transparent; outline-offset: 6px; transition: outline-color .25s ease-out; }
+.v02 section[data-kit-block] { outline-offset: -4px; border-radius: calc(var(--radius) + 2px); }
+/* The kit's questions section has no module kind, so it misses the page's column; give it the same one. */
+.v02 section[data-section-kind="faq"][data-kit-block] {
+  max-width: var(--jp-page-max-width); margin: 0 auto; padding: var(--jp-section-pad) var(--jp-page-x-padding);
+}
+.v02 [data-kit-block].v02-hl { outline-color: var(--ring); }
+.v02-device-phone .v02-sheet {
+  width: 390px; margin: 24px auto; padding-bottom: 32px; border: 1px solid var(--border);
+  border-radius: 24px; overflow: hidden;
+}
+.v02-device-phone .jp-theme { --jp-page-x-padding: 16px; }
+.v02-device-phone .jp-theme [data-module-kind="content"] [data-journey-content-layout] { flex-direction: column; align-items: stretch; }
+.v02-device-phone .jp-theme [data-module-kind="content"] :is([data-journey-content-copy], [data-journey-content-media]) { flex: 0 0 auto; width: 100%; }
+.v02-skel { display: none; }
+.v02-writing [data-slot="journey-preview"] > section { display: none; }
+.v02-writing .v02-skel {
+  --v02-sk: color-mix(in srgb, var(--jp-foreground) 7%, transparent);
+  display: grid; gap: 14px; max-width: var(--jp-page-max-width); margin: 0 auto;
+  padding: var(--jp-section-pad) var(--jp-page-x-padding);
+}
+.v02-sk { background: var(--v02-sk); border-radius: 6px; }
+.v02-sk-gap { height: 24px; }
+.v02-sk-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.v02-sk-lines { display: grid; gap: 10px; }
+.v02-sk-row { display: flex; align-items: center; height: 52px; border-bottom: 1px solid var(--v02-sk); }
+.v02-device-phone .v02-sk-split { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 760px) { .v02-sk-split { grid-template-columns: minmax(0, 1fr); } }
+.v02-writing [data-slot="preview-panel"] { cursor: progress; }
+.v02-writing .v02-sheet { pointer-events: none; }
+
+/* Home: result column */
+@media (min-width: 768px) {
+  .v02-on.v02-homeview .v02-pagecol { border-left: 1px solid var(--border); }
+}
+.v02-result { display: none; }
+.v02-on .v02-home-rest { display: none; }
+.v02-on .v02-result { display: grid; gap: 12px; padding: 8px 24px 32px; }
+.v02-result-title { margin: 0; font-size: 16px; font-weight: 600; }
+.v02-table-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); overflow: hidden; }
+.v02-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.v02-table th {
+  height: 40px; padding: 0 12px; text-align: left; font-size: 13px; font-weight: 500; color: var(--muted-foreground);
+  white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+.v02-table td { padding: 10px 12px; vertical-align: middle; border-top: 1px solid var(--border); }
+.v02-table tbody tr:first-child td { border-top: 0; }
+.v02-table tbody tr:hover td { background: color-mix(in oklch, var(--muted) 60%, transparent); }
+.v02-table :is(th, td):first-child { padding-left: 16px; }
+.v02-table :is(th, td):last-child { padding-right: 10px; }
+.v02-table .v02-n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.v02-td-page { font-weight: 500; white-space: nowrap; }
+.v02-td-lead { white-space: nowrap; }
+.v02-td-when { display: block; font-size: 12px; color: var(--muted-foreground); }
+.v02-td-act { width: 1%; text-align: right; white-space: nowrap; }
+.v02-dim { color: var(--muted-foreground); }
+
+/* focus and motion */
+.v02-chat :is(button, [role="textbox"]):focus-visible,
+.v02-bar button:focus-visible, .v02-tabbar button:focus-visible, .v02-pin:focus-visible, .v02-result button:focus-visible {
+  outline: 2px solid var(--ring); outline-offset: 2px;
+}
+.v02-composer .v02-input:focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  .v02-spin, .v02-shimmer { animation: none; }
+  .v02-shimmer { color: var(--muted-foreground); background: none; }
+  .v02 *, .v02 [data-kit-block] { transition-duration: 0s !important; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 767px) {
+  .v02-on main[data-slot="sidebar-inset"] { flex-direction: column; }
+  .v02-on .v02-tabbar {
+    display: flex; align-items: center; gap: 4px; position: sticky; top: 0; z-index: 25;
+    height: 52px; padding: 0 8px 0 12px; border-bottom: 1px solid var(--border); background: var(--background);
+  }
+  .v02-tabbar .v02-seg { flex: 1 1 auto; max-width: 220px; }
+  .v02-tabbar .v02-seg > button { flex: 1 1 0; }
+  .v02-grow { flex: 1 1 auto; }
+  .v02-chat { width: 100%; height: calc(100svh - 52px); position: static; }
+  .v02-chat-head { display: none; }
+  .v02-scroller { padding: 16px 16px 16px; }
+  .v02-composer-wrap { padding: 0 12px 12px; }
+  .v02-on[data-tab="chat"] .v02-pagecol { display: none; }
+  .v02-on[data-tab="page"] .v02-chat { display: none; }
+  .v02-on .v02-kit-header, .v02-on .v02-home-header, .v02-on nav[aria-label="Primary"] { display: none; }
+  .v02-on .v02-bar { grid-template-columns: minmax(0, 1fr); height: 48px; padding: 0 16px; }
+  .v02-bar .v02-seg, .v02-bar-end { display: none; }
+  .v02-on .v02-result { padding: 16px 16px 32px; }
+  .v02-table thead { display: none; }
+  .v02-table, .v02-table tbody, .v02-table tr, .v02-table td { display: block; }
+  .v02-table tr {
+    display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 12px 12px 14px;
+    grid-template-areas: "page page page act" "lead lead lead act" "acti acti acti acti" "w v . .";
+  }
+  .v02-table tbody tr + tr { border-top: 1px solid var(--border); }
+  .v02-table td { padding: 0 !important; border: 0; }
+  .v02-table tbody tr:hover td { background: transparent; }
+  .v02-td-page { grid-area: page; }
+  .v02-td-lead { grid-area: lead; color: var(--muted-foreground); }
+  .v02-td-acti { grid-area: acti; margin-top: 6px; }
+  .v02-td-acti .v02-td-when { display: inline; }
+  .v02-td-acti .v02-td-when::before { content: " · "; }
+  .v02-td-w { grid-area: w; text-align: left !important; font-size: 12px; color: var(--muted-foreground); }
+  .v02-td-v { grid-area: v; text-align: left !important; font-size: 12px; color: var(--muted-foreground); }
+  .v02-td-w::after { content: " watched"; }
+  .v02-td-v::after { content: " views"; }
+  .v02-td-act { grid-area: act; width: auto; align-self: center; }
+}
+</style>
+</head>
+<body>
+<div id="app" data-part="app"></div>
+<script>
+(function () {
+  const F = window.KIT_FIXTURES;
+  const C = Kit.copy;
+  const I = Kit.icon;
+  // Copy this direction needs that the kit does not have.
+  const T = {
+    updated: 'Draft updated', undone: 'Changes undone', redo: 'Redo', stopped: 'Stopped', notPublished: 'Not published',
+    copied: 'Copied', full: 'Full editor', desktop: 'Desktop', phone: 'Phone', chat: 'Chat', page: 'Page', result: 'Result',
+    draft: 'Draft', writing: 'Writing', live: 'Live', followUp: 'Follow up', emptyTitle: 'Describe the page you want to create',
+    resultTitle: 'Opened this week', cols: ['Page', 'Lead', 'Last activity', 'Watched', 'Views'], previewSize: 'Preview size',
+  };
+  const SCREENS = ['empty', 'working', 'review', 'approve', 'home'];
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const narrow = () => innerWidth < 768;
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+
+  // The product's Button (panel surface), so the port keeps its faces.
+  const BTN = {
+    base: "group/button inline-flex shrink-0 items-center justify-center rounded-lg border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid",
+    primary: 'text-primary-foreground border-(--btn-edge) bg-(image:--btn-gradient) bg-clip-border hover:bg-(image:--btn-gradient-lift)',
+    outline: 'border-border bg-card bg-clip-border text-foreground hover:bg-muted',
+    ghost: 'border-transparent bg-clip-padding hover:bg-primary/10 hover:text-foreground dark:hover:bg-primary/20',
+    default: 'h-8 gap-1.5 px-2.5',
+    sm: 'h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-xs',
+    icon: 'size-8',
+    'icon-sm': 'size-7 rounded-[min(var(--radius-md),12px)]',
+  };
+  function btn(variant, size, inner, attrs = '', extra = '') {
+    const v = variant === 'primary' ? 'default' : variant;
+    return `<button type="button" data-slot="button" data-button-variant="${v}" data-variant="${v}" data-size="${size}" class="${BTN.base} ${BTN[variant]} ${BTN[size]} ${extra}" ${attrs}>${inner}</button>`;
+  }
+
+  let ctx = null;
+
+  // ---------------------------------------------------------------- render
+  function render() {
+    if (ctx) ctx.timers.forEach(clearInterval);
+    const hash = location.hash.slice(1);
+    const screen = SCREENS.includes(hash) ? hash : 'empty';
+    const app = document.getElementById('app');
+    app.className = 'v02 v02-on';
+    app.dataset.tab = 'chat';
+    const conv = F.conversation[screen];
+    const messages = clone(conv.messages);
+    let draft = '';
+    if (screen === 'home') draft = messages.pop().text;
+    let rev = 0;
+    messages.forEach((m) => { if (m.changes) m.rev = ++rev; });
+    ctx = {
+      screen, app, home: screen === 'home', page: conv.page, messages, pending: [], device: 'desktop', timers: [],
+      running: messages.some((m) => m.streaming), published: false,
+    };
+    ctx.focused = rev || null;
+    app.classList.toggle('v02-homeview', ctx.home);
+    if (ctx.home) buildHome(); else buildEditor();
+    buildChat(draft);
+    renderThread(true);
+    if (ctx.running) startClock();
+    syncStatus();
+    syncTrigger(true);
+    if (screen === 'empty' || screen === 'home') caretEnd(ctx.input);
+    requestAnimationFrame(placePins);
+    if (document.fonts) document.fonts.ready.then(() => { placePins(); scrollBottom(); });
+  }
+
+  function buildEditor() {
+    const r = Kit.editor(ctx.app, { page: ctx.page });
+    ctx.r = r;
+    r.header.classList.add('v02-kit-header');
+    const col = r.header.parentElement;
+    col.classList.add('v02-pagecol');
+    col.id = 'v02-page';
+    if (r.aiButton) {
+      r.aiButton.lastElementChild.textContent = C.title;
+      r.aiButton.setAttribute('aria-controls', 'v02-chat');
+      r.aiButton.addEventListener('click', () => setOpen(true));
+    }
+    const bar = document.createElement('div');
+    bar.className = 'v02-bar';
+    bar.innerHTML = `
+      <div class="v02-bar-title"><span class="v02-bar-name">${esc(ctx.page === 'blank' ? 'Untitled Journey Page' : F.page.name)}</span><span class="v02-status" data-status></span></div>
+      <div class="v02-seg" role="radiogroup" aria-label="${T.previewSize}">
+        <button role="radio" aria-checked="true" data-act="device" data-device="desktop">${T.desktop}</button>
+        <button role="radio" aria-checked="false" data-act="device" data-device="phone">${T.phone}</button>
+      </div>
+      <div class="v02-bar-end">${btn('outline', 'default', I('expand') + `<span>${T.full}</span>`, 'data-act="close"')}</div>`;
+    r.header.after(bar);
+    r.preview.parentElement.classList.add('v02-sheet');
+    const skel = document.createElement('div');
+    skel.className = 'v02-skel';
+    skel.setAttribute('aria-hidden', 'true');
+    skel.innerHTML = `
+      <div class="v02-sk" style="width:112px;height:20px"></div>
+      <div class="v02-sk" style="width:82%;height:30px;margin-top:8px"></div>
+      <div class="v02-sk" style="width:54%;height:30px"></div>
+      <div class="v02-sk" style="aspect-ratio:16/9;margin-top:10px;border-radius:12px"></div>
+      <div class="v02-sk" style="width:136px;height:44px;justify-self:center;margin-top:10px;border-radius:8px"></div>
+      <div class="v02-sk-gap"></div>
+      <div class="v02-sk" style="width:40%;height:24px"></div>
+      <div class="v02-sk-split"><div class="v02-sk-lines"><div class="v02-sk" style="height:14px"></div><div class="v02-sk" style="height:14px;width:92%"></div><div class="v02-sk" style="height:14px;width:70%"></div></div><div class="v02-sk" style="aspect-ratio:4/3;border-radius:12px"></div></div>
+      <div class="v02-sk-gap"></div>
+      <div class="v02-sk" style="width:46%;height:24px"></div>
+      <div>${[64, 52, 70].map((w) => `<div class="v02-sk-row"><div class="v02-sk" style="width:${w}%;height:14px"></div></div>`).join('')}</div>`;
+    r.preview.append(skel);
+    const pins = document.createElement('div');
+    pins.className = 'v02-pins';
+    r.canvas.prepend(pins);
+    ctx.layer = pins;
+    if (window.ResizeObserver) new ResizeObserver(() => placePins()).observe(r.preview);
+    r.canvas.setAttribute('aria-busy', String(ctx.running));
+    ctx.app.classList.toggle('v02-writing', ctx.running);
+  }
+
+  function buildHome() {
+    const r = Kit.home(ctx.app);
+    ctx.r = r;
+    const col = r.main.querySelector('[data-slot="file-drop-zone"]');
+    col.classList.add('v02-pagecol');
+    col.id = 'v02-page';
+    const header = col.querySelector('header');
+    header.classList.add('v02-home-header');
+    Array.from(col.children).forEach((el) => { if (el !== header) el.classList.add('v02-home-rest'); });
+    const upload = r.actions.querySelector('[data-analytics-id="library_upload"]');
+    const entry = upload.cloneNode(false);
+    entry.removeAttribute('data-analytics-id');
+    entry.setAttribute('aria-controls', 'v02-chat');
+    entry.innerHTML = `${I('sparkles')}<span>${C.title}</span>`;
+    entry.addEventListener('click', () => setOpen(!ctx.app.classList.contains('v02-on')));
+    upload.before(entry);
+    ctx.entry = entry;
+    const stats = ctx.messages.find((m) => m.stats).stats;
+    const result = document.createElement('section');
+    result.className = 'v02-result';
+    result.setAttribute('aria-labelledby', 'v02-result-title');
+    result.innerHTML = `
+      <h2 class="v02-result-title" id="v02-result-title">${T.resultTitle}</h2>
+      <div class="v02-table-card" data-result-card>
+        <table class="v02-table">
+          <thead><tr><th>${T.cols[0]}</th><th>${T.cols[1]}</th><th>${T.cols[2]}</th><th class="v02-n">${T.cols[3]}</th><th class="v02-n">${T.cols[4]}</th><th><span class="sr-only">${T.followUp}</span></th></tr></thead>
+          <tbody>${stats.map((s) => `<tr>
+            <td class="v02-td-page">${esc(s.page)}</td>
+            <td class="v02-td-lead">${s.lead ? esc(s.lead) : ''}</td>
+            <td class="v02-td-acti"><span class="${s.lead ? '' : 'v02-dim'}">${esc(s.action)}</span>${s.when ? `<span class="v02-td-when">${esc(s.when)}</span>` : ''}</td>
+            <td class="v02-n v02-td-w">${esc(s.watched)}</td>
+            <td class="v02-n v02-td-v">${s.views}</td>
+            <td class="v02-td-act">${s.lead ? btn('outline', 'sm', T.followUp, `data-act="follow" data-name="${esc(s.lead.split(' ')[0])}" aria-label="${T.followUp}, ${esc(s.lead)}"`) : ''}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+    header.after(result);
+    ctx.result = result;
+  }
+
+  function buildChat(draft) {
+    const tabbar = document.createElement('div');
+    tabbar.className = 'v02-tabbar';
+    tabbar.innerHTML = `
+      <div class="v02-seg" role="tablist" aria-label="${C.title}">
+        <button role="tab" aria-selected="true" aria-controls="v02-chat" data-act="tab" data-tab="chat">${T.chat}</button>
+        <button role="tab" aria-selected="false" aria-controls="v02-page" data-act="tab" data-tab="page" tabindex="-1"><span data-tab-label>${ctx.home ? T.result : T.page}</span></button>
+      </div>
+      <span class="v02-grow"></span>
+      ${btn('ghost', 'icon', I('plus'), `data-act="new" aria-label="${C.newChat}" title="${C.newChat}"`, 'v02-quiet')}
+      ${btn('ghost', 'icon', I(ctx.home ? 'x' : 'expand'), `data-act="close" aria-label="${ctx.home ? C.close : T.full}" title="${ctx.home ? C.close : T.full}"`, 'v02-quiet')}`;
+    const aside = document.createElement('aside');
+    aside.className = 'v02-chat';
+    aside.id = 'v02-chat';
+    aside.setAttribute('data-part', 'chat');
+    aside.setAttribute('aria-label', C.title);
+    aside.innerHTML = `
+      <div class="v02-chat-head">
+        <span class="v02-chat-title">${C.title}</span>
+        ${btn('ghost', 'icon-sm', I('plus'), `data-act="new" aria-label="${C.newChat}" title="${C.newChat}"`, 'v02-quiet')}
+      </div>
+      <div class="v02-scroller" data-slot="message-scroller" role="log" aria-label="${C.title}"><div class="v02-thread"></div></div>
+      <div class="v02-composer-wrap">
+        <form class="v02-composer" data-slot="composer">
+          <div class="v02-composer-atts"></div>
+          <div class="v02-input" role="textbox" contenteditable="true" aria-multiline="true" aria-label="Message" aria-keyshortcuts="Meta+Enter"></div>
+          <div class="v02-composer-row">
+            ${btn('ghost', 'icon', I('paperclip'), `data-act="attach" aria-label="${C.attach}" title="${C.attach}"`, 'v02-quiet')}
+            <input type="file" multiple hidden>
+            <span data-send-slot></span>
+          </div>
+        </form>
+        ${ctx.home ? '' : `<p class="v02-note">${C.disclaimer}</p>`}
+      </div>`;
+    const main = ctx.r.main;
+    main.prepend(tabbar);
+    tabbar.after(aside);
+    ctx.aside = aside;
+    ctx.tabbar = tabbar;
+    ctx.scroller = aside.querySelector('.v02-scroller');
+    ctx.thread = aside.querySelector('.v02-thread');
+    ctx.input = aside.querySelector('.v02-input');
+    ctx.form = aside.querySelector('form');
+    ctx.file = aside.querySelector('input[type="file"]');
+    ctx.input.textContent = draft;
+    bindComposer();
+    renderSend();
+    ctx.scroller.addEventListener('scroll', () => ctx.scroller.toggleAttribute('data-scrolled', ctx.scroller.scrollTop > 4), { passive: true });
+  }
+
+  // ---------------------------------------------------------------- thread
+  function renderThread(toBottom) {
+    const s = ctx.scroller;
+    const atBottom = toBottom || s.scrollHeight - s.scrollTop - s.clientHeight < 24;
+    const keep = s.scrollTop;
+    const focusKey = document.activeElement && document.activeElement.closest('.v02-thread') ? document.activeElement.dataset.key : null;
+    ctx.thread.innerHTML = ctx.messages.length ? ctx.messages.map(messageHTML).join('') : emptyHTML();
+    ctx.input.dataset.placeholder = ctx.home ? C.composerPlaceholderHome : (ctx.page === 'blank' && !ctx.messages.length ? C.composerPlaceholderNew : C.composerPlaceholderEdit);
+    if (atBottom) scrollBottom(); else s.scrollTop = keep;
+    if (focusKey) { const el = ctx.thread.querySelector(`[data-key="${focusKey}"]`); if (el) el.focus(); }
+  }
+
+  function scrollBottom(smooth) {
+    if (!ctx.scroller) return;
+    ctx.scroller.scrollTo({ top: ctx.scroller.scrollHeight, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
+  }
+
+  function emptyHTML() {
+    if (ctx.home) return '';
+    const sugs = F.conversation.empty.suggestions;
+    return `<div class="v02-empty">
+      <p class="v02-empty-title">${T.emptyTitle}</p>
+      <div class="v02-sugs">${sugs.map((s) => btn('outline', 'sm', esc(s), `data-act="suggest" data-text="${esc(s)}"`)).join('')}</div>
+    </div>`;
+  }
+
+  function attachmentHTML(a, removeIndex) {
+    const icon = a.kind === 'text' ? 'file' : a.kind === 'page' ? 'page' : 'paperclip';
+    const x = removeIndex == null ? '' : `<button type="button" class="v02-att-x" data-act="unattach" data-index="${removeIndex}" aria-label="Remove ${esc(a.label)}">${I('x', 'size-3.5')}</button>`;
+    return `<div data-slot="attachment" class="v02-att"><span class="v02-att-icon">${I(icon)}</span><span class="v02-att-text"><span class="v02-att-label">${esc(a.label)}</span><span class="v02-att-meta">${esc(a.detail)}</span></span>${x}</div>`;
+  }
+
+  function messageHTML(m, i) {
+    if (m.role === 'user') {
+      return `<div data-slot="message" data-align="end" class="v02-msg">
+        ${m.attachments && m.attachments.length ? `<div class="v02-atts">${m.attachments.map((a) => attachmentHTML(a)).join('')}</div>` : ''}
+        ${m.text ? `<div data-slot="bubble" data-variant="secondary" class="v02-bubble">${esc(m.text)}</div>` : ''}
+      </div>`;
+    }
+    let h = '';
+    if (m.steps) h += m.streaming || m.stopped ? liveStepsHTML(m, i) : stepsHTML(m, i);
+    if (m.text) h += `<p data-slot="bubble" data-variant="ghost" class="v02-prose">${esc(m.text)}</p>`;
+    if (m.changes) h += revisionHTML(m, i);
+    if (m.approval) h += approvalHTML(m, i);
+    if (m.stats) h += `<button type="button" class="v02-card v02-result-link" data-act="result" data-key="result-${i}">${I('chart')}<span>${T.resultTitle}</span>${I('chevronRight', 'size-4 v02-chev')}</button>`;
+    return `<div data-slot="message" data-align="start" class="v02-msg">${h}</div>`;
+  }
+
+  function stepRowHTML(s) {
+    return `<div data-slot="marker" class="v02-step"><span class="v02-step-label">${esc(C.toolLabel(s.tool, 'done'))}</span><span class="v02-step-detail">${esc(s.detail)}</span><span class="v02-mono">${s.tool} · ${s.seconds}s</span></div>`;
+  }
+
+  // A finished turn folds its tool work into one marker.
+  function stepsHTML(m, i) {
+    const open = !!m.stepsOpen;
+    const total = m.steps.reduce((t, s) => t + s.seconds, 0);
+    const label = m.steps.length === 1 ? C.toolLabel(m.steps[0].tool, 'done') : C.stepsDone(m.steps.length, total.toFixed(1));
+    return `<div class="v02-steps">
+      <button type="button" data-slot="marker" class="v02-mk" data-act="steps" data-i="${i}" data-key="steps-${i}" aria-expanded="${open}">
+        <span data-slot="marker-icon">${I('check')}</span><span data-slot="marker-content" class="v02-mk-text">${esc(label)}</span>${I('chevronRight', 'size-3.5 v02-chev')}
+      </button>
+      ${open ? `<div class="v02-steps-list">${m.steps.map(stepRowHTML).join('')}</div>` : ''}
+    </div>`;
+  }
+
+  // The running turn shows every step live.
+  function liveStepsHTML(m, i) {
+    return `<div class="v02-live">${m.steps.map((s, j) => {
+      const running = s.status === 'running';
+      const stopped = s.status === 'stopped';
+      const icon = running ? I('loader', 'size-4 v02-spin') : stopped ? I('x') : I('check');
+      const label = stopped ? T.stopped : C.toolLabel(s.tool, s.status);
+      return `<div class="v02-live-row" data-slot="marker" ${running ? 'role="status"' : ''}>
+        <button type="button" class="v02-mk" data-act="step" data-i="${i}" data-j="${j}" data-key="step-${i}-${j}" aria-expanded="${!!s.open}">
+          <span data-slot="marker-icon">${icon}</span>
+          <span data-slot="marker-content" class="v02-mk-text ${running ? 'v02-shimmer shimmer' : ''}">${esc(label)}</span>
+          ${running ? `<span class="v02-secs" data-live aria-hidden="true">${s.seconds}s</span>` : ''}
+          ${I('chevronRight', 'size-3.5 v02-chev')}
+        </button>
+        ${s.open ? `<div class="v02-live-more"><span class="v02-step-detail">${esc(s.detail)}</span><span class="v02-mono">${s.tool}${running ? '' : ` · ${s.seconds}s`}</span></div>` : ''}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function lastRev() {
+    const live = ctx.messages.filter((m) => m.rev);
+    return live.length ? live[live.length - 1].rev : null;
+  }
+
+  function revisionHTML(m, i) {
+    const n = m.rev;
+    if (m.undone) {
+      return `<div class="v02-card" data-rev-card="${n}">
+        <div class="v02-rev-head"><span class="v02-rev-static"><span class="v02-num">${n}</span>${T.undone}</span>
+        ${btn('outline', 'sm', T.redo, `data-act="redo" data-i="${i}" data-key="redo-${i}"`)}</div>
+      </div>`;
+    }
+    const undo = m.undo && n === lastRev() ? btn('outline', 'sm', I('undo', 'size-3.5') + `<span>${C.undo}</span>`, `data-act="undo" data-i="${i}" data-key="undo-${i}"`) : '';
+    const rows = m.changes.map((c, j) => {
+      const body = c.after
+        ? `<span class="v02-change-cap">${esc(c.label)}</span>${c.before ? `<span class="v02-before"><span class="sr-only">Before: </span>${esc(c.before)}</span>` : ''}<span>${c.before ? '<span class="sr-only">After: </span>' : ''}${esc(c.after)}</span>`
+        : esc(c.label);
+      return `<li><button type="button" class="v02-change" data-act="change" data-rev="${n}" data-block="${c.block}" data-key="change-${i}-${j}"><span class="v02-change-body">${body}</span>${I('chevronRight', 'size-4 v02-chev')}</button></li>`;
+    }).join('');
+    return `<div class="v02-card" data-rev-card="${n}">
+      <div class="v02-rev-head">
+        <button type="button" class="v02-rev-focus" data-act="rev" data-rev="${n}" data-key="rev-${i}"><span class="v02-num" ${ctx.focused === n ? 'data-on' : ''}>${n}</span><span>${T.updated}</span></button>
+        ${undo}
+      </div>
+      <ul class="v02-rev-list">${rows}</ul>
+    </div>`;
+  }
+
+  function approvalHTML(m, i) {
+    const a = m.approval;
+    if (a.state === 'approved') {
+      return `<div data-slot="marker" class="v02-mk">${I('check')}<span class="v02-mk-text">${esc(C.toolLabel(a.tool, 'done'))}</span></div>
+        <p class="v02-prose">${esc(m.after.text)}</p>
+        <div class="v02-card v02-linkrow">${I('globe')}<span class="v02-link-text">${esc(m.after.link)}</span>
+          ${btn('outline', 'sm', ctx.copied ? I('check', 'size-3.5') + `<span>${T.copied}</span>` : I('copy', 'size-3.5') + `<span>${C.copyLink}</span>`, `data-act="copy" data-i="${i}" data-key="copy-${i}"`, 'v02-copy')}
+        </div>`;
+    }
+    if (a.state === 'denied') {
+      return `<div data-slot="marker" class="v02-mk">${I('x')}<span class="v02-mk-text">${T.notPublished}</span></div>`;
+    }
+    const icons = ['page', 'link'];
+    return `<div class="v02-card v02-approval" role="group" aria-labelledby="v02-ap-${i}">
+      <div><p class="v02-approval-title" id="v02-ap-${i}">${esc(a.title)}</p><p class="v02-approval-sum">${esc(a.summary)}</p></div>
+      <ul class="v02-facts">${a.facts.map((f, j) => `<li>${I(icons[j] || 'check')}<span>${esc(f)}</span></li>`).join('')}</ul>
+      <div class="v02-actions">
+        ${btn('outline', 'default', C.deny, `data-act="deny" data-i="${i}" data-key="deny-${i}"`)}
+        ${btn('primary', 'default', I('globe') + `<span>${C.approve}</span>`, `data-act="publish" data-i="${i}" data-key="publish-${i}"`)}
+      </div>
+    </div>`;
+  }
+
+  // ---------------------------------------------------------------- page links
+  function blockOf(name) {
+    const el = ctx.r && ctx.r.blocks && ctx.r.blocks[name];
+    return el && el.isConnected && el.getClientRects().length ? el : null;
+  }
+
+  function changedBlocks() {
+    const map = {};
+    ctx.messages.forEach((m) => { if (m.rev && !m.undone) m.changes.forEach((c) => { map[c.block] = m.rev; }); });
+    return map;
+  }
+
+  function placePins() {
+    const L = ctx && ctx.layer;
+    if (!L) return;
+    L.innerHTML = '';
+    if (!ctx.app.classList.contains('v02-on')) return;
+    const panel = ctx.r.canvas;
+    const pr = panel.getBoundingClientRect();
+    if (!pr.width) return;
+    const sheet = ctx.r.preview.parentElement.getBoundingClientRect();
+    const small = narrow();
+    const size = small ? 16 : 20;
+    // Every marker sits in one gutter column, left of the page's text edge.
+    const sec = ctx.r.preview.querySelector('section');
+    const edge = sec ? sec.getBoundingClientRect().left + parseFloat(getComputedStyle(sec).paddingLeft) : sheet.left;
+    // On the page itself the markers take the page's palette, which stays light in dark mode.
+    const onPage = small || ctx.device !== 'phone';
+    L.toggleAttribute('data-on-page', onPage);
+    const jp = getComputedStyle(ctx.r.preview);
+    [['bg', 'background'], ['fg', 'foreground'], ['muted', 'muted'], ['border', 'border']].forEach(([k, v]) => {
+      L.style.setProperty(`--v02-pg-${k}`, jp.getPropertyValue(`--jp-section-plain-${v}`).trim());
+    });
+    const gutter = Math.round(small ? 0 : ctx.device === 'phone' ? sheet.left - pr.left - size - 14 : edge - pr.left - size - 16);
+    const html = [];
+    Object.entries(changedBlocks()).forEach(([name, n]) => {
+      const el = blockOf(name);
+      if (!el) return;
+      if (small && n !== ctx.focused) return;
+      const target = el.matches('section') ? (el.querySelector('h2') || el) : name === 'faq-added' ? el.firstElementChild : el;
+      const tr = target.getBoundingClientRect();
+      const lh = parseFloat(getComputedStyle(target).lineHeight);
+      const line = Math.min(tr.height, Number.isNaN(lh) ? size + 16 : lh);
+      const y = Math.round(tr.top - pr.top + panel.scrollTop + (line - size) / 2);
+      html.push(`<button type="button" class="v02-num v02-pin" data-act="pin" data-rev="${n}" ${ctx.focused === n ? 'data-on' : ''} style="top:${y}px;left:${gutter}px;width:${size}px;height:${size}px;font-size:${small ? 10 : 11}px" aria-label="Turn ${n} in chat" title="Turn ${n}">${n}</button>`);
+    });
+    L.innerHTML = html.join('');
+  }
+
+  function flash(el) {
+    if (!el) return;
+    el.classList.add('v02-hl');
+    clearTimeout(el.__v02);
+    el.__v02 = setTimeout(() => el.classList.remove('v02-hl'), 1400);
+  }
+
+  function flashCard(card) {
+    if (!card) return;
+    card.setAttribute('data-flash', '');
+    clearTimeout(card.__v02);
+    card.__v02 = setTimeout(() => card.removeAttribute('data-flash'), 1400);
+  }
+
+  function setFocused(n) {
+    ctx.focused = n;
+    ctx.thread.querySelectorAll('.v02-rev-focus .v02-num').forEach((b) => b.toggleAttribute('data-on', Number(b.textContent) === n));
+    placePins();
+  }
+
+  function showBlocks(names) {
+    const els = names.map(blockOf).filter(Boolean);
+    if (!els.length) return;
+    if (narrow()) setTab('page');
+    els[0].scrollIntoView({ block: narrow() ? 'center' : 'center', behavior: reduced() ? 'auto' : 'smooth' });
+    els.forEach(flash);
+  }
+
+  function applyPage() {
+    const turn = ctx.messages.find((m) => m.undo);
+    if (!turn) return;
+    const title = ctx.r.blocks.title;
+    const added = ctx.r.blocks['faq-added'];
+    if (title) title.textContent = turn.undone ? F.page.title : F.page.titleEdited;
+    if (added) added.style.display = turn.undone ? 'none' : 'flex';
+  }
+
+  // ---------------------------------------------------------------- status, open, tabs
+  function syncStatus() {
+    const s = ctx.app.querySelector('[data-status]');
+    if (s) {
+      s.innerHTML = ctx.running ? `${I('loader', 'size-3 v02-spin')}<span>${T.writing}</span>`
+        : ctx.published ? `${I('globe', 'size-3')}<span>${T.live}</span>` : `<span>${T.draft}</span>`;
+    }
+    const label = ctx.tabbar.querySelector('[data-tab-label]');
+    const tab = label.parentElement;
+    tab.querySelectorAll('svg').forEach((n) => n.remove());
+    if (ctx.running) tab.insertAdjacentHTML('beforeend', I('loader', 'size-3.5 v02-spin'));
+  }
+
+  function syncTrigger(open) {
+    const trigger = ctx.home ? ctx.entry : ctx.r.aiButton;
+    if (!trigger) return null;
+    trigger.setAttribute('aria-expanded', String(open));
+    trigger.toggleAttribute('data-active', open && ctx.home);
+    return trigger;
+  }
+
+  function setOpen(open) {
+    ctx.app.classList.toggle('v02-on', open);
+    const trigger = syncTrigger(open);
+    if (open) { setTab('chat'); requestAnimationFrame(() => { placePins(); scrollBottom(); ctx.input.focus(); }); }
+    else if (trigger && !narrow()) trigger.focus();
+    else placePins();
+  }
+
+  function setTab(tab) {
+    ctx.app.dataset.tab = tab;
+    ctx.tabbar.querySelectorAll('[role="tab"]').forEach((b) => {
+      const on = b.dataset.tab === tab;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    if (tab === 'page') requestAnimationFrame(placePins);
+    else requestAnimationFrame(() => scrollBottom());
+  }
+
+  function setDevice(device) {
+    ctx.device = device;
+    ctx.app.classList.toggle('v02-device-phone', device === 'phone');
+    ctx.app.querySelectorAll('[data-act="device"]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.device === device)));
+    requestAnimationFrame(placePins);
+  }
+
+  // ---------------------------------------------------------------- live work
+  function startClock() {
+    const m = ctx.messages.find((x) => x.streaming);
+    const step = m && m.steps.find((s) => s.status === 'running');
+    if (!step) return;
+    ctx.timers.push(setInterval(() => {
+      step.seconds += 1;
+      const el = ctx.thread.querySelector('[data-live]');
+      if (el) el.textContent = `${step.seconds}s`;
+    }, 1000));
+  }
+
+  function stop() {
+    const m = ctx.messages.find((x) => x.streaming);
+    if (!m) return;
+    ctx.timers.forEach(clearInterval);
+    m.steps.forEach((s) => { if (s.status === 'running') s.status = 'stopped'; });
+    m.streaming = false;
+    m.stopped = true;
+    ctx.running = false;
+    ctx.app.classList.remove('v02-writing');
+    ctx.r.canvas.setAttribute('aria-busy', 'false');
+    renderThread();
+    renderSend();
+    syncStatus();
+    ctx.input.focus();
+  }
+
+  // ---------------------------------------------------------------- composer
+  function renderSend() {
+    const slot = ctx.form.querySelector('[data-send-slot]');
+    slot.innerHTML = ctx.running
+      ? btn('primary', 'icon', I('stop', 'size-3.5'), `data-act="stop" aria-label="${C.stop}" title="${C.stop}"`)
+      : btn('primary', 'icon', I('send'), `data-act="send" aria-label="${C.send}" title="${C.send} (⌘↵)"`);
+  }
+
+  function renderPending() {
+    ctx.form.querySelector('.v02-composer-atts').innerHTML = ctx.pending.map((a, i) => attachmentHTML(a, i)).join('');
+  }
+
+  function addFiles(files) {
+    Array.from(files || []).forEach((f) => {
+      const kb = f.size / 1024;
+      ctx.pending.push({ kind: 'file', label: f.name, detail: kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(kb))} KB` });
+    });
+    renderPending();
+  }
+
+  function caretEnd(el) {
+    el.focus({ preventScroll: true });
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  function send() {
+    const text = ctx.input.innerText.replace(/\n+$/, '').trim();
+    if (!text && !ctx.pending.length) return;
+    ctx.messages.push({ role: 'user', text, attachments: ctx.pending.slice() });
+    ctx.pending = [];
+    ctx.input.innerHTML = '';
+    renderPending();
+    renderThread(true);
+    scrollBottom(true);
+  }
+
+  function bindComposer() {
+    const input = ctx.input;
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
+    });
+    input.addEventListener('input', () => { if (!input.textContent) input.innerHTML = ''; });
+    input.addEventListener('paste', (e) => {
+      const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+      if (e.clipboardData && e.clipboardData.files.length) { e.preventDefault(); addFiles(e.clipboardData.files); return; }
+      e.preventDefault();
+      if (text.length > 280) {
+        ctx.pending.push({ kind: 'text', label: F.attachments[0].label, detail: `${text.length.toLocaleString('en-US')} characters` });
+        renderPending();
+      } else {
+        document.execCommand('insertText', false, text);
+      }
+    });
+    ctx.form.addEventListener('submit', (e) => { e.preventDefault(); send(); });
+    ctx.form.addEventListener('click', (e) => { if (e.target === ctx.form || e.target.classList.contains('v02-composer-atts')) input.focus(); });
+    ctx.form.addEventListener('dragover', (e) => { e.preventDefault(); ctx.form.setAttribute('data-drop', ''); });
+    ctx.form.addEventListener('dragleave', () => ctx.form.removeAttribute('data-drop'));
+    ctx.form.addEventListener('drop', (e) => { e.preventDefault(); ctx.form.removeAttribute('data-drop'); addFiles(e.dataTransfer.files); input.focus(); });
+    ctx.file.addEventListener('change', () => { addFiles(ctx.file.files); ctx.file.value = ''; input.focus(); });
+  }
+
+  // ---------------------------------------------------------------- actions
+  function onClick(e) {
+    const t = e.target.closest('[data-act]');
+    if (!t || !ctx.app.contains(t)) return;
+    const act = t.dataset.act;
+    const i = Number(t.dataset.i);
+    const m = ctx.messages[i];
+    switch (act) {
+      case 'send': send(); break;
+      case 'stop': stop(); break;
+      case 'attach': ctx.file.click(); break;
+      case 'unattach': ctx.pending.splice(Number(t.dataset.index), 1); renderPending(); ctx.input.focus(); break;
+      case 'suggest': ctx.input.textContent = `${t.dataset.text}: `; caretEnd(ctx.input); break;
+      case 'new':
+        ctx.timers.forEach(clearInterval);
+        if (ctx.running) stop();
+        ctx.messages = [];
+        ctx.focused = null;
+        renderThread(true);
+        placePins();
+        setTab('chat');
+        caretEnd(ctx.input);
+        break;
+      case 'steps': m.stepsOpen = !m.stepsOpen; renderThread(); break;
+      case 'step': { const s = m.steps[Number(t.dataset.j)]; s.open = !s.open; renderThread(); break; }
+      case 'rev': {
+        const n = Number(t.dataset.rev);
+        setFocused(n);
+        showBlocks(ctx.messages.find((x) => x.rev === n).changes.map((c) => c.block));
+        break;
+      }
+      case 'change': setFocused(Number(t.dataset.rev)); showBlocks([t.dataset.block]); break;
+      case 'pin': {
+        const n = Number(t.dataset.rev);
+        setFocused(n);
+        if (narrow()) setTab('chat');
+        requestAnimationFrame(() => {
+          const card = ctx.thread.querySelector(`[data-rev-card="${n}"]`);
+          if (!card) return;
+          card.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
+          flashCard(card);
+        });
+        break;
+      }
+      case 'undo':
+      case 'redo':
+        m.undone = act === 'undo';
+        applyPage();
+        ctx.focused = lastLiveRev();
+        renderThread();
+        placePins();
+        showBlocks(['title']);
+        break;
+      case 'publish':
+        m.approval.state = 'approved';
+        ctx.published = true;
+        renderThread(true);
+        syncStatus();
+        { const c = ctx.thread.querySelector('[data-act="copy"]'); if (c) c.focus({ preventScroll: true }); }
+        break;
+      case 'deny':
+        m.approval.state = 'denied';
+        renderThread(true);
+        ctx.input.focus();
+        break;
+      case 'copy':
+        if (navigator.clipboard) navigator.clipboard.writeText(`https://${m.after.link}`).catch(() => {});
+        ctx.copied = true;
+        renderThread();
+        clearTimeout(ctx.copyTimer);
+        ctx.copyTimer = setTimeout(() => { ctx.copied = false; renderThread(); }, 1600);
+        break;
+      case 'device': setDevice(t.dataset.device); break;
+      case 'tab': setTab(t.dataset.tab); break;
+      case 'close': setOpen(false); break;
+      case 'result':
+        if (narrow()) setTab('page');
+        flashCard(ctx.result.querySelector('[data-result-card]'));
+        ctx.result.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
+        break;
+      case 'follow':
+        if (narrow()) setTab('chat');
+        ctx.input.textContent = `Draft a reply page for ${t.dataset.name} `;
+        caretEnd(ctx.input);
+        break;
+      default: break;
+    }
+  }
+
+  function lastLiveRev() {
+    const live = ctx.messages.filter((x) => x.rev && !x.undone);
+    return live.length ? live[live.length - 1].rev : null;
+  }
+
+  // Arrow keys move a radio group or tab list, as the product's segmented control does.
+  function onKey(e) {
+    const t = e.target;
+    if (!t.closest || !t.closest('.v02-seg') || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    const items = Array.from(t.parentElement.children);
+    const next = items[(items.indexOf(t) + (e.key === 'ArrowRight' ? 1 : -1) + items.length) % items.length];
+    e.preventDefault();
+    next.focus();
+    next.click();
+  }
+
+  const app = document.getElementById('app');
+  app.addEventListener('click', onClick);
+  app.addEventListener('keydown', onKey);
+  let resizeFrame = 0;
+  addEventListener('resize', () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(placePins); });
+  render();
+  addEventListener('hashchange', render);
+})();
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

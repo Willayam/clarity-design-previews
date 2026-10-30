@@ -1,0 +1,155 @@
+{
+  "lab": {
+    "title": "AI chat in Clarity",
+    "scope": "flow",
+    "fidelity": "native",
+    "created": "2026-10-30 21:45",
+    "round": 1,
+    "rounds": [
+      {
+        "n": 1,
+        "question": "Where does the chat live, and how does it show what it did?"
+      }
+    ],
+    "widths": [
+      1440,
+      390
+    ],
+    "screens": [
+      {
+        "id": "empty",
+        "label": "Start"
+      },
+      {
+        "id": "working",
+        "label": "Working"
+      },
+      {
+        "id": "review",
+        "label": "Changes"
+      },
+      {
+        "id": "approve",
+        "label": "Publish"
+      },
+      {
+        "id": "home",
+        "label": "Outside the editor"
+      }
+    ],
+    "parts": [
+      "chat"
+    ],
+    "controls": {},
+    "pageHead": [
+      "kit/app.css",
+      "kit/journey.css"
+    ],
+    "external": []
+  },
+  "variants": [
+    {
+      "id": "v00",
+      "name": "Current popover",
+      "axis": "today",
+      "idea": "The Write page popover: one prompt, one generation, no thread, no tools beyond writing the page.",
+      "cost": "No follow-ups, no library, stats or publishing from the prompt",
+      "model": "orchestrator",
+      "round": 1,
+      "baseline": true,
+      "recommended": false,
+      "why": "",
+      "file": "variants/v00-current-popover.html",
+      "mtime": 1793393383.7648299
+    },
+    {
+      "id": "v01",
+      "name": "Side panel",
+      "axis": "docked conversation",
+      "idea": "A steady conversation beside the draft, with changes connected to the canvas.",
+      "cost": "A narrower page canvas and a scrolling thread.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "file": "variants/v01-side-panel.html",
+      "mtime": 1793393662.047719
+    },
+    {
+      "id": "v02",
+      "name": "Chat and preview",
+      "axis": "Chat-first split: the conversation on the left, the page on the right as its output",
+      "idea": "Opening the chat turns the editor into two columns. Each turn that changed the page ends in a numbered draft revision card, and matching numbered markers on the page point back to that turn.",
+      "cost": "While the chat is open the editor header becomes a thin preview toolbar and the page narrows by 420 px; Style and Share wait in the full editor",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "file": "variants/v02-chat-and-preview.html",
+      "mtime": 1793394697.0991106
+    },
+    {
+      "id": "v03",
+      "name": "Grown popover",
+      "axis": "placement",
+      "idea": "The familiar Write page popover grows into a thread, with live work carried by its header button when closed.",
+      "cost": "A compact thread needs scrolling, and the page moves left while chat is open.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "file": "variants/v03-grown-popover.html",
+      "mtime": 1793393780.3846664
+    },
+    {
+      "id": "v04",
+      "name": "Bottom dock",
+      "axis": "placement",
+      "idea": "A page-width composer with a thread that opens upward and folds away to reveal changes.",
+      "cost": "Long conversations compete with the lower canvas.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "file": "variants/v04-bottom-dock.html",
+      "mtime": 1793393693.202942
+    },
+    {
+      "id": "v05",
+      "name": "At the block",
+      "axis": "Direct manipulation",
+      "idea": "Select a block to ask about it; review numbered changes and undo at the block.",
+      "cost": "Context switches between the page and a narrow thread.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "file": "variants/v05-at-the-block.html",
+      "mtime": 1793393801.3378873
+    },
+    {
+      "id": "v06",
+      "name": "One assistant everywhere",
+      "axis": "app-level assistant",
+      "idea": "Ask Clarity is a sidebar entry and Cmd+J that opens one resizable right panel in the app shell. The same thread follows the rep from Home into the editor, scoped by a removable context chip, and answers come back as leads, pages and a publish card the rep acts on in place.",
+      "cost": "A new app-wide panel and nav entry rather than a popover; needs one thread persisted across routes",
+      "model": "fable",
+      "round": 1,
+      "parents": [],
+      "recommended": true,
+      "why": "The chat can do everything the MCP can, so it belongs to the app, not the editor; a right panel is the convention reps already know.",
+      "file": "variants/v06-one-assistant.html",
+      "mtime": 1793395142.3975523
+    },
+    {
+      "id": "v07",
+      "name": "Command bar",
+      "axis": "placement",
+      "idea": "A keyboard-first command bar holds quick follow-ups, then tucks into a result pill to return the page to view.",
+      "cost": "Long conversations need scrolling and temporarily obscure the page.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "file": "variants/v07-command-bar.html",
+      "mtime": 1793393764.6619344
+    }
+  ],
+  "slots": [],
+  "state": {},
+  "static": true
+}

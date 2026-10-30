@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v06 One assistant everywhere</title>
+<script type="application/json" id="lab-meta">
+{"id": "v06", "name": "One assistant everywhere", "axis": "app-level assistant", "idea": "Ask Clarity is a sidebar entry and Cmd+J that opens one resizable right panel in the app shell. The same thread follows the rep from Home into the editor, scoped by a removable context chip, and answers come back as leads, pages and a publish card the rep acts on in place.", "cost": "A new app-wide panel and nav entry rather than a popover; needs one thread persisted across routes", "model": "fable", "round": 1, "parents": [], "recommended": true, "why": "The chat can do everything the MCP can, so it belongs to the app, not the editor; a right panel is the convention reps already know."}
+</script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/journey.css">
+<script src="../kit/dom.js"></script>
+<script src="../kit/fixtures.js"></script>
+<script src="../kit/shell.js"></script>
+<style>
+/* ---- panel in the app shell ---- */
+.v06-panel{--v06-w:400px;position:sticky;top:0;align-self:flex-start;flex:none;width:var(--v06-w);height:100dvh;display:flex;flex-direction:column;background:var(--sidebar);border-left:1px solid var(--border);color:var(--foreground);font-family:var(--font-sans);z-index:20}
+.v06-panel[hidden]{display:none}
+.v06-grip{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:1;touch-action:none}
+.v06-grip::after{content:"";position:absolute;left:3px;top:0;bottom:0;width:2px;background:transparent;transition:background-color .15s ease-out}
+.v06-grip:hover::after,.v06-grip:focus-visible::after,.v06-grip[data-active]::after{background:var(--ring)}
+.v06-grip:focus-visible{outline:none}
+body[data-v06-resizing]{cursor:col-resize;user-select:none}
+
+.v06-head{display:flex;align-items:center;gap:2px;height:3.5rem;padding:0 10px 0 16px;flex:none}
+.v06-title{flex:1;min-width:0;margin:0;font-size:.875rem;font-weight:500;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- scroller and thread ---- */
+.v06-scroller{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 16px 12px;scrollbar-width:thin;mask-image:linear-gradient(to bottom,transparent,currentColor 16px)}
+.v06-scroller[hidden]{display:none}
+.v06-thread{display:flex;flex-direction:column;gap:20px;padding-top:18px;min-height:100%}
+.v06-msg{display:flex;flex-direction:column;gap:10px;min-width:0}
+.v06-msg[data-align=end]{align-items:flex-end}
+.v06-bubble{max-width:85%;padding:8px 12px;border-radius:var(--radius);font-size:.875rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.v06-bubble[data-variant=outline]{background:var(--card);border:1px solid var(--border)}
+.v06-bubble[data-variant=ghost]{max-width:none;padding:0;background:transparent}
+.v06-att{display:inline-flex;align-items:center;gap:6px;height:1.75rem;max-width:100%;padding:0 10px 0 8px;border:1px solid var(--border);border-radius:calc(var(--radius) * .8);background:var(--card);font-size:.75rem;line-height:1;color:var(--foreground)}
+.v06-att b{font-weight:500;white-space:nowrap}
+.v06-att span{min-width:0;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-att svg{flex:none;color:var(--muted-foreground)}
+.v06-note{font-size:.8125rem;color:var(--muted-foreground)}
+
+/* ---- tool steps (Marker) ---- */
+.v06-steps{display:flex;flex-direction:column;gap:2px}
+.v06-step-rows{display:flex;flex-direction:column;gap:2px}
+.v06-step-rows[hidden]{display:none}
+.v06-step{display:grid;grid-template-columns:1rem minmax(0,1fr) auto 1rem;align-items:center;column-gap:8px;width:100%;min-height:1.75rem;margin:0;padding:0;border:0;background:none;font:inherit;font-size:.8125rem;line-height:1.25rem;color:var(--muted-foreground);text-align:left;border-radius:6px;cursor:pointer}
+.v06-step:hover{color:var(--foreground)}
+.v06-step:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.v06-step svg{width:1rem;height:1rem}
+.v06-step-label{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-step-s{font-size:.75rem;font-variant-numeric:tabular-nums;color:var(--muted-foreground)}
+.v06-step-chev{transition:transform .2s ease-out}
+.v06-step[aria-expanded=true] .v06-step-chev{transform:rotate(90deg)}
+.v06-step-detail{padding:0 0 4px 1.5rem;font-size:.8125rem;line-height:1.25rem;color:var(--muted-foreground)}
+.v06-step-detail[hidden]{display:none}
+.v06-step-item[data-status=running] .v06-step-label{color:var(--foreground)}
+.v06-shimmer{color:transparent;background:linear-gradient(90deg,var(--muted-foreground) 0%,var(--foreground) 45%,var(--muted-foreground) 70%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:v06-shimmer 1.8s linear infinite}
+@keyframes v06-shimmer{to{background-position:-200% 0}}
+.v06-spin{animation:v06-spin .9s linear infinite}
+@keyframes v06-spin{to{transform:rotate(360deg)}}
+
+/* ---- objects: changes, leads, cards ---- */
+.v06-chips{display:flex;flex-wrap:wrap;gap:6px}
+.v06-diff{display:flex;flex-direction:column;border-top:1px solid var(--border)}
+.v06-diff-row{position:relative;display:grid;gap:2px;width:calc(100% + 16px);margin:0 -8px;padding:8px;border:0;border-radius:calc(var(--radius) * .8);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.v06-diff-row::after{content:"";position:absolute;left:8px;right:8px;bottom:0;border-bottom:1px solid var(--border)}
+.v06-diff-row:hover{background:var(--muted)}
+.v06-diff-row:focus-visible{outline:2px solid var(--ring);outline-offset:-2px}
+.v06-diff-k{font-size:.75rem;color:var(--muted-foreground)}
+.v06-diff-after{font-size:.875rem;line-height:1.375}
+.v06-diff-before{font-size:.8125rem;line-height:1.375;color:var(--muted-foreground);text-decoration:line-through}
+.v06-diff[data-undone] .v06-diff-after{color:var(--muted-foreground);text-decoration:line-through}
+.v06-diff[data-undone] .v06-diff-before{color:var(--foreground);text-decoration:none}
+.v06-foot{display:flex;align-items:center;gap:10px;min-height:1.5rem;font-size:.75rem;color:var(--muted-foreground)}
+
+.v06-leads{display:flex;flex-direction:column;border-top:1px solid var(--border)}
+.v06-lead{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:6px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:.8125rem;line-height:1.25rem}
+.v06-lead-who{font-size:.875rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-lead-who span{font-weight:400;color:var(--muted-foreground)}
+.v06-lead-what{color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-lead-n{font-size:.75rem;font-variant-numeric:tabular-nums;color:var(--muted-foreground);text-align:right;white-space:nowrap}
+.v06-lead-act{justify-self:end}
+
+.v06-card{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);font-size:.875rem;line-height:1.375}
+.v06-card h3{margin:0;font-size:.875rem;font-weight:500;line-height:1.375}
+.v06-card p{margin:0;color:var(--muted-foreground)}
+.v06-facts{display:grid;gap:2px;margin:0;padding:0;list-style:none;font-size:.8125rem;color:var(--foreground)}
+.v06-card-actions{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}
+
+.v06-page{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+.v06-page-ic{display:grid;place-items:center;width:2rem;height:2rem;border-radius:calc(var(--radius) * .8);background:var(--muted);color:var(--foreground)}
+.v06-page-text{display:grid;min-width:0}
+.v06-page-name{font-size:.875rem;font-weight:500;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-page-meta{font-size:.75rem;line-height:1.25;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-page-actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px}
+
+/* ---- threads list ---- */
+.v06-threads{flex:1;min-height:0;overflow-y:auto;padding:4px 8px;display:flex;flex-direction:column;gap:2px}
+.v06-threads[hidden]{display:none}
+.v06-thread-row{display:grid;grid-template-columns:1rem minmax(0,1fr);column-gap:10px;align-items:center;padding:8px;border:0;border-radius:calc(var(--radius) * .8);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.v06-thread-row:hover{background:var(--muted)}
+.v06-thread-row:focus-visible{outline:2px solid var(--ring);outline-offset:-2px}
+.v06-thread-row svg{color:var(--muted-foreground)}
+.v06-thread-text{display:grid;min-width:0}
+.v06-thread-title{font-size:.875rem;line-height:1.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-thread-row[aria-current] .v06-thread-title{font-weight:500}
+.v06-thread-meta{font-size:.75rem;line-height:1rem;color:var(--muted-foreground)}
+
+/* ---- composer ---- */
+.v06-composer{flex:none;display:grid;gap:10px;padding:0 16px 16px}
+.v06-sugg{display:flex;flex-wrap:wrap;gap:6px}
+.v06-box{display:grid;border:1px solid var(--input);border-radius:var(--radius);background:var(--card);transition:border-color .15s ease-out,box-shadow .15s ease-out}
+.v06-box:focus-within{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 45%,transparent)}
+.v06-box[data-drop]{border-color:var(--ring)}
+.v06-ctx{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px 0}
+.v06-ctx:empty{display:none}
+.v06-tag{display:inline-flex;align-items:center;gap:6px;height:1.5rem;max-width:100%;min-width:0;padding:0 4px 0 8px;border:1px solid var(--border);border-radius:calc(var(--radius) * .8);background:var(--sidebar);font-size:.75rem;line-height:1}
+.v06-tag svg{flex:none;width:.875rem;height:.875rem;color:var(--muted-foreground)}
+.v06-tag-label{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v06-tag-label span{color:var(--muted-foreground)}
+.v06-tag-x{display:grid;place-items:center;flex:none;width:1.125rem;height:1.125rem;border:0;border-radius:4px;background:none;color:var(--muted-foreground);cursor:pointer}
+.v06-tag-x:hover{background:var(--muted);color:var(--foreground)}
+.v06-tag-x:focus-visible{outline:2px solid var(--ring);outline-offset:1px}
+.v06-tag-x svg{width:.75rem;height:.75rem;color:inherit}
+.v06-input{min-height:3.25rem;max-height:9.5rem;overflow-y:auto;padding:10px 12px 2px;font-size:.875rem;line-height:1.5rem;white-space:pre-wrap;overflow-wrap:anywhere;outline:none}
+.v06-input:empty::before{content:attr(data-placeholder);color:var(--muted-foreground);pointer-events:none}
+.v06-input .v06-att{height:1.5rem;margin:0 2px 2px 0;vertical-align:middle;cursor:default}
+.v06-bar{display:flex;align-items:center;gap:4px;padding:4px 8px 8px}
+.v06-spacer{flex:1}
+.v06-send{width:2rem;padding:0}
+.v06-i14{width:.875rem;height:.875rem}
+.v06-i20{width:1.25rem;height:1.25rem}
+.v06-kbd{margin-left:auto;font-size:.75rem;color:var(--muted-foreground)}
+[data-collapsible="icon"] .v06-kbd{display:none}
+.v06-fixed{min-width:6.5rem}
+
+/* ---- canvas ties ---- */
+.v06-hint{outline:2px solid color-mix(in oklab,var(--ring) 40%,transparent);outline-offset:6px;border-radius:8px}
+.v06-flash{outline:2px solid var(--ring);outline-offset:6px;border-radius:8px;transition:outline-color .4s ease-out}
+.v06-flash[data-fade]{outline-color:transparent}
+.v06-sk{display:block;height:.8em;border-radius:6px;background:var(--jp-muted)}
+.v06-sk + .v06-sk{margin-top:.4em}
+.v06-sk-media{position:relative;display:grid;place-items:center;aspect-ratio:16/9;border-radius:var(--jp-radius);background:var(--jp-muted);color:var(--jp-section-plain-muted)}
+.v06-sk-media span{position:absolute;left:16px;bottom:14px;font:500 13px/1.2 var(--font-sans)}
+.v06-sk-pill{display:inline-block;width:9rem;height:2.75rem;border-radius:var(--jp-radius);background:var(--jp-muted)}
+.v06-sk-box{aspect-ratio:4/3;border-radius:var(--jp-radius);background:var(--jp-muted)}
+
+/* ---- phone: the assistant is a full-screen view ---- */
+@media (max-width:767px){
+  .v06-panel{position:fixed;inset:0;width:auto;height:100dvh;border-left:0;z-index:40}
+  .v06-grip{display:none}
+  .v06-bubble{max-width:90%}
+}
+@media (prefers-reduced-motion:reduce){
+  .v06-spin,.v06-shimmer{animation:none}
+  .v06-shimmer{color:var(--foreground);background:none}
+  .v06-box,.v06-step-chev,.v06-flash,.v06-grip::after{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="app" data-part="app"></div>
+<script>
+(function () {
+  const F = window.KIT_FIXTURES;
+  const C = Kit.copy;
+  const I = Kit.icon;
+
+  // Strings this direction needs that the kit lacks. Kept short.
+  const T = {
+    entry: 'Ask Clarity',
+    shortcut: '⌘J',
+    draft: 'Draft',
+    live: 'Live',
+    today: 'Today',
+    homeName: 'Home',
+    watched: (p) => `${p} watched`,
+    draftFollowUp: 'Draft a follow-up',
+    followUpFor: (name) => `Draft a follow-up for ${name}.`,
+    redo: 'Redo',
+    undone: 'Undone',
+    notPublished: 'Not published',
+    copied: 'Copied',
+    removeContext: 'Remove context',
+    removeAttachment: 'Remove attachment',
+    resize: 'Resize panel',
+    message: 'Message',
+    pastedChars: (n) => `${n.toLocaleString('en-US')} characters`,
+  };
+
+  // The app's own button classes, copied from its DOM so the chat matches the product.
+  const BASE = "group/button inline-flex shrink-0 items-center justify-center border text-sm font-medium whitespace-nowrap transition-all outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:disabled:opacity-100 [&_svg]:pointer-events-none [&_svg]:shrink-0 data-disabled:pointer-events-none data-disabled:opacity-50 motion-reduce:transition-none";
+  const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid";
+  const CLS = {
+    outline: `${BASE} rounded-lg [&_svg:not([class*='size-'])]:size-4 h-8 gap-1.5 px-2.5 border-border bg-card hover:bg-muted aria-expanded:bg-(--btn-panel-open) ${FOCUS} bg-clip-border text-foreground`,
+    outlineLg: `${BASE} rounded-lg [&_svg:not([class*='size-'])]:size-4 h-10 gap-1.5 px-4 border-border bg-card hover:bg-muted aria-expanded:bg-(--btn-panel-open) ${FOCUS} bg-clip-border text-foreground`,
+    primary: `${BASE} rounded-lg [&_svg:not([class*='size-'])]:size-4 text-primary-foreground h-8 gap-1.5 px-2.5 ${FOCUS} border-(--btn-edge) bg-(image:--btn-gradient) bg-clip-border hover:bg-(image:--btn-gradient-lift)`,
+    ghostIcon: `${BASE} rounded-lg bg-clip-padding [&_svg:not([class*='size-'])]:size-4 border-transparent size-8 hover:bg-primary/10 hover:text-foreground aria-expanded:bg-primary/10 aria-expanded:text-foreground dark:hover:bg-primary/20 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 text-muted-foreground`,
+    xs: `${BASE} h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs [&_svg:not([class*='size-'])]:size-3 border-border bg-card hover:bg-muted ${FOCUS} bg-clip-border text-foreground`,
+  };
+
+  const SCREENS = { empty: 1, working: 1, review: 1, approve: 1, home: 1 };
+  const state = { open: true, width: 400, screen: 'empty', streaming: false };
+  const app = document.getElementById('app');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const phone = () => matchMedia('(max-width: 767px)').matches;
+
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function el(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
+  function secs(n) { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? String(r) : r.toFixed(1); }
+
+  // ------------------------------------------------------------ render
+  function render() {
+    const screen = SCREENS[location.hash.slice(1)] ? location.hash.slice(1) : 'empty';
+    state.screen = screen;
+    state.streaming = false;
+    state.entry = state.headerBtn = state.homeBtn = null;
+    const conv = F.conversation[screen];
+    const refs = screen === 'home' ? Kit.home(app) : Kit.editor(app, { page: conv.page || 'blank', popover: false });
+    state.refs = refs;
+    injectNav(refs);
+    if (screen === 'home') injectHomeEntry(refs); else adoptHeaderButton(refs);
+    if (screen === 'working') skeleton(refs);
+    const panel = buildPanel(screen, conv, refs);
+    (app.querySelector('[data-slot="sidebar-wrapper"]') || app).appendChild(panel);
+    if (new URLSearchParams(location.search).get('labopen') === '0') state.open = false;
+    setOpen(state.open, false);
+    pinScroller();
+    if (state.open && (screen === 'empty' || screen === 'home')) focusComposer(true);
+  }
+
+  // MessageScroller behaviour: stay at the latest turn unless the rep scrolled up.
+  function scrollBottom() { state.scroller.scrollTop = state.scroller.scrollHeight; }
+  function pinScroller() {
+    const s = state.scroller;
+    state.pinned = true;
+    scrollBottom();
+    s.addEventListener('scroll', () => { state.pinned = s.scrollTop + s.clientHeight >= s.scrollHeight - 8; });
+    if (window.ResizeObserver) new ResizeObserver(() => { if (state.pinned) scrollBottom(); }).observe(state.thread);
+    if (document.fonts) document.fonts.ready.then(() => { if (state.pinned) scrollBottom(); });
+  }
+
+  // "Ask Clarity" above Home and Leads, built from the sidebar's own menu button.
+  function injectNav(refs) {
+    const menu = refs.sidebar && refs.sidebar.querySelector('[data-slot="sidebar-menu"]');
+    if (!menu) return;
+    const item = menu.querySelector('[data-slot="sidebar-menu-item"]');
+    const a = item.querySelector('[data-slot="sidebar-menu-button"]');
+    const li = item.cloneNode(false);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = a.className;
+    b.setAttribute('data-slot', 'sidebar-menu-button');
+    b.setAttribute('data-active', 'false');
+    b.setAttribute('aria-keyshortcuts', 'Meta+J');
+    b.title = `${T.entry} (${T.shortcut})`;
+    b.innerHTML = `${I('sparkles', 'size-4')}<span>${T.entry}</span><span class="v06-kbd">${T.shortcut}</span>`;
+    b.addEventListener('click', () => togglePanel());
+    li.appendChild(b);
+    menu.prepend(li);
+    state.entry = b;
+  }
+
+  // In the editor, today's Write page button is the same entry.
+  function adoptHeaderButton(refs) {
+    const b = refs.aiButton;
+    if (!b) return;
+    const label = b.querySelector('span');
+    if (label) label.textContent = T.entry;
+    b.setAttribute('aria-keyshortcuts', 'Meta+J');
+    b.title = `${T.entry} (${T.shortcut})`;
+    b.addEventListener('click', () => togglePanel());
+    state.headerBtn = b;
+  }
+
+  // On a phone the sidebar is hidden, so Home gets the entry among its header actions.
+  function injectHomeEntry(refs) {
+    const group = refs.actions && refs.actions.firstElementChild;
+    if (!group) return;
+    const b = el(`<button type="button" data-button-variant="outline" class="${CLS.outlineLg} md:hidden" aria-keyshortcuts="Meta+J">${I('sparkles', 'size-4')}<span>${T.entry}</span></button>`);
+    b.addEventListener('click', () => togglePanel());
+    group.appendChild(b);
+    state.homeBtn = b;
+  }
+
+  function togglePanel() { setOpen(!state.open, true); }
+  function setOpen(open, focus) {
+    state.open = open;
+    state.panel.hidden = !open;
+    [state.entry, state.headerBtn, state.homeBtn].forEach((b) => b && b.setAttribute('aria-expanded', String(open)));
+    if (open && focus) focusComposer(true);
+    if (!open && focus) (state.headerBtn || state.homeBtn || state.entry || document.body).focus();
+  }
+
+  // ------------------------------------------------------------ the panel
+  function buildPanel(screen, conv, refs) {
+    const panel = el(`<aside class="v06-panel" data-part="chat" data-slot="assistant-panel" role="complementary" aria-label="${T.entry}" style="--v06-w:${state.width}px">
+      <div class="v06-grip" role="separator" aria-orientation="vertical" aria-label="${T.resize}" aria-valuemin="320" aria-valuemax="600" aria-valuenow="${state.width}" tabindex="0"></div>
+      <header class="v06-head">
+        <h2 class="v06-title">${T.entry}</h2>
+        <button type="button" data-button-variant="ghost" class="${CLS.ghostIcon}" data-action="threads" aria-expanded="false" aria-label="${C.history}" title="${C.history}">${I('history')}</button>
+        <button type="button" data-button-variant="ghost" class="${CLS.ghostIcon}" data-action="new" aria-label="${C.newChat}" title="${C.newChat}">${I('plus')}</button>
+        <button type="button" data-button-variant="ghost" class="${CLS.ghostIcon}" data-action="close" aria-label="${C.close}" title="${C.close}">${I('x')}</button>
+      </header>
+      <div class="v06-threads" hidden></div>
+      <div class="v06-scroller" data-slot="message-scroller"><div class="v06-thread" aria-live="polite"></div></div>
+      <form class="v06-composer" data-slot="composer" novalidate></form>
+    </aside>`);
+    state.panel = panel;
+    state.scroller = panel.querySelector('.v06-scroller');
+    state.thread = panel.querySelector('.v06-thread');
+    state.threads = panel.querySelector('.v06-threads');
+    state.form = panel.querySelector('.v06-composer');
+
+    const messages = conv.messages.slice();
+    const typed = screen === 'home' && messages.length && messages[messages.length - 1].role === 'user' ? messages.pop() : null;
+    messages.forEach((m, i) => state.thread.appendChild(m.role === 'user' ? userMsg(m) : assistantMsg(m, i === messages.length - 1)));
+    if (!messages.length && screen !== 'home') state.thread.appendChild(el(`<p class="v06-note" style="margin:auto 0 0">${esc(C.disclaimer)}</p>`));
+    renderComposer(screen, conv, refs, typed);
+
+    panel.querySelector('[data-action="close"]').addEventListener('click', () => setOpen(false, true));
+    panel.querySelector('[data-action="new"]').addEventListener('click', () => {
+      state.thread.innerHTML = '';
+      showThreads(false);
+      stopStreaming();
+      focusComposer(true);
+    });
+    panel.querySelector('[data-action="threads"]').addEventListener('click', (e) => showThreads(e.currentTarget.getAttribute('aria-expanded') !== 'true'));
+    panel.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.defaultPrevented) { e.preventDefault(); if (!state.threads.hidden) showThreads(false); else setOpen(false, true); } });
+    resizable(panel);
+    return panel;
+  }
+
+  function showThreads(on) {
+    const btn = state.panel.querySelector('[data-action="threads"]');
+    btn.setAttribute('aria-expanded', String(on));
+    state.threads.hidden = !on;
+    state.scroller.hidden = on;
+    state.form.hidden = on;
+    if (!on) return;
+    const current = state.screen === 'home' ? 'home' : 'review';
+    const rows = [
+      { id: 'review', icon: 'page', title: F.conversation.review.messages[0].text, where: F.page.name },
+      { id: 'home', icon: 'users', title: F.conversation.home.messages[0].text, where: T.homeName },
+    ];
+    state.threads.innerHTML = '';
+    rows.forEach((r) => {
+      const b = el(`<button type="button" class="v06-thread-row" ${r.id === current ? 'aria-current="true"' : ''}>${I(r.icon)}<span class="v06-thread-text"><span class="v06-thread-title">${esc(r.title)}</span><span class="v06-thread-meta">${esc(r.where)} · ${T.today}</span></span></button>`);
+      b.addEventListener('click', () => { if (r.id === current) showThreads(false); else location.hash = '#' + r.id; });
+      state.threads.appendChild(b);
+    });
+    state.threads.firstElementChild.focus();
+  }
+
+  function resizable(panel) {
+    const grip = panel.querySelector('.v06-grip');
+    const setWidth = (w) => {
+      w = Math.max(320, Math.min(600, Math.round(w)));
+      state.width = w;
+      panel.style.setProperty('--v06-w', w + 'px');
+      grip.setAttribute('aria-valuenow', w);
+    };
+    grip.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      grip.setPointerCapture(e.pointerId);
+      grip.setAttribute('data-active', '');
+      document.body.setAttribute('data-v06-resizing', '');
+      const x0 = e.clientX, w0 = state.width;
+      const move = (ev) => setWidth(w0 + (x0 - ev.clientX));
+      const up = () => { grip.removeEventListener('pointermove', move); grip.removeAttribute('data-active'); document.body.removeAttribute('data-v06-resizing'); };
+      grip.addEventListener('pointermove', move);
+      grip.addEventListener('pointerup', up, { once: true });
+      grip.addEventListener('pointercancel', up, { once: true });
+    });
+    grip.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); setWidth(state.width + 16); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); setWidth(state.width - 16); }
+    });
+  }
+
+  // ------------------------------------------------------------ messages
+  function attChip(a) {
+    return `<span class="v06-att" data-slot="attachment" data-kind="${esc(a.kind || 'file')}" contenteditable="false">${I(a.kind === 'text' ? 'file' : 'paperclip', 'v06-i14')}<b>${esc(a.label)}</b>${a.detail ? `<span>${esc(a.detail)}</span>` : ''}</span>`;
+  }
+
+  function userMsg(m) {
+    return el(`<div class="v06-msg" data-slot="message" data-align="end">
+      <div class="v06-bubble" data-slot="bubble" data-variant="outline" data-align="end">${esc(m.text)}</div>
+      ${(m.attachments || []).map(attChip).join('')}
+    </div>`);
+  }
+
+  function assistantMsg(m, last) {
+    const root = el('<div class="v06-msg" data-slot="message" data-align="start"></div>');
+    if (m.steps && m.steps.length) root.appendChild(renderSteps(m.steps));
+    if (m.text) root.appendChild(el(`<div class="v06-bubble" data-slot="bubble" data-variant="ghost">${esc(m.text)}</div>`));
+    if (m.changes) root.appendChild(renderChanges(m.changes));
+    if (m.stats) root.appendChild(renderLeads(m.stats));
+    if (m.approval) root.appendChild(renderApproval(m));
+    if (m.undo && last) root.appendChild(renderUndo(m, root));
+    if (m.streaming) state.streaming = true;
+    return root;
+  }
+
+  function stepRow(s) {
+    const done = s.status === 'done';
+    const live = s.result && s.result.generation && s.result.generation.step;
+    const detail = [live, s.detail].filter(Boolean).join(' · ');
+    const item = el(`<div class="v06-step-item" data-slot="marker" data-status="${esc(s.status)}" ${done ? '' : 'role="status"'}>
+      <button type="button" class="v06-step" aria-expanded="${done ? 'false' : 'true'}">
+        ${done ? I('check') : I('loader', 'v06-spin')}
+        <span class="v06-step-label ${done ? '' : 'v06-shimmer'}">${esc(C.toolLabel(s.tool, s.status))}</span>
+        <span class="v06-step-s">${secs(s.seconds)}s</span>
+        ${I('chevronRight', 'v06-step-chev')}
+      </button>
+      <div class="v06-step-detail" ${done ? 'hidden' : ''}>${esc(detail)}</div>
+    </div>`);
+    const btn = item.firstElementChild, det = item.lastElementChild;
+    btn.addEventListener('click', () => { const o = btn.getAttribute('aria-expanded') !== 'true'; btn.setAttribute('aria-expanded', String(o)); det.hidden = !o; });
+    return item;
+  }
+
+  function renderSteps(steps) {
+    const wrap = el('<div class="v06-steps"></div>');
+    const rows = el('<div class="v06-step-rows"></div>');
+    steps.forEach((s) => rows.appendChild(stepRow(s)));
+    const running = steps.some((s) => s.status !== 'done');
+    if (running || steps.length === 1) { wrap.appendChild(rows); return wrap; }
+    const total = steps.reduce((a, s) => a + s.seconds, 0);
+    const sum = el(`<button type="button" class="v06-step" data-slot="marker" aria-expanded="false">${I('check')}<span class="v06-step-label">${esc(C.stepsDone(steps.length, secs(total)))}</span><span class="v06-step-s"></span>${I('chevronRight', 'v06-step-chev')}</button>`);
+    rows.hidden = true;
+    sum.addEventListener('click', () => { const o = sum.getAttribute('aria-expanded') !== 'true'; sum.setAttribute('aria-expanded', String(o)); rows.hidden = !o; });
+    wrap.append(sum, rows);
+    return wrap;
+  }
+
+  // Changes tie to the canvas: hover hints the block, click scrolls to it.
+  function tie(btn, block) {
+    btn.addEventListener('mouseenter', () => { const b = blockEl(block); if (b) b.classList.add('v06-hint'); });
+    btn.addEventListener('mouseleave', () => { const b = blockEl(block); if (b) b.classList.remove('v06-hint'); });
+    btn.addEventListener('click', () => focusBlock(block));
+  }
+  function blockEl(name) { const b = state.refs.blocks[name]; return b && b.isConnected ? b : null; }
+  function focusBlock(name) {
+    const b = blockEl(name);
+    if (!b) return;
+    if (phone()) setOpen(false, false);
+    b.classList.remove('v06-hint');
+    b.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+    b.classList.add('v06-flash');
+    b.removeAttribute('data-fade');
+    clearTimeout(b._v06);
+    b._v06 = setTimeout(() => { b.setAttribute('data-fade', ''); setTimeout(() => b.classList.remove('v06-flash'), 400); }, 1400);
+  }
+
+  function renderChanges(changes) {
+    const diff = changes.some((c) => c.before || c.after);
+    if (!diff) {
+      const wrap = el('<div class="v06-chips" role="list"></div>');
+      changes.forEach((c) => {
+        const b = el(`<button type="button" role="listitem" data-button-variant="outline" class="${CLS.xs}" data-block="${esc(c.block)}">${esc(c.label)}</button>`);
+        tie(b, c.block);
+        wrap.appendChild(b);
+      });
+      return wrap;
+    }
+    const wrap = el('<div class="v06-diff" role="list"></div>');
+    changes.forEach((c) => {
+      const b = el(`<button type="button" role="listitem" class="v06-diff-row" data-block="${esc(c.block)}">
+        <span class="v06-diff-k">${esc(c.label)}</span>
+        ${c.after ? `<span class="v06-diff-after">${esc(c.after)}</span>` : ''}
+        ${c.before ? `<span class="v06-diff-before">${esc(c.before)}</span>` : ''}
+      </button>`);
+      tie(b, c.block);
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+
+  function renderUndo(m, root) {
+    const foot = el(`<div class="v06-foot" data-slot="message-footer"><button type="button" data-button-variant="outline" class="${CLS.xs}">${I('undo')}<span>${C.undo}</span></button><span class="v06-note"></span></div>`);
+    const btn = foot.firstElementChild, note = foot.lastElementChild;
+    let undone = false, kept = null, parent = null, next = null;
+    btn.addEventListener('click', () => {
+      undone = !undone;
+      const title = m.changes.find((c) => c.block === 'title');
+      const t = blockEl('title');
+      if (t && title) t.textContent = undone ? title.before : title.after;
+      const added = blockEl('faq-added');
+      if (undone && added) { kept = added; parent = added.parentNode; next = added.nextSibling; added.remove(); }
+      else if (!undone && kept && parent) parent.insertBefore(kept, next);
+      root.querySelector('.v06-diff').toggleAttribute('data-undone', undone);
+      btn.innerHTML = `${I('undo')}<span>${undone ? T.redo : C.undo}</span>`;
+      note.textContent = undone ? T.undone : '';
+      if (t) focusBlock('title');
+    });
+    return foot;
+  }
+
+  function renderLeads(stats) {
+    const wrap = el('<div class="v06-leads" role="list"></div>');
+    stats.forEach((s) => {
+      const row = el(`<div class="v06-lead" role="listitem">
+        <span class="v06-lead-who">${s.lead ? `${esc(s.lead)} <span>· ${esc(s.page)}</span>` : esc(s.page)}</span>
+        <span class="v06-lead-n">${s.views ? esc(T.watched(s.watched)) : ''}</span>
+        <span class="v06-lead-what">${esc(s.action)}${s.when ? ' · ' + esc(s.when) : ''}</span>
+        ${s.lead ? `<button type="button" data-button-variant="outline" class="${CLS.xs} v06-lead-act">${T.draftFollowUp}</button>` : '<span></span>'}
+      </div>`);
+      const b = row.querySelector('button');
+      if (b) b.addEventListener('click', () => {
+        addTag({ icon: 'users', label: s.lead, sub: s.page, kind: 'context' });
+        if (!state.input.textContent.trim()) state.input.textContent = T.followUpFor(s.lead);
+        focusComposer(true);
+      });
+      wrap.appendChild(row);
+    });
+    return wrap;
+  }
+
+  function pageCard({ name, meta, link }) {
+    const card = el(`<div class="v06-page" data-slot="bubble" data-variant="outline">
+      <span class="v06-page-ic">${I('globe')}</span>
+      <span class="v06-page-text"><span class="v06-page-name">${esc(name)}</span><span class="v06-page-meta">${esc(meta)}</span></span>
+      <span class="v06-page-actions">
+        <button type="button" data-button-variant="outline" class="${CLS.outline} v06-fixed">${I('copy')}<span>${C.copyLink}</span></button>
+        <a data-button-variant="outline" class="${CLS.outline}" href="https://${esc(link)}" target="_blank" rel="noopener">${I('link')}<span>${C.open}</span></a>
+      </span>
+    </div>`);
+    const copy = card.querySelector('button');
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText('https://' + link); } catch (e) { /* clipboard blocked: the link stays visible */ }
+      copy.lastElementChild.textContent = T.copied;
+      clearTimeout(copy._v06);
+      copy._v06 = setTimeout(() => { copy.lastElementChild.textContent = C.copyLink; }, 1600);
+    });
+    return card;
+  }
+
+  function renderApproval(m) {
+    const a = m.approval;
+    const card = el(`<div class="v06-card" data-slot="bubble" data-variant="outline" role="group" aria-labelledby="v06-approval-title">
+      <h3 id="v06-approval-title">${esc(a.title)}</h3>
+      <p>${esc(a.summary)}</p>
+      <ul class="v06-facts">${a.facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>
+      <div class="v06-card-actions"><button type="button" data-button-variant="default" class="${CLS.primary}" data-act="approve">${C.approve}</button><button type="button" data-button-variant="outline" class="${CLS.outline}" data-act="deny">${C.deny}</button></div>
+    </div>`);
+    card.querySelector('[data-act="approve"]').addEventListener('click', () => {
+      const done = document.createDocumentFragment();
+      done.appendChild(el(`<div class="v06-bubble" data-slot="bubble" data-variant="ghost">${esc(m.after.text)}</div>`));
+      done.appendChild(pageCard({ name: F.page.name, meta: `${T.live} · ${m.after.link}`, link: m.after.link }));
+      card.replaceWith(done);
+      scrollBottom();
+    });
+    card.querySelector('[data-act="deny"]').addEventListener('click', () => {
+      card.replaceWith(el(`<div class="v06-step-item" data-slot="marker"><div class="v06-step" style="cursor:default">${I('x')}<span class="v06-step-label">${T.notPublished}</span></div></div>`));
+    });
+    return card;
+  }
+
+  // ------------------------------------------------------------ composer
+  function renderComposer(screen, conv, refs, typed) {
+    const form = state.form;
+    const editor = screen !== 'home';
+    const ph = screen === 'home' ? C.composerPlaceholderHome : conv.page === 'blank' ? C.composerPlaceholderNew : C.composerPlaceholderEdit;
+    form.innerHTML = '';
+    if (conv.suggestions && conv.suggestions.length) {
+      const row = el('<div class="v06-sugg"></div>');
+      conv.suggestions.forEach((s) => {
+        const b = el(`<button type="button" data-button-variant="outline" class="${CLS.xs}">${esc(s)}</button>`);
+        b.addEventListener('click', () => { state.input.textContent = s + ': '; focusComposer(true); });
+        row.appendChild(b);
+      });
+      form.appendChild(row);
+    }
+    const box = el(`<div class="v06-box">
+      <div class="v06-ctx"></div>
+      <div class="v06-input" role="textbox" contenteditable="true" aria-multiline="true" aria-label="${T.message}" data-placeholder="${esc(ph)}"></div>
+      <div class="v06-bar">
+        <button type="button" data-button-variant="ghost" class="${CLS.ghostIcon}" data-action="attach" aria-label="${C.attach}" title="${C.attach}">${I('paperclip')}</button>
+        <input type="file" multiple hidden>
+        <span class="v06-spacer"></span>
+        <button type="submit" data-button-variant="default" class="${CLS.primary} v06-send" aria-label="${C.send}" title="${C.send} (⌘↵)">${I('send')}</button>
+      </div>
+    </div>`);
+    form.appendChild(box);
+    state.box = box;
+    state.ctx = box.querySelector('.v06-ctx');
+    state.input = box.querySelector('.v06-input');
+    state.send = box.querySelector('.v06-send');
+    const file = box.querySelector('input[type=file]');
+
+    if (editor) {
+      const titleInput = refs.header && refs.header.querySelector('[data-slot="page-title"] input');
+      const name = conv.page === 'blank' ? (titleInput ? titleInput.placeholder : F.page.name) : F.page.name;
+      addTag({ icon: 'page', label: name, sub: T.draft, kind: 'context' });
+    }
+    if (typed) state.input.textContent = typed.text;
+
+    const input = state.input;
+    input.addEventListener('input', () => { if (!input.textContent.trim() && !input.querySelector('.v06-att')) input.innerHTML = ''; updateSend(); });
+    input.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); send(); } });
+    input.addEventListener('paste', (e) => {
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      if (!text) return;
+      e.preventDefault();
+      if (text.length > 400) insertAtCaret(el(attChip({ kind: 'text', label: F.attachments[0].label, detail: T.pastedChars(text.length) })));
+      else insertAtCaret(document.createTextNode(text));
+      updateSend();
+    });
+    box.addEventListener('dragover', (e) => { e.preventDefault(); box.setAttribute('data-drop', ''); });
+    box.addEventListener('dragleave', () => box.removeAttribute('data-drop'));
+    box.addEventListener('drop', (e) => { e.preventDefault(); box.removeAttribute('data-drop'); addFiles(e.dataTransfer.files); });
+    box.querySelector('[data-action="attach"]').addEventListener('click', () => file.click());
+    file.addEventListener('change', () => { addFiles(file.files); file.value = ''; });
+    form.addEventListener('submit', (e) => { e.preventDefault(); if (state.streaming) stopStreaming(); else send(); });
+    updateSend();
+  }
+
+  function addTag({ icon, label, sub, kind }) {
+    const tag = el(`<span class="v06-tag" data-kind="${esc(kind)}" ${kind === 'attachment' ? 'data-slot="attachment"' : 'data-slot="context"'}>${I(icon)}<span class="v06-tag-label">${esc(label)}${sub ? ` <span>· ${esc(sub)}</span>` : ''}</span><button type="button" class="v06-tag-x" aria-label="${kind === 'attachment' ? T.removeAttachment : T.removeContext}">${I('x')}</button></span>`);
+    tag.querySelector('button').addEventListener('click', () => { tag.remove(); updateSend(); focusComposer(false); });
+    state.ctx.appendChild(tag);
+    updateSend();
+  }
+  function addFiles(files) {
+    Array.from(files || []).forEach((f) => addTag({ icon: 'paperclip', label: f.name, sub: `${Math.max(1, Math.round(f.size / 1024))} kB`, kind: 'attachment' }));
+    focusComposer(false);
+  }
+  function insertAtCaret(node) {
+    const input = state.input;
+    input.focus();
+    const sel = getSelection();
+    if (!sel.rangeCount || !input.contains(sel.anchorNode)) { input.appendChild(node); return; }
+    const r = sel.getRangeAt(0);
+    r.deleteContents();
+    r.insertNode(node);
+    r.setStartAfter(node);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+  function composerHasContent() { return !!(state.input.textContent.trim() || state.input.querySelector('.v06-att') || state.ctx.querySelector('[data-kind="attachment"]')); }
+  function updateSend() {
+    const s = state.send;
+    if (state.streaming) { s.disabled = false; s.innerHTML = I('stop'); s.setAttribute('aria-label', C.stop); s.title = C.stop; return; }
+    s.innerHTML = I('send'); s.setAttribute('aria-label', C.send); s.title = `${C.send} (⌘↵)`;
+    s.disabled = !composerHasContent();
+  }
+  function focusComposer(end) {
+    const input = state.input;
+    if (!input || state.panel.hidden) return;
+    input.focus();
+    if (end && input.lastChild) { const r = document.createRange(); r.selectNodeContents(input); r.collapse(false); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+  }
+
+  function send() {
+    if (!composerHasContent()) return;
+    const atts = [];
+    state.input.querySelectorAll('.v06-att').forEach((a) => { atts.push({ kind: a.dataset.kind, label: a.querySelector('b').textContent, detail: (a.querySelector('span') || {}).textContent || '' }); a.remove(); });
+    state.ctx.querySelectorAll('[data-kind="attachment"]').forEach((t) => { atts.push({ kind: 'file', label: t.querySelector('.v06-tag-label').firstChild.textContent.trim(), detail: (t.querySelector('.v06-tag-label span') || {}).textContent || '' }); t.remove(); });
+    const text = state.input.innerText.replace(/ /g, ' ').trim();
+    state.input.innerHTML = '';
+    state.thread.querySelector('.v06-note[style]')?.remove();
+    state.thread.appendChild(userMsg({ text, attachments: atts }));
+    const thinking = el(`<div class="v06-msg" data-slot="message" data-align="start" data-thinking><div class="v06-step-item" data-slot="marker" data-status="running" role="status"><div class="v06-step" style="cursor:default">${I('loader', 'v06-spin')}<span class="v06-step-label v06-shimmer">${C.thinking}</span></div></div></div>`);
+    state.thread.appendChild(thinking);
+    state.streaming = true;
+    updateSend();
+    scrollBottom();
+  }
+
+  function stopStreaming() {
+    if (!state.streaming) return;
+    state.streaming = false;
+    state.thread.querySelector('[data-thinking]')?.remove();
+    state.thread.querySelectorAll('.v06-step-item[data-status="running"]').forEach((item) => {
+      item.setAttribute('data-status', 'stopped');
+      item.removeAttribute('role');
+      const ic = item.querySelector('svg');
+      if (ic) ic.outerHTML = I('stop');
+      item.querySelector('.v06-step-label')?.classList.remove('v06-shimmer');
+    });
+    updateSend();
+    focusComposer(true);
+  }
+
+  // ------------------------------------------------------------ canvas while writing
+  function skeleton(refs) {
+    const p = refs.preview;
+    if (!p) return;
+    const h1 = p.querySelector('h1');
+    if (h1) { h1.removeAttribute('contenteditable'); h1.innerHTML = '<span class="v06-sk" style="width:76%"></span><span class="v06-sk" style="width:44%"></span>'; }
+    const media = p.querySelector('[data-slot="empty-block-slot"]');
+    if (media) media.outerHTML = `<div class="v06-sk-media" data-journey-media-frame="true">${I('video', 'v06-i20')}<span>${esc(F.video.title)} · ${esc(F.video.duration)}</span></div>`;
+    const cta = p.querySelector('[data-slot="cta-add"]');
+    if (cta) cta.outerHTML = '<span class="v06-sk-pill"></span>';
+    const story = p.querySelector('section[data-section-kind="story"]');
+    if (!story) return;
+    const h2 = story.querySelector('h2'), d = story.querySelector('.rich-text'), g = story.querySelector('[data-slot="ghost-media"]');
+    [h2, d].forEach((n) => { if (!n) return; n.removeAttribute('data-ghost'); n.removeAttribute('role'); n.removeAttribute('tabindex'); n.className = n === d ? 'rich-text' : ''; });
+    if (h2) h2.innerHTML = '<span class="v06-sk" style="width:46%"></span>';
+    if (d) d.innerHTML = '<span class="v06-sk" style="width:100%"></span><span class="v06-sk" style="width:92%"></span><span class="v06-sk" style="width:58%"></span>';
+    if (g) g.outerHTML = '<div class="v06-sk-box"></div>';
+  }
+
+  // ------------------------------------------------------------ boot
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'j') { e.preventDefault(); togglePanel(); }
+  });
+  render();
+  addEventListener('hashchange', render);
+})();
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

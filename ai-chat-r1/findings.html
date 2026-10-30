@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI chat: how it behaves with the real tools</title>
+<style>
+  :root { color-scheme: light dark; --fg: #0f172a; --muted: #64748b; --bg: #fff; --line: #e2e8f0; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e2e8f0; --muted: #94a3b8; --bg: #0b1120; --line: #1e293b; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 36px 0 8px; }
+  p, li { color: var(--fg); }
+  .muted { color: var(--muted); }
+  ul { padding-left: 20px; }
+  li { margin: 6px 0; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 14px; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  td:nth-child(n+2), th:nth-child(n+2) { text-align: right; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+<h1>AI chat: how it behaves with the real tools</h1>
+<p class="muted">30 October 2026. Two agents played the chat model over Clarity's live MCP tools on staging. <a href="./">Back to the design board</a>.</p>
+
+<h2>What was run</h2>
+<p>An Opus agent ran six rep requests through the Clarity staging connector. A Codex agent (gpt-6.1-sol) ran seven more as the e2e test account through a wrapper that logged every call's time and size. Requests went from "make a follow-up page for Anna at Acme" through edits, a video swap, publishing and stats. The test account's publish was approved on the real approval page, and the live link came back through <code>approvals_get</code>.</p>
+
+<h2>Measured</h2>
+<table>
+  <tr><th>Call</th><th>Time</th><th>Answer size</th></tr>
+  <tr><td>Tool schemas sent with every model call (38 tools)</td><td></td><td>32,534 chars</td></tr>
+  <tr><td>pages_generate, waiting for the draft</td><td>10.6 s</td><td>4,430 chars</td></tr>
+  <tr><td>pages_edit</td><td>0.2 to 1.4 s</td><td>1,900 to 2,500 chars</td></tr>
+  <tr><td>pages_get, outline only</td><td>0.1 to 0.2 s</td><td>1,034 chars</td></tr>
+  <tr><td>library_list, 20 items</td><td>0.1 s</td><td>about 30,000 chars</td></tr>
+  <tr><td>library_list, looking for pages to report on</td><td>0.1 s</td><td>52,333 chars</td></tr>
+</table>
+<p>A typical turn took two tool calls and about 2,900 characters of tool answers.</p>
+
+<h2>What works</h2>
+<ul>
+  <li>Edits land on the first try. Multi-change <code>pages_edit</code> calls succeeded using ids from the page outline.</li>
+  <li>Publishing stops for approval, and the approved result carries the share link.</li>
+  <li>The approval page already shows what the in-chat confirm card needs: the page, what goes live, password and expiry.</li>
+</ul>
+
+<h2>What has to change before it ships</h2>
+<ul>
+  <li><strong>Who the chat acts as.</strong> The kernel asks for approval only when the caller is an agent connection. A chat calling as the signed-in user would publish with no confirm. A chat calling as an agent would send the rep to an approve link for their own page. The chat needs its own caller kind whose publish and delete return a card the rep confirms in place.</li>
+  <li><strong>Smaller answers.</strong> Library results carry playback and edit plumbing, page reads return the whole document, and edits return whole blocks with no before values. The chat needs compact library records and edit answers with before and after for the changed fields.</li>
+  <li><strong>Facts before writing.</strong> With no pricing or booking link on hand, the first test wrote no prices and a Book a call button with no link. Agents made up an onboarding time and inferred a name from a URL. The system prompt must ask for missing facts before creating or changing a page, and the generator should get confirmed facts kept apart from instructions.</li>
+  <li><strong>Weekly stats.</strong> "Who opened my pages this week" cannot be answered: stats are lifetime totals per page. It needs a stats tool with a date range.</li>
+  <li><strong>Media in the outline.</strong> The outline does not say which blocks hold a video, so a swap needs the full document.</li>
+  <li><strong>Waiting on generation.</strong> One run followed a fixed "check again in 30 s" hint and saw a 13 s job at 34 s. The chat should hold the call open and show progress.</li>
+</ul>
+</main>
+</body>
+</html>
