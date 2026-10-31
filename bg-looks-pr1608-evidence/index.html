@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PR 1608 evidence: background looks while recording</title>
+<style>body{font:15px/1.45 -apple-system,Inter,sans-serif;max-width:1200px;margin:0 auto;padding:24px;background:#0b0f17;color:#e7ecf3}h1{font-size:22px}h2{font-size:17px;margin-top:28px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.row{grid-template-columns:1fr}}img{width:100%;border-radius:8px}p{color:#8b97ab}a{color:#5b8cff}</style>
+<h1>Background looks while recording, PR #1608 preview</h1>
+<p>Recorded on https://pr-1608.clarity-video.workers.dev at 4cc708a95, 31 October 2026, headless Chromium on an Apple M4 with a talking-head clip as the fake camera and a faked screen share. Left: the live recorder monitor with the look chosen. Right: the finished take, which is the recorded file itself.</p>
+<h2>Slate fill</h2><div class="row"><img src="slate-live.jpg" alt="Recorder monitor with the Slate room look"><img src="slate-recorded.jpg" alt="Recorded take with the Slate look baked in"></div>
+<h2>Cutout over a shared screen (Camera inset layout)</h2><div class="row"><img src="cutout-live.jpg" alt="Recorder monitor with the person cut out over a slide"><img src="cutout-recorded.jpg" alt="Recorded take with the cutout over the slide"></div>
+<h2>Blur</h2><p>This clip's wall is already out of focus, so the blur shows most on the gesturing hand, which the live matte misses and blurs with the room.</p><div class="row"><img src="blur-live.jpg" alt="Recorder monitor with the Blur room look"><img src="blur-recorded.jpg" alt="Recorded take with the Blur look"></div>
+<p>Test footage: frames from <a href="https://commons.wikimedia.org/wiki/File:Ward_Cunningham,_Inventor_of_the_Wiki.webm">Ward Cunningham, Inventor of the Wiki</a>, Wikimedia Commons, CC BY-SA 3.0. These screenshots are shared under the same licence.</p>
