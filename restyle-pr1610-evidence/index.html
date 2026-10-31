@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PR 1610 evidence: restyle a take after recording</title>
+<style>body{font:15px/1.45 -apple-system,Inter,sans-serif;max-width:1100px;margin:0 auto;padding:24px;background:#0b0f17;color:#e7ecf3}h1{font-size:22px}h2{font-size:17px;margin-top:28px}img{width:100%;border-radius:8px}p{color:#8b97ab}a{color:#5b8cff}code{color:#e7ecf3}</style>
+<h1>Restyle a take after recording, PR #1610 preview</h1>
+<p>https://pr-1610.clarity-video.workers.dev at c58edaeca, 31 October 2026, headless Chromium on an Apple M4, talking-head fake camera, faked screen share. A 10 s take recorded as a camera bubble over the screen with the room kept, then restyled to Split with the room replaced by Slate.</p>
+<h2>1. The finish screen, Style tab, right after Stop</h2><p>The plate was attached 3 s after Stop: a 1920x1080 screen cell and a 960x540 camera cell, one recorded cut (bubble).</p><img src="finish-style.jpg" alt="Finish screen with the Style tab open">
+<h2>2. The published restyle, as Mux serves it</h2><p>Apply rendered in the tab in 6 s, uploaded in 2 s, and was live 12 s after Apply. The take's playback id switched and the public share page serves the new one. This frame is Mux's own thumbnail of the new asset: the person cut out on Slate, the screen beside.</p><img src="published.jpg" alt="Published restyle: split layout, person on slate beside the screen">
+<h2>3. The Library card follows</h2><img src="library.jpg" alt="Library card showing the restyled take">
+<h2>4. The Style tab in the Library editor, with Back to original</h2><p>Back to original reverted in 1.5 s; playback returned to the original asset.</p><img src="modal-style.jpg" alt="Library edit modal, Style tab with Apply and Back to original">
+<p>Test footage: frames from <a href="https://commons.wikimedia.org/wiki/File:Ward_Cunningham,_Inventor_of_the_Wiki.webm">Ward Cunningham, Inventor of the Wiki</a>, Wikimedia Commons, CC BY-SA 3.0. These screenshots are shared under the same licence.</p>
