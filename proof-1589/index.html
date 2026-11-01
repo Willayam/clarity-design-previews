@@ -1,0 +1,373 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1589</title><style>body{font:16px system-ui;max-width:900px;margin:32px auto;padding:0 20px;line-height:1.5}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f3f5;padding:16px}h1,h2{line-height:1.2}</style><h1>Proof for PR 1589</h1><p>Independent verification. Head 01ccefa530810d58f7dc1262d027b28628851d35. Mock video events and intercepted fetch calls only.</p><p>Before: a three-second startup reports 2 frozen seconds. After: it reports 0. A 20-second non-start changes from 19 frozen seconds to 15, reported on pagehide.</p><p>Preview: <a href="https://pr-1589.clarity-video.workers.dev/page/4uxp6b">published mock page</a>. HTTP 200, title Fixture: every block, themed, with a mux-player carrying data-video-id. Served HTML line 1368: <code>if (startupWaitingSeconds &lt;= 5) {</code>. Staging serves the mock page with title Fixture: old-app import (2024 Mux), the same video fixture, and no startup grace.</p><p>Authenticated preview doctor passed against the exact head. The served scripts were extracted and replayed in the existing test mock. No browser playback or production telemetry was tested. The initial full served-script run had one unrelated expectation mismatch because the release is the deployed SHA rather than test-release. The focused sampler replay below covers all 14 sampler cases.</p><h2>Merge base, PR tests copied in</h2><pre>
+&gt; clarity-journey-editor@0.1.0 test [verification checkout]/editor
+&gt; vitest run tests/public-page-video-stats-emitter.test.ts
+
+
+ RUN  v4.1.11 [verification checkout]/editor
+
+ ❯ tests/public-page-video-stats-emitter.test.ts (22 tests | 7 failed) 21ms
+     × a three-second startup followed by smooth playback counts no frozen seconds 4ms
+     × a session that never advances reports only the seconds after the startup grace on pagehide 1ms
+     × a startup waiting 5 seconds reports 0 frozen seconds 1ms
+     × a startup waiting 6 seconds reports 1 frozen seconds 0ms
+     × a pause interrupts the continuous startup wait 0ms
+     × a seek interrupts the continuous startup wait 0ms
+     × advancing after the startup grace ends the startup stall before a later freeze 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; a three-second startup followed by smooth playback counts no frozen seconds
+AssertionError: expected { frozen_seconds: 2, …(2) } to deeply equal { frozen_seconds: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 0,
+-   &quot;longest_stall_seconds&quot;: 0,
+-   &quot;stall_count&quot;: 0,
++   &quot;frozen_seconds&quot;: 2,
++   &quot;longest_stall_seconds&quot;: 2,
++   &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/public-page-video-stats-emitter.test.ts:258:33
+    256|     fire(&#x27;window:pagehide&#x27;);
+    257|
+    258|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    259|       frozen_seconds: 0,
+    260|       longest_stall_seconds: 0,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; a session that never advances reports only the seconds after the startup grace on pagehide
+AssertionError: expected { frozen_seconds: 19, …(2) } to deeply equal { frozen_seconds: 15, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 15,
+-   &quot;longest_stall_seconds&quot;: 15,
++   &quot;frozen_seconds&quot;: 19,
++   &quot;longest_stall_seconds&quot;: 19,
+    &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/public-page-video-stats-emitter.test.ts:420:33
+    418|       { event_type: &#x27;progress&#x27;, watched_range: null },
+    419|     ]);
+    420|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    421|       frozen_seconds: 15,
+    422|       longest_stall_seconds: 15,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; a startup waiting 5 seconds reports 0 frozen seconds
+AssertionError: expected { frozen_seconds: 4, …(2) } to deeply equal { frozen_seconds: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 0,
+-   &quot;longest_stall_seconds&quot;: 0,
+-   &quot;stall_count&quot;: 0,
++   &quot;frozen_seconds&quot;: 4,
++   &quot;longest_stall_seconds&quot;: 4,
++   &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/public-page-video-stats-emitter.test.ts:438:33
+    436|     fire(&#x27;window:pagehide&#x27;);
+    437|
+    438|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    439|       frozen_seconds: frozenSeconds,
+    440|       longest_stall_seconds: frozenSeconds,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; a startup waiting 6 seconds reports 1 frozen seconds
+AssertionError: expected { frozen_seconds: 5, …(2) } to deeply equal { frozen_seconds: 1, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 1,
+-   &quot;longest_stall_seconds&quot;: 1,
++   &quot;frozen_seconds&quot;: 5,
++   &quot;longest_stall_seconds&quot;: 5,
+    &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/public-page-video-stats-emitter.test.ts:438:33
+    436|     fire(&#x27;window:pagehide&#x27;);
+    437|
+    438|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    439|       frozen_seconds: frozenSeconds,
+    440|       longest_stall_seconds: frozenSeconds,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; a pause interrupts the continuous startup wait
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; a seek interrupts the continuous startup wait
+AssertionError: expected { frozen_seconds: 7, …(2) } to deeply equal { frozen_seconds: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 0,
+-   &quot;longest_stall_seconds&quot;: 0,
+-   &quot;stall_count&quot;: 0,
++   &quot;frozen_seconds&quot;: 7,
++   &quot;longest_stall_seconds&quot;: 4,
++   &quot;stall_count&quot;: 2,
+  }
+
+ ❯ tests/public-page-video-stats-emitter.test.ts:469:33
+    467|     fire(&#x27;window:pagehide&#x27;);
+    468|
+    469|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    470|       frozen_seconds: 0,
+    471|       longest_stall_seconds: 0,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/public-page-video-stats-emitter.test.ts &gt; public page frozen-seconds sampler &gt; advancing after the startup grace ends the startup stall before a later freeze
+AssertionError: expected { frozen_seconds: 7, …(2) } to deeply equal { frozen_seconds: 3, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 3,
+-   &quot;longest_stall_seconds&quot;: 2,
++   &quot;frozen_seconds&quot;: 7,
++   &quot;longest_stall_seconds&quot;: 6,
+    &quot;stall_count&quot;: 2,
+  }
+
+ ❯ tests/public-page-video-stats-emitter.test.ts:487:33
+    485|     fire(&#x27;window:pagehide&#x27;);
+    486|
+    487|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    488|       frozen_seconds: 3,
+    489|       longest_stall_seconds: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 15 passed (22)
+   Start at  10:07:07
+   Duration  114ms (transform 23ms, setup 9ms, import 22ms, tests 21ms, environment 0ms)
+
+ ELIFECYCLE  Test failed. See above for more details.
+</pre><h2>Head, all emitter tests</h2><pre>
+&gt; clarity-journey-editor@0.1.0 test [verification checkout]/editor
+&gt; vitest run tests/public-page-video-stats-emitter.test.ts
+
+
+ RUN  v4.1.11 [verification checkout]/editor
+
+
+ Test Files  1 passed (1)
+      Tests  22 passed (22)
+   Start at  10:06:59
+   Duration  110ms (transform 24ms, setup 10ms, import 22ms, tests 15ms, environment 0ms)
+
+</pre><h2>Before, fetched staging script sampler</h2><pre>
+&gt; clarity-journey-editor@0.1.0 test [verification checkout]/editor
+&gt; vitest run tests/proof-1589-staging.test.ts -t &#x27;public page frozen-seconds sampler&#x27;
+
+
+ RUN  v4.1.11 [verification checkout]/editor
+
+ ❯ tests/proof-1589-staging.test.ts (22 tests | 7 failed | 8 skipped) 19ms
+     × a three-second startup followed by smooth playback counts no frozen seconds 12ms
+     × a session that never advances reports only the seconds after the startup grace on pagehide 1ms
+     × a startup waiting 5 seconds reports 0 frozen seconds 1ms
+     × a startup waiting 6 seconds reports 1 frozen seconds 1ms
+     × a pause interrupts the continuous startup wait 1ms
+     × a seek interrupts the continuous startup wait 0ms
+     × advancing after the startup grace ends the startup stall before a later freeze 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; a three-second startup followed by smooth playback counts no frozen seconds
+AssertionError: expected { frozen_seconds: 2, …(2) } to deeply equal { frozen_seconds: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 0,
+-   &quot;longest_stall_seconds&quot;: 0,
+-   &quot;stall_count&quot;: 0,
++   &quot;frozen_seconds&quot;: 2,
++   &quot;longest_stall_seconds&quot;: 2,
++   &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/proof-1589-staging.test.ts:252:33
+    250|     fire(&#x27;window:pagehide&#x27;);
+    251|
+    252|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    253|       frozen_seconds: 0,
+    254|       longest_stall_seconds: 0,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; a session that never advances reports only the seconds after the startup grace on pagehide
+AssertionError: expected { frozen_seconds: 19, …(2) } to deeply equal { frozen_seconds: 15, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 15,
+-   &quot;longest_stall_seconds&quot;: 15,
++   &quot;frozen_seconds&quot;: 19,
++   &quot;longest_stall_seconds&quot;: 19,
+    &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/proof-1589-staging.test.ts:414:33
+    412|       { event_type: &#x27;progress&#x27;, watched_range: null },
+    413|     ]);
+    414|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    415|       frozen_seconds: 15,
+    416|       longest_stall_seconds: 15,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; a startup waiting 5 seconds reports 0 frozen seconds
+AssertionError: expected { frozen_seconds: 4, …(2) } to deeply equal { frozen_seconds: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 0,
+-   &quot;longest_stall_seconds&quot;: 0,
+-   &quot;stall_count&quot;: 0,
++   &quot;frozen_seconds&quot;: 4,
++   &quot;longest_stall_seconds&quot;: 4,
++   &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/proof-1589-staging.test.ts:432:33
+    430|     fire(&#x27;window:pagehide&#x27;);
+    431|
+    432|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    433|       frozen_seconds: frozenSeconds,
+    434|       longest_stall_seconds: frozenSeconds,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; a startup waiting 6 seconds reports 1 frozen seconds
+AssertionError: expected { frozen_seconds: 5, …(2) } to deeply equal { frozen_seconds: 1, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 1,
+-   &quot;longest_stall_seconds&quot;: 1,
++   &quot;frozen_seconds&quot;: 5,
++   &quot;longest_stall_seconds&quot;: 5,
+    &quot;stall_count&quot;: 1,
+  }
+
+ ❯ tests/proof-1589-staging.test.ts:432:33
+    430|     fire(&#x27;window:pagehide&#x27;);
+    431|
+    432|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    433|       frozen_seconds: frozenSeconds,
+    434|       longest_stall_seconds: frozenSeconds,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; a pause interrupts the continuous startup wait
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; a seek interrupts the continuous startup wait
+AssertionError: expected { frozen_seconds: 7, …(2) } to deeply equal { frozen_seconds: +0, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 0,
+-   &quot;longest_stall_seconds&quot;: 0,
+-   &quot;stall_count&quot;: 0,
++   &quot;frozen_seconds&quot;: 7,
++   &quot;longest_stall_seconds&quot;: 4,
++   &quot;stall_count&quot;: 2,
+  }
+
+ ❯ tests/proof-1589-staging.test.ts:463:33
+    461|     fire(&#x27;window:pagehide&#x27;);
+    462|
+    463|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    464|       frozen_seconds: 0,
+    465|       longest_stall_seconds: 0,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/proof-1589-staging.test.ts &gt; public page frozen-seconds sampler &gt; advancing after the startup grace ends the startup stall before a later freeze
+AssertionError: expected { frozen_seconds: 7, …(2) } to deeply equal { frozen_seconds: 3, …(2) }
+
+- Expected
++ Received
+
+  {
+-   &quot;frozen_seconds&quot;: 3,
+-   &quot;longest_stall_seconds&quot;: 2,
++   &quot;frozen_seconds&quot;: 7,
++   &quot;longest_stall_seconds&quot;: 6,
+    &quot;stall_count&quot;: 2,
+  }
+
+ ❯ tests/proof-1589-staging.test.ts:481:33
+    479|     fire(&#x27;window:pagehide&#x27;);
+    480|
+    481|     expect(lastStallCounters()).toEqual({
+       |                                 ^
+    482|       frozen_seconds: 3,
+    483|       longest_stall_seconds: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 7 passed | 8 skipped (22)
+   Start at  10:07:58
+   Duration  117ms (transform 25ms, setup 10ms, import 21ms, tests 19ms, environment 0ms)
+
+ ELIFECYCLE  Test failed. See above for more details.
+</pre><h2>After, fetched preview script sampler</h2><pre>
+&gt; clarity-journey-editor@0.1.0 test [verification checkout]/editor
+&gt; vitest run tests/proof-1589-preview.test.ts -t &#x27;public page frozen-seconds sampler&#x27;
+
+
+ RUN  v4.1.11 [verification checkout]/editor
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed | 8 skipped (22)
+   Start at  10:07:59
+   Duration  105ms (transform 24ms, setup 10ms, import 22ms, tests 15ms, environment 0ms)
+
+</pre></html>
