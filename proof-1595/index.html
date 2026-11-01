@@ -1,0 +1,392 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1595</title><style>body{font:16px system-ui;line-height:1.5;max-width:1200px;margin:24px auto;padding:0 20px;color:#152035;background:#f6f8fc}h1,h2{line-height:1.2}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:10px;border:1px solid #ccd3df;text-align:left;overflow-wrap:anywhere}img{max-width:100%;height:auto;border:1px solid #ccd3df}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:16px}.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:20px}figure{margin:0}figcaption{overflow-wrap:anywhere}.blocked{background:#fff2d5;padding:16px}</style><h1>Proof for PR 1595</h1><p class="blocked">NOT VERIFIED. Independent preview verification on 2026-11-01. Live password reset completion is blocked by unavailable email access. The other required flows passed.</p><p>Head b98737e31c8d8378893358a4f12a2d7bf3a00d7c</p><h2>Exit comparison</h2><table><tr><th>Exit</th><th>Main control</th><th>PR preview</th></tr><tr><td>API 401 handler</td><td>https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications</td><td>https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications</td></tr><tr><td>First session check</td><td>https://staging.clarity.video/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</td><td>https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</td></tr><tr><td>Sign-out watcher</td><td>https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</td><td>https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</td></tr><tr><td>Password reset completion</td><td>Not observed. Test expectation is /login?reset=1.</td><td>BLOCKED on preview. Test proves /login?reset=1 and REPLACE.</td></tr><tr><td>Sidebar sign-out</td><td>https://pr-1590.clarity-video.workers.dev/login</td><td>https://pr-1595.clarity-video.workers.dev/login</td></tr><tr><td>/signup alias</td><td>https://staging.clarity.video/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1</td><td>https://pr-1595.clarity-video.workers.dev/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1</td></tr></table><h2>Before and after screenshots</h2><div class="shots"><figure><a href="head-initial.png"><img loading="lazy" src="head-initial.png" alt="head-initial"></a><figcaption>head-initial • https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</figcaption></figure><figure><a href="head-signup.png"><img loading="lazy" src="head-signup.png" alt="head-signup"></a><figcaption>head-signup • https://pr-1595.clarity-video.workers.dev/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1</figcaption></figure><figure><a href="main-initial.png"><img loading="lazy" src="main-initial.png" alt="main-initial"></a><figcaption>main-initial • https://staging.clarity.video/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</figcaption></figure><figure><a href="main-signup.png"><img loading="lazy" src="main-signup.png" alt="main-signup"></a><figcaption>main-signup • https://staging.clarity.video/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1</figcaption></figure><figure><a href="head-watcher.png"><img loading="lazy" src="head-watcher.png" alt="head-watcher"></a><figcaption>head-watcher • https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</figcaption></figure><figure><a href="head-sidebar.png"><img loading="lazy" src="head-sidebar.png" alt="head-sidebar"></a><figcaption>head-sidebar • https://pr-1595.clarity-video.workers.dev/login</figcaption></figure><figure><a href="before-watcher.png"><img loading="lazy" src="before-watcher.png" alt="before-watcher"></a><figcaption>before-watcher • https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email</figcaption></figure><figure><a href="before-sidebar.png"><img loading="lazy" src="before-sidebar.png" alt="before-sidebar"></a><figcaption>before-sidebar • https://pr-1590.clarity-video.workers.dev/login</figcaption></figure><figure><a href="head-api401.png"><img loading="lazy" src="head-api401.png" alt="head-api401"></a><figcaption>head-api401 • https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications</figcaption></figure><figure><a href="before-api401.png"><img loading="lazy" src="before-api401.png" alt="before-api401"></a><figcaption>before-api401 • https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications</figcaption></figure><figure><a href="head-roundtrip.png"><img loading="lazy" src="head-roundtrip.png" alt="head-roundtrip"></a><figcaption>head-roundtrip • https://pr-1595.clarity-video.workers.dev/settings/notifications?a=1&amp;source=proof1595#email</figcaption></figure><figure><a href="head-hostile.png"><img loading="lazy" src="head-hostile.png" alt="head-hostile"></a><figcaption>head-hostile • https://pr-1595.clarity-video.workers.dev/home</figcaption></figure></div><h2>Evidence and limitations</h2><pre>## Proof
+
+**Head:** `b98737e31c8d8378893358a4f12a2d7bf3a00d7c`
+**Issue:** #1528
+**Routing:** steer
+**Category:** refactor
+**Verdict:** BLOCKED. Five live exits match main. Password reset completion is covered by its test but was not proved on the preview because this verifier cannot read the reset email. No approval to land has been given.
+**Preview:** https://pr-1595.clarity-video.workers.dev
+**Evidence:** https://willayam.github.io/clarity-design-previews/proof-1595/
+**Verify report:** NOT VERIFIED because the live password-reset item remains open.
+
+### Repro and preserved behaviour
+
+The staging control serves main `66af49adf5da8ca3704ea733b6277b4aa3966766`. The state-changing control is PR #1590 at `2ea76ccb7c46a591359530a8e879272d6eb5869e`, main plus the CSS token change described in the brief. Login and doctor passed on both previews. The head preview&#x27;s deployment metadata matches `b98737e31c8d8378893358a4f12a2d7bf3a00d7c`.
+
+For the first session check, visit `/settings/notifications?a=1#email` without a session. For the watcher, open the same route signed in, clear only that browser context&#x27;s cookies, and dispatch focus. For the API handler, open `/settings/profile`, let it settle, clear that context&#x27;s cookies, and click Notifications. The real `notifications_get` request returns 401, then `/auth/me` returns 401. No responses were mocked. For sidebar sign-out, open the account menu and click Sign out. For the alias, visit `/signup?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1`.
+
+| Exit | Main control final URL | PR preview final URL |
+| --- | --- | --- |
+| API 401 handler | https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications | https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications |
+| First session check | https://staging.clarity.video/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email | https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email |
+| Sign-out watcher | https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email | https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email |
+| Password reset completion | Not observed. Test expectation is /login?reset=1. | BLOCKED on preview. Test proves /login?reset=1 and REPLACE. |
+| Sidebar sign-out | https://pr-1590.clarity-video.workers.dev/login | https://pr-1595.clarity-video.workers.dev/login |
+| /signup alias | https://staging.clarity.video/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1 | https://pr-1595.clarity-video.workers.dev/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1 |
+
+The query-bearing deep link reached `https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%26source%3Dproof1595%23email`. Signing in through the email and password form returned to `https://pr-1595.clarity-video.workers.dev/settings/notifications?a=1&amp;source=proof1595#email`. It stayed there after reload. There was no doubled return target or login loop.
+
+Signing in from `https://pr-1595.clarity-video.workers.dev/login?redirectTo=https%3A%2F%2Fexample.com` landed on `https://pr-1595.clarity-video.workers.dev/home`.
+
+### Tests
+
+Ran `pnpm --dir editor exec vitest run tests/sign-in-exits.test.tsx tests/editor-api-session-expiry.test.ts tests/protected-session-refresh.test.tsx tests/login-redirect.test.ts tests/workos-auth.test.ts` on head.
+
+```text
+Test Files  5 passed (5)
+Tests  70 passed (70)
+```
+
+The password-reset test is `password reset completion replaces the reset route with the sign-in notice` in `editor/tests/sign-in-exits.test.tsx`. It checks both `/login?reset=1` and `historyAction === REPLACE`. This is test evidence, not a completed preview password reset.
+
+The historical race test is `leaves the door alone when the app reached it while /auth/me was in flight`. Ran the historical test from `3f421dedd` in an extracted copy of parent `aae35775bd0c6fdff1c9106e7e49d68579e916c6`, then against head and merge-base source. Its navigation assertion is unchanged. The scratch copy catches the request rejection because later code rejects the request where historical code left it pending. No tracked code or tests were changed.
+
+**Before**, on the historical parent.
+
+```text
+AssertionError: expected &quot;vi.fn()&quot; to not be called at all, but actually been called 1 times
+&quot;/login?redirectTo=%2Flogin%3FredirectTo%3D%252Fsettings%252Fnotifications&quot;
+Tests  1 failed | 16 skipped (17)
+```
+
+**After**, on head.
+
+```text
+Test Files  1 passed (1)
+Tests  1 passed | 16 skipped (17)
+```
+
+The same historical assertion also passes on merge base `66af49adf5da8ca3704ea733b6277b4aa3966766`. This is preservation of a prior fix, not a new red-to-green claim against the merge base. Running the unadapted historical file on head produced an unhandled 401 rejection; the scratch catch addressed that test compatibility difference without changing its assertion. The current head suites pass without adaptation.
+
+### Console, network and writes
+
+The captured browser runs had no uncaught page errors. Signed-out requests logged expected 401 resource errors. Both preview sidebar runs received `/logout` 204 and then recorded `net::ERR_ABORTED` during navigation. Both reached `/login`. These are recorded observations, not waived failures.
+
+No direct preview database writes, fixture seeds, content edits or password changes were made. Browser actions signed the mock Pro account in and out on PR #1595 and PR #1590. Cookie removal affected only isolated local browser contexts. Staging was read-only. Production was not used.
+
+**Waved through:** none
+**PR:** https://github.com/Clarity-Video-HQ/clarity/pull/1595
+</pre><h2>Console and network observations</h2><p>Only paths and status codes are included. No credentials or session data are published.</p><pre>[
+  {
+    &quot;label&quot;: &quot;head-initial&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/api/actions/plan_get&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;head-signup&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1&quot;,
+    &quot;events&quot;: []
+  },
+  {
+    &quot;label&quot;: &quot;main-initial&quot;,
+    &quot;url&quot;: &quot;https://staging.clarity.video/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/api/actions/plan_get&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;main-signup&quot;,
+    &quot;url&quot;: &quot;https://staging.clarity.video/login?plan=Pro&amp;redirectTo=%2Fsettings%2Fprofile%3Fa%3D1&quot;,
+    &quot;events&quot;: []
+  },
+  {
+    &quot;label&quot;: &quot;head-watcher&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;head-sidebar&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/login&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/logout&quot;,
+        &quot;status&quot;: 204
+      },
+      {
+        &quot;failed&quot;: &quot;/logout&quot;,
+        &quot;error&quot;: &quot;net::ERR_ABORTED&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;before-watcher&quot;,
+    &quot;url&quot;: &quot;https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;before-sidebar&quot;,
+    &quot;url&quot;: &quot;https://pr-1590.clarity-video.workers.dev/login&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/logout&quot;,
+        &quot;status&quot;: 204
+      },
+      {
+        &quot;failed&quot;: &quot;/logout&quot;,
+        &quot;error&quot;: &quot;net::ERR_ABORTED&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;head-api401&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/api/actions/notifications_get&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;before-api401&quot;,
+    &quot;url&quot;: &quot;https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/api/actions/notifications_get&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;head-roundtrip&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/settings/notifications?a=1&amp;source=proof1595#email&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/api/actions/plan_get&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 401
+      },
+      {
+        &quot;console&quot;: &quot;error&quot;,
+        &quot;text&quot;: &quot;Failed to load resource: the server responded with a status of 401 ()&quot;
+      },
+      {
+        &quot;path&quot;: &quot;/auth/lookup&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/password&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      }
+    ]
+  },
+  {
+    &quot;label&quot;: &quot;head-hostile&quot;,
+    &quot;url&quot;: &quot;https://pr-1595.clarity-video.workers.dev/home&quot;,
+    &quot;events&quot;: [
+      {
+        &quot;path&quot;: &quot;/auth/lookup&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/password&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      },
+      {
+        &quot;path&quot;: &quot;/auth/me&quot;,
+        &quot;status&quot;: 200
+      }
+    ]
+  }
+]</pre></html>

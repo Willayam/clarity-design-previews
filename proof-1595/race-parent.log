@@ -1,0 +1,38 @@
+
+ RUN  v4.1.11 /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-01/pr-1595/historical/editor
+
+ ❯ tests/editor-api-session-expiry.test.ts (17 tests | 1 failed | 16 skipped) 65ms
+     × leaves the door alone when the app reached it while /auth/me was in flight 65ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-api-session-expiry.test.ts > apiRequest WorkOS session expiry handling > leaves the door alone when the app reached it while /auth/me was in flight
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      "/login?redirectTo=%2Flogin%3FredirectTo%3D%252Fsettings%252Fnotifications",
+    ]
+
+
+Number of calls: 1
+
+ ❯ tests/editor-api-session-expiry.test.ts:174:24
+    172|     await new Promise((resolve) => setTimeout(resolve, 50));
+    173|
+    174|     expect(assign).not.toHaveBeenCalled();
+       |                        ^
+    175|   });
+    176|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 skipped (17)
+   Start at  15:26:01
+   Duration  202ms (transform 55ms, setup 10ms, import 60ms, tests 65ms, environment 0ms)
+

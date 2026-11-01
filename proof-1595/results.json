@@ -1,0 +1,324 @@
+[
+  {
+    "label": "head-initial",
+    "url": "https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/api/actions/plan_get",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  {
+    "label": "head-signup",
+    "url": "https://pr-1595.clarity-video.workers.dev/login?plan=Pro&redirectTo=%2Fsettings%2Fprofile%3Fa%3D1",
+    "events": []
+  },
+  {
+    "label": "main-initial",
+    "url": "https://staging.clarity.video/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email",
+    "events": [
+      {
+        "path": "/api/actions/plan_get",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  {
+    "label": "main-signup",
+    "url": "https://staging.clarity.video/login?plan=Pro&redirectTo=%2Fsettings%2Fprofile%3Fa%3D1",
+    "events": []
+  },
+  {
+    "label": "head-watcher",
+    "url": "https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  {
+    "label": "head-sidebar",
+    "url": "https://pr-1595.clarity-video.workers.dev/login",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/logout",
+        "status": 204
+      },
+      {
+        "failed": "/logout",
+        "error": "net::ERR_ABORTED"
+      }
+    ]
+  },
+  {
+    "label": "before-watcher",
+    "url": "https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications%3Fa%3D1%23email",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  {
+    "label": "before-sidebar",
+    "url": "https://pr-1590.clarity-video.workers.dev/login",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/logout",
+        "status": 204
+      },
+      {
+        "failed": "/logout",
+        "error": "net::ERR_ABORTED"
+      }
+    ]
+  },
+  {
+    "label": "head-api401",
+    "url": "https://pr-1595.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/api/actions/notifications_get",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  {
+    "label": "before-api401",
+    "url": "https://pr-1590.clarity-video.workers.dev/login?redirectTo=%2Fsettings%2Fnotifications",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/api/actions/notifications_get",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  {
+    "label": "head-roundtrip",
+    "url": "https://pr-1595.clarity-video.workers.dev/settings/notifications?a=1&source=proof1595#email",
+    "events": [
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/api/actions/plan_get",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/me",
+        "status": 401
+      },
+      {
+        "console": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      },
+      {
+        "path": "/auth/lookup",
+        "status": 200
+      },
+      {
+        "path": "/auth/password",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "label": "head-hostile",
+    "url": "https://pr-1595.clarity-video.workers.dev/home",
+    "events": [
+      {
+        "path": "/auth/lookup",
+        "status": 200
+      },
+      {
+        "path": "/auth/password",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      },
+      {
+        "path": "/auth/me",
+        "status": 200
+      }
+    ]
+  }
+]
