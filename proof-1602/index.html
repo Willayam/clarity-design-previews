@@ -75,7 +75,7 @@ HTTP 202
 {&quot;events&quot;:[{&quot;page_id&quot;:&quot;2eaedbd8-0077-47fd-ae6d-dd380b757eac&quot;,&quot;route_key&quot;:&quot;7pxde7&quot;,&quot;renderer_version&quot;:&quot;public-page-v1&quot;,&quot;event_type&quot;:&quot;public_badge_clicked&quot;,&quot;referrer&quot;:null,&quot;utm_source&quot;:null,&quot;utm_medium&quot;:null,&quot;utm_campaign&quot;:null}]}
 ```
 
-The complete captured request also had random browser session and viewer IDs. Those are first-party emitter fields, not exported PostHog properties. `pages_stats` returned HTTP 200 before and after. Visits changed from 0 to 1, customer CTA clicks stayed 0, and `buttons` stayed `{}`. A direct stats database read found only the page-view row and no badge outbox row. The local badge-ingestion test passed for the fixed exported properties and exclusion from customer CTA storage.
+The complete captured request also had random browser session and viewer IDs. Those are first-party emitter fields, not exported PostHog properties. `pages_stats` returned HTTP 200 before and after. Visits changed from 0 to 1, customer CTA clicks stayed 0, and `buttons` stayed `{}`. A direct stats database read found one page-view row, one page-unload row, no CTA row and no badge outbox row. The local badge-ingestion test passed for the fixed exported properties and exclusion from customer CTA storage.
 
 ### Payload privacy
 
@@ -112,7 +112,7 @@ All writes were confined to PR 1602&#x27;s mock account and databases.
 - Updated grant `grant:e2e-accounts:acct_workos_user_01M3PV8N4H36ZZPHGXFXWCQPM3` three times to end at `2026-10-01T00:00:00.000Z`, once for each browser attempt. Restored it three times to its original `2030-01-01T00:00:00.000Z`, including the final cleanup. No other grant field changed.
 - Created mock pages `2eaedbd8-0077-47fd-ae6d-dd380b757eac`, `8a8715aa-49ed-48ef-a19e-ab9b3ed3383c` and `1a32944b-1ef6-4b27-a5f2-e2057fc9772b` through `pages_duplicate`. Published the first two through `pages_publish`. Deleted all three through `pages_delete`, each returning HTTP 200. The application&#x27;s normal deleted-page records remain.
 - Attempted one refused publish and one refused video share at the limit. Neither activated another page.
-- Loading the temporary public page wrote its mock page-view telemetry. Clicking the badge sent its event to the preview, which intentionally omitted the outbox insert. Deleted `page_event` rows for this temporary page after reading the evidence. Ordinary preview request and authentication telemetry may remain.
+- Loading the temporary public page wrote its mock page-view and page-unload telemetry. Clicking the badge sent its event to the preview, which intentionally omitted the outbox insert. Deleted `page_event` rows for this temporary page after reading the evidence. Ordinary preview request and authentication telemetry may remain.
 - Final `plan_get` returned Pro, the original grant end, and one live page. No production, staging or PR 1590 database was changed. No lead or checkout was sent.
 
 ### Notes and remaining evidence
