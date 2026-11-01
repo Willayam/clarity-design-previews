@@ -1,0 +1,127 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1581</title><style>body{font:16px/1.6 system-ui;max-width:850px;margin:32px auto;padding:0 18px;color:#182027}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 ui-monospace,monospace}h1{font-size:28px}.ok{padding:16px;background:#e7f5e9;border-radius:8px}</style><h1>Proof for PR 1581</h1><p class="ok">VERIFIED. Independent preview verification, PASS+NOTES. 1 November 2026.</p><pre>**Head:** f462b99fb0fb34a730493499db069727955880f2
+
+**Issue:** #1552. **Routing:** steer. This verifies part 1 only. William has not signed off on landing.
+
+**Verdict:** PASS+NOTES. All part 1 criteria passed on the exact preview head. No player consumes these routes yet.
+
+**Preview:** https://pr-1581.clarity-video.workers.dev
+
+**Repro:** Log in with the preview mock Pro account. Request the owner caption descriptor, then its revision-bearing URL. Repeat through the published mock page. Exercise each access refusal. Save a 2 to 4 second trim, request captions while pending, then request the new descriptor and VTT after promotion.
+
+The preview&#x27;s `/__deploy-info` reported the head above. `control-clarity doctor --pr 1581 --wait` passed deploy identity, SHA and authenticated identity checks.
+
+### Criterion 1. Complete live words become escaped owner WebVTT
+
+The mock Mux fixture asset was `6915648c-b29f-56d0-a9fe-53c6eb285cf7`. Its node was `asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:6915648c-b29f-56d0-a9fe-53c6eb285cf7`.
+
+One complete speech chunk covered samples 0 to 97164 at 16 kHz, matching the fixture&#x27;s 6.072733 second duration. The seal used one chunk and the same end and captured sample counts. The language was `sv`. The mock words were `[0,1,&quot;Before.&quot;]`, `[1,2.5,&quot;&lt;b&gt;&quot;]`, `[2.6,3.5,&quot;&amp; --&gt;&quot;]`, `[3.6,5,&quot;end.&quot;]`, and `[5,6,&quot;After.&quot;]`.
+
+```text
+GET /api/tree/media/videos/6915648c-b29f-56d0-a9fe-53c6eb285cf7/captions
+Owner session -&gt; 200 application/json, Cache-Control: no-store
+Descriptor source=live, language=sv
+GET descriptor.url -&gt; 200 text/vtt; charset=utf-8, Cache-Control: no-store
+
+WEBVTT
+
+00:00:00.000 --&gt; 00:00:01.000
+Before.
+
+00:00:01.000 --&gt; 00:00:05.000
+&amp;lt;b&amp;gt; &amp;amp; --&amp;gt; end.
+
+00:00:05.000 --&gt; 00:00:06.000
+After.
+```
+
+### Criterion 2. Owner access stays scoped to the session
+
+```text
+GET same owner route without a session -&gt; 401, Cache-Control: no-store
+Body {&quot;error&quot;:&quot;Unauthorized&quot;}
+GET same owner route with mock Basic account session -&gt; 404, Cache-Control: no-store, empty body
+```
+
+### Criterion 3. A published page serves its visible asset
+
+```text
+GET /page/4uxp6b?captions=6915648c-b29f-56d0-a9fe-53c6eb285cf7
+No session -&gt; 200 descriptor, Cache-Control: no-store
+GET descriptor.url -&gt; 200 text/vtt; charset=utf-8, Cache-Control: no-store
+VTT exactly matched the owner output above.
+```
+
+### Criterion 4. Public access refusals
+
+Each request returned 404, `Cache-Control: no-store`, and an empty body.
+
+| Case | Request |
+| --- | --- |
+| Unpublished mock page | `/page/p1581u?captions=6915648c-b29f-56d0-a9fe-53c6eb285cf7` |
+| Password page before unlock | `/page/p1581p?captions=6915648c-b29f-56d0-a9fe-53c6eb285cf7` |
+| Asset outside the visible page | `/page/4uxp6b?captions=2a586696-f90f-5731-ac14-01dbc672bdec` |
+| Node ID instead of asset ID | `/page/4uxp6b?captions=&lt;encoded node ID above&gt;` |
+| Published block itself references the node ID | `/page/p1581n?captions=&lt;encoded node ID above&gt;` |
+| Pending clip after saving the trim | `/page/4uxp6b?captions=6915648c-b29f-56d0-a9fe-53c6eb285cf7` |
+
+An additional stale-revision request also returned 404 with `no-store`. The ordinary public HTML route returned 200 and `text/html; charset=utf-8`.
+
+### Criterion 5. Saved trim crops and rebases after promotion
+
+```text
+POST /api/actions/videos_edit
+{videoId: fixture asset, edits: [{op: &quot;set_trim&quot;, startSeconds: 2, endSeconds: 4}], expectedManifestDigest: null}
+200, accepted=true, clipPending=true
+Public captions immediately after save -&gt; 404, Cache-Control: no-store
+
+Later library_get -&gt; 200
+mux_clip_asset_id=svTzkY02M1ZzZlNxwIxGT113i1SCkbBuqnskBSbwb02tg
+mux_clip_playback_id=VoDqal6hOPj8t00702eio027M7c6IVMPBmLnMHIIHSqJMU
+mux_clip_span={startSeconds:2,endSeconds:4}
+Stored edit_manifest.trim={startSeconds:2,endSeconds:4}
+Public descriptor -&gt; 200, revision changed
+Public revision-bearing VTT -&gt; 200 text/vtt; charset=utf-8
+Cache-Control: no-store
+
+WEBVTT
+
+00:00:00.000 --&gt; 00:00:02.000
+&amp;lt;b&amp;gt; &amp;amp; --&amp;gt; end.
+```
+
+The outside words disappeared. Both crossing words were cropped to the saved interval, and the cues moved to the clip&#x27;s zero origin.
+
+### Criterion 6. Tests on head
+
+```text
+pnpm --filter clarity-journey-editor exec vitest run tests/live-speech-contract.test.ts
+Test Files  1 passed (1)
+Tests  26 passed (26)
+
+pnpm --filter clarity-workspace-tree exec vitest run tests/video-captions.test.ts
+Test Files  1 passed (1)
+Tests  15 passed (15)
+
+pnpm --filter clarity-frontend-router exec vitest run tests/video-captions.test.ts
+Test Files  1 passed (1)
+Tests  10 passed (10)
+```
+
+The editor contract imports the package&#x27;s chunker, live and caption suites. The package caption suite has six tests. No red-to-green test is required for this enhancement.
+
+### Notes and writes
+
+`record-take --pr 1581 --fixture en --mode pause --runs 1 --account userPro` recorded one mock take, sent two speech chunks and sealed them. Its title appeared after 331 ms. The video remained `uploading`, with no duration or Mux playback ID, after the CLI closed the browser. The caption evidence therefore uses seeded words on the existing Mux fixture. This is not evidence that the new recording completed its upload. No caption defect was observed.
+
+All writes were confined to this preview&#x27;s mock accounts and database `clarity-pr-1581-auth`, verified with the generated preview config. The write inventory is:
+
+- The recording flow created take `5y9C9co00htPyMCVNO8nKQvPBuLn02NDDoKI5Cdk9f8mA`, its upload and lifecycle state, two speech chunks, seal and generated title, and share page `64273b55-57ec-4bc8-9c57-dedb755ce3b8`. Cleanup used `library_delete`, which confirmed deletion of the take and page.
+- Inserted one `take_speech` row and one `take_speech_chunks` row on the old-app fixture. Cleanup deleted both.
+- Inserted three mock `journey_pages`, three `public_page_routes`, and two `journey_page_publications` for the unpublished, locked and node-reference cases. Cleanup deleted them. The first seed import failed a source-video uniqueness constraint and was corrected before success.
+- Saved the fixture&#x27;s 2 to 4 second trim through `videos_edit`. The app updated its manifest, video state and clip job, and promoted a real Mux clip. Cleanup reset the trim through `videos_edit`, then restored the fixture&#x27;s legacy metadata shape. The app retains normal edit and job history.
+- Cleanup also issued scoped deletes for the recording&#x27;s page and routes after the normal deletion action.
+
+Network failures were retried up to six times with 15 seconds between attempts. Dependencies installed with the frozen lockfile. The only install warning was ignored build scripts for `@sentry/cli` and `core-js`; the required tests ran successfully. No code changed, and nothing was pushed or merged.
+
+**Waved through:** none.
+</pre></html>
