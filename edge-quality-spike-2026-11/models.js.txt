@@ -1,0 +1,21 @@
+const {canvas,ctx,save,png,segment,maskCanvas,composite}=window.api;
+const pre=canvas(),pc=ctx(pre);
+const modelSettings={
+ modnet896:{w:896,h:512,c:3,mean:[.5,.5,.5],std:[.5,.5,.5]},
+ 'modnet-official':{w:512,h:288,c:3,mean:[.5,.5,.5],std:[.5,.5,.5]},
+ modnet:{w:256,h:256,c:3,mean:[.5,.5,.5],std:[.5,.5,.5]},
+ birefnet:{w:1024,h:1024,c:3,mean:[.485,.456,.406],std:[.229,.224,.225],logits:true},
+ vitfull:{w:1280,h:736,contentH:720,c:4,mean:[.5,.5,.5],std:[.5,.5,.5]},
+ vitmatte:{w:640,h:384,contentH:360,c:4,mean:[.5,.5,.5],std:[.5,.5,.5]},
+};
+function prep(f,name){const cfg=modelSettings[name],{w,h,c}=cfg;pre.width=w;pre.height=h;pc.clearRect(0,0,w,h);pc.drawImage(f.c,0,0,w,cfg.contentH||h);const im=pc.getImageData(0,0,w,h).data,arr=new Float32Array(c*w*h);for(let i=0;i<w*h;i++)for(let k=0;k<3;k++)arr[k*w*h+i]=cfg.contentH&&i>=w*cfg.contentH?0:(im[i*4+k]/255-cfg.mean[k])/cfg.std[k];
+if(c===4){const a=segment(f.c),mc=canvas(w,h),mx=ctx(mc);mx.drawImage(maskCanvas(a),0,0,w,cfg.contentH);const am=mx.getImageData(0,0,w,h).data;
+// Mark only confident interior/exterior as known. A 9x9 erosion/dilation at 640px leaves a broad uncertain edge.
+for(let y=0;y<h;y++)for(let x=0;x<w;x++){let lo=1,hi=0;for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const xx=Math.max(0,Math.min(w-1,x+dx)),yy=Math.max(0,Math.min(h-1,y+dy)),v=am[(yy*w+xx)*4+3]/255;lo=Math.min(lo,v);hi=Math.max(hi,v);}arr[3*w*h+y*w+x]=lo>.95?1:hi<.05?0:128/255;}}
+return new ort.Tensor('float32',arr,[1,c,h,w]);}
+window.modelOutputs={};
+window.runModel=async(name,ep,rounds=5)=>{const meta=await loadModel(name==='modnet896'?'modnet-official':name==='vitfull'?'vitmatte':name,ep),s=window.session,cfg=modelSettings[name],rows=[];window.state={phase:'model',name,ep,round:0};const warm=prep(frames[0],name);await s.run({[s.inputNames[0]]:warm});warm.dispose();
+for(let round=0;round<rounds;round++){const order=round%2? [...frames].reverse():frames;for(const f of order){const t=performance.now(),input=prep(f,name),t1=performance.now(),result=await s.run({[s.inputNames[0]]:input}),output=result[s.outputNames[0]],data=await output.getData(),t2=performance.now();let a=Float32Array.from(data,v=>cfg.logits?1/(1+Math.exp(-v)):v);const [h,w]=output.dims.slice(-2);let m=maskCanvas(a,w,h);if(cfg.contentH){const crop=canvas(w,cfg.contentH);ctx(crop).drawImage(m,0,0);m=crop;}composite(f.c,m);const t3=performance.now();let min=Infinity,max=-Infinity,sum=0,invalid=0;for(const v of a){if(!Number.isFinite(v))invalid++;min=Math.min(min,v);max=Math.max(max,v);sum+=v;}rows.push({round,id:f.id,pre:t1-t,infer:t2-t1,post:t3-t2,total:t3-t,min,max,mean:sum/a.length,invalid});
+if(round===0){await png(`${name}-${ep}-${f.id}.png`,composite(f.c,m));const ma=canvas();ctx(ma).drawImage(m,0,0,1280,720);await png(`mask-${name}-${ep}-${f.id}.png`,ma);await save(`raw-${name}-${ep}-${f.id}.bin`,a);}
+input.dispose();for(const v of Object.values(result))v.dispose();await new Promise(r=>setTimeout(r,0));}window.state.round=round;await save(`${name}-${ep}-results.json`,JSON.stringify({info,meta,cfg,rows},null,2));}
+await s.release();window.state.phase='model done';return {meta,rows};};

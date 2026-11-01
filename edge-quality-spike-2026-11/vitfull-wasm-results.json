@@ -1,0 +1,130 @@
+{
+  "info": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "cores": 10,
+    "isolated": true,
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+    "gpu": true
+  },
+  "meta": {
+    "name": "vitmatte",
+    "ep": "wasm",
+    "loadMs": 573.0900000035763,
+    "inputs": [
+      {
+        "name": "pixel_values",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          "batch_size",
+          "num_channels",
+          "height",
+          "width"
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "alphas",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          "batch_size",
+          "num_channels",
+          "height",
+          "width"
+        ]
+      }
+    ]
+  },
+  "cfg": {
+    "w": 1280,
+    "h": 736,
+    "contentH": 720,
+    "c": 4,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ]
+  },
+  "rows": [
+    {
+      "round": 0,
+      "id": "clean-0.5",
+      "pre": 122.125,
+      "infer": 4277.035000026226,
+      "post": 56.25,
+      "total": 4455.410000026226,
+      "min": 0,
+      "max": 0.9999999403953552,
+      "mean": 0.3575346154269621,
+      "invalid": 0
+    },
+    {
+      "round": 0,
+      "id": "harsh-0.5",
+      "pre": 120.39999997615814,
+      "infer": 4265.505000025034,
+      "post": 44.28999999165535,
+      "total": 4430.194999992847,
+      "min": 0,
+      "max": 0.9999999403953552,
+      "mean": 0.3536199205016601,
+      "invalid": 0
+    },
+    {
+      "round": 0,
+      "id": "clean-5.5",
+      "pre": 200.28499999642372,
+      "infer": 4294.844999998808,
+      "post": 34.42500001192093,
+      "total": 4529.555000007153,
+      "min": 0,
+      "max": 0.9999999403953552,
+      "mean": 0.3950545803725697,
+      "invalid": 0
+    },
+    {
+      "round": 0,
+      "id": "harsh-5.5",
+      "pre": 79.44499999284744,
+      "infer": 4333.0250000059605,
+      "post": 33.43000000715256,
+      "total": 4445.9000000059605,
+      "min": 0,
+      "max": 0.9999999403953552,
+      "mean": 0.4022882989227187,
+      "invalid": 0
+    },
+    {
+      "round": 0,
+      "id": "clean-10.5",
+      "pre": 79.52000001072884,
+      "infer": 4354.699999988079,
+      "post": 34.0450000166893,
+      "total": 4468.265000015497,
+      "min": 0,
+      "max": 1,
+      "mean": 0.35474079806767606,
+      "invalid": 0
+    },
+    {
+      "round": 0,
+      "id": "harsh-10.5",
+      "pre": 78.33500000834465,
+      "infer": 4303.639999985695,
+      "post": 33.150000005960464,
+      "total": 4415.125,
+      "min": 0,
+      "max": 1,
+      "mean": 0.3533107238160206,
+      "invalid": 0
+    }
+  ]
+}
