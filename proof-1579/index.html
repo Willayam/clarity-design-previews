@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1579</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:24px auto;max-width:900px;padding:0 16px}img{width:100%;border:1px solid #ccc;border-radius:8px}h2{margin-top:32px}</style>
+<h1>Microphone picker during a take (PR 1579)</h1>
+<p>Chromium with a fake camera and microphone, on the QA test account. The picker is the control to the right of the camera picker, above the layout buttons.</p>
+<h2>Before: staging on main, during a take. The picker is enabled.</h2><img src="staging-2-during-take.png" alt="Staging: Microphone picker enabled during a take">
+<h2>After: PR preview, during a take. The picker is disabled.</h2><img src="preview-2-during-take.png" alt="Preview: Microphone picker disabled during a take">
+<h2>After: PR preview, after discarding the take. The picker is enabled again.</h2><img src="preview-4-after-discard.png" alt="Preview: Microphone picker enabled after the take">
+</html>
