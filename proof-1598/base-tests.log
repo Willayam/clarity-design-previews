@@ -1,0 +1,30 @@
+
+ RUN  v4.1.11 /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-01/pr-1598/base/editor
+
+ ↓ tests/journey-page-document-store.test.ts > the document session store > edits to dirty, autosaves after the debounce, and holds the new revision
+ ↓ tests/journey-page-document-store.test.ts > the document session store > autosaves on time while commits that leave the content alone keep arriving
+ ↓ tests/journey-page-document-store.test.ts > the document session store > shows the writer with its snapshot and base revision while a save is out
+ ↓ tests/journey-page-document-store.test.ts > the document session store > leaves an edit made during a save unsaved but local, then the next autosave carries it
+ ↓ tests/journey-page-document-store.test.ts > the document session store > joins a save already in flight and reports false, while a flush gets its own receipt
+ ↓ tests/journey-page-document-store.test.ts > the document session store > merges a refused stale save over the stored draft and retries at its revision
+ ↓ tests/journey-page-document-store.test.ts > the document session store > refuses to hold an older or equal revision of the page
+ ↓ tests/journey-page-document-store.test.ts > the document session store > adopts a newer draft only after the save in flight settles, merging from the draft that save committed
+ ↓ tests/journey-page-document-store.test.ts > the document session store > flags an unanswered save, keeps the edits, and clears the flag on the next success
+ ↓ tests/journey-page-document-store.test.ts > the document session store > does not auto-retry the content that just failed, until an edit changes it
+ ↓ tests/journey-page-document-store.test.ts > the document session store > creates the page on first save, reports the id, and navigates to its route
+ ↓ tests/journey-page-document-store.test.ts > the document session store > release creates a new page from an edit autosave had not reached, and stays where the rep went
+ ↓ tests/journey-page-document-store.test.ts > the document session store > retries a create whose answer was lost under the same id on the next autosave, and saves over the page it made
+ ↓ tests/journey-page-document-store.test.ts > the document session store > retries a create whose answer was lost under the same id on leaving the page, and saves over the page it made
+ ↓ tests/journey-page-document-store.test.ts > the document session store > release creates nothing for a new page the rep never edited
+ ↓ tests/journey-page-document-store.test.ts > the document session store > saves the edit autosave is waiting on as soon as the tab is hidden
+ ↓ tests/journey-page-document-store.test.ts > the document session store > release drains: once the save in flight settles, what is still unsaved is saved
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 1 57ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 7 23ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 42 25ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 1527 27ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed | 17 skipped (21)
+   Start at  14:12:17
+   Duration  951ms (transform 174ms, setup 61ms, import 216ms, tests 132ms, environment 468ms)
+

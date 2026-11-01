@@ -1,0 +1,79 @@
+
+ RUN  v4.1.11 /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-01/pr-1598/wt/editor
+
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > undoes separate edits one at a time, redoes them, and a new edit clears redo 8ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > joins a typing burst on one field into one step and starts a new one after a second 3ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > keeps a typing burst apart from a following edit to another field 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > undoes several edits made in one handler as one step 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > keeps typing committed by a handler apart from the structural edit that follows it 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > undoes the latest input and can redo it without undoing an earlier rename 0ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > undoes a generation this editor requested in one step and autosaves the pre-run content at the landed revision 4ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > never undoes a rename another tab saved, when a stale save merged it in 2ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > never undoes a draft another writer saved, adopted while this tab had its own edits 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > keeps another writer's later change to a field when undoing this tab's edit to it 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > keeps the other tab's rename of the same field when the undo is refused as stale 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > keeps the other tab's rename of the same field when its draft arrives before the undo saves 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > keeps a section the other tab typed into when the undo of adding it is refused as stale 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep edits a section an unsaved undo brought back and the other tab typed into it > keeps both writes when the save is refused as stale 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep edits a section an unsaved undo brought back and the other tab typed into it > keeps both writes when the other tab's draft arrives first 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep edits a section an unsaved undo brought back and the other tab typed into it > keeps the restored section when the other draft never had it back 2ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep edits a section an unsaved undo brought back and the other tab typed into it > after the rep erases what they typed into it > keeps the restored section when another writer's draft arrives without it 2ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep edits a section an unsaved undo brought back and the other tab typed into it > after the rep erases what they typed into it > keeps the restored section when the save is refused by a draft without it 2ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > still reverts the field when the other tab changed a different one 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > keeps what the rep typed after the undo over the other tab's change to that field 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep sets the field back by hand after the undo > keeps the hand-set value when the save is refused as stale 3ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep sets the field back by hand after the undo > keeps the hand-set value when another writer's draft arrives 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep sets the field back by hand after the undo > keeps the hand-set field of a block and still reverts the step's other field 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > when the rep sets the field back by hand after the undo > lets a redo cancel its undo across an edit that changed nothing 0ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > treats an undo pressed while a save was out as unsaved until the next save carries it 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > keeps a redo pressed while the undo's save was out as its own unsaved step 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > an undo saved after another writer changed the page this tab has not seen > spends an undo that an adopted draft left nothing for, so a later draft holding the old value stays 0ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > undoes a requested generation in one step when a stale autosave merged it first 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > files a generation a stale autosave merged first under later edits, keeps redo, and records it once 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > gives a requested generation that changed nothing no step 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > gives a requested generation no step when another writer saved between it and the draft this tab held 0ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > keeps the server ids the page gained after the step it restores 1ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > starts a loaded page with no history 0ms
+ ✓ tests/journey-page-document-history.test.ts > undo and redo in the document session store > cannot undo while the page is loading 0ms
+ ✓ tests/journey-page-document-history.test.ts > editTarget > names one block whose fields changed 0ms
+ ✓ tests/journey-page-document-history.test.ts > editTarget > names one top-level key 0ms
+ ✓ tests/journey-page-document-history.test.ts > editTarget > returns null for structural edits 0ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > edits to dirty, autosaves after the debounce, and holds the new revision 6ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > autosaves on time while commits that leave the content alone keep arriving 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > shows the writer with its snapshot and base revision while a save is out 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > leaves an edit made during a save unsaved but local, then the next autosave carries it 2ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > joins a save already in flight and reports false, while a flush gets its own receipt 2ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > merges a refused stale save over the stored draft and retries at its revision 2ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > refuses to hold an older or equal revision of the page 0ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > adopts a newer draft only after the save in flight settles, merging from the draft that save committed 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > flags an unanswered save, keeps the edits, and clears the flag on the next success 2ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > does not auto-retry the content that just failed, until an edit changes it 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > creates the page on first save, reports the id, and navigates to its route 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > release creates a new page from an edit autosave had not reached, and stays where the rep went 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > retries a create whose answer was lost under the same id on the next autosave, and saves over the page it made 2ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > retries a create whose answer was lost under the same id on leaving the page, and saves over the page it made 1ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > release creates nothing for a new page the rep never edited 0ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > saves the edit autosave is waiting on as soon as the tab is hidden 2ms
+ ✓ tests/journey-page-document-store.test.ts > the document session store > release drains: once the save in flight settles, what is still unsaved is saved 1ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 1 85ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 7 50ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 42 65ms
+ ✓ tests/journey-page-document-store.test.ts > seeded focused draft interleaving > keeps typed text through saves, server answers and block changes with seed 1527 46ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > adds, edits and removes a saved link using only keys, canvas=true 386ms
+ ✓ tests/preview-render-isolation.test.tsx > typing in a hero leaves another section out of the render 155ms
+ ✓ tests/preview-render-isolation.test.tsx > typing in a story leaves another section out of the render 35ms
+ ✓ tests/preview-render-isolation.test.tsx > a cleared summary cell 0 restores its focus-time document value on blur 14ms
+ ✓ tests/preview-render-isolation.test.tsx > a cleared summary cell 1 restores its focus-time document value on blur 10ms
+ ✓ tests/preview-render-isolation.test.tsx > a clearable FAQ field stays empty on blur 5ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > adds, edits and removes a saved link using only keys, canvas=false 267ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > editing and removing from a link caret returns the original caret to the text 144ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > mouse presses keep the text selection until the link input opens 89ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > keeps every typed character in example.com:8080 until save 27ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > keeps every typed character in not a destination until save 23ms
+ ✓ tests/rich-text-link-entry.test.ts > rich text link entry > a genuine selection move closes the entry without applying its draft 16ms
+
+ Test Files  4 passed (4)
+      Tests  70 passed (70)
+   Start at  14:10:57
+   Duration  2.13s (transform 1.25s, setup 333ms, import 2.01s, tests 1.50s, environment 2.23s)
+
