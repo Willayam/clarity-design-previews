@@ -1,0 +1,174 @@
+{
+  "lab": {
+    "title": "Recorder look and layout controls",
+    "scope": "flow",
+    "fidelity": "native",
+    "created": "2026-11-01 14:27",
+    "round": 1,
+    "rounds": [
+      {
+        "n": 1,
+        "question": "How should a rep pick layout, background and camera shape before recording, and change them after?"
+      }
+    ],
+    "widths": [
+      1440,
+      1024,
+      390
+    ],
+    "screens": [
+      {
+        "id": "recorder",
+        "label": "Recorder"
+      },
+      {
+        "id": "style",
+        "label": "After recording"
+      }
+    ],
+    "parts": [
+      "preview",
+      "controls"
+    ],
+    "controls": {
+      "screen": [
+        "shared",
+        "none"
+      ]
+    },
+    "pageHead": [],
+    "external": []
+  },
+  "variants": [
+    {
+      "id": "v00",
+      "name": "Current",
+      "axis": "today's recorder and Style tab",
+      "idea": "Stacked selects with no labels, layout tiles, then Start recording. The Style tab repeats the preview and adds three unlabelled selects.",
+      "cost": "Hard to tell what each select does",
+      "model": "baseline",
+      "round": 1,
+      "parents": [],
+      "recommended": false,
+      "why": "",
+      "baseline": true,
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "file": "variants/v00-current.html",
+      "mtime": 1793540535.0504217
+    },
+    {
+      "id": "v01",
+      "name": "Swatch rows",
+      "axis": "Smallest change: today's single column, every option a named picture",
+      "idea": "Three labelled rows under the preview replace the selects. Layout shows live scenes, Background shows live faces, Camera shape shows the person in each shape. Camera, microphone and Change screen share one row, Start recording stays full width at the bottom.",
+      "cost": "Eleven pictures on screen at once, and the Style tab pictures shrink to fit five layouts.",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v01-swatch-rows.html",
+      "mtime": 1793541400.19657
+    },
+    {
+      "id": "v02",
+      "name": "On the picture",
+      "axis": "direct manipulation",
+      "idea": "The preview is the interface. A compact layout strip hangs off its edge, and clicking the person opens a small panel beside them with background and shape, so you change what you point at.",
+      "cost": "Background and shape sit behind one click on the picture, one step further away than a visible row of controls.",
+      "model": "fable",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v02-on-the-picture.html",
+      "mtime": 1793542290.6546323
+    },
+    {
+      "id": "v03",
+      "name": "Named looks",
+      "axis": "one decision instead of three",
+      "idea": "One row of six large live thumbnails. Each is a complete look that sets layout and camera shape together and is named the way a rep would say it. Background is the only second choice and appears only when it applies.",
+      "cost": "Bubble and Rounded differ by a 20 px detail at thumbnail size",
+      "model": "fable",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": true,
+      "why": "One row of finished pictures and one background choice. A rep never meets the layout versus shape question, and the page keeps its shape.",
+      "file": "variants/v03-named-looks.html",
+      "mtime": 1793542427.862186
+    },
+    {
+      "id": "v04",
+      "name": "Side inspector",
+      "axis": "page structure",
+      "idea": "A large preview beside a fixed inspector with a stationary action footer.",
+      "cost": "Layout thumbnails are smaller than the main preview.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v04-side-inspector.html",
+      "mtime": 1793540810.16391
+    },
+    {
+      "id": "v05",
+      "name": "Call dock",
+      "axis": "disclosure",
+      "idea": "A familiar call dock keeps visual choices hidden until asked for.",
+      "cost": "An extra click to compare options, with space reserved for the popovers.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v05-call-dock.html",
+      "mtime": 1793540708.7934246
+    },
+    {
+      "id": "v06",
+      "name": "What are you showing",
+      "axis": "the question comes first",
+      "idea": "One plain question leads: Just me, Me and my screen, or Just my screen. Only the controls that answer needs appear next, and picking a screen answer shows the empty slot your screen will fill.",
+      "cost": "The panel has empty space on Just my screen, because the room is reserved for the fullest answer.",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v06-what-are-you-showing.html",
+      "mtime": 1793541859.8682532
+    }
+  ],
+  "slots": [],
+  "state": {},
+  "static": true
+}

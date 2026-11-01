@@ -1,0 +1,420 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>What are you showing</title>
+<script type="application/json" id="lab-meta">{"id": "v06", "name": "What are you showing", "axis": "the question comes first", "idea": "One plain question leads: Just me, Me and my screen, or Just my screen. Only the controls that answer needs appear next, and picking a screen answer shows the empty slot your screen will fill.", "cost": "The panel has empty space on Just my screen, because the room is reserved for the fullest answer.", "model": "opus", "round": 1, "parents": [], "parts": ["preview", "controls"], "recommended": false, "why": ""}</script>
+<link rel="stylesheet" href="../kit/app.css"><script src="../kit/recorder-kit.js"></script>
+<style>
+  /* Recorder: the picture on the left, the question and its answer on the right. */
+  .v06-rec { display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: 24px; width: 100%; max-width: calc(min(70dvh * 16 / 9, 52rem * 16 / 9) + 368px); margin: 0 auto; }
+  .v06-rec > .v06-stage { align-self: start; min-width: 0; }
+  .v06-frame { aspect-ratio: 16 / 9; background: var(--player); }
+  .v06-panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .v06-go { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+  .v06-slot { display: flex; }
+  .v06-slot [hidden] { display: none; }
+  .v06-devices [data-slot="recorder-device-controls"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v06-devices [data-slot="dropdown-menu-trigger"] { padding-inline: 12px; }
+
+  /* The question. Real segmented control classes, sized up because it leads. */
+  .v06-ask { margin: 0; font-size: var(--text-sm); font-weight: 500; color: var(--foreground); line-height: 20px; }
+  .v06-q { height: 56px; margin-top: 4px; }
+  .v06-q [role="radio"] { flex-direction: column; gap: 4px; padding: 0 2px; font-size: var(--text-xs); }
+  .v06-q [role="radio"][data-checked] svg { color: var(--primary); }
+  .v06-q [role="radio"]:disabled { cursor: default; opacity: .5; }
+
+  /* All answers share one grid cell, so the tallest reserves the room and nothing below moves. */
+  .v06-answers { display: grid; min-width: 0; }
+  .v06-answer { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; visibility: hidden; opacity: 0; }
+  .v06-answer.is-on { visibility: visible; opacity: 1; transition: opacity 140ms ease-out; }
+
+  .v06-label { display: flex; align-items: baseline; gap: 6px; min-width: 0; font-size: var(--text-xs); line-height: 20px; }
+  .v06-name { font-weight: 500; color: var(--foreground); white-space: nowrap; }
+  .v06-value { color: var(--muted-foreground); white-space: nowrap; }
+  .v06-group { min-width: 0; }
+  .v06-group[data-hidden] { visibility: hidden; }
+  .v06-tiles { display: grid; gap: 8px; margin-top: 4px; }
+  .v06-group[data-group="arrangement"] .v06-tiles, .v06-wide .v06-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v06-group[data-group="background"] .v06-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .v06-group[data-group="shape"] .v06-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .v06-group[data-group="background"].v06-wide .v06-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v06-screen { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+  .v06-screen [data-slot="button"] { flex: none; }
+  .v06-screen [data-slot="button"][data-off] { visibility: hidden; }
+
+  /* Tiles. The picture is the label; the selected name sits in the row above. */
+  .v06-tile { display: block; width: 100%; min-width: 0; padding: 0; border: 0; border-radius: var(--radius); background: var(--muted); box-shadow: 0 0 0 1px var(--border); cursor: pointer; outline: none; transition: box-shadow 120ms ease-out; }
+  .v06-tile:hover { box-shadow: 0 0 0 1px var(--muted-foreground); }
+  .v06-tile[aria-checked="true"] { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary); }
+  .v06-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 6px; }
+  .v06-tile:disabled { cursor: default; }
+  .v06-group[data-off] .v06-tile { box-shadow: 0 0 0 1px var(--border); }
+  .v06-tile:disabled > * { opacity: .4; }
+  .v06-pic { display: block; width: 100%; overflow: hidden; border-radius: inherit; }
+  .v06-pic-wide { aspect-ratio: 16 / 9; }
+  .v06-pic-face { height: 58px; background-size: 165%; background-position: 62% 28%; }
+  .v06-pic-shape { display: flex; align-items: center; justify-content: center; height: 58px; }
+  .v06-pic-shape.v06-is-cutout { align-items: flex-end; }
+  .v06-shape { display: block; flex: none; width: 46px; height: 46px; }
+  .v06-shape[data-shape="circle"] { border-radius: 50%; }
+  .v06-shape[data-shape="squircle"] { border-radius: 22%; }
+  .v06-shape[data-shape="cutout"] { width: 72px; height: 58px; }
+
+  /* The slot your screen will fill, until it is shared. */
+  .v06-hole { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 0; border: 0; background: var(--muted); color: var(--muted-foreground); font-size: var(--text-sm); font-weight: 500; cursor: pointer; outline: none; transition: background-color 120ms ease-out; }
+  .v06-hole:hover { background: var(--border); }
+  .v06-hole:focus-visible { outline: 2px solid var(--ring); outline-offset: -4px; }
+
+  .v06-menu { position: absolute; z-index: 20; left: 0; bottom: calc(100% + 4px); width: max-content; min-width: 100%; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--popover); color: var(--popover-foreground); }
+  .v06-menu[hidden] { display: none; }
+  .v06-devices .relative:last-child .v06-menu { left: auto; right: 0; }
+  .v06-menu-item { display: flex; align-items: center; gap: 6px; width: 100%; height: 32px; padding: 0 8px; border: 0; border-radius: calc(var(--radius) * .8); background: none; font-size: var(--text-sm); text-align: left; cursor: pointer; outline: none; }
+  .v06-menu-item:hover, .v06-menu-item:focus-visible { background: var(--muted); }
+
+  /* After recording: above, the real finish screen parts. Below, the same question and a strip. */
+  .v06-sty { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: var(--frame-width); margin: 0 auto; }
+  .v06-finish { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; width: max-content; max-width: 100%; margin-left: auto; }
+  .v06-sty [data-part="controls"] { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .v06-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 28px; }
+  .v06-outcome { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .v06-status { margin: 0; color: var(--muted-foreground); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+  .v06-outcome [hidden] { display: none; }
+  .v06-q-row { display: flex; gap: 12px; }
+  .v06-sty .v06-q { flex: 1; min-width: 0; width: auto; height: 40px; margin-top: 0; }
+  .v06-sty .v06-q [role="radio"] { flex-direction: row; gap: 6px; font-size: var(--text-sm); }
+  .v06-apply { display: flex; flex: none; width: 96px; }
+  .v06-sty .v06-answers { container-type: inline-size; margin-top: 4px; }
+  /* --t is the one tile height that makes the strip fill the column exactly: 10.56 tile widths, 48 px of gaps inside groups, 72 px between them. */
+  .v06-sty .v06-answer { --t: calc((100cqw - 120px) / 10.5556); flex-direction: row; gap: 36px; }
+  .v06-sty .v06-group[data-group="arrangement"] .v06-tiles { grid-template-columns: repeat(2, calc(var(--t) * 16 / 9)); }
+  .v06-sty .v06-group[data-group="background"] .v06-tiles { grid-template-columns: repeat(4, var(--t)); }
+  .v06-sty .v06-group[data-group="shape"] .v06-tiles { grid-template-columns: repeat(3, var(--t)); }
+  .v06-sty .v06-group[data-group="background"].v06-wide .v06-tiles { grid-template-columns: repeat(4, calc(var(--t) * 16 / 9)); }
+  .v06-sty .v06-pic-face, .v06-sty .v06-pic-shape { height: var(--t); }
+  .v06-sty .v06-shape { width: calc(var(--t) * .7); height: calc(var(--t) * .7); }
+  .v06-sty .v06-shape[data-shape="cutout"] { width: var(--t); height: var(--t); }
+
+  @media (max-width: 999px) {
+    .v06-rec { grid-template-columns: minmax(0, 1fr); max-width: 600px; }
+    .v06-go { margin-top: 0; }
+  }
+  /* Phones: camera, microphone, layout and record. Record sits at the thumb and never moves. */
+  @media (max-width: 639px) {
+    .v06-page { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; padding-bottom: 16px; overflow: auto; }
+    .v06-rec { display: flex; flex: 1 1 auto; flex-direction: column; gap: 12px; max-width: none; }
+    .v06-rec > .v06-stage { align-self: stretch; }
+    .v06-panel { flex: 1 1 auto; }
+    .v06-go { margin-top: auto; }
+    .v06-rec .v06-group[data-group="background"], .v06-rec .v06-group[data-group="shape"] { display: none; }
+    .v06-devices [data-slot="recorder-device-controls"] { grid-template-columns: minmax(0, 1fr); }
+    .v06-screen { min-height: 44px; }
+
+    .v06-sty { flex: none; }
+    .v06-sty .v06-finish { width: 100%; gap: 8px; }
+    .v06-finish [data-slot="button"] { flex: 1 1 0; width: auto; height: 44px; min-width: 0; padding: 0 8px; font-size: var(--text-xs); border-radius: var(--radius); }
+    .v06-head { flex-wrap: wrap; }
+    .v06-outcome { flex-wrap: wrap; }
+    .v06-q-row { flex-direction: column; gap: 8px; }
+    .v06-sty .v06-q { flex: none; width: 100%; height: 52px; }
+    .v06-sty .v06-q [role="radio"] { white-space: normal; font-size: var(--text-xs); line-height: 1.15; text-align: center; }
+    .v06-sty .v06-q [role="radio"] svg { display: none; }
+    .v06-apply { width: 100%; }
+    .v06-sty .v06-answer { flex-direction: column; gap: 12px; }
+    .v06-sty .v06-group[data-group="arrangement"] .v06-tiles, .v06-sty .v06-group[data-group="background"].v06-wide .v06-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .v06-sty .v06-group[data-group="background"] .v06-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .v06-sty .v06-group[data-group="shape"] .v06-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .v06-sty .v06-pic-face, .v06-sty .v06-pic-shape { height: 64px; }
+    .v06-sty .v06-shape { width: 46px; height: 46px; }
+    .v06-sty .v06-shape[data-shape="cutout"] { width: 72px; height: 64px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .v06-tile, .v06-hole, .v06-answer.is-on { transition: none; }
+  }
+</style></head><body>
+<script>
+const Kit = window.RecorderKit
+const state = Kit.store({ layout: "inset" })
+let arrangement = "inset"
+let route = null
+let stop = () => {}
+
+const bothIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/><circle cx="12" cy="8.5" r="1.5"/><path d="M9 13.5a3 3 0 0 1 6 0"/></svg>`
+const ANSWERS = [
+  { id: "me", label: "Just me", icon: Kit.icon("user-round", 20) },
+  { id: "both", label: "Me and my screen", icon: bothIcon },
+  { id: "screen", label: "Just my screen", icon: Kit.icon("monitor", 20) },
+]
+const RECORDED = { id: "cuts", label: "Recorded cuts", icon: Kit.icon("scissors", 20) }
+const ARRANGEMENTS = Kit.LAYOUTS.filter((option) => option.id === "split" || option.id === "inset")
+const nameOf = (options, id) => options.find((option) => option.id === id)?.label ?? ""
+const answerOf = (layout) => (layout === "camera" ? "me" : layout === "screen" ? "screen" : layout === "cuts" ? "cuts" : "both")
+const layoutOf = (answer) => ({ me: "camera", screen: "screen", cuts: "cuts", both: arrangement })[answer]
+
+const segment = new DOMParser().parseFromString(Kit.trimStyleTabs(), "text/html")
+const segmentRoot = segment.querySelector('[data-slot="segmented-control"]').className
+const segmentItem = segment.querySelector('[data-slot="segmented-control-item"]').className
+
+function question(answers) {
+  return `<div role="radiogroup" aria-labelledby="v06-ask" data-radios="question" class="${segmentRoot} v06-q">${answers.map((answer) => `<button type="button" role="radio" data-value="${answer.id}" data-slot="segmented-control-item" class="${segmentItem}">${answer.icon}<span>${answer.label}</span></button>`).join("")}</div>`
+}
+
+function tiles(kind, options, picture) {
+  return options.map((option) => `<button type="button" role="radio" class="v06-tile" data-value="${option.id}" aria-label="${option.label}">${picture(option)}</button>`).join("")
+}
+
+function group(kind, wide = false) {
+  const spec = {
+    arrangement: { title: "Arrangement", options: ARRANGEMENTS, picture: (o) => `<span class="v06-pic v06-pic-wide" data-paint="${o.id}"></span>` },
+    background: { title: "Background", options: Kit.BACKGROUNDS, picture: (o) => (wide ? `<span class="v06-pic v06-pic-wide" data-paint-camera="${o.id}"></span>` : `<span class="v06-pic v06-pic-face" data-swatch="${o.id}"></span>`) },
+    shape: { title: "Camera shape", options: Kit.SHAPES, picture: (o) => `<span class="v06-pic v06-pic-shape ${o.id === "cutout" ? "v06-is-cutout" : ""}"><span class="v06-shape" data-shape="${o.id}"></span></span>` },
+  }[kind]
+  return `<div class="v06-group ${wide ? "v06-wide" : ""}" data-group="${kind}"><div class="v06-label"><span class="v06-name">${spec.title}</span><span class="v06-value" data-value-of="${kind}"></span></div><div role="radiogroup" aria-label="${spec.title}" data-radios="${kind}" class="v06-tiles">${tiles(kind, spec.options, spec.picture)}</div></div>`
+}
+
+const screenRow = () => `<div class="v06-screen"><div class="v06-label"><span class="v06-name">Screen</span><span class="v06-value" data-screen-status></span></div>${Kit.button({ variant: "outline", size: "sm", label: "Change screen", iconName: "monitor-up", attrs: "data-change-screen" })}</div>`
+const answer = (id, body) => `<section class="v06-answer" data-answer="${id}">${body}</section>`
+const preview = () => `<div data-part="preview" class="v06-frame relative w-full overflow-hidden rounded-2xl shadow-lg"><div data-kit-scene class="absolute inset-0"></div></div>`
+
+/** Paints the take. While a screen is awaited, the arrangement still shows, with an empty slot where the screen goes. */
+function paint(el, s, { live = false } = {}) {
+  const recorded = s.layout === "cuts"
+  const take = { ...s, layout: recorded ? "inset" : s.layout, shape: recorded ? "circle" : s.shape, screen: true }
+  Kit.scene(el, take)
+  if (s.screen || take.layout === "camera") return
+  const cell = el.querySelector(".kit-cell")
+  if (!live) { cell.style.backgroundImage = "none"; cell.style.backgroundColor = "var(--muted)"; return }
+  const hole = document.createElement("button")
+  hole.type = "button"
+  hole.className = "v06-hole"
+  hole.dataset.shareScreen = ""
+  hole.setAttribute("aria-label", "Share screen")
+  for (const edge of ["left", "top", "width", "height"]) hole.style[edge] = cell.style[edge]
+  hole.innerHTML = `${Kit.icon("monitor-up", 20)}<span>Your screen</span>`
+  cell.replaceWith(hole)
+}
+
+function syncRadios(root, s, busy) {
+  const current = { question: answerOf(s.layout), arrangement: s.layout, background: s.background, shape: s.shape }
+  const applies = Kit.applies(s)
+  root.querySelectorAll("[data-radios]").forEach((radios) => {
+    const kind = radios.dataset.radios
+    const off = kind === "background" && !applies.background
+    radios.querySelectorAll('[role="radio"]').forEach((item) => {
+      const on = item.dataset.value === current[kind]
+      item.setAttribute("aria-checked", String(on))
+      item.tabIndex = on ? 0 : -1
+      item.disabled = busy || off
+      if (kind === "question") {
+        item.toggleAttribute("data-checked", on)
+        item.toggleAttribute("data-unchecked", !on)
+      }
+    })
+  })
+  root.querySelectorAll('[data-group="shape"]').forEach((el) => el.toggleAttribute("data-hidden", !applies.shape))
+  root.querySelectorAll('[data-group="background"]').forEach((el) => el.toggleAttribute("data-off", !applies.background))
+  root.querySelectorAll('[data-value-of="arrangement"]').forEach((el) => { el.textContent = nameOf(Kit.LAYOUTS, s.layout) })
+  root.querySelectorAll('[data-value-of="background"]').forEach((el) => { el.textContent = applies.background ? nameOf(Kit.BACKGROUNDS, s.background) : "Not with Cutout" })
+  root.querySelectorAll('[data-value-of="shape"]').forEach((el) => { el.textContent = nameOf(Kit.SHAPES, s.shape) })
+  root.querySelectorAll("[data-answer]").forEach((el) => el.classList.toggle("is-on", el.dataset.answer === current.question))
+}
+
+function syncPictures(root, s) {
+  root.querySelectorAll("[data-kit-scene]").forEach((el) => paint(el, s, { live: true }))
+  root.querySelectorAll("[data-paint]").forEach((el) => paint(el, { ...s, layout: el.dataset.paint }))
+  root.querySelectorAll(".v06-shape").forEach((el) => {
+    el.removeAttribute("style")
+    const cutout = el.dataset.shape === "cutout"
+    Kit.face(el, cutout ? "blue" : s.background)
+    if (cutout) el.style.backgroundColor = "transparent"
+  })
+}
+
+function wireControls(root) {
+  root.querySelectorAll("[data-swatch]").forEach((el) => Kit.face(el, el.dataset.swatch))
+  root.querySelectorAll("[data-paint-camera]").forEach((el) => Kit.scene(el, { layout: "camera", background: el.dataset.paintCamera }))
+  const pick = (kind, value) => {
+    if (kind === "question") state.set({ layout: layoutOf(value) })
+    if (kind === "arrangement") state.set({ layout: value })
+    if (kind === "background") state.set({ background: value })
+    if (kind === "shape") state.set({ shape: value })
+  }
+  root.addEventListener("click", (event) => {
+    const item = event.target.closest('[role="radio"]')
+    if (item && !item.disabled) pick(item.closest("[data-radios]").dataset.radios, item.dataset.value)
+  })
+  root.addEventListener("keydown", (event) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+    const radios = event.target.closest?.("[data-radios]")
+    if (!step || !radios) return
+    event.preventDefault()
+    const items = [...radios.querySelectorAll('[role="radio"]:not(:disabled)')]
+    const next = items[(items.indexOf(event.target) + step + items.length) % items.length]
+    next.focus()
+    pick(radios.dataset.radios, next.dataset.value)
+  })
+}
+
+/** The real device triggers open a small menu holding the current device. */
+function wireDevices(root) {
+  const closeAll = () => root.querySelectorAll(".v06-menu:not([hidden])").forEach((menu) => {
+    menu.hidden = true
+    menu.parentElement.querySelector('[data-slot="dropdown-menu-trigger"]').setAttribute("aria-expanded", "false")
+  })
+  root.querySelectorAll('[data-slot="dropdown-menu-trigger"]').forEach((trigger) => {
+    const menu = document.createElement("div")
+    menu.className = "v06-menu shadow-md"
+    menu.setAttribute("role", "menu")
+    menu.hidden = true
+    menu.innerHTML = `<button type="button" role="menuitemradio" aria-checked="true" class="v06-menu-item">${Kit.icon("check", 16)}<span class="truncate">${trigger.getAttribute("aria-label").split(": ")[1]}</span></button>`
+    trigger.parentElement.append(menu)
+    trigger.addEventListener("click", () => {
+      const open = menu.hidden
+      closeAll()
+      menu.hidden = !open
+      trigger.setAttribute("aria-expanded", String(open))
+      if (open) menu.firstElementChild.focus()
+    })
+    menu.addEventListener("click", () => { closeAll(); trigger.focus() })
+  })
+  root.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return
+    const open = root.querySelector(".v06-menu:not([hidden])")
+    if (!open) return
+    closeAll()
+    open.parentElement.querySelector('[data-slot="dropdown-menu-trigger"]').focus()
+  })
+  const outside = (event) => { if (!event.target.closest?.(".v06-menu, [data-slot='dropdown-menu-trigger']")) closeAll() }
+  document.addEventListener("click", outside)
+  return () => document.removeEventListener("click", outside)
+}
+
+function renderRecorder() {
+  if (state.get().layout === "cuts") state.set({ layout: arrangement })
+  const page = Kit.mountShell("Record video")
+  page.classList.add("v06-page")
+  page.innerHTML = `<div class="v06-rec"><div class="v06-stage">${preview()}</div><aside data-part="controls" class="v06-panel">
+    <div><p class="v06-ask" id="v06-ask">What are you showing?</p>${question(ANSWERS)}</div>
+    <div class="v06-answers">
+      ${answer("me", group("background", true))}
+      ${answer("both", screenRow() + group("arrangement") + group("background") + group("shape"))}
+      ${answer("screen", screenRow())}
+    </div>
+    <div class="v06-go">
+      <div class="v06-devices">${Kit.deviceControls()}</div>
+      <div class="v06-slot">${Kit.button({ record: true, size: "lg-thumb", label: "Start recording", attrs: "data-start" })}${Kit.button({ variant: "default", size: "lg-thumb", label: "Share screen", iconName: "monitor-up", attrs: "data-share-button data-share-screen" })}</div>
+    </div>
+  </aside></div>`
+  const start = page.querySelector("[data-start]")
+  const share = page.querySelector("[data-share-button]")
+  const camera = page.querySelector('[aria-label^="Camera:"]')
+  wireControls(page)
+  const unwireDevices = wireDevices(page)
+
+  page.addEventListener("click", (event) => {
+    if (event.target.closest("[data-share-screen]")) {
+      state.set({ screen: true })
+      start.focus()
+    } else if (event.target.closest("[data-change-screen]")) {
+      state.set({ screen: false })
+      share.focus()
+    }
+  })
+
+  const unsubscribe = state.subscribe((s) => {
+    const shown = answerOf(s.layout)
+    const waiting = shown !== "me" && !s.screen
+    syncRadios(page, s, false)
+    syncPictures(page, s)
+    start.hidden = waiting
+    share.hidden = !waiting
+    // Just my screen records no camera, so the picker stops looking available.
+    camera.disabled = shown === "screen"
+    page.querySelectorAll("[data-screen-status]").forEach((el) => { el.textContent = s.screen ? "Shared" : "Not shared" })
+    page.querySelectorAll("[data-change-screen]").forEach((el) => el.toggleAttribute("data-off", !s.screen))
+  })
+  return () => { unsubscribe(); unwireDevices() }
+}
+
+function renderStyle() {
+  const page = Kit.mountShell("Untitled video")
+  page.classList.add("v06-page")
+  const pickOf = ({ layout, background, shape }) => ({ layout, background, shape })
+  const same = (a, b) => a.layout === b.layout && a.background === b.background && a.shape === b.shape
+  const original = pickOf(state.get())
+  let applied = original
+  let running = false
+  let status = null
+  let cancel = () => {}
+  page.innerHTML = `<div class="v06-sty" style="--frame-width: ${Kit.FRAME_WIDTH}">
+    ${preview()}
+    ${Kit.trimStyleTabs()}
+    <div class="v06-finish">${Kit.finishActions()}</div>
+    <section data-part="controls" aria-label="Style">
+      <div class="v06-head">
+        <p class="v06-ask" id="v06-ask">What are you showing?</p>
+        <div class="v06-outcome"><p class="v06-status" role="status" data-status></p>${Kit.button({ variant: "outline", size: "sm", label: "Back to original", attrs: "data-back hidden" })}</div>
+      </div>
+      <div class="v06-q-row">${question([...ANSWERS, RECORDED])}<div class="v06-apply">${Kit.button({ variant: "default", size: "lg-thumb", label: "Apply", attrs: "data-apply" })}</div></div>
+      <div class="v06-answers">
+        ${answer("me", group("background", true))}
+        ${answer("both", group("arrangement") + group("background") + group("shape"))}
+        ${answer("screen", "")}
+        ${answer("cuts", group("background", true))}
+      </div>
+    </section>
+  </div>`
+  const apply = page.querySelector("[data-apply]")
+  const back = page.querySelector("[data-back]")
+  const statusLine = page.querySelector("[data-status]")
+  wireControls(page)
+
+  const sync = () => {
+    const s = { ...state.get(), screen: true }
+    syncRadios(page, s, running)
+    syncPictures(page, s)
+    statusLine.textContent = status ? Kit.statusCopy(status) : ""
+    apply.disabled = running || same(pickOf(s), applied)
+    apply.setAttribute("aria-busy", String(running))
+  }
+
+  apply.addEventListener("click", () => {
+    running = true
+    status = null
+    back.hidden = true
+    sync()
+    cancel = Kit.fakeApply((next) => {
+      status = next
+      if (next.kind === "done") {
+        running = false
+        applied = pickOf(state.get())
+        back.hidden = false
+        back.focus()
+      }
+      sync()
+    })
+  })
+  back.addEventListener("click", () => {
+    applied = original
+    status = null
+    back.hidden = true
+    state.set(original)
+    page.querySelector('[data-radios="question"] [aria-checked="true"]').focus()
+  })
+
+  const unsubscribe = state.subscribe(() => {
+    if (status?.kind === "done") status = null
+    sync()
+  })
+  return () => { cancel(); unsubscribe() }
+}
+
+state.subscribe((s) => { if (s.layout === "split" || s.layout === "inset") arrangement = s.layout })
+
+function render() {
+  const next = location.hash === "#style" ? "style" : "recorder"
+  if (next === route) return
+  route = next
+  stop()
+  stop = next === "style" ? renderStyle() : renderRecorder()
+  window.scrollTo(0, 0)
+}
+window.addEventListener("hashchange", render)
+render()
+</script><script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>

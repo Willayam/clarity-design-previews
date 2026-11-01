@@ -1,0 +1,236 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Named looks</title>
+<script type="application/json" id="lab-meta">{"id": "v03", "name": "Named looks", "axis": "one decision instead of three", "idea": "One row of six large live thumbnails. Each is a complete look that sets layout and camera shape together and is named the way a rep would say it. Background is the only second choice and appears only when it applies.", "cost": "Bubble and Rounded differ by a 20 px detail at thumbnail size", "model": "fable", "round": 1, "parents": [], "parts": ["preview", "controls"], "recommended": true, "why": "One row of finished pictures and one background choice. A rep never meets the layout versus shape question, and the page keeps its shape."}</script>
+<link rel="stylesheet" href="../kit/app.css"><script src="../kit/recorder-kit.js"></script>
+<style>
+.v03-looks{display:grid;grid-template-columns:repeat(var(--v03-cols,6),minmax(0,1fr));gap:.5rem}
+.v03-look,.v03-face-btn{display:flex;min-width:0;flex-direction:column;align-items:center;cursor:pointer;border:0;border-radius:var(--radius);background:none;padding:0;font:inherit;color:inherit;text-align:center;outline:none}
+.v03-look{gap:.375rem}
+.v03-face-btn{gap:.25rem;width:3.5rem;flex:none}
+.v03-look:focus-visible,.v03-face-btn:focus-visible{outline:2px solid var(--ring);outline-offset:3px}
+.v03-look:disabled,.v03-face-btn:disabled{opacity:.5;cursor:default;pointer-events:none}
+.v03-thumb{display:block;width:100%;height:auto;aspect-ratio:16/9;border-radius:var(--radius);box-shadow:0 0 0 1px var(--border);transition:box-shadow .12s ease-out}
+.v03-look:hover .v03-thumb{box-shadow:0 0 0 1px var(--muted-foreground)}
+.v03-look[aria-checked="true"] .v03-thumb{box-shadow:0 0 0 1px var(--card),0 0 0 3px var(--primary)}
+.v03-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;align-content:center;padding:0 3px;overflow:hidden;background:var(--player)}
+.v03-strip>.kit-scene{height:auto;aspect-ratio:16/9;border-radius:3px}
+.v03-name{max-width:100%;font-size:var(--text-sm);line-height:1.25;font-weight:500;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s ease-out}
+.v03-look[aria-checked="true"] .v03-name{color:var(--foreground)}
+.v03-bg{display:flex;align-items:center;gap:.75rem;min-height:4.75rem;transition:opacity .15s ease-out}
+.v03-bg[data-off]{opacity:0;visibility:hidden;transition:opacity .15s ease-out,visibility 0s linear .15s}
+.v03-bg-label{width:6rem;flex:none;align-self:flex-start;font-size:var(--text-sm);line-height:3.5rem;color:var(--muted-foreground)}
+.v03-face{display:block;width:3.5rem;height:3.5rem;border-radius:var(--radius);box-shadow:0 0 0 1px var(--border);transition:box-shadow .12s ease-out}
+.v03-face-btn:hover .v03-face{box-shadow:0 0 0 1px var(--muted-foreground)}
+.v03-face-btn[aria-checked="true"] .v03-face{box-shadow:0 0 0 1px var(--card),0 0 0 3px var(--primary)}
+.v03-face-name{font-size:var(--text-xs);line-height:1.25;color:var(--muted-foreground);white-space:nowrap;transition:color .12s ease-out}
+.v03-face-btn[aria-checked="true"] .v03-face-name{color:var(--foreground)}
+.v03-status{font-size:var(--text-sm);line-height:1.25rem;color:var(--muted-foreground)}
+.v03 [data-back][data-hidden]{visibility:hidden}
+@media (width < 40rem){
+  .v03-looks{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .v03[data-route="recorder"] .v03-look[data-desktop],.v03[data-route="recorder"] .v03-bg{display:none}
+  .v03-bg{flex-wrap:wrap;gap:.5rem .75rem}
+  .v03-bg-label{width:100%;line-height:1.25rem}
+  .v03-apply{flex-wrap:wrap}
+  .v03-status{order:3;flex-basis:100%}
+}
+@media (prefers-reduced-motion: reduce){.v03-thumb,.v03-name,.v03-face,.v03-face-name,.v03-bg,.v03-bg[data-off]{transition:none}}
+</style>
+</head><body>
+<script>
+(() => {
+  const Kit = window.RecorderKit;
+  const state = Kit.store({ layout: "inset" });
+  const phoneMedia = matchMedia("(width < 40rem)");
+
+  // Every combination the engine can paint, as one picture each. Order: the person gets smaller left to right.
+  const LOOKS = [
+    { id: "camera", layout: "camera", shape: null, name: "Just me" },
+    { id: "split", layout: "split", shape: null, name: "Side by side" },
+    { id: "presenter", layout: "inset", shape: "cutout", name: "Presenter", desktop: true },
+    { id: "bubble", layout: "inset", shape: "circle", name: "Bubble" },
+    { id: "rounded", layout: "inset", shape: "squircle", name: "Rounded", desktop: true },
+    { id: "screen", layout: "screen", shape: null, name: "Screen only" },
+  ];
+  const RECORDED = { id: "recorded", layout: "recorded", shape: null, name: "As recorded" };
+  const BY_ID = Object.fromEntries([RECORDED, ...LOOKS].map((look) => [look.id, look]));
+  const needsScreen = (layout) => layout === "recorded" || !!Kit.LAYOUTS.find((l) => l.id === layout)?.needsScreen;
+
+  let recordedLook = { layout: "inset", shape: "circle" };
+  let original = null;
+  let unsubscribe = null;
+  let cancelApply = null;
+  let onMedia = null;
+
+  // The kit's default/lg-thumb open tag was captured from the record button and carries data-record-action.
+  // Only the record button may be red, so every other button drops the flag.
+  const btn = (options) => options.record ? Kit.button(options) : Kit.button(options).replace(' data-record-action=""', "");
+
+  const tile = (look) => `<button type="button" role="radio" aria-checked="false" tabindex="-1" class="v03-look" data-look="${look.id}"${look.desktop ? " data-desktop" : ""}>`
+    + (look.id === "recorded" ? '<span class="v03-thumb v03-strip" aria-hidden="true"><span></span><span></span></span>' : '<span class="v03-thumb" aria-hidden="true"></span>')
+    + `<span class="v03-name">${look.name}</span></button>`;
+  const looksHTML = (looks) => `<div role="radiogroup" aria-label="Look" class="v03-looks" style="--v03-cols:${looks.length}">${looks.map(tile).join("")}</div>`;
+  const bgHTML = () => `<div role="radiogroup" aria-label="Background" class="v03-bg"><span class="v03-bg-label" aria-hidden="true">Background</span>`
+    + Kit.BACKGROUNDS.map((b) => `<button type="button" role="radio" aria-checked="false" tabindex="-1" class="v03-face-btn" data-bg="${b.id}"><span class="v03-face" aria-hidden="true"></span><span class="v03-face-name">${b.label}</span></button>`).join("")
+    + "</div>";
+  const frame = '<div data-part="preview" class="relative w-full overflow-hidden rounded-2xl bg-(--player) shadow-lg aspect-video"><div class="absolute inset-0" data-preview></div></div>';
+  const stack = (route, inner) => `<div class="v03 mx-auto flex w-full min-w-0 max-w-(--frame-width) flex-col gap-3" data-route="${route}" style="--frame-width:${Kit.FRAME_WIDTH}">${frame}${inner}</div>`;
+
+  const recorderHTML = () => stack("recorder",
+    '<div data-part="controls" class="flex min-w-0 flex-col gap-3">'
+    + `<div class="@container/recorder-controls">${Kit.deviceControls()}</div>`
+    + looksHTML(LOOKS) + bgHTML()
+    + '<div class="flex items-center gap-2" data-actions></div></div>');
+
+  const finishActions = () => Kit.finishActions()
+    .replace(' data-record-action=""', "").replace(' min-w-0 flex-1"', '"')
+    .replace("Re-record</button>", '<span class="max-sm:sr-only">Re-record</span></button>')
+    .replace("Copy link</button>", '<span class="max-sm:sr-only">Copy link</span></button>');
+
+  const styleHTML = () => stack("style",
+    `<div class="flex min-w-0 flex-col gap-2">${Kit.trimStyleTabs()}<div class="flex flex-wrap items-center justify-end gap-3">${finishActions()}</div></div>`
+    + '<section data-part="controls" aria-label="Style" class="flex min-w-0 flex-col gap-3">'
+    + looksHTML([RECORDED, ...LOOKS]) + bgHTML()
+    + '<div class="v03-apply flex items-center gap-3">'
+    + btn({ label: "Apply", attrs: 'data-apply aria-busy="false"' })
+    + '<span role="status" class="v03-status min-w-0 flex-1 truncate" data-status></span>'
+    + btn({ variant: "outline", size: "sm", label: "Back to original", attrs: "data-back data-hidden" })
+    + '</div></section>');
+
+  const visible = (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden";
+  const radios = (group) => [...group.querySelectorAll("[role=radio]")].filter((r) => visible(r) && !r.disabled);
+  function retab(groups) {
+    groups.forEach((group) => {
+      const items = radios(group);
+      const on = items.find((r) => r.getAttribute("aria-checked") === "true") ?? items[0];
+      group.querySelectorAll("[role=radio]").forEach((r) => { r.tabIndex = r === on ? 0 : -1; });
+    });
+  }
+  function arrows(group) {
+    group.addEventListener("keydown", (event) => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+      if (!step) return;
+      const items = radios(group);
+      const i = items.indexOf(event.target);
+      if (i < 0) return;
+      event.preventDefault();
+      const next = items[(i + step + items.length) % items.length];
+      next.focus();
+      next.click();
+    });
+  }
+
+  function render() {
+    const route = location.hash === "#style" ? "style" : "recorder";
+    unsubscribe?.();
+    cancelApply?.();
+    cancelApply = null;
+    if (onMedia) phoneMedia.removeEventListener("change", onMedia);
+
+    if (route === "style") {
+      const s = state.get();
+      if (s.layout !== "recorded") recordedLook = { layout: s.layout, shape: s.shape };
+      state.set({ layout: "recorded" });
+      original = { ...state.get() };
+    } else if (state.get().layout === "recorded") {
+      state.set(recordedLook);
+    }
+
+    const page = Kit.mountShell(route === "style" ? "Untitled video" : "Record video");
+    page.innerHTML = route === "style" ? styleHTML() : recorderHTML();
+    const root = page.firstElementChild;
+    const preview = root.querySelector("[data-preview]");
+    const tiles = [...root.querySelectorAll(".v03-look")];
+    const faces = [...root.querySelectorAll(".v03-face-btn")];
+    const band = root.querySelector(".v03-bg");
+    const groups = [...root.querySelectorAll(".v03-looks, .v03-bg")];
+    const phone = () => route === "recorder" && phoneMedia.matches;
+
+    faces.forEach((face) => Kit.face(face.querySelector(".v03-face"), face.dataset.bg));
+    tiles.forEach((t) => t.addEventListener("click", () => {
+      const look = BY_ID[t.dataset.look];
+      state.set(look.shape ? { layout: look.layout, shape: look.shape } : { layout: look.layout });
+    }));
+    faces.forEach((face) => face.addEventListener("click", () => state.set({ background: face.dataset.bg })));
+    groups.forEach(arrows);
+
+    // Recorder: the row under the controls. Its make-up only changes with the sharing state, never with a pick.
+    const actions = root.querySelector("[data-actions]");
+    function syncActions(s) {
+      const key = s.screen ? "shared" : needsScreen(s.layout) ? "ask" : "camera";
+      if (actions.dataset.key === key) return;
+      actions.dataset.key = key;
+      actions.innerHTML = key === "ask"
+        ? btn({ size: "lg-thumb", label: "Share screen", iconName: "monitor-up", attrs: "data-share" })
+        : (key === "shared" ? btn({ variant: "outline", size: "lg-thumb", label: '<span class="max-sm:sr-only">Change screen</span>', iconName: "monitor-up", attrs: 'aria-label="Change screen"' }) : "")
+          + btn({ record: true, size: "lg-thumb", label: "Start recording" });
+      actions.querySelector("[data-share]")?.addEventListener("click", () => state.set({ screen: true }));
+    }
+
+    // Style: Apply runs the real status sequence. Choices lock while it runs. Back to original appears once it is done.
+    const apply = root.querySelector("[data-apply]");
+    const back = root.querySelector("[data-back]");
+    const status = root.querySelector("[data-status]");
+    let applying = false;
+    function setBusy(busy) {
+      applying = busy;
+      apply.disabled = busy;
+      apply.setAttribute("aria-busy", String(busy));
+      back.disabled = busy;
+      [...tiles, ...faces].forEach((el) => { el.disabled = busy; });
+      retab(groups);
+    }
+    apply?.addEventListener("click", () => {
+      if (applying) return;
+      setBusy(true);
+      cancelApply = Kit.fakeApply((st) => {
+        status.textContent = Kit.statusCopy(st);
+        if (st.kind !== "done") return;
+        cancelApply = null;
+        setBusy(false);
+        back.removeAttribute("data-hidden");
+      });
+    });
+    back?.addEventListener("click", () => {
+      state.set(original);
+      back.setAttribute("data-hidden", "");
+      status.textContent = "";
+    });
+
+    function sync(s) {
+      const ph = phone();
+      // Phones cannot paint backgrounds or camera shapes, so the phone recorder shows the plain layouts.
+      const shown = ph ? { ...s, background: "keep", shape: "circle" } : s;
+      Kit.scene(preview, s.layout === "recorded" ? { ...shown, ...recordedLook } : shown);
+      tiles.forEach((t) => {
+        const look = BY_ID[t.dataset.look];
+        // Phones paint every inset take as a circle, so only Bubble can be the checked inset look there.
+        const shapeMatch = !look.shape || (ph ? look.shape === "circle" : look.shape === s.shape);
+        const on = look.layout === s.layout && shapeMatch;
+        t.setAttribute("aria-checked", String(on));
+        const thumb = t.querySelector(".v03-thumb");
+        if (look.id === "recorded") {
+          Kit.scene(thumb.children[0], { layout: "camera", background: shown.background, screen: true });
+          Kit.scene(thumb.children[1], { ...recordedLook, background: shown.background, screen: true });
+        } else {
+          Kit.scene(thumb, { layout: look.layout, shape: look.shape ?? "circle", background: shown.background, screen: true });
+        }
+      });
+      const can = Kit.applies(s);
+      band.toggleAttribute("data-off", !can.background);
+      band.setAttribute("aria-hidden", String(!can.background));
+      faces.forEach((face) => face.setAttribute("aria-checked", String(face.dataset.bg === s.background)));
+      retab(groups);
+      if (route === "recorder") syncActions(s);
+      else if (!applying) status.textContent = "";
+    }
+    unsubscribe = state.subscribe(sync);
+    onMedia = () => sync(state.get());
+    phoneMedia.addEventListener("change", onMedia);
+  }
+
+  window.addEventListener("hashchange", render);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render);
+  else render();
+})();
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>
