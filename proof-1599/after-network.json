@@ -1,0 +1,66 @@
+[
+  {
+    "who": "A",
+    "status": 200,
+    "revision": 5
+  },
+  {
+    "who": "B",
+    "status": 409,
+    "revision": 5,
+    "code": "stale_revision"
+  },
+  {
+    "who": "B",
+    "status": 200,
+    "revision": 6
+  },
+  {
+    "who": "A",
+    "status": 200,
+    "revision": 7
+  },
+  {
+    "who": "B",
+    "status": 409,
+    "revision": 7,
+    "code": "stale_revision"
+  },
+  {
+    "who": "B",
+    "status": 200,
+    "revision": 8
+  },
+  {
+    "who": "A",
+    "status": 200,
+    "revision": 9
+  },
+  {
+    "who": "B",
+    "status": 409,
+    "revision": 9,
+    "code": "stale_revision"
+  },
+  {
+    "who": "B",
+    "status": 200,
+    "revision": 10
+  },
+  {
+    "who": "A",
+    "status": 200,
+    "revision": 11
+  },
+  {
+    "who": "B",
+    "status": 409,
+    "revision": 11,
+    "code": "stale_revision"
+  },
+  {
+    "who": "B",
+    "status": 200,
+    "revision": 12
+  }
+]

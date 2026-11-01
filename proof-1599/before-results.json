@@ -1,0 +1,26 @@
+{
+  "base": "https://pr-1590.clarity-video.workers.dev",
+  "pageId": "2f6f38f4-b2f7-4993-9028-39022fa7522f",
+  "faq": [
+    "First original question",
+    "Writer B changed second question"
+  ],
+  "network": [
+    {
+      "who": "A",
+      "status": 200,
+      "revision": 2
+    },
+    {
+      "who": "B",
+      "status": 409,
+      "revision": 2,
+      "code": "stale_revision"
+    },
+    {
+      "who": "B",
+      "status": 200,
+      "revision": 3
+    }
+  ]
+}

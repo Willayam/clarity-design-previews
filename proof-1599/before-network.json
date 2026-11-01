@@ -1,0 +1,18 @@
+[
+  {
+    "who": "A",
+    "status": 200,
+    "revision": 2
+  },
+  {
+    "who": "B",
+    "status": 409,
+    "revision": 2,
+    "code": "stale_revision"
+  },
+  {
+    "who": "B",
+    "status": 200,
+    "revision": 3
+  }
+]

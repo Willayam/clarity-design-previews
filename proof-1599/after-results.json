@@ -1,0 +1,90 @@
+{
+  "base": "https://pr-1599.clarity-video.workers.dev",
+  "pageId": "a1e738b7-6ba1-450b-8266-ccbe50616970",
+  "faq": [
+    "Writer A changed first question",
+    "Writer B changed second question"
+  ],
+  "network": [
+    {
+      "who": "A",
+      "status": 200,
+      "revision": 5
+    },
+    {
+      "who": "B",
+      "status": 409,
+      "revision": 5,
+      "code": "stale_revision"
+    },
+    {
+      "who": "B",
+      "status": 200,
+      "revision": 6
+    },
+    {
+      "who": "A",
+      "status": 200,
+      "revision": 7
+    },
+    {
+      "who": "B",
+      "status": 409,
+      "revision": 7,
+      "code": "stale_revision"
+    },
+    {
+      "who": "B",
+      "status": 200,
+      "revision": 8
+    },
+    {
+      "who": "A",
+      "status": 200,
+      "revision": 9
+    },
+    {
+      "who": "B",
+      "status": 409,
+      "revision": 9,
+      "code": "stale_revision"
+    },
+    {
+      "who": "B",
+      "status": 200,
+      "revision": 10
+    },
+    {
+      "who": "A",
+      "status": 200,
+      "revision": 11
+    },
+    {
+      "who": "B",
+      "status": 409,
+      "revision": 11,
+      "code": "stale_revision"
+    },
+    {
+      "who": "B",
+      "status": 200,
+      "revision": 12
+    }
+  ],
+  "pricing": [
+    "Writer A changed first plan",
+    "Writer B changed second plan"
+  ],
+  "additions": [
+    "Writer A changed first question",
+    "Writer B changed second question",
+    "Writer B added question",
+    "Writer A added question"
+  ],
+  "wholeList": [
+    "Writer B edited a remotely deleted list",
+    "Writer B changed second question",
+    "Writer B added question",
+    "Writer A added question"
+  ]
+}

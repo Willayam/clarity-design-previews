@@ -1,0 +1,184 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1599</title><style>body{font:16px/1.5 system-ui,sans-serif;color:#162030;max-width:1080px;margin:32px auto;padding:0 16px}img{max-width:100%;height:auto;border:1px solid #ddd}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f8;padding:16px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:10px;text-align:left}code{overflow-wrap:anywhere}.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}</style><h1>VERIFIED · PASS+NOTES</h1>
+<p>Independent preview verification on 1 November 2026. Head <code>d2ed1ad809b2e6146725a6e9ed8596e635010b7b</code>. Routing auto. William has not signed off and nothing was merged.</p><p><a href="https://github.com/Clarity-Video-HQ/clarity/pull/1599">PR #1599</a> · <a href="https://github.com/Clarity-Video-HQ/clarity/issues/1369">Issue #1369</a> · <a href="https://pr-1599.clarity-video.workers.dev">PR preview</a></p>
+<h2>Checks</h2><table><tr><th>Check</th><th>Result</th><th>Evidence</th></tr>
+<tr><td>FAQ two writers</td><td>PASS</td><td>Before loses A. After retains A and B after reload.</td></tr>
+<tr><td>Pricing two writers</td><td>PASS</td><td>Both plan titles persist after reload.</td></tr>
+<tr><td>FAQ additions on each side</td><td>PASS</td><td>Both additions persist, alongside both existing rows.</td></tr>
+<tr><td>Whole-list deletion question</td><td>NOTE</td><td>Deleting the FAQ section in A and editing its first row in stale B restores all four rows. This decision remains open for William.</td></tr>
+<tr><td>Red to green</td><td>PASS</td><td>FAQ case fails at merge base 66af49adf5da8ca3704ea733b6277b4aa3966766 and passes on head.</td></tr>
+<tr><td>Head regression suites</td><td>PASS</td><td>merge-drafts.test.ts and canvas-conflict-drafts.test.tsx. 2 files passed, 339 tests passed.</td></tr>
+<tr><td>Independent evidence audit</td><td>PASS</td><td>Screenshots inspected against saved text and response logs.</td></tr>
+<tr><td>Cleanup</td><td>PASS</td><td>Both isolated mock pages deleted. No direct D1 writes. No production or staging writes.</td></tr>
+</table>
+<h2>Before and after</h2><p>Two separate browser contexts signed in as the same mock Pro account load the same revision. A edits row one and saves. B edits row two from its stale draft and saves. B gets HTTP 409 stale_revision, merges, retries successfully, then reloads. Read pages_get to confirm stored values.</p><p>Before uses PR #1590, main plus a CSS token change, at 2ea76ccb7c46a591359530a8e879272d6eb5869e with base 66af49adf5da8ca3704ea733b6277b4aa3966766. It needs mock writes, so staging was not used.</p><div class="pair">
+<section><h3>Before</h3><p>https://pr-1590.clarity-video.workers.dev</p><pre>[
+  &quot;First original question&quot;,
+  &quot;Writer B changed second question&quot;
+]</pre><img src="before-faq.png" alt="before FAQ after reload"></section>
+<section><h3>After</h3><p>https://pr-1599.clarity-video.workers.dev</p><pre>[
+  &quot;Writer A changed first question&quot;,
+  &quot;Writer B changed second question&quot;
+]</pre><img src="after-faq.png" alt="after FAQ after reload"></section>
+</div>
+<h2>Pricing plans</h2><pre>[
+  &quot;Writer A changed first plan&quot;,
+  &quot;Writer B changed second plan&quot;
+]</pre><img src="after-pricing.png" alt="Pricing plans">
+<h2>Both additions</h2><pre>[
+  &quot;Writer A changed first question&quot;,
+  &quot;Writer B changed second question&quot;,
+  &quot;Writer B added question&quot;,
+  &quot;Writer A added question&quot;
+]</pre><img src="after-additions.png" alt="Both additions">
+<h2>Open question about whole-list deletion</h2><pre>[
+  &quot;Writer B edited a remotely deleted list&quot;,
+  &quot;Writer B changed second question&quot;,
+  &quot;Writer B added question&quot;,
+  &quot;Writer A added question&quot;
+]</pre><img src="after-whole-list.png" alt="Open question about whole-list deletion">
+<h2>Tests</h2>
+<h3>base-tests.log</h3><pre>
+ RUN  v4.1.11 /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-01/pr-1599/wt/editor
+
+ ❯ tests/merge-drafts.test.ts (67 tests | 1 failed | 66 skipped) 7ms
+     × keeps edits to different FAQ rows from both writers 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/merge-drafts.test.ts &gt; mergeDrafts &gt; keeps edits to different FAQ rows from both writers
+AssertionError: expected [ Array(2) ] to deeply equal [ Array(2) ]
+
+- Expected
++ Received
+
+@@ -4,11 +4,11 @@
+      &quot;id&quot;: &quot;a&quot;,
+      &quot;question&quot;: &quot;First?&quot;,
+      &quot;seq_no&quot;: &quot;1&quot;,
+    },
+    {
+-     &quot;answer&quot;: &quot;Remote answer&quot;,
++     &quot;answer&quot;: &quot;Second answer&quot;,
+      &quot;id&quot;: &quot;b&quot;,
+      &quot;question&quot;: &quot;Second?&quot;,
+      &quot;seq_no&quot;: &quot;2&quot;,
+    },
+  ]
+
+ ❯ tests/merge-drafts.test.ts:248:62
+    246|     const merged = mergeDrafts({ base, local, remote }).blocks[0];
+    247|
+    248|     expect(merged.kind === &#x27;faq&#x27; &amp;&amp; merged.fields.questions).toEqual([
+       |                                                              ^
+    249|       { id: &#x27;a&#x27;, question: &#x27;First?&#x27;, answer: &#x27;Local answer&#x27;, seq_no: &#x27;…
+    250|       { id: &#x27;b&#x27;, question: &#x27;Second?&#x27;, answer: &#x27;Remote answer&#x27;, seq_no:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 66 skipped (67)
+   Start at  15:45:08
+   Duration  236ms (transform 131ms, setup 11ms, import 154ms, tests 7ms, environment 0ms)
+
+undefined
+/Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-01/pr-1599/wt/editor:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run tests/merge-drafts.test.ts -t keeps edits to different FAQ rows from both writers
+</pre>
+<h3>head-tests.log</h3><pre>
+ RUN  v4.1.11 /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-01/pr-1599/wt/editor
+
+
+ Test Files  2 passed (2)
+      Tests  339 passed (339)
+   Start at  15:44:54
+   Duration  7.75s (transform 455ms, setup 68ms, import 770ms, tests 6.88s, environment 403ms)
+
+</pre>
+<h2>Console and network</h2><p>No pageerror events were recorded in the two-context runs. Expected 409 stale_revision responses were followed by successful saves in every conflict case. No other save failures were observed. Waved through none. Console warnings outside these runs were not used as evidence.</p><pre>{
+  &quot;before&quot;: [
+    {
+      &quot;who&quot;: &quot;A&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 2
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 409,
+      &quot;revision&quot;: 2,
+      &quot;code&quot;: &quot;stale_revision&quot;
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 3
+    }
+  ],
+  &quot;after&quot;: [
+    {
+      &quot;who&quot;: &quot;A&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 5
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 409,
+      &quot;revision&quot;: 5,
+      &quot;code&quot;: &quot;stale_revision&quot;
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 6
+    },
+    {
+      &quot;who&quot;: &quot;A&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 7
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 409,
+      &quot;revision&quot;: 7,
+      &quot;code&quot;: &quot;stale_revision&quot;
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 8
+    },
+    {
+      &quot;who&quot;: &quot;A&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 9
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 409,
+      &quot;revision&quot;: 9,
+      &quot;code&quot;: &quot;stale_revision&quot;
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 10
+    },
+    {
+      &quot;who&quot;: &quot;A&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 11
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 409,
+      &quot;revision&quot;: 11,
+      &quot;code&quot;: &quot;stale_revision&quot;
+    },
+    {
+      &quot;who&quot;: &quot;B&quot;,
+      &quot;status&quot;: 200,
+      &quot;revision&quot;: 12
+    }
+  ]
+}</pre>
+<h2>Preview writes</h2><p>Only isolated mock pages owned by the seeded Pro account were written through app APIs. No direct database commands were needed.</p><ul><li>PR #1599 page a1e738b7-6ba1-450b-8266-ccbe50616970. Created the page, named it, added FAQ and pricing sections, seeded two FAQ questions and two plans through revision 4. Saved two FAQ edits at revisions 5 and 6, two plan-title edits at 7 and 8, two FAQ additions at 9 and 10, FAQ deletion at 11, and the stale edit restoring the FAQ at 12. Deleted the page after capture.</li><li>PR #1590 page 2f6f38f4-b2f7-4993-9028-39022fa7522f. Created from the same seed at revision 1, saved the two FAQ edits at revisions 2 and 3, then deleted the page. Existing shared fixtures were untouched.</li></ul></html>
