@@ -1,0 +1,438 @@
+<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1592</title><style>body{font:16px system-ui;max-width:1100px;margin:32px auto;padding:16px}img{max-width:100%;border:1px solid #ccc}pre{overflow:auto}section{margin:32px 0}</style><h1>PR 1592 verification</h1><p>NOT VERIFIED. FAIL for exact layout parity at 1000 px. Toolbar behavior passes.</p><p>Head ac3661dfefa37237bc872047b1fea568ac59ca72. Routing steer. William has not signed off.</p><p>Preview https://pr-1592.clarity-video.workers.dev. Before uses PR 1590, main plus CSS tokens, with an isolated mock page. All images use a 600 by 120 mock logo.</p><p>Regression at merge base 66af49adf5da8ca3704ea733b6277b4aa3966766: Tests 6 failed | 1 passed (7). At head: Tests 7 passed (7).</p><p>All nine width and alignment combinations keep the logo clear. The pointer reaches Replace, one click opens the picker, and Tab reaches Left, Center, Right, Replace and Remove.</p><p>Hover and focus overlap the heading by 26 px. Focus hit testing returns a toolbar button in the covered heading area. This is a note, not the failing check.</p><p>At 1000 px, with the live viewport matched to the editor content width of 936 px, the heading starts at x=108 in editor content and x=106.71875 live. Widths are 720 and 722.5625. Right-aligned logo x positions are 588 and 589.28125. At 1440 px, matched content width 1376, both heading x=328 and right logo x=808. At 390 px both heading x=16 and right logo x=134. In all views, content-relative logo y=24, heading y=88, logo size 240 by 48. Header heights are excluded. Whether the 1000 px mismatch predates this PR is not established.</p><h2>1440 px before and after</h2><p>Before on PR 1590, then After on PR 1592.</p><img src="1440-before.png"><img src="1440-Left.png"><h3>Center</h3><img src="1440-Center.png"><h3>Right</h3><img src="1440-Right.png"><h3>Live page at matched content width</h3><img src="1440-live.png"><h2>1000 px before and after</h2><p>Before on PR 1590, then After on PR 1592.</p><img src="1000-before.png"><img src="1000-Left.png"><h3>Center</h3><img src="1000-Center.png"><h3>Right</h3><img src="1000-Right.png"><h3>Live page at matched content width</h3><img src="1000-live.png"><h2>390 px before and after</h2><p>Before on PR 1590, then After on PR 1592.</p><img src="390-before.png"><img src="390-Left.png"><h3>Center</h3><img src="390-Center.png"><h3>Right</h3><img src="390-Right.png"><h3>Live page at matched content width</h3><img src="390-live.png"><h2>Focus intercepts heading clicks</h2><img src="focus-heading.png"><h2>Measurements</h2><pre>[
+  {
+    &quot;width&quot;: 1440,
+    &quot;align&quot;: &quot;Left&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 392,
+      &quot;y&quot;: 78,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 126
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 392,
+      &quot;y&quot;: 126,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 168
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 392,
+      &quot;y&quot;: 142,
+      &quot;width&quot;: 720,
+      &quot;height&quot;: 38.390625,
+      &quot;bottom&quot;: 180.390625
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 1440,
+    &quot;align&quot;: &quot;Center&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 632,
+      &quot;y&quot;: 78,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 126
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 659.5,
+      &quot;y&quot;: 126,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 168
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 392,
+      &quot;y&quot;: 142,
+      &quot;width&quot;: 720,
+      &quot;height&quot;: 38.390625,
+      &quot;bottom&quot;: 180.390625
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 1440,
+    &quot;align&quot;: &quot;Right&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 872,
+      &quot;y&quot;: 78,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 126
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 927,
+      &quot;y&quot;: 126,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 168
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 392,
+      &quot;y&quot;: 142,
+      &quot;width&quot;: 720,
+      &quot;height&quot;: 38.390625,
+      &quot;bottom&quot;: 180.390625
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 1000,
+    &quot;align&quot;: &quot;Left&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 172,
+      &quot;y&quot;: 78,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 126
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 172,
+      &quot;y&quot;: 126,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 168
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 172,
+      &quot;y&quot;: 142,
+      &quot;width&quot;: 720,
+      &quot;height&quot;: 38.390625,
+      &quot;bottom&quot;: 180.390625
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 1000,
+    &quot;align&quot;: &quot;Center&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 412,
+      &quot;y&quot;: 78,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 126
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 439.5,
+      &quot;y&quot;: 126,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 168
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 172,
+      &quot;y&quot;: 142,
+      &quot;width&quot;: 720,
+      &quot;height&quot;: 38.390625,
+      &quot;bottom&quot;: 180.390625
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 1000,
+    &quot;align&quot;: &quot;Right&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 652,
+      &quot;y&quot;: 78,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 126
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 707,
+      &quot;y&quot;: 126,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 168
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 172,
+      &quot;y&quot;: 142,
+      &quot;width&quot;: 720,
+      &quot;height&quot;: 38.390625,
+      &quot;bottom&quot;: 180.390625
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 390,
+    &quot;align&quot;: &quot;Left&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 16,
+      &quot;y&quot;: 158,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 206
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 16,
+      &quot;y&quot;: 206,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 248
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 16,
+      &quot;y&quot;: 222,
+      &quot;width&quot;: 358,
+      &quot;height&quot;: 65.5,
+      &quot;bottom&quot;: 287.5
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 390,
+    &quot;align&quot;: &quot;Center&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 75,
+      &quot;y&quot;: 158,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 206
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 102.5,
+      &quot;y&quot;: 206,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 248
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 16,
+      &quot;y&quot;: 222,
+      &quot;width&quot;: 358,
+      &quot;height&quot;: 65.5,
+      &quot;bottom&quot;: 287.5
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  },
+  {
+    &quot;width&quot;: 390,
+    &quot;align&quot;: &quot;Right&quot;,
+    &quot;logo&quot;: {
+      &quot;x&quot;: 134,
+      &quot;y&quot;: 158,
+      &quot;width&quot;: 240,
+      &quot;height&quot;: 48,
+      &quot;bottom&quot;: 206
+    },
+    &quot;toolbar&quot;: {
+      &quot;x&quot;: 189,
+      &quot;y&quot;: 206,
+      &quot;width&quot;: 185,
+      &quot;height&quot;: 42,
+      &quot;bottom&quot;: 248
+    },
+    &quot;heading&quot;: {
+      &quot;x&quot;: 16,
+      &quot;y&quot;: 222,
+      &quot;width&quot;: 358,
+      &quot;height&quot;: 65.5,
+      &quot;bottom&quot;: 287.5
+    },
+    &quot;headingOverlap&quot;: 26,
+    &quot;natural&quot;: [
+      600,
+      120
+    ],
+    &quot;picker&quot;: true,
+    &quot;tabs&quot;: [
+      &quot;Left&quot;,
+      &quot;Center&quot;,
+      &quot;Right&quot;,
+      &quot;Replace&quot;,
+      &quot;Remove&quot;
+    ]
+  }
+]</pre><pre>[
+  {
+    &quot;width&quot;: 1440,
+    &quot;editor&quot;: {
+      &quot;logo&quot;: {
+        &quot;x&quot;: 872,
+        &quot;y&quot;: 78,
+        &quot;width&quot;: 240,
+        &quot;height&quot;: 48
+      },
+      &quot;heading&quot;: {
+        &quot;x&quot;: 392,
+        &quot;y&quot;: 142,
+        &quot;width&quot;: 720,
+        &quot;height&quot;: 38.390625
+      }
+    },
+    &quot;live&quot;: {
+      &quot;logo&quot;: {
+        &quot;x&quot;: 808,
+        &quot;y&quot;: 24,
+        &quot;width&quot;: 240,
+        &quot;height&quot;: 48
+      },
+      &quot;heading&quot;: {
+        &quot;x&quot;: 328,
+        &quot;y&quot;: 88,
+        &quot;width&quot;: 720,
+        &quot;height&quot;: 38.390625
+      }
+    }
+  },
+  {
+    &quot;width&quot;: 1000,
+    &quot;editor&quot;: {
+      &quot;logo&quot;: {
+        &quot;x&quot;: 652,
+        &quot;y&quot;: 78,
+        &quot;width&quot;: 240,
+        &quot;height&quot;: 48
+      },
+      &quot;heading&quot;: {
+        &quot;x&quot;: 172,
+        &quot;y&quot;: 142,
+        &quot;width&quot;: 720,
+        &quot;height&quot;: 38.390625
+      }
+    },
+    &quot;live&quot;: {
+      &quot;logo&quot;: {
+        &quot;x&quot;: 589.28125,
+        &quot;y&quot;: 24,
+        &quot;width&quot;: 240,
+        &quot;height&quot;: 48
+      },
+      &quot;heading&quot;: {
+        &quot;x&quot;: 106.71875,
+        &quot;y&quot;: 88,
+        &quot;width&quot;: 722.5625,
+        &quot;height&quot;: 38.390625
+      }
+    }
+  },
+  {
+    &quot;width&quot;: 390,
+    &quot;editor&quot;: {
+      &quot;logo&quot;: {
+        &quot;x&quot;: 134,
+        &quot;y&quot;: 118,
+        &quot;width&quot;: 240,
+        &quot;height&quot;: 48
+      },
+      &quot;heading&quot;: {
+        &quot;x&quot;: 16,
+        &quot;y&quot;: 182,
+        &quot;width&quot;: 358,
+        &quot;height&quot;: 65.5
+      }
+    },
+    &quot;live&quot;: {
+      &quot;logo&quot;: {
+        &quot;x&quot;: 134,
+        &quot;y&quot;: 24,
+        &quot;width&quot;: 240,
+        &quot;height&quot;: 48
+      },
+      &quot;heading&quot;: {
+        &quot;x&quot;: 16,
+        &quot;y&quot;: 88,
+        &quot;width&quot;: 358,
+        &quot;height&quot;: 65.5
+      }
+    }
+  }
+]</pre>
