@@ -1,0 +1,67 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1585</title><style>body{font:16px/1.6 system-ui;margin:24px auto;padding:0 20px;max-width:900px;color:#17202a}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}h1{font-size:26px}</style><h1>Proof for PR 1585</h1><pre>Verdict: BLOCKED. The changed behavior passed on the preview, but the required live Before reproduction is missing. This is not a product failure.
+
+Head: 6476a0aece9cd4a88afcf3e0c8a8065198e1b149
+Issue: #1549
+Routing: auto
+Preview: https://pr-1585.clarity-video.workers.dev
+Mock share page: https://pr-1585.clarity-video.workers.dev/page/4uxp6b
+Waved through: none
+William has not approved landing. No sign-off is claimed.
+
+Repro
+Seed an auto_trim job at attempts=32 and attempt_base=0 for the Pro mock account&#x27;s published fixture take. Hold its lease while reading the page, then expire the lease and read again. The fixture take is an import by default, so temporarily set its kind to recording to make auto trim owed. Restore it after verification.
+
+Before
+The read-only staging query SELECT kind, count(*) AS owed_jobs, max(attempts) AS highest_attempts FROM jobs WHERE state=&#x27;running&#x27; AND attempts &gt;= 9 GROUP BY kind returned {&quot;rows&quot;:[]}. It did not reproduce the issue. No staging or production writes were made. No writes were made to PR 1590 because this verification kept writes within PR 1585&#x27;s preview.
+
+On the merge base 66af49adf5da8ca3704ea733b6277b4aa3966766, copying the PR&#x27;s jobs-store.test.ts and public-page-edge-cache.test.ts and running them produced:
+Test Files  2 failed (2)
+Tests  12 failed | 38 passed (50)
+Both real-SQLite share-page abandonment cases fail with state running instead of dead. Important limitation: base JOB_POLICY has no maxAttempts, so the copied tests skip their attempt loops and expect an undefined count. This is the requested exact-copy red run, but it does not independently prove 32 repeated crashes on base.
+
+After
+/__deploy-info reported the expected headSha, and authenticated doctor passed.
+PR preview D1 exposes jobs.attempt_base and records migration 0058_job_attempt_base.sql.
+The mock job stayed running while leased. After expiring the lease, a public share-page GET caused the worker to leave this row:
+{&quot;id&quot;:&quot;proof-1585-auto-trim&quot;,&quot;kind&quot;:&quot;auto_trim&quot;,&quot;state&quot;:&quot;dead&quot;,&quot;attempts&quot;:32,&quot;attempt_base&quot;:0,&quot;failures&quot;:0,&quot;lease_until&quot;:null,&quot;error&quot;:&quot;The job stopped after reaching its attempt limit.&quot;}
+
+HTTP evidence, all UTC on 2026-11-01, all from Cloudflare ARN:
+13:54:55 owed page GET 200, X-Page-Cache MISS
+13:55:05 owed page GET 200, X-Page-Cache MISS
+13:55:18 claim-triggering GET 200, X-Page-Cache MISS
+13:55:34 settled page GET 200, X-Page-Cache MISS
+13:55:47 settled page GET 200, X-Page-Cache HIT
+Cache-Control before and after was public, max-age=0, s-maxage=0.
+The 5 s and 60 s values belong to the internal Cache API entry, not the public response header. The live run shows a settled cache hit after 13 seconds. Exact internal lifetimes are verified by the renderer tests, not directly observable through these HTTP headers. No header transition is claimed.
+
+Red-to-green test
+pnpm --dir editor test tests/jobs-store.test.ts tests/public-page-edge-cache.test.ts
+At head, repeated after restoring the base checkout:
+Test Files  2 passed (2)
+Tests  50 passed (50)
+The auto_trim and mux_clip cases run real SQLite and the share renderer through every attempt. They assert internal Cache-Control public, max-age=5 before abandonment and public, max-age=60 after it. The clip case preserves the source playback trim.
+
+Adjacent regression and explicit retry
+pnpm --dir workers/frontend-router test tests/mux-clip-jobs.test.ts tests/mux-unshare-jobs.test.ts
+Test Files  2 passed (2)
+Tests  51 passed (51)
+The jobs-store tests give explicit rearm and reopen a fresh 32-attempt budget while attempts keeps increasing and old runners remain fenced. The clip test abandons an exhausted clip, queues asset disposal, retries the trim and completes the replacement clip. Retry evidence is test-only. The seeded auto_trim path exposes no owner rearm action. No live retry is claimed.
+
+Note for William
+A healthy job can hit the cap. Media jobs have 32 attempts. auto_trim has a 30 s lease and 10 jobs per tick. mux_clip and mux_speech have 90 s leases, five jobs per tick and 20 per workspace. These limits do not guarantee completion within 32 claims. waitJob releases the lease without spending a failure, so successful polls consume attempts too. Speech waits 20 s between polls. Clip waits depend on asset age and range from 5 s to 600 s while Mux processes a clip. Therefore 32 times the lease is not a guaranteed minimum wait budget. This is the requested design note, not a failing assertion.
+
+Every preview database write
+1. Inserted only job proof-1585-auto-trim at 32 attempts, with a lease ten minutes ahead and payload {&quot;assetId&quot;:null}.
+2. Set that job&#x27;s lease_until to 0 for the first claim check. The imported take did not owe auto trim, so it stayed running.
+3. Temporarily changed the fixture take kind from import to recording and reset that job&#x27;s lease ten minutes ahead.
+4. Set that job&#x27;s lease_until to 0 again for the recording check.
+5. The share-page read caused the worker to mark that job dead and clear its lease.
+6. Restored the take kind to import and deleted only proof-1585-auto-trim. A read-back confirmed kind=import and remaining_proof_jobs=0.
+The take node was asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:6915648c-b29f-56d0-a9fe-53c6eb285cf7, belonging to the seeded Pro mock workspace. No page document or publication was edited. Login may have ordinary authentication side effects. No production, staging, or other preview writes were issued.
+
+Verification scope
+Installed with pnpm install --frozen-lockfile --prefer-offline under Node 22.23.1. Read the PR body, full diff, issue and proof rules. Used the validated PR-specific D1 config. Browser UI, recording and lead submission flows were not needed for this backend job check. No screenshots or customer data are included. No implementation code was changed. Only the two unchanged PR test files were copied temporarily onto the detached base worktree, as instructed. The worktree was restored to head before the final test run. The CLI cleanup found no browser to stop.
+
+Outstanding proof
+A live baseline reproduction still needs to show an owed crashing job retaining the short cache. The aggregate staging query was empty. The exact-copy base tests have the maxAttempts limitation described above. The coordinator can obtain a main-preview reproduction separately. The public HTTP header cannot expose the internal TTL with the current implementation. Treat the evidence as incomplete rather than waiving these limitations.
+</pre></html>
