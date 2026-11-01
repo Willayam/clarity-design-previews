@@ -1,0 +1,58 @@
+{
+  "title": "Recorder look and layout controls",
+  "scope": "flow",
+  "fidelity": "native",
+  "created": "2026-11-01 14:27",
+  "round": 3,
+  "rounds": [
+    {
+      "n": 1,
+      "question": "How should a rep pick layout, background and camera shape before recording, and change them after?"
+    },
+    {
+      "n": 2,
+      "question": "Clarity's controls in Supercut's page layout. Which way of filling the rail reads best?",
+      "note": ""
+    },
+    {
+      "n": 3,
+      "question": "Supercut's Layout drawer, working on a live recording. How should it behave once the take is running?",
+      "note": "All three share the same drawer. They differ in what happens when recording starts."
+    }
+  ],
+  "widths": [
+    1440,
+    1024,
+    390
+  ],
+  "screens": [
+    {
+      "id": "recorder",
+      "label": "Before recording"
+    },
+    {
+      "id": "recording",
+      "label": "Recording"
+    },
+    {
+      "id": "popout",
+      "label": "Recording in another window"
+    },
+    {
+      "id": "style",
+      "label": "After recording"
+    }
+  ],
+  "parts": [
+    "preview",
+    "controls"
+  ],
+  "controls": {
+    "screen": [
+      "shared",
+      "none"
+    ]
+  },
+  "pageHead": [],
+  "external": []
+}

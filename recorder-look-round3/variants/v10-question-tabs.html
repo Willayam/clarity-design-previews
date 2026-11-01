@@ -1,0 +1,428 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>What are you showing</title>
+<script type="application/json" id="lab-meta">{"id": "v10", "name": "Question tabs", "axis": "What you show, then how it is arranged", "idea": "Three question tabs reveal only the choices that change the picture. Sparse answers sit centrally between the tabs and the anchored action.", "cost": "Long tab labels need two lines in the narrow rail.", "model": "gpt-6-astra", "round": 2, "parents": ["v06"], "parts": ["preview", "controls"], "recommended": false, "why": "", "old": true}</script>
+<link rel="stylesheet" href="../kit/app.css"><script src="../kit/recorder-kit.js"></script>
+<style>
+  /* Recorder: the picture on the left, the question and its answer on the right. */
+  .v10-rec { display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: 24px; width: 100%; max-width: calc(min(70dvh * 16 / 9, 52rem * 16 / 9) + 368px); margin: 0 auto; }
+  .v10-rec > .v10-stage { align-self: start; min-width: 0; }
+  .v10-frame { aspect-ratio: 16 / 9; background: var(--player); }
+  .v10-panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .v10-go { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+  .v10-slot { display: flex; }
+  .v10-slot [hidden] { display: none; }
+  .v10-devices [data-slot="recorder-device-controls"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v10-devices [data-slot="dropdown-menu-trigger"] { padding-inline: 12px; }
+
+  /* The question. Real segmented control classes, sized up because it leads. */
+  .v10-ask { margin: 0; font-size: var(--text-sm); font-weight: 500; color: var(--foreground); line-height: 20px; }
+  .v10-q { height: 56px; margin-top: 4px; }
+  .v10-q [role="radio"] { flex-direction: column; gap: 4px; padding: 0 2px; font-size: var(--text-xs); }
+  .v10-q [role="radio"][data-checked] svg { color: var(--primary); }
+  .v10-q [role="radio"]:disabled { cursor: default; opacity: .5; }
+
+  /* All answers share one grid cell, so the tallest reserves the room and nothing below moves. */
+  .v10-answers { display: grid; min-width: 0; }
+  .v10-answer { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; visibility: hidden; opacity: 0; }
+  .v10-answer.is-on { visibility: visible; opacity: 1; transition: opacity 140ms ease-out; }
+
+  .v10-label { display: flex; align-items: baseline; gap: 6px; min-width: 0; font-size: var(--text-xs); line-height: 20px; }
+  .v10-name { font-weight: 500; color: var(--foreground); white-space: nowrap; }
+  .v10-value { color: var(--muted-foreground); white-space: nowrap; }
+  .v10-group { min-width: 0; }
+  .v10-group[data-hidden] { visibility: hidden; }
+  .v10-tiles { display: grid; gap: 8px; margin-top: 4px; }
+  .v10-group[data-group="arrangement"] .v10-tiles, .v10-wide .v10-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v10-group[data-group="background"] .v10-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .v10-group[data-group="shape"] .v10-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .v10-group[data-group="background"].v10-wide .v10-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v10-screen { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+  .v10-screen [data-slot="button"] { flex: none; }
+  .v10-screen [data-slot="button"][data-off] { visibility: hidden; }
+
+  /* Tiles. The picture is the label; the selected name sits in the row above. */
+  .v10-tile { display: block; width: 100%; min-width: 0; padding: 0; border: 0; border-radius: var(--radius); background: var(--muted); box-shadow: 0 0 0 1px var(--border); cursor: pointer; outline: none; transition: box-shadow 120ms ease-out; }
+  .v10-tile:hover { box-shadow: 0 0 0 1px var(--muted-foreground); }
+  .v10-tile[aria-checked="true"] { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary); }
+  .v10-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 6px; }
+  .v10-tile:disabled { cursor: default; }
+  .v10-group[data-off] .v10-tile { box-shadow: 0 0 0 1px var(--border); }
+  .v10-tile:disabled > * { opacity: .4; }
+  .v10-pic { display: block; width: 100%; overflow: hidden; border-radius: inherit; }
+  .v10-pic-wide { aspect-ratio: 16 / 9; }
+  .v10-pic-face { height: 58px; background-size: 165%; background-position: 62% 28%; }
+  .v10-pic-shape { display: flex; align-items: center; justify-content: center; height: 58px; }
+  .v10-pic-shape.v10-is-cutout { align-items: flex-end; }
+  .v10-shape { display: block; flex: none; width: 46px; height: 46px; }
+  .v10-shape[data-shape="circle"] { border-radius: 50%; }
+  .v10-shape[data-shape="squircle"] { border-radius: 22%; }
+  .v10-shape[data-shape="cutout"] { width: 72px; height: 58px; }
+
+  /* The slot your screen will fill, until it is shared. */
+  .v10-hole { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 0; border: 0; background: var(--muted); color: var(--muted-foreground); font-size: var(--text-sm); font-weight: 500; cursor: pointer; outline: none; transition: background-color 120ms ease-out; }
+  .v10-hole:hover { background: var(--border); }
+  .v10-hole:focus-visible { outline: 2px solid var(--ring); outline-offset: -4px; }
+
+  .v10-menu { position: absolute; z-index: 20; left: 0; bottom: calc(100% + 4px); width: max-content; min-width: 100%; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--popover); color: var(--popover-foreground); }
+  .v10-menu[hidden] { display: none; }
+  .v10-devices .relative:last-child .v10-menu { left: auto; right: 0; }
+  .v10-menu-item { display: flex; align-items: center; gap: 6px; width: 100%; height: 32px; padding: 0 8px; border: 0; border-radius: calc(var(--radius) * .8); background: none; font-size: var(--text-sm); text-align: left; cursor: pointer; outline: none; }
+  .v10-menu-item:hover, .v10-menu-item:focus-visible { background: var(--muted); }
+
+  /* After recording: above, the real finish screen parts. Below, the same question and a strip. */
+  .v10-sty { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: var(--frame-width); margin: 0 auto; }
+  .v10-finish { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; width: max-content; max-width: 100%; margin-left: auto; }
+  .v10-sty [data-part="controls"] { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .v10-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 28px; }
+  .v10-outcome { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .v10-status { margin: 0; color: var(--muted-foreground); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+  .v10-outcome [hidden] { display: none; }
+  .v10-q-row { display: flex; gap: 12px; }
+  .v10-sty .v10-q { flex: 1; min-width: 0; width: auto; height: 40px; margin-top: 0; }
+  .v10-sty .v10-q [role="radio"] { flex-direction: row; gap: 6px; font-size: var(--text-sm); }
+  .v10-apply { display: flex; flex: none; width: 96px; }
+  .v10-sty .v10-answers { container-type: inline-size; margin-top: 4px; }
+  /* --t is the one tile height that makes the strip fill the column exactly: 10.56 tile widths, 48 px of gaps inside groups, 72 px between them. */
+  .v10-sty .v10-answer { --t: calc((100cqw - 120px) / 10.5556); flex-direction: row; gap: 36px; }
+  .v10-sty .v10-group[data-group="arrangement"] .v10-tiles { grid-template-columns: repeat(2, calc(var(--t) * 16 / 9)); }
+  .v10-sty .v10-group[data-group="background"] .v10-tiles { grid-template-columns: repeat(4, var(--t)); }
+  .v10-sty .v10-group[data-group="shape"] .v10-tiles { grid-template-columns: repeat(3, var(--t)); }
+  .v10-sty .v10-group[data-group="background"].v10-wide .v10-tiles { grid-template-columns: repeat(4, calc(var(--t) * 16 / 9)); }
+  .v10-sty .v10-pic-face, .v10-sty .v10-pic-shape { height: var(--t); }
+  .v10-sty .v10-shape { width: calc(var(--t) * .7); height: calc(var(--t) * .7); }
+  .v10-sty .v10-shape[data-shape="cutout"] { width: var(--t); height: var(--t); }
+
+  @media (max-width: 999px) {
+    .v10-rec { grid-template-columns: minmax(0, 1fr); max-width: 600px; }
+    .v10-go { margin-top: 0; }
+  }
+  /* Phones: camera, microphone, layout and record. Record sits at the thumb and never moves. */
+  @media (max-width: 639px) {
+    .v10-page { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; padding-bottom: 16px; overflow: auto; }
+    .v10-rec { display: flex; flex: 1 1 auto; flex-direction: column; gap: 12px; max-width: none; }
+    .v10-rec > .v10-stage { align-self: stretch; }
+    .v10-panel { flex: 1 1 auto; }
+    .v10-go { margin-top: auto; }
+    .v10-rec .v10-group[data-group="background"], .v10-rec .v10-group[data-group="shape"] { display: none; }
+    .v10-devices [data-slot="recorder-device-controls"] { grid-template-columns: minmax(0, 1fr); }
+    .v10-screen { min-height: 44px; }
+
+    .v10-sty { flex: none; }
+    .v10-sty .v10-finish { width: 100%; gap: 8px; }
+    .v10-finish [data-slot="button"] { flex: 1 1 0; width: auto; height: 44px; min-width: 0; padding: 0 8px; font-size: var(--text-xs); border-radius: var(--radius); }
+    .v10-head { flex-wrap: wrap; }
+    .v10-outcome { flex-wrap: wrap; }
+    .v10-q-row { flex-direction: column; gap: 8px; }
+    .v10-sty .v10-q { flex: none; width: 100%; height: 52px; }
+    .v10-sty .v10-q [role="radio"] { white-space: normal; font-size: var(--text-xs); line-height: 1.15; text-align: center; }
+    .v10-sty .v10-q [role="radio"] svg { display: none; }
+    .v10-apply { width: 100%; }
+    .v10-sty .v10-answer { flex-direction: column; gap: 12px; }
+    .v10-sty .v10-group[data-group="arrangement"] .v10-tiles, .v10-sty .v10-group[data-group="background"].v10-wide .v10-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .v10-sty .v10-group[data-group="background"] .v10-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .v10-sty .v10-group[data-group="shape"] .v10-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .v10-sty .v10-pic-face, .v10-sty .v10-pic-shape { height: 64px; }
+    .v10-sty .v10-shape { width: 46px; height: 46px; }
+    .v10-sty .v10-shape[data-shape="cutout"] { width: 72px; height: 64px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .v10-tile, .v10-hole, .v10-answer.is-on { transition: none; }
+  }
+
+.v10-page {padding-top:64px!important}
+.v10-layout {display:grid;grid-template-columns:minmax(0,1fr) 352px;column-gap:32px;row-gap:16px;max-width:1400px;margin:auto;align-items:stretch}
+.v10-stage {min-width:0;grid-column:1;grid-row:1}
+.v10-frame {border-radius:calc(var(--radius) + 8px)}
+.v10-rail {grid-column:2;grid-row:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+.v10-settings {display:flex;flex:1;min-height:0;flex-direction:column;gap:14px}
+.v10-settings[hidden], .v10-page [hidden] {display:none!important}
+.v10-question {flex:none}
+.v10-ask {font-size:var(--text-xs);color:var(--muted-foreground);margin-bottom:8px}
+.v10-q {height:48px;margin:0;width:100%;border-radius:9999px}
+.v10-q [role=radio] {flex-direction:row;font-size:11px;line-height:14px;white-space:normal;border-radius:9999px;padding:4px 8px}
+.v10-q [role=radio] svg {display:none}
+.v10-answers {flex:1;min-height:0}
+.v10-answer {justify-content:center;gap:14px}
+.v10-answer[data-answer=both] {justify-content:flex-start}
+.v10-answer[data-answer=screen] {align-items:center}
+.v10-answer[data-answer=screen] button {width:auto}
+.v10-group[data-hidden] {display:none}
+.v10-group[data-off] {opacity:.45}
+.v10-pic-face,.v10-pic-shape {height:50px}
+.v10-shape {width:40px;height:40px}
+.v10-tiles {gap:10px;margin:7px 3px 3px}
+.v10-go {gap:6px;margin-top:12px;flex:none}
+.v10-go button {width:100%}
+.v10-status:empty {display:none}
+.v10-under {grid-row:2;grid-column:1;display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.v10-devices {width: min(100%,560px);min-width:0}
+.v10-under > button {flex:none}
+.v10-finish {width:100%;display:flex;justify-content:space-between;gap:12px}
+.v10-timeline {width:100%;height:72px;background:var(--muted);border-radius:var(--radius-lg);display:grid;place-items:center;color:var(--muted-foreground)}
+.v10-style .v10-under {flex-wrap:wrap}
+.v10-style .v10-q {height:40px}
+.v10-style .v10-settings {gap:8px}
+.v10-style .v10-ask {display:none}
+.v10-style .v10-answer {gap:10px}
+.v10-cuts button[aria-pressed=true] {background:var(--muted);color:var(--primary)}
+.v10-running {grid-template-columns:minmax(0,1fr);max-width:min(100%,calc(73dvh * 16 / 9))}
+.v10-running .v10-rail {display:none}
+.v10-transport {display:flex;gap:12px}
+.v10-live-layout {display:flex;align-items:center;gap:12px;font-size:var(--text-sm)}
+.v10-live-layout select {padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.v10-page button:hover {filter:brightness(.98)}
+.v10-page button:focus-visible,.v10-page select:focus-visible {outline:2px solid var(--ring);outline-offset:3px}
+@media(min-width:1000px) and (prefers-reduced-motion:no-preference){.v10-running .v10-stage {animation:v10-grow 160ms ease-out}@keyframes v10-grow{from{transform:scale(.96);transform-origin:top left}to{transform:scale(1)}}}
+@media(max-width:1100px){.v10-layout {grid-template-columns:minmax(0,1fr) 340px;gap:20px}.v10-rail {min-height:490px}.v10-under {align-self:start;flex-wrap:wrap}}
+@media(max-width:800px){.v10-page {padding:12px 0 16px!important}.v10-layout {display:flex;flex-direction:column;gap:16px;min-height:calc(100dvh - 74px)}.v10-frame {border-radius:0}.v10-rail {min-height:0;margin:0 16px;flex:1}.v10-under {order:1;margin:0 16px}.v10-stage {order:0}.v10-rail {order:2}.v10-settings {gap:20px}.v10-recorder .v10-group[data-group=background],.v10-recorder .v10-group[data-group=shape],.v10-recorder [data-change-screen] {display:none!important}.v10-recorder .v10-answers {flex:none}.v10-q {height:48px}.v10-q [role=radio] {font-size:12px}.v10-go {margin-top:auto;padding-top:24px}.v10-devices {width:100%}.v10-devices [data-slot=recorder-device-controls] {grid-template-columns:minmax(0,1fr)}.v10-style .v10-rail {min-height:520px}.v10-finish button {min-width:0;padding:0 8px;font-size:12px;flex:1}.v10-running .v10-under {width:calc(100% - 32px);gap:24px;flex-wrap:wrap}.v10-transport {width:100%}.v10-transport button {flex:1}.v10-running {min-height:0}.v10-answer[data-answer=me],.v10-answer[data-answer=cuts]{justify-content:flex-start}}
+
+
+.v10-layout {width:100%;margin:0 auto}
+.v10-go button {flex:none;min-height:40px}
+.v10-finish button {flex:none}
+.v10-finish button:nth-child(2) {margin-left:auto}
+.v10-rail > [data-style-tabs] [data-slot=segmented-control],.v10-rail > [data-style-tabs] button {border-radius:9999px}
+@media(max-width:800px){.v10-page {flex:none;overflow:visible}.v10-layout {flex-shrink:0}.v10-go button {min-height:52px}.v10-under {align-self:stretch}.v10-finish button {flex:1}.v10-root #kit-page {padding-inline:0!important}}
+</style></head><body>
+<script>
+const Kit = window.RecorderKit
+const state = Kit.store({ layout: "inset", shape: "squircle", background: "keep", bubble: "large" })
+let arrangement = "inset"
+let route = null
+let stop = () => {}
+
+const bothIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/><circle cx="12" cy="8.5" r="1.5"/><path d="M9 13.5a3 3 0 0 1 6 0"/></svg>`
+const ANSWERS = [
+  { id: "me", label: "Just me", icon: Kit.icon("user-round", 20) },
+  { id: "both", label: "Me and my screen", icon: bothIcon },
+  { id: "screen", label: "Just my screen", icon: Kit.icon("monitor", 20) },
+]
+const RECORDED = { id: "cuts", label: "Recorded cuts", icon: Kit.icon("scissors", 20) }
+const ARRANGEMENTS = Kit.LAYOUTS.filter((option) => option.id === "split" || option.id === "inset")
+const nameOf = (options, id) => options.find((option) => option.id === id)?.label ?? ""
+const answerOf = (layout) => (layout === "camera" ? "me" : layout === "screen" ? "screen" : layout === "cuts" ? "cuts" : "both")
+const layoutOf = (answer) => ({ me: "camera", screen: "screen", cuts: "cuts", both: arrangement })[answer]
+
+const segment = new DOMParser().parseFromString(Kit.trimStyleTabs(), "text/html")
+const segmentRoot = segment.querySelector('[data-slot="segmented-control"]').className
+const segmentItem = segment.querySelector('[data-slot="segmented-control-item"]').className
+
+function question(answers) {
+  return `<div role="radiogroup" aria-labelledby="v10-ask" data-radios="question" class="${segmentRoot} v10-q">${answers.map((answer) => `<button type="button" role="radio" data-value="${answer.id}" data-slot="segmented-control-item" class="${segmentItem}">${answer.icon}<span>${answer.label}</span></button>`).join("")}</div>`
+}
+
+function tiles(kind, options, picture) {
+  return options.map((option) => `<button type="button" role="radio" class="v10-tile" data-value="${option.id}" aria-label="${option.label}">${picture(option)}</button>`).join("")
+}
+
+function group(kind, wide = false) {
+  const spec = {
+    arrangement: { title: "Arrangement", options: ARRANGEMENTS, picture: (o) => `<span class="v10-pic v10-pic-wide" data-paint="${o.id}"></span>` },
+    background: { title: "Background", options: Kit.BACKGROUNDS, picture: (o) => (wide ? `<span class="v10-pic v10-pic-wide" data-paint-camera="${o.id}"></span>` : `<span class="v10-pic v10-pic-face" data-swatch="${o.id}"></span>`) },
+    shape: { title: "Camera shape", options: Kit.SHAPES, picture: (o) => `<span class="v10-pic v10-pic-shape ${o.id === "cutout" ? "v10-is-cutout" : ""}"><span class="v10-shape" data-shape="${o.id}"></span></span>` },
+  }[kind]
+  return `<div class="v10-group ${wide ? "v10-wide" : ""}" data-group="${kind}"><div class="v10-label"><span class="v10-name">${spec.title}</span><span class="v10-value" data-value-of="${kind}"></span></div><div role="radiogroup" aria-label="${spec.title}" data-radios="${kind}" class="v10-tiles">${tiles(kind, spec.options, spec.picture)}</div></div>`
+}
+
+const screenRow = () => `<div class="v10-screen"><div class="v10-label"><span class="v10-name">Screen</span><span class="v10-value" data-screen-status></span></div>${Kit.button({ variant: "outline", size: "sm", label: "Change screen", iconName: "monitor-up", attrs: "data-change-screen" })}</div>`
+const answer = (id, body) => `<section class="v10-answer" data-answer="${id}">${body}</section>`
+const preview = () => `<div data-part="preview" class="v10-frame relative w-full overflow-hidden rounded-2xl shadow-lg"><div data-kit-scene class="absolute inset-0"></div></div>`
+
+/** Paints the take. While a screen is awaited, the arrangement still shows, with an empty slot where the screen goes. */
+function paint(el, s, { live = false } = {}) {
+  const recorded = s.layout === "cuts"
+  const take = { ...s, layout: recorded ? "inset" : s.layout, shape: recorded ? "squircle" : s.shape, screen: true }
+  Kit.scene(el, take)
+  if (s.screen || take.layout === "camera") return
+  const cell = el.querySelector(".kit-cell")
+  if (!live) { cell.style.backgroundImage = "none"; cell.style.backgroundColor = "var(--muted)"; return }
+  const hole = document.createElement("button")
+  hole.type = "button"
+  hole.className = "v10-hole"
+  hole.dataset.shareScreen = ""
+  hole.setAttribute("aria-label", "Share screen")
+  for (const edge of ["left", "top", "width", "height"]) hole.style[edge] = cell.style[edge]
+  hole.innerHTML = `${Kit.icon("monitor-up", 20)}<span>Your screen</span>`
+  cell.replaceWith(hole)
+}
+
+function syncRadios(root, s, busy) {
+  const current = { question: answerOf(s.layout), arrangement: s.layout, background: s.background, shape: s.shape }
+  const applies = Kit.applies(s)
+  root.querySelectorAll("[data-radios]").forEach((radios) => {
+    const kind = radios.dataset.radios
+    const off = (kind === "background" && !applies.background) || (kind === "shape" && !applies.shape)
+    radios.querySelectorAll('[role="radio"]').forEach((item) => {
+      const on = item.dataset.value === current[kind]
+      item.setAttribute("aria-checked", String(on))
+      item.tabIndex = on || (kind === "question" && current.question === "cuts" && item.dataset.value === "me") ? 0 : -1
+      item.disabled = busy || off
+      if (kind === "question") {
+        item.toggleAttribute("data-checked", on)
+        item.toggleAttribute("data-unchecked", !on)
+      }
+    })
+  })
+  root.querySelectorAll('[data-group="shape"]').forEach((el) => el.toggleAttribute("data-hidden", !applies.shape))
+  root.querySelectorAll('[data-group="background"]').forEach((el) => el.toggleAttribute("data-off", !applies.background))
+  root.querySelectorAll('[data-value-of="arrangement"]').forEach((el) => { el.textContent = nameOf(Kit.LAYOUTS, s.layout) })
+  root.querySelectorAll('[data-value-of="background"]').forEach((el) => { el.textContent = applies.background ? nameOf(Kit.BACKGROUNDS, s.background) : "Not with Cutout" })
+  root.querySelectorAll('[data-value-of="shape"]').forEach((el) => { el.textContent = nameOf(Kit.SHAPES, s.shape) })
+  root.querySelectorAll("[data-answer]").forEach((el) => el.classList.toggle("is-on", el.dataset.answer === current.question))
+}
+
+function syncPictures(root, s) {
+  root.querySelectorAll("[data-kit-scene]").forEach((el) => paint(el, s, { live: true }))
+  root.querySelectorAll("[data-paint]").forEach((el) => paint(el, { ...s, layout: el.dataset.paint }))
+  root.querySelectorAll(".v10-shape").forEach((el) => {
+    el.removeAttribute("style")
+    const cutout = el.dataset.shape === "cutout"
+    Kit.face(el, cutout ? "blue" : s.background)
+    if (cutout) el.style.backgroundColor = "transparent"
+  })
+}
+
+function wireControls(root) {
+  root.querySelectorAll("[data-swatch]").forEach((el) => Kit.face(el, el.dataset.swatch))
+  root.querySelectorAll("[data-paint-camera]").forEach((el) => Kit.scene(el, { layout: "camera", background: el.dataset.paintCamera }))
+  const pick = (kind, value) => {
+    if (kind === "question") state.set({ layout: layoutOf(value) })
+    if (kind === "arrangement") state.set({ layout: value })
+    if (kind === "background") state.set({ background: value })
+    if (kind === "shape") state.set({ shape: value })
+  }
+  root.addEventListener("click", (event) => {
+    const item = event.target.closest('[role="radio"]')
+    if (item && !item.disabled && item.closest("[data-radios]")) pick(item.closest("[data-radios]").dataset.radios, item.dataset.value)
+  })
+  root.addEventListener("keydown", (event) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+    const radios = event.target.closest?.("[data-radios]")
+    if (!step || !radios) return
+    event.preventDefault()
+    const items = [...radios.querySelectorAll('[role="radio"]:not(:disabled)')]
+    const next = items[(items.indexOf(event.target) + step + items.length) % items.length]
+    next.focus()
+    pick(radios.dataset.radios, next.dataset.value)
+  })
+}
+
+/** The real device triggers open a small menu holding the current device. */
+function wireDevices(root) {
+  const closeAll = () => root.querySelectorAll(".v10-menu:not([hidden])").forEach((menu) => {
+    menu.hidden = true
+    menu.parentElement.querySelector('[data-slot="dropdown-menu-trigger"]').setAttribute("aria-expanded", "false")
+  })
+  root.querySelectorAll('[data-slot="dropdown-menu-trigger"]').forEach((trigger) => {
+    const menu = document.createElement("div")
+    menu.className = "v10-menu shadow-md"
+    menu.setAttribute("role", "menu")
+    menu.hidden = true
+    menu.innerHTML = `<button type="button" role="menuitemradio" aria-checked="true" class="v10-menu-item">${Kit.icon("check", 16)}<span class="truncate">${trigger.getAttribute("aria-label").split(": ")[1]}</span></button>`
+    trigger.parentElement.append(menu)
+    trigger.addEventListener("click", () => {
+      const open = menu.hidden
+      closeAll()
+      menu.hidden = !open
+      trigger.setAttribute("aria-expanded", String(open))
+      if (open) menu.firstElementChild.focus()
+    })
+    menu.addEventListener("click", () => { closeAll(); trigger.focus() })
+  })
+  root.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return
+    const open = root.querySelector(".v10-menu:not([hidden])")
+    if (!open) return
+    closeAll()
+    open.parentElement.querySelector('[data-slot="dropdown-menu-trigger"]').focus()
+  })
+  const outside = (event) => { if (!event.target.closest?.(".v10-menu, [data-slot='dropdown-menu-trigger']")) closeAll() }
+  document.addEventListener("click", outside)
+  return () => document.removeEventListener("click", outside)
+}
+
+function renderPage() {
+  const style = route === "style", recording = route === "recording"
+  if (!style && state.get().layout === "cuts") state.set({layout: arrangement})
+  const original = {...state.get()}
+  let busy = false, status = null, cancel = () => {}, seconds = 0, paused = false
+  const page = Kit.mountShell(style ? "Untitled video" : "Record video")
+  page.classList.add("v10-page")
+  document.body.classList.add("v10-root")
+  page.innerHTML = `<div class="v10-layout ${recording ? 'v10-running' : ''} ${style ? 'v10-style' : 'v10-recorder'}">
+    <div class="v10-stage">${preview()}</div>
+    <aside data-part="controls" class="v10-rail">
+      ${style ? `<div data-style-tabs>${Kit.trimStyleTabs().replaceAll('<span role="radio"','<button type="button" role="radio"').replaceAll('</span>','</button>')}</div>` : ''}
+      <div class="v10-settings">
+        <div class="v10-question"><p class="v10-ask" id="v10-ask">What are you showing?</p>${question(ANSWERS)}</div>
+        ${style ? `<div class="v10-cuts">${Kit.button({variant:'ghost',size:'sm',label:'Recorded cuts',iconName:'scissors',attrs:'data-cuts aria-pressed="false"'})}</div>` : ''}
+        <div class="v10-answers">
+          ${answer('me',group('background',true))}
+          ${answer('both',group('arrangement')+group('shape')+group('background'))}
+          ${answer('screen',style ? '' : Kit.button({variant:'outline',size:'lg-thumb',label:'Change screen',iconName:'monitor-up',attrs:'data-change-screen'}))}
+          ${answer('cuts',group('background',true))}
+        </div>
+      </div>
+      <div class="v10-go"><p class="v10-status" role="status" data-status></p>
+      ${style ? Kit.button({variant:'ghost',size:'sm',label:'Back to original',attrs:'data-back hidden'})+Kit.button({size:'lg-thumb',label:'Apply',attrs:'data-apply'}) : Kit.button({record:true,size:'lg-thumb',label:'Start recording',attrs:'data-start'})+Kit.button({size:'lg-thumb',label:'Share screen',iconName:'monitor-up',attrs:'data-share-screen data-share-button hidden'})}
+      </div>
+    </aside>
+    <div class="v10-under">
+      ${style ? `<div class="v10-timeline" hidden>Trim timeline</div><div class="v10-finish">${Kit.finishActions()}</div>` : recording ? `<label class="v10-live-layout">Layout <select aria-label="Layout">${Kit.LAYOUTS.map(o=>`<option value="${o.id}">${o.label}</option>`).join('')}</select></label><div class="v10-transport">${Kit.button({variant:'outline',size:'lg-thumb',label:'Pause',iconName:'pause',attrs:'data-pause'})}${Kit.button({record:true,size:'lg-thumb',label:'Stop · 00:00',attrs:'data-stop'})}</div>` : `<div class="v10-devices">${Kit.deviceControls()}</div>${Kit.button({variant:'outline',size:'sm',label:'Change screen',iconName:'monitor-up',attrs:'data-change-screen data-under-change'})}`}
+    </div>
+  </div>`
+  page.querySelectorAll('[data-style-tabs] button').forEach(b=>b.tabIndex=0)
+  wireControls(page)
+  const unwire = wireDevices(page)
+  const sync = () => {
+    const s = {...state.get(), ...(style ? {screen:true} : {})}
+    syncRadios(page,s,busy); syncPictures(page,s)
+    page.querySelectorAll('[data-change-screen]').forEach(b=>{b.hidden = !s.screen || s.layout === 'camera'; b.disabled=busy})
+    const waiting = s.layout !== 'camera' && !s.screen
+    if (!style) {
+      page.querySelector('[data-start]').hidden=waiting
+      page.querySelector('[data-share-button]').hidden=!waiting
+      const camera=page.querySelector('[aria-label^="Camera:"]')
+      if(camera) camera.disabled=s.layout==='screen'
+    }
+    page.querySelector('[data-status]').textContent=status ? Kit.statusCopy(status) : ''
+    page.querySelectorAll('[data-apply], [data-back], [data-cuts], [data-style-tabs] button').forEach(b=>b.disabled=busy)
+    const cuts=page.querySelector('[data-cuts]'); if(cuts) cuts.setAttribute('aria-pressed',String(s.layout==='cuts'))
+    const select=page.querySelector('select'); if(select) select.value=s.layout
+  }
+  const unsubscribe=state.subscribe(sync)
+  page.addEventListener('click', async e=>{
+    if(e.target.closest('[data-start]')) location.hash='recording'
+    if(e.target.closest('[data-share-screen]')) state.set({screen:true})
+    if(e.target.closest('[data-change-screen]')) state.set({screen:false})
+    if(e.target.closest('[data-stop]')) location.hash='style'
+    const pause=e.target.closest('[data-pause]')
+    if(pause){paused=!paused;pause.innerHTML=Kit.icon(paused?'play':'pause')+(paused?'Resume':'Pause')}
+    if(e.target.closest('[data-cuts]')) state.set({layout:'cuts'})
+    if(e.target.closest('[data-back]')) {status=null;state.set(original);page.querySelector('[data-back]').hidden=true}
+    if(e.target.closest('[data-apply]')) {
+      busy=true;page.querySelector('[data-back]').hidden=true;sync()
+      cancel=Kit.fakeApply(next=>{status=next;if(next.kind==='done'){busy=false;page.querySelector('[data-back]').hidden=false}sync()})
+    }
+    const tab=e.target.closest('[data-style-tabs] button')
+    if(tab){
+      const trim=tab.textContent.trim()==='Trim'
+      page.querySelector('.v10-settings').hidden=trim
+      page.querySelector('.v10-timeline').hidden=!trim
+      page.querySelectorAll('[data-style-tabs] button').forEach(b=>{const on=b===tab;b.tabIndex=0;b.toggleAttribute('data-checked',on);b.toggleAttribute('data-unchecked',!on);b.setAttribute('aria-checked',String(on))})
+    }
+    const finish=e.target.closest('.v10-finish button')
+    if(finish){
+      if(finish.textContent.includes('Re-record')) location.hash='recorder'
+      else if(finish.textContent.includes('Copy')) {try{await navigator.clipboard.writeText(location.href);finish.textContent='Copied'}catch{finish.textContent='Copy unavailable'}}
+      else {finish.textContent='Page ready';finish.disabled=true}
+    }
+  })
+  page.querySelector('select')?.addEventListener('change',e=>state.set({layout:e.target.value}))
+  const timer=recording ? setInterval(()=>{if(!paused){seconds++;const time=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');page.querySelector('[data-stop]').innerHTML='<span class="size-3 flex-none rounded-full bg-current"></span>Stop · '+time}},1000) : null
+  return ()=>{unsubscribe();unwire();cancel();clearInterval(timer)}
+}
+state.subscribe(s=>{if(s.layout==='split'||s.layout==='inset')arrangement=s.layout})
+function render(){const next=['#style','#recording'].includes(location.hash)?location.hash.slice(1):'recorder';if(next===route)return;stop();route=next;stop=renderPage();window.scrollTo(0,0)}
+window.addEventListener('hashchange',render)
+render()
+</script><script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>

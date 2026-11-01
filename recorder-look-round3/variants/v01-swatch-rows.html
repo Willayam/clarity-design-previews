@@ -1,0 +1,355 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Swatch rows</title>
+<script type="application/json" id="lab-meta">{"id": "v01", "name": "Swatch rows", "axis": "Smallest change: today's single column, every option a named picture", "idea": "Three labelled rows under the preview replace the selects. Layout shows live scenes, Background shows live faces, Camera shape shows the person in each shape. Camera, microphone and Change screen share one row, Start recording stays full width at the bottom.", "cost": "Eleven pictures on screen at once, and the Style tab pictures shrink to fit five layouts.", "model": "opus", "round": 1, "parents": [], "parts": ["preview", "controls"], "recommended": false, "why": "", "old": true}</script>
+<link rel="stylesheet" href="../kit/app.css"><script src="../kit/recorder-kit.js"></script>
+<style>
+.v01-preview{position:relative;width:100%;overflow:hidden;background:var(--player)}
+.v01-frame{position:relative;width:100%;aspect-ratio:16 / 9;transition:opacity 160ms ease-out}
+.v01-frame[data-dim]{opacity:0}
+.v01-fill.kit-scene{position:absolute;inset:0;width:100%;height:100%}
+
+.v01-sources{display:grid;grid-template-columns:minmax(0,1fr) 9.5rem;gap:.5rem}
+.v01-sources>[data-slot="button"]{width:100%;padding-bottom:.25rem}
+.v01-primary>span>[data-slot="button"]{width:100%}
+.v01-primary{display:flex}
+.v01-thumb-change{display:none}
+.v01-menu{position:absolute;top:calc(100% + .25rem);left:0;right:0;z-index:20;padding:.25rem;background:var(--popover);color:var(--popover-foreground);border:1px solid var(--border);border-radius:var(--radius)}
+.v01-menu-item{display:flex;align-items:center;gap:.5rem;width:100%;min-width:0;padding:.375rem .5rem;font-size:.875rem;line-height:1.25rem;text-align:left;border-radius:calc(var(--radius) * .6);outline:none;cursor:pointer}
+.v01-menu-item:hover,.v01-menu-item:focus-visible{background:var(--muted)}
+.v01-menu-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.v01-rows{display:grid;gap:.25rem}
+.v01-row{display:grid;grid-template-columns:6rem minmax(0,1fr);gap:.5rem;align-items:center}
+.v01-label{display:grid;gap:.125rem;font-size:.875rem;line-height:1.25rem;font-weight:500;color:var(--foreground);transition:color 120ms ease-out}
+.v01-hint{min-height:1rem;font-size:.75rem;line-height:1rem;font-weight:400;color:color-mix(in oklch,var(--foreground) 72%,transparent)}
+.v01-hint:empty{display:none}
+.v01-opts{display:grid;grid-template-columns:repeat(var(--v01-cols,4),minmax(0,1fr));gap:.25rem}
+
+.v01-opt{display:grid;grid-template-columns:minmax(0,52fr) minmax(0,48fr);gap:.5rem;align-items:center;min-width:0;padding:.1875rem;border:1px solid transparent;border-radius:var(--radius);color:var(--foreground);cursor:pointer;transition:background-color 120ms ease-out,border-color 120ms ease-out}
+.v01-opt:hover{background:var(--muted)}
+.v01-opt:has(input:checked){border-color:var(--primary);background:color-mix(in oklch,var(--primary) 10%,transparent);color:var(--primary)}
+.v01-opt:has(input:focus-visible){outline:2px solid var(--ring);outline-offset:2px}
+.v01-pic{position:relative;display:block;width:100%;aspect-ratio:16 / 9;overflow:hidden;border-radius:calc(var(--radius) * .6);background-color:var(--player)}
+.v01-cap{min-width:0;font-size:.875rem;line-height:1.125rem;font-weight:500}
+
+.v01-tile{background-color:var(--muted);box-shadow:inset 0 0 0 1px var(--border)}
+.v01-person{position:absolute;top:8%;bottom:8%;left:50%;aspect-ratio:1;transform:translateX(-50%)}
+.v01-person[data-shape="circle"]{border-radius:50%}
+.v01-person[data-shape="squircle"]{border-radius:22%}
+.v01-person[data-shape="cutout"]{bottom:0;left:0;width:100%;aspect-ratio:auto;transform:none;background-size:111%;background-position:106% 34%}
+
+.v01-cuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background-color:var(--card);box-shadow:inset 0 0 0 1px var(--border)}
+.v01-slice{position:relative;overflow:hidden}
+.v01-slice>.kit-scene{position:absolute;top:0;width:300%;height:100%}
+
+.v01-row[data-off] .v01-label{color:color-mix(in oklch,var(--foreground) 72%,transparent)}
+.v01-row[data-off] .v01-pic{opacity:.35}
+.v01-row[data-off] .v01-cap{color:color-mix(in oklch,var(--foreground) 50%,transparent)}
+.v01-row[data-off] .v01-opt,.v01-controls[data-locked] .v01-opt{cursor:default;background:none}
+.v01-row[data-off] .v01-opt:has(input:checked){border-color:var(--border)}
+.v01-controls[data-locked] .v01-opt:not(:has(input:checked)) .v01-pic{opacity:.5}
+.v01-controls[data-locked] .v01-opt:not(:has(input:checked)) .v01-cap{color:color-mix(in oklch,var(--foreground) 50%,transparent)}
+.v01-controls[data-locked] .v01-row:not([data-off]) .v01-opt:has(input:checked){background:color-mix(in oklch,var(--primary) 10%,transparent)}
+
+.v01-finish{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.75rem;align-items:center}
+.v01-actions{display:flex;gap:.5rem}
+.v01-actions>[data-slot="button"]{flex:none}
+.v01-applybar{display:grid;grid-template-columns:minmax(0,1fr) auto 7rem;gap:.5rem;align-items:center;min-height:2.5rem;margin-top:.5rem}
+.v01-applybar>[data-slot="button"]{width:100%}
+.v01-applybar>[data-apply]{grid-column:3}
+.v01-back{grid-column:2}
+.v01-back[hidden]{display:none}
+.v01-status{grid-column:1;display:flex;align-items:center;gap:.375rem;min-width:0;font-size:.875rem;line-height:1.25rem;font-variant-numeric:tabular-nums;color:var(--foreground)}
+.v01-status svg{flex:none;color:var(--primary)}
+
+.v01-style .v01-opts{--v01-cols:5}
+.v01-style .v01-opt{grid-template-columns:4.75rem minmax(0,1fr);gap:.375rem}
+.v01-style .v01-cap{font-size:.75rem;line-height:.9375rem}
+.v01-recorder{padding-bottom:1rem}
+
+@media (prefers-reduced-motion:reduce){.v01-frame,.v01-opt,.v01-label{transition:none}}
+
+@media (max-width:39.999rem){
+  .v01-recorder{display:flex;flex:1;flex-direction:column;min-height:0}
+  .v01-style{flex:1;min-height:0;overflow:auto}
+  .v01-recorder .v01-stack{flex:1;min-height:0}
+  .v01-recorder .v01-preview{display:flex;flex:1;align-items:center;min-height:8rem}
+  .v01-recorder [data-row="background"],.v01-recorder [data-row="shape"]{display:none}
+  .v01-recorder .v01-sources{grid-template-columns:minmax(0,1fr)}
+  .v01-recorder .v01-sources>[data-slot="button"]{display:none}
+  .v01-recorder .v01-thumb-change{display:inline-flex}
+  .v01-primary{gap:.5rem}
+  .v01-rows{gap:.75rem}
+  .v01-row{grid-template-columns:minmax(0,1fr);gap:.25rem}
+  .v01-label{grid-auto-flow:column;justify-content:start;align-items:baseline;gap:.5rem}
+  .v01-recorder .v01-opt{grid-template-columns:minmax(0,1fr);gap:.25rem;text-align:center}
+  .v01-recorder .v01-cap{font-size:.75rem;line-height:1rem}
+  .v01-style .v01-opts{--v01-cols:2}
+  .v01-finish{grid-template-columns:minmax(0,1fr)}
+  .v01-actions>[data-slot="button"]{flex:1 1 0;width:auto;min-width:0;height:2.75rem;padding-inline:.5rem;font-size:.875rem;gap:.375rem;border-radius:var(--radius)}
+  .v01-applybar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .v01-applybar>[data-apply]{grid-column:2}
+  .v01-back{grid-column:1}
+  .v01-status{grid-column:1 / -1;min-height:1.25rem}
+  .v01-back[hidden]{display:block;visibility:hidden}
+}
+</style></head><body>
+<script>
+const Kit = window.RecorderKit
+const TAKE_CUTS = ["inset", "camera", "split", "inset"]
+const ORIGINAL = { layout: "cuts", background: "keep", shape: "circle", screen: true }
+const recorderState = Kit.store({ layout: "inset" })
+const styleState = Kit.store(ORIGINAL)
+let leaveRoute = () => {}
+
+/** The kit captures every default/lg-thumb with the record attribute, which paints it red. Only Start recording may be red. */
+const notRecord = (html) => html.replaceAll('data-record-action=""', "")
+
+const stack = (body) => `<div class="v01-stack mx-auto flex w-full min-w-0 flex-col gap-3" style="max-width:${Kit.FRAME_WIDTH}">${body}</div>`
+const preview = `<div data-part="preview" class="v01-preview rounded-2xl shadow-lg"><div class="v01-frame" role="img" aria-label="Preview"><div class="v01-fill" data-scene></div></div></div>`
+
+function option(group, { id, label }) {
+  return `<label class="v01-opt"><input class="sr-only" type="radio" name="v01-${group}" value="${id}"><span class="v01-pic" data-pic="${id}"></span><span class="v01-cap">${label}</span></label>`
+}
+function row(group, label, options) {
+  return `<div class="v01-row" data-row="${group}" role="radiogroup" aria-labelledby="v01-label-${group}"><div class="v01-label"><span id="v01-label-${group}">${label}</span><span class="v01-hint" data-hint></span></div><div class="v01-opts">${options.map((item) => option(group, item)).join("")}</div></div>`
+}
+function rows(layouts) {
+  return `<div class="v01-rows">${row("layout", "Layout", layouts)}${row("background", "Background", Kit.BACKGROUNDS)}${row("shape", "Camera shape", Kit.SHAPES)}</div>`
+}
+
+/** Repaints only when the picture really changes, so a swatch never flickers. */
+function paint(el, state) {
+  const key = JSON.stringify(state)
+  if (el.dataset.key === key) return
+  el.dataset.key = key
+  Kit.scene(el, state)
+  el.classList.add("v01-fill")
+}
+
+function mountPictures(page) {
+  page.querySelectorAll('[data-row="background"] [data-pic]').forEach((pic) => Kit.face(pic, pic.dataset.pic))
+  page.querySelectorAll('[data-row="shape"] [data-pic]').forEach((pic) => {
+    pic.classList.add("v01-tile")
+    pic.innerHTML = `<span class="v01-person" data-shape="${pic.dataset.pic}"></span>`
+  })
+  const cuts = page.querySelector('[data-pic="cuts"]')
+  if (cuts) {
+    cuts.classList.add("v01-cuts")
+    cuts.innerHTML = '<span class="v01-slice"><span></span></span><span class="v01-slice"><span></span></span><span class="v01-slice"><span></span></span>'
+    const slices = [["camera", "-100%"], ["screen", "-100%"], ["inset", "-200%"]]
+    cuts.querySelectorAll(".v01-slice > span").forEach((el, i) => {
+      Kit.scene(el, { ...ORIGINAL, layout: slices[i][0] })
+      el.style.left = slices[i][1]
+    })
+  }
+}
+
+function paintRows(page, state, rule, locked = false) {
+  page.querySelectorAll('[data-row="layout"] [data-pic]').forEach((pic) => {
+    if (pic.dataset.pic === "cuts") return
+    const el = pic.firstElementChild ?? pic.appendChild(document.createElement("span"))
+    paint(el, { ...state, layout: pic.dataset.pic, screen: true })
+  })
+  page.querySelectorAll('[data-row="shape"] .v01-person').forEach((person) => {
+    const background = person.dataset.shape === "cutout" ? "slate" : state.background
+    if (person.dataset.background === background) return
+    person.dataset.background = background
+    person.setAttribute("style", "")
+    Kit.face(person, background)
+    if (person.dataset.shape === "cutout") person.style.backgroundColor = "transparent"
+  })
+  const hints = {
+    layout: "",
+    background: rule.background ? "" : state.layout === "screen" ? "Not in Screen" : "Not with Cutout",
+    shape: rule.shape ? "" : "Inset only",
+  }
+  page.querySelectorAll("[data-row]").forEach((el) => {
+    const group = el.dataset.row
+    const off = hints[group] !== ""
+    el.toggleAttribute("data-off", off)
+    el.querySelector("[data-hint]").textContent = hints[group]
+    el.querySelectorAll("input").forEach((input) => {
+      input.checked = input.value === state[group]
+      input.disabled = off || locked
+    })
+  })
+}
+
+function wireRows(page, store) {
+  page.addEventListener("change", (event) => {
+    const group = event.target.name?.replace("v01-", "")
+    if (group) store.set({ [group]: event.target.value })
+  })
+}
+
+function wireDevices(page) {
+  const close = (refocus) => {
+    const open = page.querySelector(".v01-menu")
+    if (!open) return
+    const trigger = open.parentElement.querySelector("button")
+    trigger.setAttribute("aria-expanded", "false")
+    open.remove()
+    if (refocus) trigger.focus()
+  }
+  page.querySelectorAll('[data-slot="dropdown-menu-trigger"]').forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const wasOpen = trigger.getAttribute("aria-expanded") === "true"
+      close(false)
+      if (wasOpen) return
+      trigger.setAttribute("aria-expanded", "true")
+      const name = trigger.getAttribute("aria-label").split(": ")[1]
+      trigger.parentElement.insertAdjacentHTML("beforeend", `<div class="v01-menu shadow-lg" role="menu"><button type="button" class="v01-menu-item" role="menuitemradio" aria-checked="true">${Kit.icon("check", 16)}<span>${name}</span></button></div>`)
+      const item = trigger.parentElement.querySelector(".v01-menu-item")
+      item.addEventListener("click", () => close(true))
+      item.focus()
+    })
+  })
+  const onKey = (event) => { if (event.key === "Escape") close(true) }
+  const onDown = (event) => { if (!event.target.closest(".v01-menu, [data-slot='dropdown-menu-trigger']")) close(false) }
+  document.addEventListener("keydown", onKey)
+  document.addEventListener("pointerdown", onDown)
+  return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onDown) }
+}
+
+function recorder() {
+  const page = Kit.mountShell("Record video")
+  page.classList.add("v01-recorder")
+    page.innerHTML = stack(`${preview}
+    <aside data-part="controls" class="v01-controls @container/recorder-controls flex min-w-0 flex-col gap-3">
+      <div class="v01-sources">${Kit.deviceControls()}${Kit.button({ variant: "outline", size: "lg-thumb", label: "<span data-change-label>Change screen</span>", iconName: "monitor-up", attrs: "data-change" })}</div>
+      ${rows(Kit.LAYOUTS)}
+      <div class="v01-primary"><span class="v01-thumb-change">${Kit.button({ variant: "outline", size: "lg-thumb", label: "", iconName: "monitor-up", attrs: 'data-change data-change-icon aria-label="Change screen"' })}</span><span data-primary class="contents"></span></div>
+    </aside>`)
+  mountPictures(page)
+  wireRows(page, recorderState)
+  const stopDevices = wireDevices(page)
+
+  const scene = page.querySelector("[data-scene]")
+  const frame = page.querySelector(".v01-frame")
+  const primary = page.querySelector("[data-primary]")
+  const changes = [...page.querySelectorAll("[data-change]")]
+  const needsScreen = (state) => Kit.LAYOUTS.find((item) => item.id === state.layout).needsScreen
+  const renderPrimary = (waiting) => {
+    if (primary.dataset.waiting === String(waiting)) return
+    const refocus = primary.contains(document.activeElement)
+    primary.dataset.waiting = String(waiting)
+    primary.innerHTML = waiting
+      ? notRecord(Kit.button({ variant: "default", size: "lg-thumb", label: "Share screen", iconName: "monitor-up" }))
+      : Kit.button({ record: true, size: "lg-thumb", label: "Start recording" })
+    if (waiting) primary.firstElementChild.addEventListener("click", () => recorderState.set({ screen: true }))
+    if (refocus) primary.firstElementChild.focus()
+  }
+  changes.forEach((button) => button.addEventListener("click", () => {
+    if (!recorderState.get().screen) { recorderState.set({ screen: true }); return }
+    frame.toggleAttribute("data-dim", !matchMedia("(prefers-reduced-motion: reduce)").matches)
+    setTimeout(() => frame.removeAttribute("data-dim"), 160)
+  }))
+
+  const stop = recorderState.subscribe((state) => {
+    paint(scene, state)
+    paintRows(page, state, Kit.applies(state))
+    const waiting = !state.screen && needsScreen(state)
+    renderPrimary(waiting)
+    changes.forEach((button) => {
+      const name = state.screen || waiting ? "Change screen" : "Share screen"
+      button.disabled = waiting
+      button.setAttribute("aria-label", name)
+      const text = button.querySelector("[data-change-label]")
+      if (text) text.textContent = name
+    })
+  })
+  return () => { stop(); stopDevices() }
+}
+
+function style() {
+  const page = Kit.mountShell("Untitled video")
+  page.classList.add("v01-style")
+  const layouts = [{ id: "cuts", label: "Recorded cuts" }, ...Kit.LAYOUTS]
+  page.innerHTML = stack(`${preview}
+    <div class="v01-finish">${Kit.trimStyleTabs()}<div class="v01-actions">${notRecord(Kit.finishActions())}</div></div>
+    <section data-part="controls" aria-label="Style" class="v01-controls min-w-0">
+      ${rows(layouts)}
+      <div class="v01-applybar">
+        <p class="v01-status" role="status" aria-live="polite"></p>
+        ${Kit.button({ variant: "outline", size: "lg-thumb", label: "Back to original", attrs: "data-back" })}
+        ${notRecord(Kit.button({ variant: "default", size: "lg-thumb", label: "Apply", attrs: "data-apply" }))}
+      </div>
+    </section>`)
+  mountPictures(page)
+  wireRows(page, styleState)
+
+  const scene = page.querySelector("[data-scene]")
+  const controls = page.querySelector(".v01-controls")
+  const status = page.querySelector(".v01-status")
+  const back = page.querySelector("[data-back]")
+  const apply = page.querySelector("[data-apply]")
+  back.classList.add("v01-back")
+  const [reRecord, , copyLink] = page.querySelectorAll(".v01-actions > button")
+  let copyTimer
+  reRecord.addEventListener("click", () => { location.hash = "#recorder" })
+  copyLink.addEventListener("click", () => {
+    navigator.clipboard?.writeText(location.href).catch(() => {})
+    copyLink.querySelector("svg").outerHTML = Kit.icon("check", 16)
+    clearTimeout(copyTimer)
+    copyTimer = setTimeout(() => { copyLink.querySelector("svg").outerHTML = Kit.icon("copy", 16) }, 1200)
+  })
+  const matches = (a, b) => a.layout === b.layout && a.background === b.background && a.shape === b.shape
+  const ruleFor = (state) => Kit.applies({ ...state, layout: state.layout === "cuts" ? "inset" : state.layout })
+
+  let applied = ORIGINAL
+  let cancelApply = null
+  let lastStatus = null
+  let cutTimers = []
+  let lastLayout = styleState.get().layout
+
+  /** Recorded cuts plays the take's own layout changes once when picked, then rests on the first. */
+  const showCuts = (state, play) => {
+    cutTimers.forEach(clearTimeout)
+    cutTimers = []
+    if (state.layout !== "cuts") { paint(scene, state); return }
+    paint(scene, { ...state, layout: TAKE_CUTS[0] })
+    if (!play || matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    TAKE_CUTS.slice(1).forEach((layout, i) => cutTimers.push(setTimeout(() => paint(scene, { ...styleState.get(), layout }), 900 * (i + 1))))
+  }
+
+  const render = (state) => {
+    const running = cancelApply !== null
+    if (!running && lastStatus && !matches(state, applied)) lastStatus = null
+    paintRows(page, state, ruleFor(state), running)
+    controls.toggleAttribute("data-locked", running)
+    apply.disabled = running || matches(state, applied)
+    back.disabled = running
+    back.hidden = running || matches(applied, ORIGINAL)
+    status.innerHTML = lastStatus ? `${lastStatus.kind === "done" ? Kit.icon("check", 16) : ""}<span>${Kit.statusCopy(lastStatus)}</span>` : ""
+  }
+
+  apply.addEventListener("click", () => {
+    cancelApply = Kit.fakeApply((next) => {
+      lastStatus = next
+      if (next.kind === "done") { cancelApply = null; applied = styleState.get() }
+      render(styleState.get())
+    })
+    render(styleState.get())
+  })
+  back.addEventListener("click", () => {
+    applied = ORIGINAL
+    lastStatus = null
+    styleState.set(ORIGINAL)
+    apply.focus()
+  })
+
+  const stop = styleState.subscribe((state) => {
+    showCuts(state, state.layout !== lastLayout)
+    lastLayout = state.layout
+    render(state)
+  })
+  return () => { stop(); cutTimers.forEach(clearTimeout); clearTimeout(copyTimer); cancelApply?.(); styleState.set(ORIGINAL) }
+}
+
+function route() {
+  leaveRoute()
+  leaveRoute = location.hash === "#style" ? style() : recorder()
+}
+window.addEventListener("hashchange", route)
+route()
+</script><script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design lab</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f3f3f1; --panel: #ffffff; --fg: #1a1a19; --muted: #6e6d68; --line: #dfded9; --soft: #ecebe7;
+    --yes: #1f7a4d; --maybe: #9a6a00; --no: #b3261e; --sel: #1a1a19;
+    --r: 10px; --bar: 52px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141413; --panel: #1c1c1b; --fg: #ecebe6; --muted: #9a9890; --line: #31302d; --soft: #262624; --yes: #4cc38a; --maybe: #e0a83a; --no: #ef6b62; --sel: #ecebe6; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+  kbd { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  header.bar { position: sticky; top: 0; z-index: 20; height: var(--bar); display: flex; align-items: center; gap: 10px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .ttl { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: 10px; }
+  .ttl h1 { font-size: 14px; font-weight: 600; margin: 0; white-space: nowrap; }
+  .ttl .q { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex: none; }
+  .seg button { border: 0; background: none; padding: 5px 10px; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+  select { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 5px 8px; }
+  .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; flex: none; color: inherit; text-decoration: none; }
+  .btn:hover { background: var(--soft); }
+  .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  #count:not(:empty) { margin-left: 6px; font-variant-numeric: tabular-nums; opacity: .75; }
+
+  .more { position: fixed; top: calc(var(--bar) + 6px); right: 16px; z-index: 30; width: 300px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; display: grid; gap: 10px; }
+  .more[hidden] { display: none; }
+  .more .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .more .row > span { color: var(--muted); }
+  .more label.chk { display: flex; align-items: center; gap: 8px; }
+  #controls { display: grid; gap: 8px; }
+  #controls label { display: flex; justify-content: space-between; align-items: center; color: var(--muted); }
+
+  main { padding: 16px 16px 48px; }
+  .grid { display: grid; gap: 16px; align-items: start; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0; }
+  .tile.sel { border-color: var(--sel); }
+  .tile.yes { box-shadow: inset 0 3px 0 var(--yes); }
+  .tile.maybe { box-shadow: inset 0 3px 0 var(--maybe); }
+  .tile.no .vp { opacity: .4; }
+  .tile.gone { display: none; }
+  .th { display: flex; align-items: center; gap: 8px; padding: 9px 8px 9px 12px; min-width: 0; }
+  .th .id { font-weight: 600; font-variant-numeric: tabular-nums; flex: none; color: var(--muted); }
+  .th .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .sp { flex: 1; }
+  .chip { border: 1px solid var(--line); border-radius: 9px; padding: 0 7px; font-size: 12px; color: var(--muted); white-space: nowrap; flex: none; }
+  .chip.pick { color: var(--maybe); border-color: currentColor; }
+  .ico { width: 28px; height: 28px; border: 0; background: none; border-radius: 7px; color: var(--muted); display: inline-grid; place-items: center; flex: none; padding: 0; }
+  .ico:hover { background: var(--soft); color: var(--fg); }
+  .ico svg { width: 16px; height: 16px; }
+  .axes { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+  .vp { position: relative; overflow: hidden; background: #fff; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .vp iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #fff; }
+  .vp .miss { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); background: var(--soft); font-size: 13px; padding: 0 12px; text-align: center; }
+
+  .tf { padding: 10px 12px 12px; display: grid; gap: 8px; }
+  .acts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .act { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 6px; white-space: nowrap; }
+  .act kbd { color: var(--muted); }
+  .act:hover { background: var(--soft); }
+  .act.on.yes { background: var(--yes); border-color: var(--yes); color: #fff; }
+  .act.on.maybe { background: var(--maybe); border-color: var(--maybe); color: #fff; }
+  .act.on.no { background: var(--no); border-color: var(--no); color: #fff; }
+  .act.on kbd { color: inherit; opacity: .8; }
+  .idea { margin: 0; color: var(--muted); font-size: 13px; }
+  .comments { margin: 0; padding: 0 0 0 18px; display: grid; gap: 4px; }
+  .comments:empty { display: none; }
+  .comments li { position: relative; padding-right: 28px; }
+  .comments .on { color: var(--muted); }
+  .comments .del { position: absolute; right: 0; top: -4px; width: 24px; height: 24px; }
+  .compose { display: grid; gap: 8px; padding: 0 12px 12px; }
+  .compose textarea { width: 100%; border: 1px solid var(--fg); border-radius: 8px; padding: 8px 10px; background: var(--bg); resize: vertical; }
+  .crow { display: flex; align-items: center; gap: 8px; }
+  .where { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .flow { display: grid; gap: 16px; }
+  .flow .row { display: grid; gap: 10px; align-items: start; padding: 0 12px 4px; }
+  .flow .tile .row { padding-top: 0; }
+  .flow .vp { border: 1px solid var(--line); border-radius: 6px; }
+  .flow .cover { position: absolute; inset: 0; cursor: zoom-in; }
+  .flow .tile.drafting .cover { display: none; }
+  .tile.drafting { border-color: var(--fg); }
+  .cellhead { color: var(--muted); font-size: 13px; padding: 0 2px; }
+
+  .focus { display: grid; gap: 16px; height: calc(100vh - var(--bar) - 32px); grid-template-columns: 1fr; }
+  .focus.split { grid-template-columns: 1fr 1fr; }
+  .focus-col { display: flex; flex-direction: column; min-height: 0; }
+  .focus-col .vp { flex: 1; }
+
+  .mix { display: grid; grid-template-columns: 240px 1fr; gap: 16px; height: calc(100vh - var(--bar) - 32px); }
+  .rail { overflow-y: auto; }
+  .slot { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; margin-bottom: 8px; }
+  .slot-name { font-weight: 600; margin-bottom: 8px; }
+  .slot-btns { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .slot-btns button { min-width: 32px; border: 1px solid var(--line); background: var(--bg); border-radius: 7px; padding: 4px 8px; font-weight: 600; }
+  .slot-btns button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .slot-btns button.rec { box-shadow: inset 0 -2px 0 var(--maybe); }
+  .slot-btns button.yes { border-color: var(--yes); }
+  .slot-btns button.no { opacity: .4; }
+  .hint { color: var(--muted); font-size: 13px; }
+  .stage { display: flex; flex-direction: column; min-height: 0; }
+  .stage .vp { flex: 1; }
+  .stage .acts { grid-template-columns: minmax(0, 160px); }
+
+  .sheet { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.35); display: grid; place-items: center; padding: 16px; }
+  .sheet[hidden] { display: none; }
+  .sheet .card { width: min(640px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+  .sheet h2 { margin: 0; font-size: 16px; }
+  .sheet pre { margin: 0; white-space: pre-wrap; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; max-height: 45vh; overflow: auto; }
+  .sheet textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
+  .sheet .crow { justify-content: flex-end; }
+
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 8px; z-index: 50; display: none; max-width: 80vw; }
+  body.shot header.bar .ctl { display: none; }
+  .empty { padding: 60px 20px; text-align: center; color: var(--muted); }
+  @media (max-width: 700px) {
+    header.bar { padding: 0 10px; gap: 6px; }
+    .ttl .q { display: none; }
+    #widths { display: none; }
+    main { padding: 10px 10px 40px; }
+    .grid { grid-template-columns: 1fr !important; }
+    .mix { grid-template-columns: 1fr; height: auto; }
+    .mix .stage .vp { height: 75vh; }
+    .focus.split { grid-template-columns: 1fr; }
+    .more { left: 10px; right: 10px; width: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <button class="btn ctl" id="back" style="display:none" title="Back (Esc)">Back</button>
+  <div class="ttl"><h1 id="title">Design lab</h1><span class="q" id="question"></span></div>
+  <select id="screen" class="ctl" aria-label="Screen"></select>
+  <div class="seg ctl" id="widths" role="group" aria-label="Device width"></div>
+  <button class="btn ctl" id="moreBtn" aria-expanded="false" aria-controls="more">More</button>
+  <button class="btn primary ctl" id="sendBtn">Send<span id="count"></span></button>
+</header>
+
+<div class="more" id="more" hidden>
+  <div class="row"><span>View</span>
+    <div class="seg" id="views" role="group" aria-label="View">
+      <button data-v="grid">Grid</button><button data-v="parts">Parts</button><button data-v="flow">Screens</button><button data-v="mix">Mix</button>
+    </div>
+  </div>
+  <div class="row" id="partRow"><span>Part</span><select id="part" aria-label="Part"></select></div>
+  <div class="row"><span>Round</span><select id="round" aria-label="Round"></select></div>
+  <div class="row"><span>Columns</span>
+    <div class="seg" id="cols" role="group" aria-label="Columns"><button data-c="1">1</button><button data-c="2">2</button><button data-c="3">3</button><button data-c="4">4</button></div>
+  </div>
+  <div class="row"><span>Theme</span><select id="theme" aria-label="Theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+  <div id="controls"></div>
+  <label class="chk"><input type="checkbox" id="tall"> Show whole pages</label>
+  <label class="chk" id="compareRow"><input type="checkbox" id="compare"> Show the current design next to the open one</label>
+  <label class="chk"><input type="checkbox" id="hideNo"> Hide the ones marked No</label>
+  <label class="chk"><input type="checkbox" id="yesOnly"> Show only Yes</label>
+</div>
+
+<main id="main"></main>
+
+<div class="sheet" id="sendSheet" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+    <h2 id="sendTitle">Send to the agent</h2>
+    <pre></pre>
+    <textarea rows="3" placeholder="Anything else?" aria-label="Anything else"></textarea>
+    <div class="crow"><button class="btn" id="closeSend">Close</button><button class="btn primary" id="doSend">Send</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="_lab/board.js"></script>
+</body>
+</html>

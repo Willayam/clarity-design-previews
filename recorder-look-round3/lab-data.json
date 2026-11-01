@@ -1,0 +1,295 @@
+{
+  "lab": {
+    "title": "Recorder look and layout controls",
+    "scope": "flow",
+    "fidelity": "native",
+    "created": "2026-11-01 14:27",
+    "round": 3,
+    "rounds": [
+      {
+        "n": 1,
+        "question": "How should a rep pick layout, background and camera shape before recording, and change them after?"
+      },
+      {
+        "n": 2,
+        "question": "Clarity's controls in Supercut's page layout. Which way of filling the rail reads best?",
+        "note": ""
+      },
+      {
+        "n": 3,
+        "question": "Supercut's Layout drawer, working on a live recording. How should it behave once the take is running?",
+        "note": "All three share the same drawer. They differ in what happens when recording starts."
+      }
+    ],
+    "widths": [
+      1440,
+      1024,
+      390
+    ],
+    "screens": [
+      {
+        "id": "recorder",
+        "label": "Before recording"
+      },
+      {
+        "id": "recording",
+        "label": "Recording"
+      },
+      {
+        "id": "popout",
+        "label": "Recording in another window"
+      },
+      {
+        "id": "style",
+        "label": "After recording"
+      }
+    ],
+    "parts": [
+      "preview",
+      "controls"
+    ],
+    "controls": {
+      "screen": [
+        "shared",
+        "none"
+      ]
+    },
+    "pageHead": [],
+    "external": []
+  },
+  "variants": [
+    {
+      "id": "v00",
+      "name": "Current",
+      "axis": "today's recorder and Style tab",
+      "idea": "Stacked selects with no labels, layout tiles, then Start recording. The Style tab repeats the preview and adds three unlabelled selects.",
+      "cost": "Hard to tell what each select does",
+      "model": "baseline",
+      "round": 1,
+      "parents": [],
+      "recommended": false,
+      "why": "",
+      "baseline": true,
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "file": "variants/v00-current.html",
+      "mtime": 1793548883.8253684
+    },
+    {
+      "id": "v01",
+      "name": "Swatch rows",
+      "axis": "Smallest change: today's single column, every option a named picture",
+      "idea": "Three labelled rows under the preview replace the selects. Layout shows live scenes, Background shows live faces, Camera shape shows the person in each shape. Camera, microphone and Change screen share one row, Start recording stays full width at the bottom.",
+      "cost": "Eleven pictures on screen at once, and the Style tab pictures shrink to fit five layouts.",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v01-swatch-rows.html",
+      "mtime": 1793548883.8257065
+    },
+    {
+      "id": "v02",
+      "name": "On the picture",
+      "axis": "direct manipulation",
+      "idea": "The preview is the interface. A compact layout strip hangs off its edge, and clicking the person opens a small panel beside them with background and shape, so you change what you point at.",
+      "cost": "Background and shape sit behind one click on the picture, one step further away than a visible row of controls.",
+      "model": "fable",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v02-on-the-picture.html",
+      "mtime": 1793548883.825823
+    },
+    {
+      "id": "v03",
+      "name": "Named looks",
+      "axis": "one decision instead of three",
+      "idea": "One row of six large live thumbnails. Each is a complete look that sets layout and camera shape together and is named the way a rep would say it. Background is the only second choice and appears only when it applies.",
+      "cost": "Bubble and Rounded differ by a 20 px detail at thumbnail size",
+      "model": "fable",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v03-named-looks.html",
+      "mtime": 1793548883.8262365
+    },
+    {
+      "id": "v04",
+      "name": "Side inspector",
+      "axis": "page structure",
+      "idea": "A large preview beside a fixed inspector with a stationary action footer.",
+      "cost": "Layout thumbnails are smaller than the main preview.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v04-side-inspector.html",
+      "mtime": 1793548883.8265557
+    },
+    {
+      "id": "v05",
+      "name": "Call dock",
+      "axis": "disclosure",
+      "idea": "A familiar call dock keeps visual choices hidden until asked for.",
+      "cost": "An extra click to compare options, with space reserved for the popovers.",
+      "model": "gpt-6-astra",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v05-call-dock.html",
+      "mtime": 1793548883.826874
+    },
+    {
+      "id": "v06",
+      "name": "What are you showing",
+      "axis": "the question comes first",
+      "idea": "One plain question leads: Just me, Me and my screen, or Just my screen. Only the controls that answer needs appear next, and picking a screen answer shows the empty slot your screen will fill.",
+      "cost": "The panel has empty space on Just my screen, because the room is reserved for the fullest answer.",
+      "model": "opus",
+      "round": 1,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v06-what-are-you-showing.html",
+      "mtime": 1793548883.827171
+    },
+    {
+      "id": "v09",
+      "name": "Chip row",
+      "axis": "Visual choices beneath the picture",
+      "idea": "One pill puts background and camera shape beside the device fields, leaving a quiet layout rail.",
+      "cost": "Small face chips need hover labels to distinguish Original from Blur.",
+      "model": "gpt-6-astra",
+      "round": 2,
+      "parents": [
+        "v02",
+        "v05"
+      ],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v09-chip-row.html",
+      "mtime": 1793548883.8273883
+    },
+    {
+      "id": "v10",
+      "name": "Question tabs",
+      "axis": "What you show, then how it is arranged",
+      "idea": "Three question tabs reveal only the choices that change the picture. Sparse answers sit centrally between the tabs and the anchored action.",
+      "cost": "Long tab labels need two lines in the narrow rail.",
+      "model": "gpt-6-astra",
+      "round": 2,
+      "parents": [
+        "v06"
+      ],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "old": true,
+      "file": "variants/v10-question-tabs.html",
+      "mtime": 1793548883.82772
+    },
+    {
+      "id": "v11",
+      "name": "Drawer stays",
+      "axis": "What the drawer does once the take is running",
+      "idea": "Nothing moves when recording starts. The same drawer stays live, every row lands in the take at once, and only the foot turns into the timer, Stop and Pause.",
+      "cost": "The whole drawer stays within reach during a take, so fine-tuning mid-sentence is one click away. The pop-out carries only the five Style tiles.",
+      "model": "fable",
+      "round": 3,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v11-drawer-stays.html",
+      "mtime": 1793548883.8278332
+    },
+    {
+      "id": "v12",
+      "name": "Drawer steps aside",
+      "axis": "How the drawer behaves once a take is running",
+      "idea": "At Start the drawer slides away, the picture grows to theatre size, and one live bar holds the timer, the five Style tiles, Stop and Pause.",
+      "cost": "Anything finer than a Style tile is one more click away, and opening the drawer mid-take shrinks the running picture to keep the speaker clear.",
+      "model": "opus",
+      "round": 3,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": true,
+      "why": "While talking, a rep needs the picture and one row of styles. The same row works in the pop-out, and the full drawer is one click away.",
+      "file": "variants/v12-drawer-steps-aside.html",
+      "mtime": 1793548904.2603512
+    },
+    {
+      "id": "v13",
+      "name": "Drawer folds",
+      "axis": "Live drawer density",
+      "idea": "The same drawer folds its fine controls and enlarges its live style targets.",
+      "cost": "Fine adjustments require opening a summary.",
+      "model": "gpt-6-astra",
+      "round": 3,
+      "parents": [],
+      "parts": [
+        "preview",
+        "controls"
+      ],
+      "recommended": false,
+      "why": "",
+      "file": "variants/v13-drawer-folds.html",
+      "mtime": 1793548883.828089
+    }
+  ],
+  "slots": [],
+  "state": {},
+  "static": true
+}

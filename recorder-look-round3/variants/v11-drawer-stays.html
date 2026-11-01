@@ -1,0 +1,397 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8">
+<script type="application/json" id="lab-meta">{"id": "v11", "name": "Drawer stays", "axis": "What the drawer does once the take is running", "idea": "Nothing moves when recording starts. The same drawer stays live, every row lands in the take at once, and only the foot turns into the timer, Stop and Pause.", "cost": "The whole drawer stays within reach during a take, so fine-tuning mid-sentence is one click away. The pop-out carries only the five Style tiles.", "model": "fable", "round": 3, "parents": [], "parts": ["preview", "controls"], "recommended": false, "why": ""}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Drawer stays</title>
+<link rel="stylesheet" href="../kit/app.css"><script src="../kit/recorder-kit.js"></script>
+<style>
+.v11{--v11-dw:380px;position:relative;min-width:0}
+.v11 [hidden]{display:none!important}
+.v11-stage{min-width:0;transition:padding-right .18s var(--ease-out)}
+.v11[data-open=true] .v11-stage{padding-right:calc(var(--v11-dw) + 16px)}
+.v11-inner{position:relative;margin-inline:auto;max-width:calc((100dvh - 12rem) * 16 / 9)}
+.v11[data-open=false] .v11-inner{max-width:calc((100dvh - 12rem) * 16 / 9 + 40px);padding-right:40px}
+.v11-picture{width:100%;height:auto!important;aspect-ratio:16/9;border-radius:calc(var(--radius) * 1.8);overflow:hidden;background:#020617}
+.v11-show{position:absolute;top:0;right:0;width:32px;height:32px;display:grid;place-items:center;padding:0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--foreground);cursor:pointer;transition:background-color .15s}
+.v11-show:hover{background:var(--muted)}
+.v11[data-open=true] .v11-show{display:none}
+.v11-row{display:flex;align-items:center;gap:12px;margin-top:12px;min-width:0}
+.v11-devices{flex:0 1 560px;min-width:0}
+.v11-row [data-change]{margin-left:auto}
+.v11-actions{gap:8px}
+.v11-actions [data-slot=button]{flex:0 0 auto}
+.v11-strip{display:flex;align-items:center;height:56px;margin-top:12px;padding:0 16px;border-radius:var(--radius);background:var(--muted);font-size:var(--text-sm);color:var(--muted-foreground)}
+.v11-menu{position:absolute;left:0;top:calc(100% + 4px);min-width:100%;z-index:30;padding:4px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);box-shadow:0 10px 15px -3px rgb(0 0 0 / .1),0 4px 6px -4px rgb(0 0 0 / .1)}
+.v11-menu button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;height:32px;padding:0 8px;border:0;border-radius:calc(var(--radius) * .8);background:none;font:inherit;font-size:var(--text-sm);color:var(--foreground);text-align:left;cursor:pointer;white-space:nowrap}
+.v11-menu button:hover,.v11-menu button:focus-visible{background:var(--muted);outline:none}
+
+.v11-drawer{position:fixed;top:16px;right:16px;bottom:16px;z-index:20;width:var(--v11-dw);display:flex;flex-direction:column;background:var(--card);border-radius:calc(var(--radius) * 1.8);box-shadow:0 0 0 1px rgb(0 0 0 / .05),0 24px 80px rgb(24 24 27 / .08);transition:opacity .16s var(--ease-out),translate .16s var(--ease-out),visibility 0s}
+.v11[data-open=false] .v11-drawer{opacity:0;translate:12px 0;visibility:hidden;transition:opacity .16s var(--ease-out),translate .16s var(--ease-out),visibility 0s .16s}
+.v11-trim .v11-drawer{bottom:auto}
+.v11-trim .v11-body,.v11-trim .v11-status{display:none}
+.v11-head{display:flex;align-items:center;gap:8px;height:52px;padding:0 10px 0 16px;flex:none}
+.v11-title{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;font-size:var(--text-sm);font-weight:500}
+.v11-title svg{color:var(--muted-foreground)}
+.v11-rec{display:inline-flex;align-items:center;gap:6px;margin-right:4px;font-size:var(--text-xs);color:var(--muted-foreground)}
+.v11-dot{width:8px;height:8px;border-radius:50%;background:var(--destructive)}
+.v11-rec[data-paused] .v11-dot{background:var(--muted-foreground)}
+.v11-tabs{flex:none;padding:0 16px 8px}
+.v11-body{flex:1 1 auto;min-height:0;overflow:auto;padding:8px 16px 16px;display:grid;gap:20px;align-content:start}
+.v11-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 8px;font-size:var(--text-sm);line-height:1.25rem;font-weight:500;color:var(--foreground)}
+.v11-h span:last-child:not(:first-child){font-weight:400;color:var(--muted-foreground);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v11-card{border:1px solid var(--border);border-radius:calc(var(--radius) * 1.4);background:var(--card)}
+.v11-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:8px}
+.v11-tiles[data-count="6"]{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.v11-tile{display:grid;place-items:center;height:48px;min-width:0;padding:0;border:1px solid var(--border);border-radius:calc(var(--radius) * .8);background:var(--card);color:var(--muted-foreground);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
+.v11-tile:hover{background:var(--muted)}
+.v11-tile[aria-checked=true]{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary);color:var(--foreground)}
+.v11-tile:disabled{opacity:.5;cursor:default}
+.v11-tile svg{display:block}
+.v11-rowc{display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:12px;height:52px;padding:0 12px 0 14px}
+.v11-rowc + .v11-rowc{border-top:1px solid var(--border)}
+.v11-rowc > svg{color:var(--muted-foreground)}
+.v11-label{font-size:var(--text-sm);color:var(--foreground);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v11-rowc[data-off] > svg,.v11-rowc[data-off] > .v11-label{opacity:.5}
+.v11-select{position:relative;display:inline-flex;align-items:center}
+.v11-select select{appearance:none;-webkit-appearance:none;height:32px;margin:0;padding:0 28px 0 10px;font:inherit;font-size:var(--text-sm);line-height:1;color:var(--foreground);background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) * .8);cursor:pointer;outline:none;transition:background-color .15s}
+.v11-select select:hover{background:var(--muted)}
+.v11-select select:disabled{opacity:.5;cursor:default;background:var(--card)}
+.v11-select > svg{position:absolute;right:9px;pointer-events:none;color:var(--muted-foreground)}
+.v11-switch{position:relative;width:32px;height:18px;flex:none;padding:0;border:1px solid transparent;border-radius:9999px;background:var(--input);cursor:pointer;transition:background-color .15s,box-shadow .15s}
+.v11-switch:hover:not(:disabled){box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 10%,transparent)}
+.v11-switch[aria-checked=true]{background:var(--primary)}
+.v11-switch::after{content:"";position:absolute;top:0;left:0;width:16px;height:16px;border-radius:50%;background:var(--card);box-shadow:0 1px 2px rgb(0 0 0 / .18);transition:translate .15s var(--ease-out)}
+.v11-switch[aria-checked=true]::after{translate:14px 0}
+.v11-switch:disabled{opacity:.5;cursor:default}
+.v11-reveal{display:grid;grid-template-rows:0fr;transition:grid-template-rows .16s var(--ease-out)}
+.v11-reveal[data-on]{grid-template-rows:1fr}
+.v11-reveal > div{overflow:hidden;min-height:0}
+.v11-swatches{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:4px 12px 12px}
+.v11-swatch{aspect-ratio:11/8;padding:0;border:0;border-radius:calc(var(--radius) * .8);cursor:pointer;transition:box-shadow .15s}
+.v11-swatch:hover{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--border)}
+.v11-swatch[aria-checked=true]{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--primary)}
+.v11-swatch:disabled{opacity:.5;cursor:default}
+.v11-foot{flex:none;display:grid;gap:8px;padding:12px 16px 16px;border-top:1px solid var(--border)}
+.v11-foot > [data-slot=button],.v11-foot [data-action] > [data-slot=button]{width:100%}
+.v11-foot-row{display:flex;gap:8px;align-items:center;min-width:0}
+.v11-foot-row [data-slot=button]{min-width:0}
+.v11-foot-row [data-pause]{min-width:7.25rem}
+.v11-status{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;font-size:var(--text-xs);color:var(--muted-foreground)}
+.v11-status p{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v11-time{font-variant-numeric:tabular-nums}
+
+.v11-pop{box-sizing:border-box;min-height:100dvh;display:flex;flex-wrap:wrap;align-items:flex-start;align-content:center;justify-content:center;gap:40px;padding:56px 12px;background:var(--background)}
+.v11-fig{margin:0;display:grid;gap:10px;justify-items:center}
+.v11-fig figcaption{font-size:var(--text-xs);color:var(--muted-foreground)}
+.v11-win{width:360px;max-width:100%;overflow:hidden;border-radius:calc(var(--radius) * 1.4);background:var(--card);box-shadow:0 0 0 1px rgb(0 0 0 / .08),0 20px 25px -5px rgb(0 0 0 / .1),0 8px 10px -6px rgb(0 0 0 / .1)}
+.v11-win-bar{display:flex;align-items:center;gap:2px;height:32px;padding:0 6px 0 12px;background:var(--muted);border-bottom:1px solid var(--border);font-size:var(--text-xs);color:var(--muted-foreground)}
+.v11-win-bar span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v11-win-bar button{width:24px;height:24px;display:grid;place-items:center;padding:0;border:0;border-radius:calc(var(--radius) * .6);background:none;color:var(--muted-foreground);cursor:pointer}
+.v11-win-bar button:hover{background:var(--border);color:var(--foreground)}
+.v11-win-body{box-sizing:border-box;padding:8px}
+.v11-win-260 .v11-win-body{height:260px;display:grid;grid-template-rows:148px auto;gap:6px;align-content:start}
+.v11-pop-preview{width:263px!important;height:148px!important;margin:0 auto;border-radius:calc(var(--radius) * .8);overflow:hidden}
+.v11-pop-controls{display:grid;grid-template-rows:44px 40px;gap:6px}
+.v11-pop-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.v11-pop-tiles .v11-tile{height:44px}
+.v11-pop-actions{display:flex;gap:8px;min-width:0}
+.v11-pop-actions [data-slot=button]{min-width:0}
+.v11-pop-actions [data-pause]{min-width:7.25rem}
+.v11-win-96 .v11-win-body{height:96px;display:flex;align-items:center;gap:8px;padding:0 8px}
+.v11-win-96 .v11-pop-tiles{display:flex;gap:2px;flex:none}
+.v11-win-96 .v11-tile{width:30px;height:30px}
+.v11-win-96 [data-slot=button]{min-width:0;padding-inline:12px}
+
+.v11-show:focus-visible,.v11-tile:focus-visible,.v11-switch:focus-visible,.v11-select select:focus-visible,.v11-win-bar button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.v11-swatch:focus-visible{outline:2px solid var(--ring);outline-offset:5px}
+
+@media (max-width:1180px){.v11{--v11-dw:340px}}
+@media (max-width:959px){
+  .v11[data-open] .v11-stage{padding-right:0}
+  .v11[data-open] .v11-inner{max-width:none;padding-right:0}
+  .v11 .v11-show{display:none}
+  .v11[data-open] .v11-drawer{position:static;width:auto;margin-top:16px;opacity:1;visibility:visible;translate:none;box-shadow:none;background:transparent;border-radius:0}
+  .v11-head{display:none}
+  .v11-tabs{padding:0 0 12px}
+  .v11-body{overflow:visible;padding:0}
+  .v11-foot{padding:16px 0 0;border:0}
+}
+@media (max-width:640px){
+  .v11-recorder .v11-cam,.v11-recorder .v11-scr,.v11-recording .v11-cam,.v11-recording .v11-scr{display:none}
+  .v11-row{flex-wrap:wrap}
+  .v11-devices{flex:1 1 100%}
+  .v11-row [data-change]{margin-left:0;width:100%}
+  .v11-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .v11-actions [data-slot=button]{width:100%}
+  .v11-actions [data-variant=default]{grid-column:1 / -1;order:-1}
+  .v11-pop{gap:32px;padding:32px 12px}
+}
+@media (prefers-reduced-motion:reduce){.v11 *,.v11 *::before,.v11 *::after{transition:none!important;animation:none!important}}
+</style></head><body><script>
+const K = RecorderKit;
+const S = K.drawerStore({});
+const state = { route: 'recorder', open: true, elapsed: 0, paused: false, timer: null, tab: 'style', busy: false, done: false, status: '', asRecorded: true, recorded: null, original: null, cancelApply: null, flashTimer: null, lastBg: { cameraBg: 'sky', screenBg: 'sky' } };
+let root = null;
+
+const path = (d) => `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  pip: path('<path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/>'),
+  flip: path('<path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/>'),
+  drop: path('<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>'),
+};
+
+const FRAME = '<rect x="1" y="1" width="38" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/>';
+const TILE = {
+  bubble: '<rect x="25" y="14" width="10" height="9" rx="3" fill="currentColor"/>',
+  cutout: '<circle cx="29.5" cy="13" r="3.6" fill="currentColor"/><path d="M22.5 26.25c0-5 3.1-8 7-8s7 3 7 8z" fill="currentColor"/>',
+  split: '<rect x="5" y="7" width="10" height="14" rx="2.5" fill="currentColor"/><rect x="17" y="7" width="18" height="14" rx="2.5" fill="currentColor" opacity=".35"/>',
+  camera: '<circle cx="20" cy="11" r="4.2" fill="currentColor"/><path d="M11 26.25c0-6 4-9.5 9-9.5s9 3.5 9 9.5z" fill="currentColor"/>',
+  screen: '<rect x="7" y="8" width="26" height="2.5" rx="1.25" fill="currentColor" opacity=".6"/><rect x="7" y="13" width="18" height="2.5" rx="1.25" fill="currentColor" opacity=".6"/><rect x="7" y="18" width="22" height="2.5" rx="1.25" fill="currentColor" opacity=".6"/>',
+  asrec: '<rect x="25" y="14" width="10" height="9" rx="3" fill="currentColor"/><circle cx="7.5" cy="7.5" r="2.5" fill="var(--destructive)"/>',
+};
+const tileSvg = (id, w) => `<svg viewBox="0 0 40 28" width="${w}" height="${Math.round(w * 0.7)}" aria-hidden="true">${FRAME}${TILE[id]}</svg>`;
+const tiles = (list, w) => list.map((o) => `<button type="button" role="radio" class="v11-tile" data-style="${o.id}" aria-label="${o.label}" title="${o.label}" aria-checked="false" tabindex="-1">${tileSvg(o.id, w)}</button>`).join('');
+const time = () => `${String(Math.floor(state.elapsed / 60)).padStart(2, '0')}:${String(state.elapsed % 60).padStart(2, '0')}`;
+
+function selectRow(key, label, iconSvg, options) {
+  return `<div class="v11-rowc" data-row="${key}">${iconSvg}<label class="v11-label" for="v11-${key}">${label}</label><span class="v11-select"><select id="v11-${key}" data-key="${key}">${options.map((o) => `<option value="${o.id}">${o.label}</option>`).join('')}</select>${K.icon('chevron-down', 14)}</span></div>`;
+}
+function switchRow(key, label, iconSvg) {
+  return `<div class="v11-rowc" data-row="${key}">${iconSvg}<span class="v11-label" id="v11-l-${key}">${label}</span><button type="button" role="switch" class="v11-switch" data-switch="${key}" aria-labelledby="v11-l-${key}" aria-checked="false"></button></div>`;
+}
+function reveal(key, label) {
+  return `<div class="v11-reveal" data-reveal="${key}"><div><div class="v11-swatches" role="radiogroup" aria-label="${label}">${K.SWATCHES.map((o) => `<button type="button" role="radio" class="v11-swatch" data-key="${key}" data-value="${o.id}" aria-label="${o.label}" title="${o.label}" aria-checked="false" tabindex="-1" style="background:${o.css}"></button>`).join('')}</div></div></div>`;
+}
+const stopBtn = () => K.button({ record: true, size: 'lg-thumb', label: `Stop · <span class="v11-time" data-time>${time()}</span>`, attrs: 'data-stop' });
+const pauseBtn = (labelled) => K.button({ variant: 'outline', size: 'lg-thumb', label: labelled ? '<span data-pause-text>Pause</span>' : '', iconName: 'pause', attrs: labelled ? 'data-pause' : 'data-pause aria-label="Pause" title="Pause"' });
+
+function footHtml() {
+  const r = state.route;
+  if (r === 'recorder') return '<div data-action></div>';
+  if (r === 'recording') return `<div class="v11-foot-row">${stopBtn()}${pauseBtn(true)}</div>`;
+  return `<div class="v11-status"><p role="status" aria-live="polite" data-status></p>${K.button({ variant: 'ghost', size: 'sm', label: 'Back to original', iconName: 'rotate-ccw', attrs: 'data-reset' })}</div>${K.button({ variant: 'default', size: 'lg-thumb', label: 'Apply', attrs: 'data-apply' })}`;
+}
+
+function drawerHtml() {
+  const r = state.route;
+  const styles = r === 'style' ? [{ id: 'asrec', label: 'As recorded' }, ...K.STYLES] : K.STYLES;
+  return `<aside class="v11-drawer" data-part="controls" aria-label="Layout">
+    <div class="v11-head"><div class="v11-title">${K.icon('layout-template', 16)}<span>Layout</span></div>${r === 'recording' ? '<span class="v11-rec" data-rec><span class="v11-dot"></span><span data-rec-text>Recording</span></span>' : ''}${K.button({ variant: 'ghost', size: 'icon', label: '', iconName: 'x', attrs: 'aria-label="Hide layout" title="Hide layout" data-close' })}</div>
+    ${r === 'style' ? `<div class="v11-tabs">${K.trimStyleTabs()}</div>` : ''}
+    <div class="v11-body">
+      <section><h3 class="v11-h"><span>Style</span><span data-style-name></span></h3><div class="v11-card v11-tiles" role="radiogroup" aria-label="Style" data-count="${styles.length}">${tiles(styles, styles.length > 5 ? 40 : 44)}</div></section>
+      <section class="v11-cam"><h3 class="v11-h"><span>Camera</span></h3><div class="v11-card">
+        ${selectRow('position', 'Position', ICON.pip, K.POSITIONS)}
+        ${selectRow('shape', 'Shape', K.icon('shapes', 16), K.SHAPES2)}
+        ${selectRow('size', 'Size', K.icon('maximize-2', 16), K.SIZES)}
+        ${switchRow('mirror', 'Mirror camera', ICON.flip)}
+        ${switchRow('blur', 'Blur background', ICON.drop)}
+        ${switchRow('cameraBg', 'Camera background', K.icon('image', 16))}
+        ${reveal('cameraBg', 'Camera background')}
+      </div></section>
+      <section class="v11-scr"><h3 class="v11-h"><span>Screen</span></h3><div class="v11-card">
+        ${switchRow('screenBg', 'Screen background', K.icon('image', 16))}
+        ${reveal('screenBg', 'Screen background')}
+      </div></section>
+    </div>
+    <div class="v11-foot">${footHtml()}</div>
+  </aside>`;
+}
+
+function stageHtml() {
+  const r = state.route;
+  const row = r === 'style'
+    ? `<div class="v11-row v11-actions">${K.finishActions()}</div>`
+    : `<div class="v11-row"><div class="@container/recorder-controls v11-devices">${K.deviceControls()}</div>${K.button({ variant: 'outline', size: 'lg-thumb', label: 'Change screen', iconName: 'monitor-up', attrs: 'data-change' })}</div>`;
+  return `<div class="v11-stage"><div class="v11-inner">
+    <div class="v11-picture" data-part="preview" data-scene role="img" aria-label="Preview"></div>
+    <button type="button" class="v11-show" aria-label="Show layout" title="Show layout" data-show>${K.icon('panel-right', 16)}</button>
+    ${r === 'style' ? '<div class="v11-strip" data-strip hidden>Trim timeline</div>' : ''}
+    ${row}
+  </div></div>`;
+}
+
+function render() {
+  clearInterval(state.timer); state.timer = null;
+  if (state.cancelApply) { state.cancelApply(); state.cancelApply = null; state.busy = false; }
+  const h = location.hash.slice(1);
+  state.route = ['recording', 'popout', 'style'].includes(h) ? h : 'recorder';
+  if (state.route === 'popout') { renderPopout(); return; }
+  if (state.route === 'style' && !state.recorded) { state.recorded = { ...S.get() }; state.original = { ...S.get() }; }
+  const page = K.mountShell(state.route === 'style' ? 'Untitled video' : 'Record video');
+  root = document.createElement('div');
+  root.className = `v11 v11-${state.route}`;
+  root.innerHTML = stageHtml() + drawerHtml();
+  page.append(root);
+  bind();
+  paint();
+  if (state.route === 'recording') startTimer();
+}
+
+function renderPopout() {
+  const bar = `<div class="v11-win-bar"><span>clarity.video</span><button type="button" aria-label="Back to tab" title="Back to tab" data-back>${K.icon('minimize-2', 14)}</button><button type="button" aria-label="Close" title="Close" data-back>${K.icon('x', 14)}</button></div>`;
+  document.body.innerHTML = `<div class="v11 v11-pop">
+    <figure class="v11-fig"><div class="v11-win v11-win-260">${bar}<div class="v11-win-body">
+      <div class="v11-pop-preview" data-part="preview" data-scene role="img" aria-label="Preview"></div>
+      <div class="v11-pop-controls" data-part="controls"><div class="v11-pop-tiles" role="radiogroup" aria-label="Style">${tiles(K.STYLES, 40)}</div><div class="v11-pop-actions">${stopBtn()}${pauseBtn(true)}</div></div>
+    </div></div><figcaption>Another window shared · 360 × 260</figcaption></figure>
+    <figure class="v11-fig"><div class="v11-win v11-win-96">${bar}<div class="v11-win-body">
+      <div class="v11-pop-tiles" role="radiogroup" aria-label="Style">${tiles(K.STYLES, 22)}</div>${stopBtn()}${pauseBtn(false)}
+    </div></div><figcaption>This window shared · 360 × 96</figcaption></figure>
+  </div>`;
+  root = document.body.firstElementChild;
+  bind();
+  root.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => { location.hash = 'recording'; }));
+  paint();
+  startTimer();
+}
+
+function bind() {
+  root.querySelector('[data-close]')?.addEventListener('click', () => { state.open = false; paint(); root.querySelector('[data-show]')?.focus(); });
+  root.querySelector('[data-show]')?.addEventListener('click', () => { state.open = true; paint(); root.querySelector('[data-close]')?.focus(); });
+  root.querySelectorAll('.v11-tile').forEach((b) => b.addEventListener('click', () => pickStyle(b.dataset.style)));
+  root.querySelectorAll('[role=radiogroup]').forEach((g) => roving(g));
+  root.querySelectorAll('select[data-key]').forEach((sel) => sel.addEventListener('change', () => { S.set({ [sel.dataset.key]: sel.value }); paint(); }));
+  root.querySelectorAll('[data-switch]').forEach((b) => b.addEventListener('click', () => toggle(b.dataset.switch)));
+  root.querySelectorAll('.v11-swatch').forEach((b) => b.addEventListener('click', () => { state.lastBg[b.dataset.key] = b.dataset.value; S.set({ [b.dataset.key]: b.dataset.value }); paint(); }));
+  root.querySelector('[data-change]')?.addEventListener('click', () => { S.set({ screen: false }); paint(); });
+  root.querySelectorAll('[data-stop]').forEach((b) => b.addEventListener('click', stopRecording));
+  root.querySelectorAll('[data-pause]').forEach((b) => b.addEventListener('click', () => { state.paused = !state.paused; paint(); }));
+  root.querySelector('[data-apply]')?.addEventListener('click', apply);
+  root.querySelector('[data-reset]')?.addEventListener('click', () => { S.set(state.original); state.asRecorded = true; state.done = false; state.status = ''; paint(); });
+  const items = [...root.querySelectorAll('[data-slot=segmented-control-item]')];
+  items.forEach((item, i) => {
+    item.addEventListener('click', () => setTab(item));
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); const next = items[(i + 1) % items.length]; setTab(next); next.focus(); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTab(item); }
+    });
+  });
+  root.querySelectorAll('.v11-devices [aria-haspopup=menu]').forEach((b) => b.addEventListener('click', () => toggleMenu(b)));
+  const acts = root.querySelectorAll('.v11-actions [data-slot=button]');
+  acts[0]?.addEventListener('click', () => { location.hash = 'recorder'; });
+  acts[1]?.addEventListener('click', () => flash('Opens the page builder'));
+  acts[2]?.addEventListener('click', async () => { try { await navigator.clipboard.writeText(location.href); flash('Link copied'); } catch { flash('Could not copy link'); } });
+}
+
+function roving(group) {
+  group.addEventListener('keydown', (e) => {
+    const items = [...group.querySelectorAll('[role=radio]')].filter((b) => !b.disabled);
+    const i = items.indexOf(document.activeElement);
+    if (i < 0) return;
+    let j = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') j = (i + 1) % items.length;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') j = (i - 1 + items.length) % items.length;
+    if (j === null) return;
+    e.preventDefault(); items[j].focus(); items[j].click();
+  });
+}
+
+function pickStyle(id) {
+  if (id === 'asrec') { state.asRecorded = true; S.set({ ...state.recorded, screen: S.get().screen }); }
+  else { if (state.route === 'style') state.asRecorded = false; S.set({ style: id }); }
+  paint();
+}
+function toggle(key) {
+  const s = S.get();
+  if (key === 'cameraBg' || key === 'screenBg') S.set({ [key]: s[key] ? null : state.lastBg[key] });
+  else S.set({ [key]: !s[key] });
+  paint();
+}
+function startRecording() { state.elapsed = 0; state.paused = false; location.hash = 'recording'; }
+function stopRecording() { state.recorded = { ...S.get() }; state.original = { ...S.get() }; state.asRecorded = true; state.done = false; state.status = ''; state.tab = 'style'; state.open = true; location.hash = 'style'; }
+function apply() {
+  state.busy = true; state.done = false; paint();
+  state.cancelApply = K.fakeApply((st) => { state.status = K.statusCopy(st); if (st.kind === 'done') { state.busy = false; state.done = true; state.cancelApply = null; } paint(); });
+}
+function flash(text) { clearTimeout(state.flashTimer); state.status = text; paint(); state.flashTimer = setTimeout(() => { if (!state.busy && state.status === text) { state.status = state.done ? K.statusCopy({ kind: 'done' }) : ''; paint(); } }, 2500); }
+function setTab(item) { state.tab = item.textContent.trim().toLowerCase() === 'trim' ? 'trim' : 'style'; paint(); }
+function startTimer() {
+  clearInterval(state.timer);
+  state.timer = setInterval(() => { if (state.paused) return; state.elapsed += 1; document.querySelectorAll('[data-time]').forEach((el) => { el.textContent = time(); }); }, 1000);
+}
+
+function closeMenus() { document.querySelectorAll('.v11-menu').forEach((m) => { m.parentElement.querySelector('[aria-haspopup=menu]')?.setAttribute('aria-expanded', 'false'); m.remove(); }); }
+function toggleMenu(b) {
+  const open = b.getAttribute('aria-expanded') === 'true';
+  closeMenus();
+  if (open) return;
+  const name = (b.getAttribute('aria-label') || '').split(': ')[1] || '';
+  const m = document.createElement('div');
+  m.className = 'v11-menu'; m.setAttribute('role', 'menu');
+  m.innerHTML = `<button type="button" role="menuitemradio" aria-checked="true">${name}${K.icon('check', 16)}</button>`;
+  b.parentElement.append(m);
+  b.setAttribute('aria-expanded', 'true');
+  m.firstElementChild.addEventListener('click', () => { closeMenus(); b.focus(); });
+  m.firstElementChild.focus();
+}
+document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; const open = document.querySelector('.v11-menu'); if (!open) return; const b = open.parentElement.querySelector('[aria-haspopup=menu]'); closeMenus(); b?.focus(); });
+document.addEventListener('pointerdown', (e) => { if (!e.target.closest('.v11-menu, [aria-haspopup=menu]')) closeMenus(); });
+
+function paintAction(s) {
+  const slot = root.querySelector('[data-action]'); if (!slot) return;
+  const mode = !s.screen && s.style !== 'camera' ? 'share' : 'start';
+  if (slot.dataset.mode === mode) return;
+  const had = slot.contains(document.activeElement);
+  slot.dataset.mode = mode;
+  slot.innerHTML = mode === 'share'
+    ? K.button({ variant: 'default', size: 'lg-thumb', label: 'Share screen', iconName: 'monitor-up', attrs: 'data-share' })
+    : K.button({ record: true, size: 'lg-thumb', label: 'Start recording', attrs: 'data-start' });
+  const b = slot.firstElementChild;
+  b.addEventListener('click', mode === 'share' ? () => { S.set({ screen: true }); paint(); } : startRecording);
+  if (had) b.focus();
+}
+
+function paint() {
+  if (!root) return;
+  const s = S.get(), a = K.drawerApplies(s), r = state.route, busy = state.busy;
+  root.querySelectorAll('[data-scene]').forEach((el) => K.drawerScene(el, s));
+  const asRec = r === 'style' && state.asRecorded;
+  const name = asRec ? 'As recorded' : K.STYLES.find((o) => o.id === s.style).label;
+  root.querySelectorAll('[data-style-name]').forEach((el) => { el.textContent = name; });
+  root.querySelectorAll('.v11-tile').forEach((b) => {
+    const on = b.dataset.style === 'asrec' ? asRec : (!asRec && s.style === b.dataset.style);
+    b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; b.disabled = busy;
+  });
+  root.querySelectorAll('select[data-key]').forEach((sel) => {
+    const key = sel.dataset.key; sel.value = s[key]; sel.disabled = busy || !a[key];
+    if (key === 'position') [...sel.options].forEach((o) => { o.disabled = o.value[0] === 't' && !a.topPositions; });
+  });
+  root.querySelectorAll('[data-switch]').forEach((b) => { const key = b.dataset.switch; b.setAttribute('aria-checked', String(!!s[key])); b.disabled = busy || !a[key]; });
+  root.querySelectorAll('[data-row]').forEach((row) => row.toggleAttribute('data-off', !a[row.dataset.row]));
+  root.querySelectorAll('[data-reveal]').forEach((el) => {
+    const key = el.dataset.reveal, on = !!s[key] && a[key];
+    el.toggleAttribute('data-on', on);
+    const inner = el.firstElementChild; inner.inert = !on; inner.setAttribute('aria-hidden', String(!on));
+  });
+  root.querySelectorAll('.v11-swatch').forEach((b) => { const on = s[b.dataset.key] === b.dataset.value; b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; b.disabled = busy; });
+  root.querySelectorAll('[data-pause]').forEach((b) => {
+    b.querySelector('svg').outerHTML = K.icon(state.paused ? 'play' : 'pause', 16);
+    const t = b.querySelector('[data-pause-text]');
+    if (t) t.textContent = state.paused ? 'Resume' : 'Pause';
+    else { b.setAttribute('aria-label', state.paused ? 'Resume' : 'Pause'); b.title = state.paused ? 'Resume' : 'Pause'; }
+  });
+  const rec = root.querySelector('[data-rec]');
+  if (rec) { rec.toggleAttribute('data-paused', state.paused); rec.querySelector('[data-rec-text]').textContent = state.paused ? 'Paused' : 'Recording'; }
+  const change = root.querySelector('[data-change]');
+  if (change) { change.style.visibility = s.screen ? '' : 'hidden'; change.tabIndex = s.screen ? 0 : -1; }
+  if (r === 'recorder') paintAction(s);
+  if (r === 'style') {
+    root.querySelector('[data-status]').textContent = state.status;
+    const back = root.querySelector('[data-reset]'); back.style.visibility = state.done ? '' : 'hidden'; back.disabled = busy || !state.done;
+    root.querySelector('[data-apply]').disabled = busy;
+    root.querySelectorAll('.v11-actions [data-slot=button]').forEach((b) => { b.disabled = busy; });
+    root.classList.toggle('v11-trim', state.tab === 'trim');
+    root.querySelector('[data-strip]').hidden = state.tab !== 'trim';
+    root.querySelectorAll('[data-slot=segmented-control-item]').forEach((item) => {
+      const on = item.textContent.trim().toLowerCase() === state.tab;
+      item.setAttribute('aria-checked', String(on)); item.tabIndex = on ? 0 : -1;
+      item.toggleAttribute('data-checked', on); item.toggleAttribute('data-unchecked', !on);
+      item.toggleAttribute('data-disabled', busy); item.setAttribute('aria-disabled', String(busy));
+    });
+  }
+  if (r !== 'popout') root.dataset.open = String(state.open);
+}
+
+addEventListener('hashchange', render);
+render();
+</script><script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>

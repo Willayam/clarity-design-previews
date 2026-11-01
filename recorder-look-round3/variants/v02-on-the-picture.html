@@ -1,0 +1,351 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>On the picture</title>
+<script type="application/json" id="lab-meta">{"id": "v02", "name": "On the picture", "axis": "direct manipulation", "idea": "The preview is the interface. A compact layout strip hangs off its edge, and clicking the person opens a small panel beside them with background and shape, so you change what you point at.", "cost": "Background and shape sit behind one click on the picture, one step further away than a visible row of controls.", "model": "fable", "round": 1, "parents": [], "parts": ["preview", "controls"], "recommended": false, "why": "", "old": true}</script>
+<link rel="stylesheet" href="../kit/app.css"><script src="../kit/recorder-kit.js"></script>
+<style>
+.v02{width:var(--frame-width);max-width:100%;min-width:0;margin-inline:auto;display:grid;gap:8px}
+.v02-frame{position:relative;min-width:0}
+.v02-scene{display:block;width:100%;height:auto!important;aspect-ratio:16/9;overflow:hidden}
+
+/* Hit targets on the picture */
+.v02-hit{position:absolute;z-index:2;margin:0;padding:0;border:0;background:transparent;color:var(--foreground);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.v02-hit:disabled{cursor:default;pointer-events:none}
+.v02-hit:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.v02-hit-screen{z-index:1}
+.v02-hit-screen:hover{box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--ring) 55%,transparent)}
+.v02-chip{position:absolute;top:12px;right:12px;pointer-events:none}
+.v02-hit-screen:hover .v02-chip>span{background:var(--muted)}
+.v02-hit-screen:not([aria-busy=true]) .v02-spin{display:none}
+.v02-hit-screen[aria-busy=true] .v02-chip-icon{display:none}
+.v02-frame[data-pose=split] .v02-hit-screen{left:33.333%;top:12.963%;width:66.667%;height:74.074%}
+.v02-frame[data-pose=inset] .v02-hit-screen,.v02-frame[data-pose=cutout] .v02-hit-screen,.v02-frame[data-pose=screen] .v02-hit-screen{left:5%;top:0;width:90%;height:100%}
+.v02-frame[data-pose=camera] .v02-hit-screen,.v02-frame[data-pose=screen] .v02-hit-person{display:none}
+.v02-frame[data-pose=camera] .v02-hit-person{inset:0;border-radius:calc(var(--radius) * 1.8)}
+.v02-frame[data-pose=split] .v02-hit-person{left:0;top:12.963%;width:33.333%;height:74.074%}
+.v02-frame[data-pose=split] .v02-hit-person:hover{box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--ring) 55%,transparent)}
+.v02-frame[data-pose=inset] .v02-hit-person{left:83%;top:69.777%;width:15%;height:26.667%;border-radius:50%}
+.v02-frame[data-pose=inset][data-shape=squircle] .v02-hit-person{border-radius:22%}
+.v02-frame[data-pose=inset] .v02-hit-person:hover{box-shadow:0 0 0 2px color-mix(in oklab,var(--ring) 70%,transparent)}
+.v02-frame[data-pose=cutout] .v02-hit-person{left:53%;top:55%;width:45%;height:45%}
+
+/* The badge on the person: always visible, points to where the panel opens */
+.v02-badge{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--card);border:1px solid var(--border);color:var(--foreground);display:grid;place-items:center;transition:background-color .12s ease-out,color .12s ease-out}
+.v02-hit-person:hover .v02-badge{background:var(--muted)}
+.v02-frame[data-open] .v02-badge{background:color-mix(in oklab,var(--primary) 10%,var(--card));border-color:color-mix(in oklab,var(--primary) 45%,transparent);color:var(--primary)}
+.v02-frame[data-pose=camera] .v02-badge{left:16px;bottom:16px}
+.v02-frame[data-pose=split] .v02-badge{right:-14px;bottom:12px}
+.v02-frame[data-pose=inset] .v02-badge{left:2%;bottom:2%}
+.v02-frame[data-pose=cutout] .v02-badge{left:27%;bottom:6%}
+
+/* The panel beside the person */
+.v02-pop{position:absolute;z-index:3;display:none;width:296px;max-width:calc(100% - 16px);padding:12px;background:var(--popover);color:var(--foreground);border:1px solid var(--border);border-radius:var(--radius);transition:right .16s ease-out,bottom .16s ease-out}
+.v02-frame[data-open] .v02-pop{display:block;animation:v02-in .14s ease-out}
+.v02-frame[data-pose=camera] .v02-pop{left:16px;bottom:56px}
+.v02-frame[data-pose=split] .v02-pop{left:calc(33.333% + 26px);bottom:calc(12.963% + 12px)}
+.v02-frame[data-pose=inset] .v02-pop{right:calc(16.7% + 12px);bottom:3.556%}
+.v02-frame[data-pose=cutout] .v02-pop{right:calc(34.85% + 12px);bottom:2.7%}
+.v02-group+.v02-group{margin-top:10px}
+.v02-group[data-off]{opacity:.4;pointer-events:none}
+.v02-group-label{font-size:12px;line-height:16px;font-weight:500;color:var(--muted-foreground);margin-bottom:6px}
+.v02-swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.v02-swatch{display:grid;gap:4px;justify-items:center;min-width:0;margin:0;padding:0;border:0;background:none;color:var(--muted-foreground);font:inherit;font-size:11px;line-height:14px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.v02-swatch:focus-visible{outline:none}
+.v02-face{display:block;width:100%;aspect-ratio:1;border-radius:var(--radius);background-color:var(--muted);transition:box-shadow .12s ease-out,border-radius .16s ease-out}
+.v02-swatch:hover .v02-face{box-shadow:0 0 0 2px color-mix(in oklab,var(--primary) 40%,transparent)}
+.v02-swatch[aria-checked=true]{color:var(--primary)}
+.v02-swatch[aria-checked=true] .v02-face{box-shadow:0 0 0 2px var(--primary)}
+.v02-swatch:focus-visible .v02-face{outline:2px solid var(--ring);outline-offset:3px}
+.v02-swatch-label{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Layout strip, attached under the picture's left edge */
+.v02-strip{display:inline-flex;align-items:stretch;gap:1px;padding:3px;border-radius:var(--radius);background:var(--muted);max-width:100%;min-width:0;justify-self:start}
+.v02-seg{display:flex;flex-direction:column;align-items:center;gap:3px;width:116px;min-width:0;margin:0;padding:4px 4px 5px;border:1px solid transparent;border-radius:calc(var(--radius) * .8);background:transparent;color:var(--muted-foreground);font:inherit;font-size:12px;line-height:16px;font-weight:500;cursor:pointer;transition:color .12s ease-out,background-color .12s ease-out;-webkit-tap-highlight-color:transparent}
+.v02-seg:hover{color:var(--foreground)}
+.v02-seg[data-checked]{color:var(--primary)}
+.v02-seg:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.v02-seg[aria-disabled=true]{cursor:default;pointer-events:none}
+.v02-thumb{position:relative;display:block;width:100%;height:auto!important;aspect-ratio:16/9;border-radius:calc(var(--radius) * .6);overflow:hidden;transition:box-shadow .12s ease-out}
+.v02-seg:hover .v02-thumb{box-shadow:0 0 0 2px color-mix(in oklab,var(--primary) 40%,transparent)}
+.v02-seg[data-checked] .v02-thumb{box-shadow:0 0 0 2px var(--primary)}
+.v02-seg-label{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v02-thumb .v02-cut{position:absolute;inset:0}
+.v02-cut:nth-child(1){clip-path:inset(0 66.667% 0 0)}
+.v02-cut:nth-child(2){clip-path:inset(0 33.333% 0 33.333%)}
+.v02-cut:nth-child(3){clip-path:inset(0 0 0 66.667%)}
+.v02-cut-line{position:absolute;top:0;bottom:0;width:1px;background:var(--card);z-index:1}
+.v02-controls{display:grid;gap:8px;min-width:0}
+.v02-controls[data-busy] .v02-strip{opacity:.5;pointer-events:none}
+
+/* Devices and the record action */
+.v02-dock{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:4px}
+.v02-devices [data-slot=recorder-device-controls]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.v02-action{display:grid}
+.v02-action>button{grid-area:1/1;min-width:11rem}
+.v02-action>[data-hidden]{visibility:hidden;pointer-events:none}
+.v02-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;padding:4px;background:var(--popover);border:1px solid var(--border);border-radius:var(--radius)}
+.v02-menu[hidden]{display:none}
+.v02-menu-item{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;height:32px;margin:0;padding:0 8px;border:0;border-radius:calc(var(--radius) * .8);background:none;color:var(--foreground);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.v02-menu-item:hover{background:var(--muted)}
+.v02-menu-item:focus-visible{outline:2px solid var(--ring);outline-offset:-2px}
+.v02-menu-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* After recording */
+.v02-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px}
+.v02-tabs{width:16rem;flex:none}
+.v02-actions{display:flex;justify-content:flex-end;gap:8px;min-width:0}
+.v02-between{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.v02-statusrow{min-height:32px}
+.v02-status{margin:0;min-width:0;font-size:14px;line-height:20px;color:var(--muted-foreground)}
+#v02-reset:not([data-show]){display:none}
+#v02-apply{width:auto;flex:none;min-width:11rem}
+#v02-apply:not([aria-busy=true]) .v02-spin{display:none}
+.v02-spin{animation:v02-rotate 1s linear infinite}
+@keyframes v02-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes v02-rotate{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.v02 *{animation:none!important;transition:none!important}}
+
+@media (max-width:640px){
+  .v02-recorder .v02-hit,.v02-recorder .v02-pop,.v02-style .v02-hit{display:none}
+  .v02-style .v02-pop{display:block;position:static;width:auto;max-width:none;margin-top:8px;animation:none}
+  .v02-strip{display:flex;width:100%}
+  .v02-seg{flex:1 1 0%;width:auto;padding:3px 3px 4px;font-size:11px}
+  .v02-style .v02-seg-label{white-space:normal;height:32px;text-overflow:clip}
+  .v02-dock{grid-template-columns:minmax(0,1fr)}
+  .v02-action>button{width:100%;min-width:0}
+  .v02-devices [data-slot=recorder-device-controls]{grid-template-columns:minmax(0,1fr)}
+  .v02-bar,.v02-between{flex-wrap:wrap}
+  .v02-tabs{width:100%}
+  .v02-actions{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .v02-actions>button{width:100%;min-width:0;padding-inline:8px}
+  #v02-apply{width:100%}
+}
+</style></head><body><script>
+const K = RecorderKit;
+const S = K.store({ layout: "inset" });
+const KIT = document.querySelector('script[src*="recorder-kit.js"]').src.replace(/[^/]*$/, "");
+const SPIN = '<svg class="v02-spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+const asSpan = (html) => html.replace(/^<button type="button"/, "<span").replace(/<\/button>$/, "</span>");
+
+let route = "recorder", el = {}, busy = false, done = false, cuts = false, cancelApply = null, screenTimer = null, copyTimer = null;
+
+const radio = (key, value, cls, inner) => `<button type="button" role="radio" aria-checked="false" tabindex="-1" class="${cls}" data-key="${key}" data-value="${value}">${inner}</button>`;
+const seg = (value, label, thumb) => radio("layout", value, "v02-seg data-checked:bg-background data-checked:shadow-sm", `${thumb}<span class="v02-seg-label">${label}</span>`);
+const swatch = (key, value, label) => radio(key, value, "v02-swatch", `<span class="v02-face kit-face" data-face-${key}="${value}"></span><span class="v02-swatch-label">${label}</span>`);
+
+function strip(withCuts) {
+  const segs = K.LAYOUTS.map((l) => seg(l.id, l.label, `<span class="v02-thumb" data-layout="${l.id}"></span>`));
+  if (withCuts) segs.push(seg("cuts", "Recorded cuts", `<span class="v02-thumb v02-cuts">${["camera", "inset", "screen"].map((id) => `<span class="v02-cut" data-cut="${id}"></span>`).join("")}<span class="v02-cut-line" style="left:33.333%"></span><span class="v02-cut-line" style="left:66.667%"></span></span>`));
+  return `<div class="v02-strip" role="radiogroup" aria-label="Layout">${segs.join("")}</div>`;
+}
+
+function frame(withScreen) {
+  const chip = asSpan(K.button({ variant: "outline", size: "sm", label: `${K.icon("monitor-up", 16, "v02-chip-icon")}${SPIN}Change screen` }));
+  return `<div class="v02-frame" data-part="preview">
+    <div class="v02-scene rounded-2xl shadow-lg"></div>
+    ${withScreen ? `<button type="button" class="v02-hit v02-hit-screen" aria-busy="false"><span class="v02-chip">${chip}</span></button>` : ""}
+    <button type="button" class="v02-hit v02-hit-person" aria-haspopup="dialog" aria-expanded="false" aria-controls="v02-pop" aria-label="Change background and shape"><span class="v02-badge shadow-sm" aria-hidden="true">${K.icon("sliders-horizontal", 14)}</span></button>
+    <div class="v02-pop shadow-md" id="v02-pop" role="dialog" aria-label="Background and shape">
+      <div class="v02-group" data-group="background"><div class="v02-group-label" id="v02-bg-label">Background</div><div class="v02-swatches" role="radiogroup" aria-labelledby="v02-bg-label">${K.BACKGROUNDS.map((b) => swatch("background", b.id, b.label)).join("")}</div></div>
+      <div class="v02-group" data-group="shape"><div class="v02-group-label" id="v02-shape-label">Shape</div><div class="v02-swatches" role="radiogroup" aria-labelledby="v02-shape-label">${K.SHAPES.map((s) => swatch("shape", s.id, s.label)).join("")}</div></div>
+    </div>
+  </div>`;
+}
+
+const recorderHTML = () => `<div class="v02 v02-recorder" style="--frame-width:${K.FRAME_WIDTH}">${frame(true)}
+  <div class="v02-controls" data-part="controls">
+    ${strip(false)}
+    <div class="v02-dock"><div class="v02-devices">${K.deviceControls()}</div><div class="v02-action">${K.button({ record: true, size: "lg-thumb", label: "Start recording", attrs: 'id="v02-record"' })}${K.button({ size: "lg-thumb", label: "Share screen", iconName: "monitor-up", attrs: 'id="v02-share"' })}</div></div>
+  </div></div>`;
+
+const styleHTML = () => `<div class="v02 v02-style" style="--frame-width:${K.FRAME_WIDTH}">${frame(false)}
+  <div class="v02-bar"><div class="v02-tabs">${K.trimStyleTabs()}</div><div class="v02-actions">${K.finishActions()}</div></div>
+  <div class="v02-controls" data-part="controls">
+    <div class="v02-between">${strip(true)}${K.button({ size: "lg-thumb", label: `${SPIN}Apply`, attrs: 'id="v02-apply" aria-busy="false"' })}</div>
+    <div class="v02-between v02-statusrow"><p class="v02-status" role="status" aria-live="polite"></p>${K.button({ variant: "ghost", size: "sm", label: "Back to original", attrs: 'id="v02-reset"' })}</div>
+  </div></div>`;
+
+function render() {
+  cancelApply?.(); cancelApply = null; busy = false; done = false; cuts = false;
+  route = location.hash === "#style" ? "style" : "recorder";
+  const page = K.mountShell(route === "style" ? "Untitled video" : "Record video");
+  page.innerHTML = route === "style" ? styleHTML() : recorderHTML();
+  const root = page.firstElementChild;
+  el = {
+    root, frame: root.querySelector(".v02-frame"), scene: root.querySelector(".v02-scene"), person: root.querySelector(".v02-hit-person"), screen: root.querySelector(".v02-hit-screen"),
+    pop: root.querySelector(".v02-pop"), controls: root.querySelector(".v02-controls"), record: root.querySelector("#v02-record"), share: root.querySelector("#v02-share"),
+    apply: root.querySelector("#v02-apply"), reset: root.querySelector("#v02-reset"), status: root.querySelector(".v02-status"), actions: root.querySelector(".v02-actions"),
+  };
+  root.addEventListener("click", onClick);
+  root.addEventListener("keydown", onKey);
+  el.person.addEventListener("click", () => (el.frame.hasAttribute("data-open") ? closePop(false) : openPop()));
+  el.screen?.addEventListener("click", () => {
+    S.set({ screen: true });
+    el.screen.setAttribute("aria-busy", "true");
+    clearTimeout(screenTimer);
+    screenTimer = setTimeout(() => el.screen?.setAttribute("aria-busy", "false"), 700);
+  });
+  el.share?.addEventListener("click", () => S.set({ screen: true }));
+  wireDevices(root);
+  if (route === "style") wireStyle();
+  paint();
+  if (new URLSearchParams(location.search).get("open") === "look") openPop();
+}
+
+function onClick(e) {
+  const r = e.target.closest('[role="radio"][data-key]');
+  if (!r || busy || r.getAttribute("aria-disabled") === "true") return;
+  const { key, value } = r.dataset;
+  if (key !== "layout") return S.set({ [key]: value });
+  closePop(false);
+  if (value === "cuts") { cuts = true; paint(); } else { cuts = false; S.set({ layout: value }); }
+}
+
+function onKey(e) {
+  const r = e.target.closest('[role="radio"]');
+  const group = r?.closest('[role="radiogroup"]');
+  if (!group) return;
+  const items = [...group.querySelectorAll('[role="radio"]')].filter((x) => x.getAttribute("aria-disabled") !== "true");
+  const i = items.indexOf(r);
+  if (i < 0) return;
+  const last = items.length - 1;
+  const j = { ArrowRight: (i + 1) % items.length, ArrowDown: (i + 1) % items.length, ArrowLeft: (i + last) % items.length, ArrowUp: (i + last) % items.length, Home: 0, End: last }[e.key];
+  if (j === undefined) return;
+  e.preventDefault();
+  items[j].focus();
+  items[j].click();
+}
+
+function openPop() {
+  if (busy || getComputedStyle(el.person).display === "none") return;
+  el.frame.setAttribute("data-open", "");
+  el.person.setAttribute("aria-expanded", "true");
+  (el.pop.querySelector('[role="radio"][tabindex="0"]') || el.pop.querySelector('[role="radio"]:not([aria-disabled="true"])'))?.focus();
+}
+function closePop(back) {
+  if (!el.frame?.hasAttribute("data-open")) return;
+  el.frame.removeAttribute("data-open");
+  el.person.setAttribute("aria-expanded", "false");
+  if (back) el.person.focus();
+}
+
+function wireDevices(root) {
+  root.querySelectorAll('[data-slot="recorder-device-controls"] [aria-haspopup="menu"]').forEach((trigger) => {
+    const [kind, name] = (trigger.getAttribute("aria-label") || "").split(": ");
+    const menu = document.createElement("div");
+    menu.className = "v02-menu shadow-md";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", kind);
+    menu.hidden = true;
+    menu.innerHTML = `<button type="button" role="menuitemradio" aria-checked="true" class="v02-menu-item"><span class="v02-menu-text">${name}</span>${K.icon("check", 16)}</button>`;
+    trigger.parentElement.append(menu);
+    trigger.addEventListener("click", () => {
+      const open = menu.hidden;
+      closeMenus(false);
+      if (!open) return;
+      menu.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      menu.firstElementChild.focus();
+    });
+    menu.firstElementChild.addEventListener("click", () => { menu.hidden = true; trigger.setAttribute("aria-expanded", "false"); trigger.focus(); });
+  });
+}
+function closeMenus(back) {
+  document.querySelectorAll(".v02-menu:not([hidden])").forEach((menu) => {
+    menu.hidden = true;
+    const trigger = menu.parentElement.querySelector('[aria-haspopup="menu"]');
+    trigger?.setAttribute("aria-expanded", "false");
+    if (back) trigger?.focus();
+  });
+}
+
+function wireStyle() {
+  el.apply.addEventListener("click", () => {
+    if (busy) return;
+    busy = true; done = false;
+    closePop(false);
+    paint();
+    cancelApply = K.fakeApply((status) => {
+      el.status.textContent = K.statusCopy(status);
+      if (status.kind === "done") { busy = false; done = true; cancelApply = null; }
+      paint();
+    });
+  });
+  el.reset.addEventListener("click", () => {
+    cuts = false; done = false;
+    el.status.textContent = "";
+    S.set({ layout: "inset", background: "keep", shape: "circle" });
+  });
+  const [rerecord, , copy] = el.actions.querySelectorAll("button");
+  rerecord.addEventListener("click", () => { location.hash = "recorder"; });
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(location.href); } catch {}
+    const svg = copy.querySelector("svg");
+    if (!svg) return;
+    svg.outerHTML = K.icon("check", 16);
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => { const back = copy.querySelector("svg"); if (back) back.outerHTML = K.icon("copy", 16); }, 1500);
+  });
+}
+
+function paint() {
+  if (!el.root) return;
+  const s = S.get(), a = K.applies(s);
+  const shown = s.screen ? s.layout : "camera";
+  const pose = shown === "inset" ? (s.shape === "cutout" ? "cutout" : "inset") : shown;
+  el.frame.dataset.pose = pose;
+  el.frame.dataset.shape = s.shape;
+  K.scene(el.scene, s);
+  el.root.querySelectorAll("[data-layout]").forEach((t) => K.scene(t, { ...s, layout: t.dataset.layout, screen: true }));
+  el.root.querySelectorAll("[data-cut]").forEach((t) => K.scene(t, { ...s, layout: t.dataset.cut, screen: true }));
+  const bubble = (shape) => (shape === "circle" ? "50%" : shape === "squircle" ? "22%" : "var(--radius)");
+  el.root.querySelectorAll("[data-face-background]").forEach((f) => {
+    f.setAttribute("style", "");
+    K.face(f, f.dataset.faceBackground);
+    f.style.borderRadius = a.shape ? bubble(s.shape) : "var(--radius)";
+  });
+  el.root.querySelectorAll("[data-face-shape]").forEach((f) => {
+    const shape = f.dataset.faceShape;
+    f.setAttribute("style", "");
+    if (shape === "cutout") { f.style.backgroundImage = `url('${KIT}person.png')`; f.style.backgroundColor = "var(--muted)"; } else K.face(f, s.background);
+    f.style.borderRadius = bubble(shape);
+  });
+  el.root.querySelectorAll('[role="radio"][data-key]').forEach((r) => {
+    const { key, value } = r.dataset;
+    const checked = key === "layout" ? (cuts ? value === "cuts" : value === s.layout) : s[key] === value;
+    const off = busy || (key === "background" && !a.background) || (key === "shape" && !a.shape);
+    r.setAttribute("aria-checked", String(checked));
+    r.toggleAttribute("data-checked", checked);
+    r.setAttribute("aria-disabled", String(off));
+    r.tabIndex = checked && !off ? 0 : -1;
+  });
+  el.root.querySelectorAll(".v02-group").forEach((g) => g.toggleAttribute("data-off", g.dataset.group === "background" ? !a.background : !a.shape));
+  el.person.disabled = busy;
+  el.person.setAttribute("aria-label", a.shape && a.background ? "Change background and shape" : a.shape ? "Change camera shape" : "Change background");
+  if (pose === "screen") closePop(false);
+  if (el.screen) el.screen.disabled = busy;
+  el.controls.toggleAttribute("data-busy", busy);
+  if (el.record) {
+    const share = !s.screen && s.layout !== "camera";
+    el.record.toggleAttribute("data-hidden", share);
+    el.share.toggleAttribute("data-hidden", !share);
+  }
+  if (el.apply) {
+    el.apply.disabled = busy;
+    el.apply.setAttribute("aria-busy", String(busy));
+    el.reset.toggleAttribute("data-show", done && !busy);
+    el.actions.querySelectorAll("button").forEach((b) => { b.disabled = busy; });
+  }
+}
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".v02-pop, .v02-hit-person")) closePop(false);
+  if (!e.target.closest('.v02-menu, [aria-haspopup="menu"]')) closeMenus(false);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (el.frame?.hasAttribute("data-open")) closePop(true);
+  closeMenus(true);
+});
+S.subscribe(paint);
+window.addEventListener("hashchange", render);
+render();
+</script><script src="../_lab/runtime.js" data-lab-runtime defer></script></body></html>
