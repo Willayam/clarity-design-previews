@@ -1,0 +1,48 @@
+[
+  {
+    "action": "/api/actions/videos_share",
+    "status": 409,
+    "request": {
+      "videoId": "dyG3NiGDVFqWjdN401fbUd3p1SoLl6c1005pXYklXnUc4"
+    },
+    "response": {
+      "code": "live_page_limit",
+      "message": "Free keeps 3 pages live at once. Unpublish one or upgrade to Pro to publish this page.",
+      "livePages": {
+        "count": 3,
+        "limit": 3
+      },
+      "pageId": "4f5ffbd1-4bfc-4c65-b4de-9f1616e925d5"
+    }
+  },
+  {
+    "action": "/api/actions/pages_unpublish",
+    "status": 200,
+    "request": {
+      "pageId": "38379501-6e67-4479-8dbe-d6f419559e46"
+    },
+    "response": {
+      "pageId": "38379501-6e67-4479-8dbe-d6f419559e46",
+      "publication": {
+        "stage": "off",
+        "shareUrl": null,
+        "publishedRevision": 3,
+        "draftAheadOfLive": false,
+        "publishedAt": "2026-11-01T13:15:51.144Z",
+        "passwordEnabled": false
+      }
+    }
+  },
+  {
+    "action": "/api/actions/pages_publish",
+    "status": 200,
+    "request": {
+      "pageId": "4f5ffbd1-4bfc-4c65-b4de-9f1616e925d5",
+      "revision": 1
+    },
+    "response": {
+      "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/shnkph",
+      "publishedRevision": 1
+    }
+  }
+]

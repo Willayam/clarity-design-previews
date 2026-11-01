@@ -1,0 +1,12 @@
+{
+  "action": "billing_checkout_start",
+  "status": 503,
+  "cadence": "monthly",
+  "checkoutOrigin": null,
+  "error": {
+    "code": "billing_error",
+    "reason": "not_configured",
+    "message": "Stripe billing is not fully configured"
+  },
+  "reachedOrigin": "https://pr-1600.clarity-video.workers.dev"
+}

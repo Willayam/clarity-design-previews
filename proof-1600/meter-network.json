@@ -1,0 +1,43 @@
+[
+  {
+    "action": "pages_publish",
+    "pageId": "38379501-6e67-4479-8dbe-d6f419559e46",
+    "status": 200,
+    "body": {
+      "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/sqg7ve",
+      "publishedRevision": 2
+    }
+  },
+  {
+    "action": "pages_publish",
+    "pageId": "6a68f836-f6a7-4a91-a7c5-78fc43a60606",
+    "status": 200,
+    "body": {
+      "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/cr33tu",
+      "publishedRevision": 2
+    }
+  },
+  {
+    "action": "pages_publish",
+    "pageId": "71d7270e-d63f-45fd-9e17-7a1f2838839f",
+    "status": 200,
+    "body": {
+      "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/4ftjk7",
+      "publishedRevision": 2
+    }
+  },
+  {
+    "action": "pages_publish",
+    "pageId": "ac41df47-9363-458c-83b8-6a9c0f7c585f",
+    "status": 409,
+    "body": {
+      "code": "live_page_limit",
+      "message": "Free keeps 3 pages live at once. Unpublish one or upgrade to Pro to publish this page.",
+      "pageId": "ac41df47-9363-458c-83b8-6a9c0f7c585f",
+      "livePages": {
+        "count": 3,
+        "limit": 3
+      }
+    }
+  }
+]

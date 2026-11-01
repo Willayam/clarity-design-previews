@@ -1,0 +1,84 @@
+[
+  {
+    "action": "/api/actions/plan_get",
+    "status": 200,
+    "request": {},
+    "response": {
+      "plan": "free",
+      "lapse": "access_ended",
+      "trialEndsAt": null,
+      "pastDue": false,
+      "livePages": {
+        "keptCount": 1,
+        "count": 3,
+        "limit": 3
+      }
+    }
+  },
+  {
+    "action": "/api/actions/videos_share",
+    "status": 409,
+    "request": {
+      "videoId": "tkU02L9n5MpaHSod02A8famF00hskoagAnj6D8tImeT7UE"
+    },
+    "response": {
+      "code": "live_page_limit",
+      "message": "Free keeps 3 pages live at once. Unpublish one or upgrade to Pro to publish this page.",
+      "livePages": {
+        "count": 3,
+        "limit": 3
+      },
+      "pageId": "c4de6046-3717-4c7b-a554-64714c14e58d"
+    }
+  },
+  {
+    "action": "/api/actions/plan_get",
+    "status": 200,
+    "request": {},
+    "response": {
+      "plan": "free",
+      "lapse": "access_ended",
+      "trialEndsAt": null,
+      "pastDue": false,
+      "livePages": {
+        "keptCount": 1,
+        "count": 3,
+        "limit": 3
+      }
+    }
+  },
+  {
+    "action": "/api/actions/pages_unpublish",
+    "status": 200,
+    "request": {
+      "pageId": "6a68f836-f6a7-4a91-a7c5-78fc43a60606"
+    },
+    "response": {
+      "pageId": "6a68f836-f6a7-4a91-a7c5-78fc43a60606",
+      "publication": {
+        "stage": "off",
+        "shareUrl": null,
+        "publishedRevision": 2,
+        "draftAheadOfLive": false,
+        "publishedAt": "2026-11-01T13:13:08.705Z",
+        "passwordEnabled": false
+      }
+    }
+  },
+  {
+    "action": "/api/actions/plan_get",
+    "status": 200,
+    "request": {},
+    "response": {
+      "plan": "free",
+      "lapse": "access_ended",
+      "trialEndsAt": null,
+      "pastDue": false,
+      "livePages": {
+        "keptCount": 1,
+        "count": 2,
+        "limit": 3
+      }
+    }
+  }
+]
