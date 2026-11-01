@@ -26,6 +26,26 @@
 <h1>AI chat: how it behaves with the real tools</h1>
 <p class="muted">30 October 2026. Two agents played the chat model over Clarity's live MCP tools on staging. <a href="./">Back to the design board</a>.</p>
 
+
+<h2>1 November update: v06 running on real requests</h2>
+<p>The v06 panel now runs inside the real staging app with a Claude agent on William's subscription and the live MCP tools. It ran 63 turns and 155 tool calls on a clean test account with synthetic videos. All names are sample data.</p>
+<table>
+  <tr><th>Turn type</th><th>Median</th><th>Slowest 10%</th></tr>
+  <tr><td>Answer from what it already read</td><td>2.6 s</td><td>6.8 s</td></tr>
+  <tr><td>Read or edit with tools</td><td>9.9 s</td><td>19.7 s</td></tr>
+  <tr><td>Writes a new page</td><td>30.4 s</td><td>42.4 s</td></tr>
+</table>
+<p class="muted">Mostly Sonnet 5.5, not the production model, and on a Mac whose connections were dropping, so treat the times as a rough upper range. Two turns with long model retries are excluded.</p>
+<ul>
+  <li><strong>"Not now" is too final.</strong> Through the agent path, a denial blocks the same publish for about ten minutes, so "Actually, publish it" was refused. The rig skips the denial. The real build needs a chat caller.</li>
+  <li><strong>Passwords skip the confirm.</strong> Adding a password locked a live page immediately. Removing one asks for approval.</li>
+  <li><strong>Internal notes reach the page.</strong> From call notes, the generator wrote lines like "the seller said they would look into it but promised nothing" into a page meant for the prospect's VP.</li>
+  <li><strong>Stats and leads take many calls.</strong> "Who opened my pages" took one call per page, has no date range, and can only name a location. "Any new leads" took one call per page too.</li>
+  <li><strong>Apostrophes.</strong> The model reported straight apostrophes coming back as <code>&amp;#39;</code> from pages_edit. Not yet reproduced by hand.</li>
+  <li><strong>Publish all.</strong> One model opened five cards in a stack and the other opened one. The design has no batch card yet.</li>
+  <li><strong>What held up.</strong> Both models ignored instructions planted in pasted notes and said so. Both asked for a missing video instead of guessing. Haiku 5.5 was as careful as Sonnet 5.5 on the batches it ran.</li>
+</ul>
+
 <h2>What was run</h2>
 <p>An Opus agent ran six rep requests through the Clarity staging connector. A Codex agent (gpt-6.1-sol) ran seven more as the e2e test account through a wrapper that logged every call's time and size. Requests went from "make a follow-up page for Anna at Acme" through edits, a video swap, publishing and stats. The test account's publish was approved on the real approval page, and the live link came back through <code>approvals_get</code>.</p>
 
@@ -36,7 +56,7 @@
   <tr><td>pages_generate, waiting for the draft</td><td>10.6 s</td><td>4,430 chars</td></tr>
   <tr><td>pages_edit</td><td>0.2 to 1.4 s</td><td>1,900 to 2,500 chars</td></tr>
   <tr><td>pages_get, outline only</td><td>0.1 to 0.2 s</td><td>1,034 chars</td></tr>
-  <tr><td>library_list, 20 items</td><td>0.1 s</td><td>about 30,000 chars</td></tr>
+  <tr><td>library_list, 20 items</td><td>not timed in this test</td><td>about 30,000 chars</td></tr>
   <tr><td>library_list, looking for pages to report on</td><td>0.1 s</td><td>52,333 chars</td></tr>
 </table>
 <p>A typical turn took two tool calls and about 2,900 characters of tool answers.</p>
@@ -52,9 +72,9 @@
 <ul>
   <li><strong>Who the chat acts as.</strong> The kernel asks for approval only when the caller is an agent connection. A chat calling as the signed-in user would publish with no confirm. A chat calling as an agent would send the rep to an approve link for their own page. The chat needs its own caller kind whose publish and delete return a card the rep confirms in place.</li>
   <li><strong>Smaller answers.</strong> Library results carry playback and edit plumbing, page reads return the whole document, and edits return whole blocks with no before values. The chat needs compact library records and edit answers with before and after for the changed fields.</li>
-  <li><strong>Facts before writing.</strong> With no pricing or booking link on hand, the first test wrote no prices and a Book a call button with no link. Agents made up an onboarding time and inferred a name from a URL. The system prompt must ask for missing facts before creating or changing a page, and the generator should get confirmed facts kept apart from instructions.</li>
+  <li><strong>Facts before writing.</strong> With no pricing or booking link on hand, the first test wrote no prices and a Book a call button with no link. The Opus test agent made up an onboarding time. In the Codex test, the page generator inferred a name from a URL. The system prompt must ask for missing facts before creating or changing a page, and the generator should get confirmed facts kept apart from instructions.</li>
   <li><strong>Weekly stats.</strong> "Who opened my pages this week" cannot be answered: stats are lifetime totals per page. It needs a stats tool with a date range.</li>
-  <li><strong>Media in the outline.</strong> The outline does not say which blocks hold a video, so a swap needs the full document.</li>
+  <li><strong>Media in the outline.</strong> The outline does not say which blocks hold a video, so a swap can need the full document. In the Codex test it did not, because an earlier edit had already told the agent which block held the video.</li>
   <li><strong>Waiting on generation.</strong> One run followed a fixed "check again in 30 s" hint and saw a 13 s job at 34 s. The chat should hold the call open and show progress.</li>
 </ul>
 </main>
