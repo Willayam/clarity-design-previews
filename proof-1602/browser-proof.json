@@ -1,0 +1,170 @@
+{
+  "configuration": "Synthetic browser-only token and environment. All PostHog requests intercepted. No vendor delivery.",
+  "freeProperties": [
+    {
+      "plan": "free",
+      "environment": "local",
+      "release": "2d3d1dec172a13061210270ac800c46483fd8325"
+    }
+  ],
+  "upgradeCaptures": [
+    {
+      "uuid": "01a197ae-5948-7927-bf9f-bc15687603b8",
+      "event": "upgrade_to_pro_clicked",
+      "properties": {
+        "$os": "Mac OS X",
+        "$os_version": "10.15.7",
+        "$browser": "Chrome",
+        "$device_type": "Desktop",
+        "$browser_version": 145,
+        "$screen_height": 600,
+        "$screen_width": 800,
+        "$viewport_height": 413,
+        "$viewport_width": 756,
+        "$lib": "web",
+        "$lib_version": "1.438.4",
+        "$insert_id": "ucnd45kwsgozan4i",
+        "distinct_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "$device_id": "01a197ad-02fc-7d23-ad55-821b2bf24563",
+        "environment": "local",
+        "release": "2d3d1dec172a13061210270ac800c46483fd8325",
+        "schema_version": 1,
+        "$user_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "plan": "free",
+        "surface": "subscription",
+        "route": "/settings/billing",
+        "$session_id": "01a197ae-54f7-7490-b05a-6daf31cbb0b5",
+        "$window_id": "01a197ae-54f7-7490-b05a-6db020ef9cc8",
+        "$is_identified": true,
+        "$process_person_profile": true,
+        "$current_url": "https://pr-1602.clarity-video.workers.dev/settings/billing",
+        "$pathname": "/settings/billing",
+        "$host": "pr-1602.clarity-video.workers.dev"
+      },
+      "timestamp": "2026-11-01T15:15:48.168Z"
+    }
+  ],
+  "focus": {
+    "planReadsBefore": 4,
+    "planReadsAfter": 5,
+    "properties": [
+      {
+        "plan": "pro",
+        "environment": "local",
+        "release": "2d3d1dec172a13061210270ac800c46483fd8325"
+      }
+    ]
+  },
+  "declined": {
+    "capturesBefore": 1,
+    "capturesAfter": 1
+  },
+  "allCapturedEvents": [
+    {
+      "uuid": "01a197ae-54f6-7eea-a95c-0e7a1734a343",
+      "event": "$pageview",
+      "properties": {
+        "$os": "Mac OS X",
+        "$os_version": "10.15.7",
+        "$browser": "Chrome",
+        "$device_type": "Desktop",
+        "$browser_version": 145,
+        "$screen_height": 600,
+        "$screen_width": 800,
+        "$viewport_height": 413,
+        "$viewport_width": 756,
+        "$lib": "web",
+        "$lib_version": "1.438.4",
+        "$insert_id": "hwlcax6ettnpwaqb",
+        "distinct_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "$device_id": "01a197ad-02fc-7d23-ad55-821b2bf24563",
+        "plan": "free",
+        "environment": "local",
+        "release": "2d3d1dec172a13061210270ac800c46483fd8325",
+        "schema_version": 1,
+        "$user_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "route": "/settings/billing",
+        "surface": "app",
+        "$session_id": "01a197ae-54f7-7490-b05a-6daf31cbb0b5",
+        "$window_id": "01a197ae-54f7-7490-b05a-6db020ef9cc8",
+        "$is_identified": true,
+        "$process_person_profile": true,
+        "$current_url": "https://pr-1602.clarity-video.workers.dev/settings/billing",
+        "$pathname": "/settings/billing",
+        "$host": "pr-1602.clarity-video.workers.dev"
+      },
+      "timestamp": "2026-11-01T15:15:47.062Z"
+    },
+    {
+      "uuid": "01a197ae-5947-7d9b-9bc0-b05de306354b",
+      "event": "feature_used",
+      "properties": {
+        "$os": "Mac OS X",
+        "$os_version": "10.15.7",
+        "$browser": "Chrome",
+        "$device_type": "Desktop",
+        "$browser_version": 145,
+        "$screen_height": 600,
+        "$screen_width": 800,
+        "$viewport_height": 413,
+        "$viewport_width": 756,
+        "$lib": "web",
+        "$lib_version": "1.438.4",
+        "$insert_id": "8qxtfp6nds0487rn",
+        "distinct_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "$device_id": "01a197ad-02fc-7d23-ad55-821b2bf24563",
+        "environment": "local",
+        "release": "2d3d1dec172a13061210270ac800c46483fd8325",
+        "schema_version": 1,
+        "$user_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "plan": "free",
+        "control": "subscription_upgrade_to_pro",
+        "route": "/settings/billing",
+        "surface": "app",
+        "$session_id": "01a197ae-54f7-7490-b05a-6daf31cbb0b5",
+        "$window_id": "01a197ae-54f7-7490-b05a-6db020ef9cc8",
+        "$is_identified": true,
+        "$process_person_profile": true,
+        "$current_url": "https://pr-1602.clarity-video.workers.dev/settings/billing",
+        "$pathname": "/settings/billing",
+        "$host": "pr-1602.clarity-video.workers.dev"
+      },
+      "timestamp": "2026-11-01T15:15:48.167Z"
+    },
+    {
+      "uuid": "01a197ae-5948-7927-bf9f-bc15687603b8",
+      "event": "upgrade_to_pro_clicked",
+      "properties": {
+        "$os": "Mac OS X",
+        "$os_version": "10.15.7",
+        "$browser": "Chrome",
+        "$device_type": "Desktop",
+        "$browser_version": 145,
+        "$screen_height": 600,
+        "$screen_width": 800,
+        "$viewport_height": 413,
+        "$viewport_width": 756,
+        "$lib": "web",
+        "$lib_version": "1.438.4",
+        "$insert_id": "ucnd45kwsgozan4i",
+        "distinct_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "$device_id": "01a197ad-02fc-7d23-ad55-821b2bf24563",
+        "environment": "local",
+        "release": "2d3d1dec172a13061210270ac800c46483fd8325",
+        "schema_version": 1,
+        "$user_id": "local:user_01M3PV8N4H36ZZPHGXFXWCQPM3",
+        "plan": "free",
+        "surface": "subscription",
+        "route": "/settings/billing",
+        "$session_id": "01a197ae-54f7-7490-b05a-6daf31cbb0b5",
+        "$window_id": "01a197ae-54f7-7490-b05a-6db020ef9cc8",
+        "$is_identified": true,
+        "$process_person_profile": true,
+        "$current_url": "https://pr-1602.clarity-video.workers.dev/settings/billing",
+        "$pathname": "/settings/billing",
+        "$host": "pr-1602.clarity-video.workers.dev"
+      },
+      "timestamp": "2026-11-01T15:15:48.168Z"
+    }
+  ]
+}

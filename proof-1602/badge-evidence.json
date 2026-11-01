@@ -1,0 +1,66 @@
+{
+  "requests": [
+    {
+      "url": "https://pr-1602.clarity-video.workers.dev/api/pages/events",
+      "method": "POST",
+      "body": {
+        "events": [
+          {
+            "page_id": "2eaedbd8-0077-47fd-ae6d-dd380b757eac",
+            "route_key": "7pxde7",
+            "renderer_version": "public-page-v1",
+            "session_id": "ac680ad2-3ffd-4659-ab7a-3f48851be6f3",
+            "viewer_id": "cb3a2da9-ddf6-4d59-a86d-ecac629b9ef5",
+            "event_type": "page_view",
+            "referrer": null,
+            "utm_source": null,
+            "utm_medium": null,
+            "utm_campaign": null
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://pr-1602.clarity-video.workers.dev/api/pages/events",
+      "method": "POST",
+      "body": {
+        "events": [
+          {
+            "page_id": "2eaedbd8-0077-47fd-ae6d-dd380b757eac",
+            "route_key": "7pxde7",
+            "renderer_version": "public-page-v1",
+            "session_id": "ac680ad2-3ffd-4659-ab7a-3f48851be6f3",
+            "viewer_id": "cb3a2da9-ddf6-4d59-a86d-ecac629b9ef5",
+            "event_type": "public_badge_clicked",
+            "referrer": null,
+            "utm_source": null,
+            "utm_medium": null,
+            "utm_campaign": null
+          }
+        ]
+      }
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://pr-1602.clarity-video.workers.dev/api/pages/events",
+      "status": 202
+    },
+    {
+      "url": "https://pr-1602.clarity-video.workers.dev/api/pages/events",
+      "status": 202
+    }
+  ],
+  "before": {
+    "status": 200,
+    "visits": 0,
+    "clicked": 0,
+    "buttons": {}
+  },
+  "after": {
+    "status": 200,
+    "visits": 1,
+    "clicked": 0,
+    "buttons": {}
+  }
+}
