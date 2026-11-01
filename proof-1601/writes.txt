@@ -1,0 +1,19 @@
+Preview writes
+Only the dedicated mock node asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:proof-1601-20261101 and its jobs were changed.
+
+PR 1590
+1. Inserted one workspace_nodes row, one videos row borrowing the existing synthetic Mux source, and one dead mux_clip job using seed.sql.
+2. Deleted those three rows using cleanup-before.sql. No pre-existing fixture was changed.
+
+PR 1601
+1. Inserted the same three rows using seed.sql, with a saved 1–4 second trim and clip revision 7.
+2. Set the dead job error to an empty string.
+3. Clicked Retry. The application rearmed the job, created clip cIg8tPSmmoKACiKNCflk9pALuRChEERmwsrESkbVv1o, and promoted it when ready.
+4. Cleared the video's clip fields and set the job to running with not_before 1999999999999 for the running-state check.
+5. Attempted to set delivery to uploading without current_upload_id. The database rejected this statement. It made no write.
+6. Done then successfully saved a 1.033–4 second trim, changed clip revision to 8, created clip RZmkDlMLVZ3WRQXH8l7RkICCXbskbmhOfPJXqctmJSc, and queued the old clip for discard through normal application behavior.
+7. Set the clip job to dead with Verification pause, then to done with Verification paused while testing refusals.
+8. Changed the isolated node type to image to make videos_edit refuse it, then restored video.
+9. Set the isolated video to stalled, added Verification unavailable source, and cleared its source and clip identifiers to reach not_ready. Both refusal requests made no accepted edit.
+10. Deleted the isolated job, video and node. Inserted deduplicated discard jobs for the two clips created by this run. The borrowed source asset was never queued for discard.
+Authenticated login and ordinary preview reads also produced their normal application telemetry. There were no production or staging writes.

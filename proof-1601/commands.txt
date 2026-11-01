@@ -1,0 +1,24 @@
+Verification commands
+pnpm install --frozen-lockfile --prefer-offline
+pnpm --filter clarity-journey-editor exec vitest run tests/video-edit-modal-save.test.tsx
+pnpm --filter clarity-frontend-router exec vitest run tests/mux-clip-jobs.test.ts
+pnpm --filter clarity-journey-editor exec vitest run tests/video-editor-save-status.test.ts
+node .agents/skills/verify-loop/cli/control-clarity.mjs login --account userPro --base https://pr-1601.clarity-video.workers.dev
+node .agents/skills/verify-loop/cli/control-clarity.mjs doctor --pr 1601 --wait
+The browser CLI and Playwright attached to its isolated browser drove real controls and captured screenshots and response bodies.
+D1 commands used wrangler d1 execute AUTH_DB --config <validated config outside repository> --env '' --remote.
+Configs were resolved and validated for PR 1601 and PR 1590. No production or staging database was queried.
+
+Cross-account command, after login as userBasic
+node .agents/skills/verify-loop/cli/control-clarity.mjs eval 'fetch("/api/actions/videos_retry_clip",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({videoId:"asset:user:user_01M3PV8N4H36ZZPHGXFXWCQPM3:video:proof-1601-20261101"})}).then(async r=>({status:r.status,body:await r.json()}))'
+Answer
+HTTP 404 {"code":"not_found","message":"No video with this id is in your Library."}
+
+Other refusals not exercised on preview
+not_video, legacy_unavailable, reingest_pending as a literal code, invalid_edit, invalid_input, stale_revision, caller_not_allowed, account_suspended, unavailable 503, unavailable 400, and rejected legacy_unavailable.
+See editor/tests/video-edit-modal-save.test.tsx at the verified head. The actual re-ingest refusal is translated to not_ready by the action and was exercised on preview.
+
+Tests
+video-edit-modal-save.test.tsx 26 passed
+mux-clip-jobs.test.ts 32 passed
+video-editor-save-status.test.ts 2 passed

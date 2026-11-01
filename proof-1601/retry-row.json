@@ -1,0 +1,35 @@
+[
+  {
+    "results": [
+      {
+        "id": "proof-1601-job",
+        "state": "running",
+        "attempts": 10,
+        "failures": 0,
+        "payload": "{\"asset\":\"cIg8tPSmmoKACiKNCflk9pALuRChEERmwsrESkbVv1o\",\"cutAt\":\"2026-11-01T14:58:18.876Z\",\"revision\":7,\"span\":{\"endSeconds\":4,\"startSeconds\":1}}",
+        "clip_revision": 7,
+        "rev": "proof-1601-revision-7",
+        "trim": "{\"startSeconds\":1,\"endSeconds\":4}",
+        "clip_asset_id": null
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "EEUR",
+      "served_by_colo": "FRA",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.2571
+      },
+      "duration": 0.2571,
+      "changes": 0,
+      "last_row_id": 12,
+      "changed_db": false,
+      "size_after": 884736,
+      "rows_read": 3,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

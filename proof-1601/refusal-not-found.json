@@ -1,0 +1,12 @@
+{
+  "url": "https://pr-1601.clarity-video.workers.dev/api/actions/videos_edit",
+  "method": "POST",
+  "request": "{\"videoId\":\"proof-1601-20261101\",\"edits\":[{\"op\":\"set_trim\",\"startSeconds\":1.033,\"endSeconds\":4}],\"expectedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+  "status": 404,
+  "body": {
+    "code": "not_found",
+    "message": "No video with this id is in your Library."
+  },
+  "displayed": "This video is no longer in your workspace.",
+  "retryButtons": 0
+}

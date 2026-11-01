@@ -1,0 +1,13 @@
+{
+  "url": "https://pr-1601.clarity-video.workers.dev/api/actions/videos_edit",
+  "method": "POST",
+  "request": "{\"videoId\":\"proof-1601-20261101\",\"edits\":[{\"op\":\"set_trim\",\"startSeconds\":1.066,\"endSeconds\":4}],\"expectedManifestDigest\":\"c9e3eedf9eee7bac19c7630fd3de4714d0f6f2373a6a56f0163ed4322a38e481\"}",
+  "status": 409,
+  "body": {
+    "code": "not_ready",
+    "message": "This video is still processing, so it cannot be edited yet. Call videos_get with waitSeconds until state is ready, then send the edits again.",
+    "checkAfterSeconds": 30
+  },
+  "displayed": "This video is still being prepared for editing. Close the editor and try later.",
+  "retryButtons": 0
+}
