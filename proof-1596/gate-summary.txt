@@ -1,0 +1,15 @@
+::group::Typecheck (editor + every Worker) (ok)
+::group::Lint (editor, workers, packages) (ok)
+React Doctor is not installed in this project.
+::group::Unit tests (every workspace + scripts/) (ok)
+workers/frontend-router test:  Test Files  23 passed (23)
+workers/frontend-router test:       Tests  293 passed (293)
+workers/workspace-tree test:  Test Files  49 passed (49)
+workers/workspace-tree test:       Tests  746 passed (746)
+editor test:  Test Files  404 passed (404)
+editor test:       Tests  4808 passed (4808)
+# tests 75893
+# pass 75892
+# fail 0
+::group::Guards table is current (ok)
+All 4 checks passed.
