@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1588</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 20px;color:#172033}img{width:100%;border:1px solid #cbd5e1;border-radius:8px}code{overflow-wrap:anywhere}figure{margin:28px 0}h1,h2{line-height:1.2}pre{white-space:pre-wrap;background:#f1f5f9;padding:16px}</style>
+<h1>Proof for PR 1588</h1>
+<p>Verified head <code>70b8f2b01237cac6bab17d4e2b6fbfc93c80092a</code>. <a href="https://github.com/Clarity-Video-HQ/clarity/pull/1588">Pull request</a> · <a href="https://pr-1588.clarity-video.workers.dev">Preview</a></p>
+<p>Repro: select “Mock link proof” in a story body, press Alt+F10, then End. Press Enter on Add link, type https://example.com/proof-1588, and press Enter.</p>
+<p>Both views run the deployed application bundles with a mock identity and browser-memory page storage. All application API requests and writes were intercepted. No production or staging data was changed. Preview login and doctor passed separately against the real preview. The initial text selection used the browser Selection API; toolbar navigation and link entry used keyboard input.</p>
+<figure><h2>Before: staging</h2><p>Staging SHA <code>7be5e683ec884c799da9567c374cb12e98636f60</code>. Alt+F10 leaves focus in the textbox. The toolbar has no focused button.</p><img src="before.png" alt="Staging story text remains selected, with no toolbar focus after Alt+F10"></figure>
+<figure><h2>After: preview</h2><p>Alt+F10 focuses Bold. End moves focus to Add link, shown with the blue focus ring.</p><img src="after.png" alt="Preview Add link button has keyboard focus"></figure>
+<figure><h2>Link saved through Enter</h2><p>The text contains the link, and focus and the original selection return to the textbox. The editor reached data-save-state="saved". A separate pages_get mock read returned the same anchor HTML at revision 2. This proves editor serialization and the mocked save/read path, not real database persistence.</p><img src="saved.png" alt="Story body contains the new linked text after Enter"></figure>
+<h2>Red to green</h2><p>Command: <code>pnpm --filter clarity-journey-editor test tests/rich-text-link-entry.test.ts</code>. The head test file was copied onto the merge base without implementation changes.</p>
+<pre>Merge base 7bf0634b36e9aa50dc226a10d47b062b4383f27d
+Test Files  1 failed (1)
+Tests       4 failed | 1 passed (5)
+Both canvas=true and canvas=false keyboard cases fail at the expected Bold focus assertion.
+
+Head 70b8f2b01237cac6bab17d4e2b6fbfc93c80092a
+Test Files  1 passed (1)
+Tests       5 passed (5)</pre>
+<p>The suite also checks editing and removing links, caret restoration, Escape, and preservation of mouse selection. No product defect was found. Early mock response schema and revision errors were corrected before the final evidence run. Waved through: none.</p>
+</html>
