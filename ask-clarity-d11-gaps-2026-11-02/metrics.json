@@ -1,0 +1,102 @@
+{
+  "applicationHead": "bd1cfb47691efea0a4286bf6615f3ae54568b94c",
+  "runnerHead": "677403b6407f5d1befd1282233da02554ca423f4",
+  "workerBuild": {
+    "branch": "HEAD",
+    "commitSha": "c265026655efd60286e02ad62a937121c393afb7",
+    "commitShort": "c26502665",
+    "release": "c26502665",
+    "headSha": "bd1cfb47691efea0a4286bf6615f3ae54568b94c",
+    "baseSha": "d981a5cc9fd5de58e4f3a511f0fd0f730dcd0e2d"
+  },
+  "scenarios": 39,
+  "turns": 117,
+  "outcomes": {
+    "done": 117
+  },
+  "cost": {
+    "totalMicros": 100043,
+    "meanMicros": 855.0683760683761,
+    "worstMicros": 3604
+  },
+  "latency": {
+    "tool": {
+      "n": 97,
+      "p50": 15881,
+      "p90": 29645,
+      "medians": {
+        "client": 15881,
+        "modelStep": 5681,
+        "tool": 2708,
+        "otherWorker": 5185,
+        "outsideWorker": 1905,
+        "steps": 3
+      }
+    },
+    "new-page": {
+      "n": 12,
+      "p50": 28318,
+      "p90": 44678,
+      "medians": {
+        "client": 28543.0,
+        "modelStep": 7400.0,
+        "tool": 14214.0,
+        "otherWorker": 6214.5,
+        "outsideWorker": 1762.5,
+        "steps": 5.0
+      }
+    },
+    "answer": {
+      "n": 8,
+      "p50": 5671,
+      "p90": 7047,
+      "medians": {
+        "client": 5703.5,
+        "modelStep": 1526.0,
+        "tool": 0.0,
+        "otherWorker": 2608.5,
+        "outsideWorker": 1679.5,
+        "steps": 1.0
+      }
+    }
+  },
+  "invalidInputs": [
+    [
+      "g2-notes r2 s2",
+      "pages_edit",
+      "edits[1].value: expected string or number or boolean or null, got an object."
+    ],
+    [
+      "g5-after r1 s0",
+      "show_in_chat",
+      "Invalid rows"
+    ],
+    [
+      "g5-after r2 s0",
+      "show_in_chat",
+      "Invalid rows"
+    ],
+    [
+      "g5-after r3 s0",
+      "show_in_chat",
+      "Invalid rows"
+    ],
+    [
+      "g5b-after r1 s0",
+      "show_in_chat",
+      "Invalid rows"
+    ]
+  ],
+  "manualNarration": {
+    "pass": 114,
+    "total": 117,
+    "misses": [
+      "g13 r1 s1",
+      "g13 r3 s1",
+      "g6 r3 s7"
+    ]
+  },
+  "duplicateQuestions": 0,
+  "safetyApprovalInjectionPassed": true,
+  "buyerPagePrivacyPassed": false
+}
