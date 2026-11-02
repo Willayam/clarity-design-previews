@@ -12751,7 +12751,7 @@
     }
   });
 
-  // .context/d6-proof/fixture.tsx
+  // .context/d6-fixes/fixture.tsx
   var import_react8 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
@@ -12877,15 +12877,8 @@
     return Component;
   };
 
-  // node_modules/lucide-react/dist/esm/icons/arrow-down.mjs
-  var __iconNode = [
-    ["path", { d: "M12 5v14", key: "s699le" }],
-    ["path", { d: "m19 12-7 7-7-7", key: "1idqje" }]
-  ];
-  var ArrowDown = createLucideIcon("arrow-down", __iconNode);
-
   // node_modules/lucide-react/dist/esm/icons/paperclip.mjs
-  var __iconNode2 = [
+  var __iconNode = [
     [
       "path",
       {
@@ -12894,7 +12887,7 @@
       }
     ]
   ];
-  var Paperclip = createLucideIcon("paperclip", __iconNode2);
+  var Paperclip = createLucideIcon("paperclip", __iconNode);
 
   // node_modules/@base-ui/react/button/Button.mjs
   var React10 = __toESM(require_react(), 1);
@@ -17196,8 +17189,8 @@
         "data-slot": "composer-frame",
         "data-variant": variant,
         className: cn(
-          "outline-none forced-colors:focus-within:outline-2 forced-colors:focus-within:outline-offset-1 forced-colors:focus-within:outline-solid forced-colors:focus-within:outline-(--composer-forced-outline)",
-          variant === "framed" ? "rounded-lg border border-input bg-card transition-colors focus-within:border-(--composer-focus-border)" : "border-t border-border bg-card pb-(--composer-safe-bottom)",
+          "outline-none forced-colors:focus-within:outline-2 forced-colors:focus-within:outline-solid forced-colors:focus-within:outline-(--composer-forced-outline)",
+          variant === "framed" ? "forced-colors:focus-within:outline-offset-1 rounded-lg border border-input bg-card transition-colors focus-within:border-(--composer-focus-border)" : "forced-colors:focus-within:-outline-offset-2 border-t border-border bg-card pb-(--composer-safe-bottom)",
           className
         ),
         ...props
@@ -17224,7 +17217,7 @@
       "span",
       {
         "aria-hidden": "true",
-        className: cn("pointer-events-none absolute inset-px text-muted-foreground", variant === "floor" ? "px-4 pt-3 text-base" : "px-3.5 py-3 text-sm", "leading-6"),
+        className: cn("pointer-events-none absolute text-muted-foreground", variant === "popover" ? "inset-px" : "inset-0", variant === "floor" ? "px-4 pt-3 text-base" : "px-3.5 py-3 text-sm", "leading-6"),
         ...props
       }
     );
@@ -17240,13 +17233,13 @@
     const action = doc.createElement("span");
     action.className = "group/action grid h-full w-6 shrink-0 place-items-center border-r transition-colors duration-120 group-hover/chip:bg-muted focus-within:bg-muted";
     const icon = doc.createElement("span");
-    icon.className = "pointer-events-none col-start-1 row-start-1 grid place-items-center transition-opacity duration-100 group-hover/chip:opacity-0 group-focus-within/action:opacity-0";
+    icon.className = "pointer-events-none col-start-1 row-start-1 grid place-items-center transition-opacity duration-100 pointer-coarse:opacity-0 group-hover/chip:opacity-0 group-focus-within/action:opacity-0";
     icon.innerHTML = CHIP_ICON_SVG;
     const remove = doc.createElement("button");
     remove.type = "button";
-    remove.className = "pointer-events-none col-start-1 row-start-1 grid size-full cursor-pointer place-items-center text-xs leading-none opacity-0 transition-opacity duration-100 group-hover/chip:pointer-events-auto group-hover/chip:opacity-100 group-focus-within/action:pointer-events-auto group-focus-within/action:opacity-100";
+    remove.className = "pointer-events-none col-start-1 row-start-1 grid size-full cursor-pointer place-items-center text-xs leading-none opacity-0 transition-opacity duration-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100 group-hover/chip:pointer-events-auto group-hover/chip:opacity-100 group-focus-within/action:pointer-events-auto group-focus-within/action:opacity-100";
     remove.setAttribute("data-chip-remove", "");
-    remove.setAttribute("data-analytics-id", "ask_source_remove");
+    remove.setAttribute("data-analytics-id", "composer_source_remove");
     remove.setAttribute("aria-label", `Remove ${text}`);
     remove.textContent = "\u2715";
     action.append(icon, remove);
@@ -17281,6 +17274,7 @@
     const clone = el.cloneNode(true);
     clone.querySelectorAll("[data-chip], [data-chip-spacer]").forEach((node) => node.remove());
     clone.querySelectorAll("div, p, br").forEach((node) => {
+      if (node.nodeName === "BR" && node.parentElement?.matches("div, p") && node.parentElement !== clone && node.parentElement.childNodes.length === 1) return;
       node.parentNode?.insertBefore(el.ownerDocument.createTextNode("\n"), node);
     });
     return (clone.textContent ?? "").replace(/ /g, " ");
@@ -17353,13 +17347,12 @@
   }
   function insertChipAtTextOffset(el, attachment) {
     const point = instructionPointAtOffset(el, attachment.position);
-    const selection = el.ownerDocument.defaultView?.getSelection();
     const range = el.ownerDocument.createRange();
     range.setStart(point.node, point.offset);
     range.collapse(true);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    insertChipAtCaret(el, attachment.id, attachment.label);
+    const chip = buildComposerChip(el.ownerDocument, attachment.id, attachment.label);
+    range.insertNode(chip);
+    chip.after(buildSpacer(el.ownerDocument));
   }
   function placeCaretAtPoint(el, x, y) {
     const doc = el.ownerDocument;
@@ -17373,6 +17366,13 @@
       }
     }
     if (!range || !el.contains(range.startContainer)) return;
+    const container = range.startContainer;
+    const chip = (container instanceof Element ? container : container.parentElement)?.closest("[data-chip]");
+    if (chip) {
+      const spacer = chip.nextElementSibling;
+      range.setStartAfter(spacer?.hasAttribute("data-chip-spacer") ? spacer : chip);
+      range.collapse(true);
+    }
     const selection = doc.defaultView?.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
@@ -17395,8 +17395,41 @@
     }));
   }
   function rebuildComposer(el, text, sources) {
-    el.textContent = text;
+    el.replaceChildren(el.ownerDocument.createTextNode(text));
     sources.slice().reverse().forEach((source) => insertChipAtTextOffset(el, source));
+  }
+  function collapseToEnd(el) {
+    const range = el.ownerDocument.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const selection = el.ownerDocument.defaultView?.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+  function selectionPoint(el, node, offset) {
+    const range = el.ownerDocument.createRange();
+    range.selectNodeContents(el);
+    range.setEnd(node, offset);
+    const prefix = el.ownerDocument.createElement("div");
+    prefix.append(range.cloneContents());
+    return { offset: readRawText(prefix).length, chips: prefix.querySelectorAll("[data-chip]").length };
+  }
+  function restoreSelectionPoint(el, point) {
+    const chips = Array.from(el.querySelectorAll("[data-chip]"));
+    const previousChip = chips[point.chips - 1];
+    if (previousChip) {
+      const prefix = el.ownerDocument.createRange();
+      prefix.selectNodeContents(el);
+      prefix.setEndBefore(previousChip);
+      const container = el.ownerDocument.createElement("div");
+      container.append(prefix.cloneContents());
+      if (readRawText(container).length === point.offset) {
+        const spacer = previousChip.nextSibling;
+        const after = spacer instanceof Element && spacer.hasAttribute("data-chip-spacer") ? spacer : previousChip;
+        return { node: el, offset: Array.from(el.childNodes).indexOf(after) + 1 };
+      }
+    }
+    return instructionPointAtOffset(el, point.offset);
   }
   function SourceComposer({
     ref,
@@ -17415,6 +17448,7 @@
     onUploadMedia
   }) {
     const pastedContextsRef = useLatestRef(pastedContexts);
+    const draftText = variant === "popover" ? readText : readRawText;
     const initial = (0, import_react7.useRef)({ text, pastedContexts });
     const fileInputRef = (0, import_react7.useRef)(null);
     const pickerCaretRef = (0, import_react7.useRef)(null);
@@ -17447,18 +17481,44 @@
         selection?.removeAllRanges();
         selection?.addRange(range);
       },
+      restore({ text: value, sources }) {
+        generationRef.current += 1;
+        const el = composerRef.current;
+        if (!el) return;
+        const focused = el.ownerDocument.activeElement === el;
+        rebuildComposer(el, value, sources);
+        pastedContextsRef.current = sources;
+        onTextChange(value);
+        onPastedContextsChange(sources);
+        if (focused) collapseToEnd(el);
+      },
       setSources(sources) {
         const el = composerRef.current;
         if (!el) return;
-        const value = readText(el);
+        const selection = el.ownerDocument.defaultView?.getSelection();
+        const saved = el.ownerDocument.activeElement === el && selection?.anchorNode && selection.focusNode && el.contains(selection.anchorNode) && el.contains(selection.focusNode) ? {
+          anchor: selectionPoint(el, selection.anchorNode, selection.anchorOffset),
+          focus: selectionPoint(el, selection.focusNode, selection.focusOffset)
+        } : null;
+        const value = readRawText(el);
         rebuildComposer(el, value, sources);
+        if (selection && saved) {
+          const anchor = restoreSelectionPoint(el, saved.anchor);
+          const focus = restoreSelectionPoint(el, saved.focus);
+          selection.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
+        }
         onTextChange(value);
         const next = contextsFromDom(el, sources);
         pastedContextsRef.current = next;
         onPastedContextsChange(next);
       },
       focus() {
-        composerRef.current?.focus();
+        const el = composerRef.current;
+        if (!el) return;
+        const selection = el.ownerDocument.defaultView?.getSelection();
+        const inside = el.ownerDocument.activeElement === el && selection?.rangeCount && el.contains(selection.anchorNode) && el.contains(selection.focusNode);
+        el.focus();
+        if (!inside) collapseToEnd(el);
       }
     }));
     const attachContexts = (el, sources) => {
@@ -17481,7 +17541,7 @@
       const attached = contextsFromDom(el, next);
       pastedContextsRef.current = attached;
       onPastedContextsChange(attached);
-      onTextChange(readText(el));
+      onTextChange(draftText(el));
       if (uploads.length > 0) onUploadMedia(uploads);
     };
     const handlePaste = (event) => {
@@ -17559,7 +17619,7 @@
     const handleInput = (event) => {
       if (disabled) return;
       const el = event.currentTarget;
-      onTextChange(readText(el));
+      onTextChange(draftText(el));
       const nextContexts = contextsFromDom(el, pastedContexts);
       if (nextContexts.length !== pastedContexts.length || nextContexts.some((context, index) => context.position !== pastedContexts[index]?.position)) {
         onPastedContextsChange(nextContexts);
@@ -17584,7 +17644,7 @@
       if (id) {
         onPastedContextsChange(pastedContexts.filter((context) => context.id !== id));
       }
-      onTextChange(composerRef.current ? readText(composerRef.current) : text);
+      onTextChange(composerRef.current ? draftText(composerRef.current) : text);
       composerRef.current?.focus();
     };
     const empty = !text.trim() && pastedContexts.length === 0;
@@ -17643,7 +17703,7 @@
           {
             type: "button",
             variant: "plain",
-            size: "icon-sm",
+            size: "icon-toolbar",
             "aria-label": "Attach sources",
             "data-analytics-id": "ask_source_attach",
             disabled,
@@ -17660,275 +17720,6 @@
       ] })
     ] });
     return variant === "popover" ? input : /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ComposerFrame, { variant, children: input });
-  }
-
-  // editor/src/components/ui/message.tsx
-  var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
-  function Message({
-    className,
-    align = "start",
-    ...props
-  }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
-      "div",
-      {
-        "data-slot": "message",
-        "data-align": align,
-        className: cn(
-          "group/message relative flex w-full min-w-0 gap-2 text-sm data-[align=end]:flex-row-reverse",
-          className
-        ),
-        ...props
-      }
-    );
-  }
-  function MessageContent({ className, ...props }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
-      "div",
-      {
-        "data-slot": "message-content",
-        className: cn(
-          "flex w-full min-w-0 flex-col gap-2.5 wrap-break-word group-data-[align=end]/message:*:data-slot:self-end",
-          className
-        ),
-        ...props
-      }
-    );
-  }
-
-  // editor/src/components/ui/bubble.tsx
-  var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
-  var bubbleVariants = cva(
-    "group/bubble relative flex w-fit max-w-(--chat-bubble-max-width) min-w-0 flex-col gap-1 group-data-[align=end]/message:self-end data-[align=end]:self-end data-[variant=ghost]:max-w-full",
-    {
-      variants: {
-        variant: {
-          default: "*:data-[slot=bubble-content]:bg-primary *:data-[slot=bubble-content]:text-primary-foreground [&>[data-slot=bubble-content]:is(button,a):hover]:bg-primary/80",
-          secondary: "*:data-[slot=bubble-content]:bg-secondary *:data-[slot=bubble-content]:text-secondary-foreground [&>[data-slot=bubble-content]:is(button,a):hover]:bg-(--chat-secondary-hover)",
-          muted: "*:data-[slot=bubble-content]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:bg-(--chat-muted-hover)",
-          tinted: "*:data-[slot=bubble-content]:bg-(--chat-tint) *:data-[slot=bubble-content]:text-foreground dark:*:data-[slot=bubble-content]:bg-(--chat-tint-dark) [&>[data-slot=bubble-content]:is(button,a):hover]:bg-(--chat-tint-hover) dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-(--chat-tint-dark-hover)",
-          outline: "*:data-[slot=bubble-content]:border-border *:data-[slot=bubble-content]:bg-card [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-input/30",
-          ghost: "border-none *:data-[slot=bubble-content]:rounded-none *:data-[slot=bubble-content]:bg-transparent *:data-[slot=bubble-content]:p-0 [&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted [&>[data-slot=bubble-content]:is(button,a):hover]:text-foreground dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-muted/50",
-          destructive: "*:data-[slot=bubble-content]:bg-destructive/10 *:data-[slot=bubble-content]:text-destructive dark:*:data-[slot=bubble-content]:bg-destructive/20 [&>[data-slot=bubble-content]:is(button,a):hover]:bg-destructive/20 dark:[&>[data-slot=bubble-content]:is(button,a):hover]:bg-destructive/30"
-        }
-      },
-      defaultVariants: {
-        variant: "default"
-      }
-    }
-  );
-  function Bubble({
-    variant = "default",
-    align = "start",
-    className,
-    ...props
-  }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-      "div",
-      {
-        "data-slot": "bubble",
-        "data-variant": variant,
-        "data-align": align,
-        className: cn(bubbleVariants({ variant }), className),
-        ...props
-      }
-    );
-  }
-  function BubbleContent({
-    className,
-    render,
-    ...props
-  }) {
-    return useRender({
-      defaultTagName: "div",
-      props: mergeProps(
-        {
-          className: cn(
-            "w-fit max-w-full min-w-0 overflow-hidden rounded-xl border border-transparent px-3 py-2 text-sm leading-relaxed wrap-break-word group-data-[align=end]/bubble:self-end [button]:text-left [button,a]:transition-colors [button,a]:outline-none [button,a]:focus-visible:border-ring [button,a]:focus-visible:ring-3 [button,a]:focus-visible:ring-ring/50",
-            className
-          )
-        },
-        props
-      ),
-      render,
-      state: {
-        slot: "bubble-content"
-      }
-    });
-  }
-  var bubbleReactionsVariants = cva(
-    "absolute z-10 flex w-fit shrink-0 items-center justify-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-sm ring-3 ring-card has-[button]:p-0",
-    {
-      variants: {
-        side: {
-          top: "top-0 -translate-y-3/4",
-          bottom: "bottom-0 translate-y-3/4"
-        },
-        align: {
-          start: "left-3",
-          end: "right-3"
-        }
-      },
-      defaultVariants: {
-        side: "bottom",
-        align: "end"
-      }
-    }
-  );
-
-  // editor/src/components/ui/marker.tsx
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-  var markerVariants = cva(
-    "group/marker relative flex min-h-4 w-full items-center gap-2 text-left text-sm text-muted-foreground [&_svg:not([class*='size-'])]:size-4 [a]:underline [a]:underline-offset-3 [a]:hover:text-foreground",
-    {
-      variants: {
-        variant: {
-          default: "",
-          separator: "before:mr-1 before:h-px before:min-w-0 before:flex-1 before:bg-border after:ml-1 after:h-px after:min-w-0 after:flex-1 after:bg-border",
-          border: "border-b border-border pb-2"
-        }
-      }
-    }
-  );
-  function Marker({
-    className,
-    variant = "default",
-    render,
-    ...props
-  }) {
-    return useRender({
-      defaultTagName: "div",
-      props: mergeProps(
-        {
-          className: cn(markerVariants({ variant, className }))
-        },
-        props
-      ),
-      render,
-      state: {
-        slot: "marker",
-        variant
-      }
-    });
-  }
-  function MarkerContent({ className, ...props }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-      "span",
-      {
-        "data-slot": "marker-content",
-        className: cn(
-          "min-w-0 wrap-break-word group-data-[variant=separator]/marker:flex-none group-data-[variant=separator]/marker:text-center *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
-          className
-        ),
-        ...props
-      }
-    );
-  }
-
-  // editor/src/components/ui/attachment.tsx
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
-  var attachmentVariants = cva(
-    "group/attachment relative flex w-fit max-w-full min-w-0 shrink-0 flex-wrap rounded-xl border bg-card text-card-foreground transition-colors focus-within:ring-1 focus-within:ring-ring/50 has-[>a,>button]:hover:bg-muted/50 data-[state=error]:border-destructive/30 data-[state=idle]:border-dashed",
-    {
-      variants: {
-        size: {
-          default: "gap-2 text-sm has-data-[slot=attachment-content]:px-2.5 has-data-[slot=attachment-content]:py-2 has-data-[slot=attachment-media]:p-2",
-          sm: "gap-2.5 text-xs has-data-[slot=attachment-content]:px-2 has-data-[slot=attachment-content]:py-1.5 has-data-[slot=attachment-media]:p-1.5",
-          xs: "gap-1.5 rounded-lg text-xs has-data-[slot=attachment-content]:px-1.5 has-data-[slot=attachment-content]:py-1 has-data-[slot=attachment-media]:p-1"
-        },
-        orientation: {
-          horizontal: "min-w-40 items-center",
-          vertical: "w-24 flex-col has-data-[slot=attachment-content]:w-30"
-        }
-      }
-    }
-  );
-  function Attachment({
-    className,
-    state = "done",
-    size = "default",
-    orientation = "horizontal",
-    ...props
-  }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SurfaceProvider, { surface: "panel", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-      "div",
-      {
-        "data-slot": "attachment",
-        "data-state": state,
-        "data-size": size,
-        "data-orientation": orientation,
-        className: cn(attachmentVariants({ size, orientation }), className),
-        ...props
-      }
-    ) });
-  }
-  var attachmentMediaVariants = cva(
-    "relative flex aspect-square w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-foreground group-data-[orientation=vertical]/attachment:w-full group-data-[size=sm]/attachment:w-8 group-data-[size=xs]/attachment:w-7 group-data-[size=xs]/attachment:rounded-md group-data-[state=error]/attachment:bg-destructive/10 group-data-[state=error]/attachment:text-destructive group-data-[orientation=vertical]/attachment:*:data-[slot=spinner]:size-6 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 group-data-[orientation=vertical]/attachment:[&_svg:not([class*='size-'])]:size-6 group-data-[size=xs]/attachment:[&_svg:not([class*='size-'])]:size-3.5",
-    {
-      variants: {
-        variant: {
-          icon: "",
-          image: "opacity-60 group-data-[state=done]/attachment:opacity-100 group-data-[state=idle]/attachment:opacity-100 *:[img]:aspect-square *:[img]:w-full *:[img]:object-cover"
-        }
-      },
-      defaultVariants: {
-        variant: "icon"
-      }
-    }
-  );
-  function AttachmentContent({
-    className,
-    ...props
-  }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-      "div",
-      {
-        "data-slot": "attachment-content",
-        className: cn(
-          "max-w-full min-w-0 flex-1 leading-tight group-data-[orientation=vertical]/attachment:px-1",
-          className
-        ),
-        ...props
-      }
-    );
-  }
-  function AttachmentTitle({
-    className,
-    ...props
-  }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-      "span",
-      {
-        "data-slot": "attachment-title",
-        className: cn(
-          "block max-w-full min-w-0 truncate font-medium group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer",
-          className
-        ),
-        ...props
-      }
-    );
-  }
-  function AttachmentTrigger({
-    className,
-    render,
-    type,
-    ...props
-  }) {
-    return useRender({
-      defaultTagName: "button",
-      props: mergeProps(
-        {
-          type: render ? type : type ?? "button",
-          className: cn("absolute inset-0 z-10 outline-none", className)
-        },
-        props
-      ),
-      render,
-      state: {
-        slot: "attachment-trigger",
-        "analytics-id": "ask_attachment_open"
-      }
-    });
   }
 
   // node_modules/@shadcn/react/dist/chunk-HBS6WEDP.js
@@ -17989,7 +17780,7 @@
 
   // node_modules/@shadcn/react/dist/message-scroller/index.js
   var f2 = __toESM(require_react(), 1);
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
   var _e = 8;
   var Be = 64;
   var Fe = 0;
@@ -18344,7 +18135,7 @@
   }
   function ft({ autoScroll: e = false, children: t, defaultScrollPosition: r2 = "end", scrollEdgeThreshold: n, scrollPreviousItemPeek: l2, scrollMargin: c }) {
     let { context: S2, registerMessage: o } = st({ autoScroll: e, defaultScrollPosition: r2, scrollEdgeThreshold: n, scrollPreviousItemPeek: l2, scrollMargin: c });
-    return (0, import_jsx_runtime10.jsx)(it.Provider, { value: S2, children: (0, import_jsx_runtime10.jsx)(ut.Provider, { value: o, children: t }) });
+    return (0, import_jsx_runtime6.jsx)(it.Provider, { value: S2, children: (0, import_jsx_runtime6.jsx)(ut.Provider, { value: o, children: t }) });
   }
   function St() {
     let { pendingDefaultScrollStore: e } = K();
@@ -18352,7 +18143,7 @@
   }
   function gt({ children: e, ...t }) {
     let { setRootElement: r2 } = K(), n = St();
-    return (0, import_jsx_runtime10.jsx)("div", { ref: r2, ...t, ...n ? { "data-pending-scroll": "" } : null, children: e });
+    return (0, import_jsx_runtime6.jsx)("div", { ref: r2, ...t, ...n ? { "data-pending-scroll": "" } : null, children: e });
   }
   function Rt({ "aria-label": e, children: t, onKeyDown: r2, onScroll: n, onTouchMove: l2, onWheel: c$1, preserveScrollOnPrepend: S2 = true, ref: o, role: b, tabIndex: v, ...m }) {
     let { handleResize: L, preserveScrollOnPrependRef: R2, setViewportElement: E, syncAfterScroll: h, userScrollIntent: I, viewportRef: u } = K(), k = St();
@@ -18381,7 +18172,7 @@
       return A.observe(P), () => {
         window.cancelAnimationFrame(G), A.disconnect();
       };
-    }, [L, u]), (0, import_jsx_runtime10.jsx)("div", { ref: j, role: b ?? "region", "aria-label": e ?? "Messages", tabIndex: v ?? 0, onKeyDown: V, onScroll: _, onTouchMove: x, onWheel: Y, ...m, ...k ? { "data-pending-scroll": "" } : null, children: t });
+    }, [L, u]), (0, import_jsx_runtime6.jsx)("div", { ref: j, role: b ?? "region", "aria-label": e ?? "Messages", tabIndex: v ?? 0, onKeyDown: V, onScroll: _, onTouchMove: x, onWheel: Y, ...m, ...k ? { "data-pending-scroll": "" } : null, children: t });
   }
   function pt({ "aria-relevant": e, children: t, ref: r2, role: n, spacerClassName: l2, ...c$1 }) {
     let { handleContentChange: S2, handleResize: o, setContentElement: b, setSpacerElement: v } = K(), m = f2.useRef(null), L = f2.useCallback((R2) => {
@@ -18403,14 +18194,14 @@
       return h.observe(R2), () => {
         window.cancelAnimationFrame(E), h.disconnect();
       };
-    }, [o]), (0, import_jsx_runtime10.jsxs)("div", { ref: L, role: n ?? "log", "aria-relevant": e ?? "additions", ...c$1, children: [t, (0, import_jsx_runtime10.jsx)("div", { ref: v, "aria-hidden": "true", "data-message-scroller-spacer": "", hidden: true, className: l2 })] });
+    }, [o]), (0, import_jsx_runtime6.jsxs)("div", { ref: L, role: n ?? "log", "aria-relevant": e ?? "additions", ...c$1, children: [t, (0, import_jsx_runtime6.jsx)("div", { ref: v, "aria-hidden": "true", "data-message-scroller-spacer": "", hidden: true, className: l2 })] });
   }
   function mt({ messageId: e, ref: t, scrollAnchor: r2 = false, ...n }) {
     let l2 = Ct(), c$1 = f2.useRef(null), S2 = f2.useCallback((o) => {
       let b = c$1.current;
       c$1.current = o, e && l2(e, o, b), f(t)?.(o);
     }, [e, t, l2]);
-    return (0, import_jsx_runtime10.jsx)("div", { ref: S2, "data-message-id": e, "data-scroll-anchor": r2 ? "true" : "false", ...n });
+    return (0, import_jsx_runtime6.jsx)("div", { ref: S2, "data-message-id": e, "data-scroll-anchor": r2 ? "true" : "false", ...n });
   }
   function dt({ behavior: e = "smooth", children: t, direction: r2 = "end", onClick: n, render: l2, tabIndex: c, type: S2 = "button", ...o }) {
     let { scrollToEnd: b$1, scrollToStart: v, stateStore: m } = K(), L = at(n), R2 = f2.useCallback((u) => m.subscribe(u), [m]), E = f2.useCallback(() => {
@@ -18419,20 +18210,20 @@
     }, [r2, m]), h = f2.useSyncExternalStore(R2, E, E), I = f2.useCallback((u) => {
       h && (L.current?.(u), u.defaultPrevented || (u.currentTarget.blur(), r2 === "start" ? v({ behavior: e }) : b$1({ behavior: e })));
     }, [e, r2, h, L, b$1, v]);
-    return S({ defaultTagName: "button", props: d({ type: S2, inert: !h, tabIndex: h ? c : -1, children: t ?? (0, import_jsx_runtime10.jsxs)("span", { children: ["Scroll to ", r2] }), onClick: I }, o), render: l2, state: { active: h, direction: r2 }, stateAttributesMapping: { active: (u) => ({ "data-active": u ? "true" : "false" }) } });
+    return S({ defaultTagName: "button", props: d({ type: S2, inert: !h, tabIndex: h ? c : -1, children: t ?? (0, import_jsx_runtime6.jsxs)("span", { children: ["Scroll to ", r2] }), onClick: I }, o), render: l2, state: { active: h, direction: r2 }, stateAttributesMapping: { active: (u) => ({ "data-active": u ? "true" : "false" }) } });
   }
   var er = { Provider: ft, Root: gt, Viewport: Rt, Content: pt, Item: mt, Button: dt };
 
   // editor/src/components/ui/message-scroller.tsx
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+  var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
   function MessageScrollerProvider(props) {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(SurfaceProvider, { surface: "panel", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(er.Provider, { ...props }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(SurfaceProvider, { surface: "panel", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(er.Provider, { ...props }) });
   }
   function MessageScroller({
     className,
     ...props
   }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
       er.Root,
       {
         "data-slot": "message-scroller",
@@ -18448,7 +18239,7 @@
     className,
     ...props
   }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
       er.Viewport,
       {
         "data-slot": "message-scroller-viewport",
@@ -18464,11 +18255,11 @@
     className,
     ...props
   }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
       er.Content,
       {
         "data-slot": "message-scroller-content",
-        className: cn("flex h-max min-h-full flex-col gap-6", className),
+        className: cn("flex h-max min-h-full flex-col gap-6 pb-4", className),
         ...props
       }
     );
@@ -18478,7 +18269,7 @@
     scrollAnchor = false,
     ...props
   }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
       er.Item,
       {
         "data-slot": "message-scroller-item",
@@ -18491,96 +18282,142 @@
       }
     );
   }
-  function MessageScrollerButton({
-    direction = "end",
+
+  // editor/src/components/ui/attachment.tsx
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+  var attachmentVariants = cva(
+    "group/attachment relative flex w-fit max-w-full min-w-0 shrink-0 flex-wrap rounded-xl border bg-card text-card-foreground transition-colors focus-within:ring-1 focus-within:ring-ring/50 has-[>a,>button]:hover:bg-muted/50 data-[state=error]:border-destructive/30 data-[state=idle]:border-dashed",
+    {
+      variants: {
+        size: {
+          default: "gap-2 text-sm has-data-[slot=attachment-content]:px-2.5 has-data-[slot=attachment-content]:py-2 has-data-[slot=attachment-media]:p-2",
+          sm: "gap-2.5 text-xs has-data-[slot=attachment-content]:px-2 has-data-[slot=attachment-content]:py-1.5 has-data-[slot=attachment-media]:p-1.5",
+          xs: "gap-1.5 rounded-lg text-xs has-data-[slot=attachment-content]:px-1.5 has-data-[slot=attachment-content]:py-1 has-data-[slot=attachment-media]:p-1"
+        },
+        orientation: {
+          horizontal: "min-w-40 items-center",
+          vertical: "w-24 flex-col has-data-[slot=attachment-content]:w-30"
+        }
+      }
+    }
+  );
+  function Attachment({
     className,
-    children,
-    render,
-    variant = "outline",
-    size = "icon-sm",
+    state = "done",
+    size = "default",
+    orientation = "horizontal",
     ...props
   }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-      er.Button,
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(SurfaceProvider, { surface: "panel", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      "div",
       {
-        "data-analytics-id": "ask_scroll_latest",
-        "data-slot": "message-scroller-button",
-        "data-direction": direction,
-        "data-variant": variant,
+        "data-slot": "attachment",
+        "data-state": state,
         "data-size": size,
-        direction,
+        "data-orientation": orientation,
+        className: cn(attachmentVariants({ size, orientation }), className),
+        ...props
+      }
+    ) });
+  }
+  var attachmentMediaVariants = cva(
+    "relative flex aspect-square w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-foreground group-data-[orientation=vertical]/attachment:w-full group-data-[size=sm]/attachment:w-8 group-data-[size=xs]/attachment:w-7 group-data-[size=xs]/attachment:rounded-md group-data-[state=error]/attachment:bg-destructive/10 group-data-[state=error]/attachment:text-destructive group-data-[orientation=vertical]/attachment:*:data-[slot=spinner]:size-6 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 group-data-[orientation=vertical]/attachment:[&_svg:not([class*='size-'])]:size-6 group-data-[size=xs]/attachment:[&_svg:not([class*='size-'])]:size-3.5",
+    {
+      variants: {
+        variant: {
+          icon: "",
+          image: "opacity-60 group-data-[state=done]/attachment:opacity-100 group-data-[state=idle]/attachment:opacity-100 *:[img]:aspect-square *:[img]:w-full *:[img]:object-cover"
+        }
+      },
+      defaultVariants: {
+        variant: "icon"
+      }
+    }
+  );
+  function AttachmentContent({
+    className,
+    ...props
+  }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      "div",
+      {
+        "data-slot": "attachment-content",
         className: cn(
-          "absolute inset-s-1/2 -translate-x-1/2 transition-all duration-200 motion-reduce:transition-none hover:bg-muted hover:text-foreground data-[active=false]:pointer-events-none data-[active=false]:scale-95 data-[active=false]:opacity-0 data-[active=false]:duration-400 data-[active=false]:ease-chat-exit data-[active=true]:translate-y-0 data-[active=true]:scale-100 data-[active=true]:opacity-100 data-[active=true]:ease-chat-enter data-[direction=end]:bottom-4 data-[direction=end]:data-[active=false]:translate-y-full data-[direction=start]:top-4 data-[direction=start]:data-[active=false]:-translate-y-full rtl:translate-x-1/2 data-[direction=start]:[&_svg]:rotate-180",
+          "max-w-full min-w-0 flex-1 leading-tight group-data-[orientation=vertical]/attachment:px-1",
           className
         ),
-        render: render ?? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Button3, { "data-analytics-id": "ask_scroll_latest", variant, size }),
-        ...props,
-        children: children ?? /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-            ArrowDown,
-            {}
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { className: "sr-only", children: direction === "end" ? "Scroll to end" : "Scroll to start" })
-        ] })
+        ...props
+      }
+    );
+  }
+  function AttachmentTitle({
+    className,
+    ...props
+  }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      "span",
+      {
+        "data-slot": "attachment-title",
+        className: cn(
+          "block max-w-full min-w-0 truncate font-medium group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer",
+          className
+        ),
+        ...props
+      }
+    );
+  }
+  function AttachmentGroup({ className, ...props }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      "div",
+      {
+        "data-slot": "attachment-group",
+        className: cn(
+          "flex min-w-0 scroll-fade-x snap-x snap-mandatory scroll-px-1 no-scrollbar gap-3 overflow-x-auto overscroll-x-contain px-4 py-1 *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start",
+          className
+        ),
+        ...props
       }
     );
   }
 
-  // .context/d6-proof/fixture.tsx
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  // .context/d6-fixes/fixture.tsx
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   function Sample({ variant }) {
     const composerRef = (0, import_react8.useRef)(null);
-    const [text, setText] = (0, import_react8.useState)("Make the next step clearer.");
+    const ref = (0, import_react8.useRef)(null);
+    const [text, setText] = (0, import_react8.useState)("");
+    (0, import_react8.useEffect)(() => {
+      window.__composers ??= {};
+      window.__composers[variant] = ref.current;
+    });
     const [sources, setSources] = (0, import_react8.useState)([]);
-    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("section", { className: "flex min-w-0 flex-col gap-4", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-sm font-medium", children: variant }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-        SourceComposer,
-        {
-          variant,
-          composerRef,
-          disabled: false,
-          labelId: `${variant}-label`,
-          placeholder: "Ask Clarity",
-          text,
-          pastedContexts: sources,
-          onTextChange: setText,
-          onPastedContextsChange: setSources,
-          onError: () => {
-          },
-          onSubmit: () => {
-          },
-          onUploadMedia: () => {
-          },
-          attachButton: true
-        }
-      )
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("section", { "data-sample": variant, className: "flex flex-col gap-4", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h2", { id: `${variant}-label`, children: variant }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SourceComposer, { ref, variant, composerRef, disabled: false, labelId: `${variant}-label`, placeholder: "Ask Clarity", text, pastedContexts: sources, onTextChange: setText, onPastedContextsChange: setSources, onError: () => {
+      }, onSubmit: () => {
+      }, onUploadMedia: () => {
+      }, attachButton: true })
     ] });
   }
   function App() {
-    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("main", { className: "mx-auto flex max-w-3xl flex-col gap-8 p-6 text-foreground", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h1", { className: "text-lg font-medium", children: "D6 shared chat parts" }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm text-muted-foreground", children: "Mock data. Focus either composer to inspect its edge." }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "h-64", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageScrollerProvider, { autoScroll: true, children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(MessageScroller, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageScrollerViewport, { children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(MessageScrollerContent, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageScrollerItem, { messageId: "marker", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Marker, { variant: "separator", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MarkerContent, { children: "Today" }) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageScrollerItem, { messageId: "rep", scrollAnchor: true, children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Message, { align: "end", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageContent, { children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Bubble, { variant: "outline", align: "end", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(BubbleContent, { children: "Make the next step clearer." }) }) }) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageScrollerItem, { messageId: "assistant", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Message, { children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(MessageContent, { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Bubble, { variant: "ghost", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(BubbleContent, { children: "I can make the next step more specific." }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(Attachment, { state: "uploading", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(AttachmentContent, { children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(AttachmentTitle, { children: "Example notes.txt" }) }),
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(AttachmentTrigger, { "aria-label": "Open example notes", onClick: () => {
-              } })
-            ] })
-          ] }) }) })
-        ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageScrollerButton, {})
-      ] }) }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Sample, { variant: "framed" }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Sample, { variant: "floor" })
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("main", { className: "mx-auto flex max-w-3xl flex-col gap-8 p-6 text-foreground", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { children: "D6 shared chat parts" }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "Mock data. Quiet restore, touch removal and scroll spacing." }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "h-64", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageScrollerProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageScroller, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageScrollerViewport, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(MessageScrollerContent, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageScrollerItem, { messageId: "one", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "Make the next step clearer." }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(MessageScrollerItem, { messageId: "two", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "I can make the next step more specific." }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(AttachmentGroup, { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Attachment, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(AttachmentContent, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(AttachmentTitle, { children: "Example notes.txt" }) }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Attachment, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(AttachmentContent, { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(AttachmentTitle, { children: "Example transcript.txt" }) }) })
+          ] })
+        ] })
+      ] }) }) }) }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Sample, { variant: "framed" }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Sample, { variant: "floor" })
     ] });
   }
-  (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime12.jsx)(App, {}));
+  (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(App, {}));
 })();
 /*! Bundled license information:
 
@@ -18648,7 +18485,6 @@ lucide-react/dist/esm/shared/src/utils/hasA11yProp.mjs:
 lucide-react/dist/esm/context.mjs:
 lucide-react/dist/esm/Icon.mjs:
 lucide-react/dist/esm/createLucideIcon.mjs:
-lucide-react/dist/esm/icons/arrow-down.mjs:
 lucide-react/dist/esm/icons/paperclip.mjs:
 lucide-react/dist/esm/lucide-react.mjs:
   (**
