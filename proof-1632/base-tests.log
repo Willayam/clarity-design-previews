@@ -1,0 +1,102 @@
+
+> clarity-journey-editor@0.1.0 test /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-02/pr-1632/wt/editor
+> vitest run tests/suspension-matrix.test.ts
+
+
+ RUN  v4.1.11 /Users/williamlarsten/.clarity-scratch/inbox-burndown/ship-2026-11-02/pr-1632/wt/editor
+
+(node:16711) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/suspension-matrix.test.ts (26 tests | 7 failed) 17791ms
+   × owner cannot redeem the Boardroom offer while suspended 423ms
+   × impersonated cannot redeem the Boardroom offer while suspended 450ms
+   × staff cannot redeem the Boardroom offer while suspended 656ms
+   × cookie redemption refuses suspension and spends the offer cookie without a grant 438ms
+   × login returns the cookie offer refusal and cannot redeem a spent cookie after unsuspension 329ms
+   × register returns the cookie offer refusal and cannot redeem a spent cookie after unsuspension 699ms
+   × oauth returns the cookie offer refusal and cannot redeem a spent cookie after unsuspension 408ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/suspension-matrix.test.ts > owner cannot redeem the Boardroom offer while suspended
+ FAIL  tests/suspension-matrix.test.ts > impersonated cannot redeem the Boardroom offer while suspended
+ FAIL  tests/suspension-matrix.test.ts > staff cannot redeem the Boardroom offer while suspended
+AssertionError: expected 302 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 302
+
+ ❯ suspendedAnswer tests/suspension-matrix.test.ts:54:25
+     52| }
+     53| async function suspendedAnswer(answer: Response, code = 'account_suspe…
+     54|   expect(answer.status).toBe(403);
+       |                         ^
+     55|   expect(answer.headers.get('X-Clarity-Access')).toBe('account-suspend…
+     56|   expect(await answer.json()).toMatchObject({ code });
+ ❯ tests/suspension-matrix.test.ts:126:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/suspension-matrix.test.ts > cookie redemption refuses suspension and spends the offer cookie without a grant
+AssertionError: expected undefined to be an instance of Response
+ ❯ tests/suspension-matrix.test.ts:139:18
+    137|   const before = state(f);
+    138|   const answer = await applyOfferFromCookie(request(f, '/auth/password…
+    139|   expect(answer).toBeInstanceOf(Response);
+       |                  ^
+    140|   await suspendedAnswer(answer!);
+    141|   expect(answer!.headers.getSetCookie()).toContain('clarity_offer=; Pa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/suspension-matrix.test.ts > login returns the cookie offer refusal and cannot redeem a spent cookie after unsuspension
+ FAIL  tests/suspension-matrix.test.ts > register returns the cookie offer refusal and cannot redeem a spent cookie after unsuspension
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ suspendedAnswer tests/suspension-matrix.test.ts:54:25
+     52| }
+     53| async function suspendedAnswer(answer: Response, code = 'account_suspe…
+     54|   expect(answer.status).toBe(403);
+       |                         ^
+     55|   expect(answer.headers.get('X-Clarity-Access')).toBe('account-suspend…
+     56|   expect(await answer.json()).toMatchObject({ code });
+ ❯ tests/suspension-matrix.test.ts:171:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/suspension-matrix.test.ts > oauth returns the cookie offer refusal and cannot redeem a spent cookie after unsuspension
+AssertionError: expected 302 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 302
+
+ ❯ suspendedAnswer tests/suspension-matrix.test.ts:54:25
+     52| }
+     53| async function suspendedAnswer(answer: Response, code = 'account_suspe…
+     54|   expect(answer.status).toBe(403);
+       |                         ^
+     55|   expect(answer.headers.get('X-Clarity-Access')).toBe('account-suspend…
+     56|   expect(await answer.json()).toMatchObject({ code });
+ ❯ tests/suspension-matrix.test.ts:171:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 19 passed (26)
+   Start at  10:39:39
+   Duration  28.68s (transform 8.43s, setup 92ms, import 10.29s, tests 17.79s, environment 0ms)
+
+ ELIFECYCLE  Test failed. See above for more details.
