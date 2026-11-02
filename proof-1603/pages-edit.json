@@ -1,66 +1,69 @@
 {
-  "transport": "Browser session POST /api/actions/pages_edit. Agent bearer rejected with 401.",
+  "transport": "Authenticated browser-session action route. Separate agent bearer transport not exercised; contract tests passed.",
   "input": {
-    "pageId": "a8d982e1-c3be-436a-9f8e-68a4657c1d6c",
-    "editId": "e7710690-5adf-4fbc-b49b-7339d3694a17",
+    "pageId": "9345c0f4-02ec-490e-aa61-d8a5beca673b",
+    "editId": "1e44729e-333f-4633-a53c-d820649dac32",
     "edits": [
       {
         "op": "set_field",
-        "blockId": "e0566d06-6ecb-4f62-9921-a9aad88b691d",
+        "blockId": "5a8d4c56-dcc5-4843-92e6-c2950f8e7ed1",
         "field": "subheadline",
         "value": "Mock hero subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "1cbd4d83-224a-4a00-aa33-1b20da89856f",
+        "blockId": "f6d42c1d-e437-41d3-9b84-6537bacbf994",
         "field": "subheadline",
         "value": "Mock story subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "618f1afb-ff14-42a7-bd79-0b41085b107c",
+        "blockId": "c1817d8e-5c3c-4a65-9b51-f26496dfa002",
         "field": "subheadline",
         "value": "Mock logos subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "2b5d15e1-ee68-4b22-96f8-df91c50104aa",
+        "blockId": "be19a15a-53b4-4713-b52a-40b613454484",
         "field": "subheadline",
         "value": "Mock gallery subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "cf2eeb41-b60d-4836-8aaf-898ae06ab0d4",
+        "blockId": "25ac6451-f43d-41b4-857f-7aa1a40a0c04",
         "field": "subheadline",
         "value": "Mock form subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "5e2d1c10-56b4-4103-b29b-c605b8be674a",
+        "blockId": "254558f3-4519-4159-b4f1-e36082b152d4",
         "field": "subheadline",
         "value": "Mock document subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "91e67acc-a94d-4d12-bba2-cae352b3c073",
+        "blockId": "992ab404-28bc-40fa-b3de-ae4340e0cb0e",
         "field": "subheadline",
         "value": "Mock faq subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "992103d1-4bb4-4f46-9fdd-ccf799983364",
+        "blockId": "ca0b1dff-0534-4100-888e-7f83aaea76ed",
         "field": "subheadline",
         "value": "Mock pricing subheadline"
       },
       {
         "op": "set_field",
-        "blockId": "42be499b-063a-4e57-b0a7-450bd5b413a7",
+        "blockId": "b13be517-b352-41a3-b5eb-b5008de84b04",
         "field": "subheadline",
         "value": "Mock summary subheadline"
       }
     ]
   },
-  "revision": 26,
+  "result": {
+    "revision": 8,
+    "changed": true
+  },
   "saved": [
     {
       "kind": "hero",
