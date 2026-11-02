@@ -1,0 +1,379 @@
+{
+  "head": "b5ac7667bab54b8556d6fc283db96d723c42a174",
+  "created": [
+    {
+      "action": "pages_create",
+      "input": {
+        "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+        "title": "Recheck 1600 temporary 1"
+      },
+      "status": 200
+    },
+    {
+      "action": "pages_create",
+      "input": {
+        "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+        "title": "Recheck 1600 temporary 2"
+      },
+      "status": 200
+    },
+    {
+      "action": "pages_create",
+      "input": {
+        "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+        "title": "Recheck 1600 temporary 3"
+      },
+      "status": 200
+    }
+  ],
+  "emptyPublishAttempts": [
+    {
+      "action": "pages_publish",
+      "input": {
+        "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+        "revision": 1
+      },
+      "status": 422,
+      "data": {
+        "code": "empty_page",
+        "message": "Add a video, text or a form before publishing."
+      }
+    },
+    {
+      "action": "pages_publish",
+      "input": {
+        "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+        "revision": 1
+      },
+      "status": 422,
+      "data": {
+        "code": "empty_page",
+        "message": "Add a video, text or a form before publishing."
+      }
+    },
+    {
+      "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+      "status": 422,
+      "data": {
+        "code": "empty_page",
+        "message": "Add a video, text or a form before publishing."
+      }
+    },
+    {
+      "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+      "status": 422,
+      "data": {
+        "code": "empty_page",
+        "message": "Add a video, text or a form before publishing."
+      }
+    }
+  ],
+  "saves": [
+    {
+      "action": "pages_save_draft",
+      "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+      "status": 200,
+      "revision": 2
+    },
+    {
+      "action": "pages_save_draft",
+      "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+      "status": 200,
+      "revision": 2
+    },
+    {
+      "action": "pages_save_draft",
+      "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+      "status": 200,
+      "revision": 2
+    },
+    {
+      "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+      "status": 200,
+      "revision": 3
+    },
+    {
+      "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+      "status": 200,
+      "revision": 3
+    },
+    {
+      "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+      "status": 200,
+      "revision": 3
+    }
+  ],
+  "publishedSetup": [
+    {
+      "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+      "status": 200,
+      "data": {
+        "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/t3msj6",
+        "publishedRevision": 3
+      }
+    },
+    {
+      "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+      "status": 200,
+      "data": {
+        "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/krpfbw",
+        "publishedRevision": 3
+      }
+    }
+  ],
+  "recovery": [
+    {
+      "url": "/api/actions/pages_publish",
+      "body": "{\"pageId\":\"89c6022c-dbba-473e-8907-d3e748b2f367\",\"revision\":3}",
+      "status": 409,
+      "response": {
+        "code": "live_page_limit",
+        "message": "Free keeps 3 pages live at once. Unpublish one or upgrade to Pro to publish this page.",
+        "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+        "livePages": {
+          "count": 3,
+          "limit": 3
+        }
+      }
+    },
+    {
+      "url": "/api/actions/plan_get",
+      "body": "{}",
+      "status": 200,
+      "response": {
+        "plan": "free",
+        "lapse": "trial_ended",
+        "trialEndsAt": "2026-10-31T13:00:00.000Z",
+        "pastDue": false,
+        "livePages": {
+          "count": 3,
+          "limit": 3
+        }
+      }
+    },
+    {
+      "url": "/api/actions/pages_live",
+      "body": "{}",
+      "status": 200,
+      "response": {
+        "pages": [
+          {
+            "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+            "title": "Recheck 1600 temporary 2",
+            "thumbnailUrl": null,
+            "lastViewedAt": null,
+            "kept": false
+          },
+          {
+            "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+            "title": "Recheck 1600 temporary 1",
+            "thumbnailUrl": null,
+            "lastViewedAt": null,
+            "kept": false
+          },
+          {
+            "pageId": "e300555e-6ee9-5dda-aecb-26f50e242a73",
+            "title": "Untitled Journey Page",
+            "thumbnailUrl": "https://image.mux.com/eoDVeRu2hmm6dUiM7zXhBKsGtClTmixgVLiv2PlqeVc/thumbnail.jpg?time=1&width=400&height=250&fit_mode=smartcrop",
+            "lastViewedAt": null,
+            "kept": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "/api/actions/pages_unpublish",
+      "body": "{\"pageId\":\"5cf0faf9-764c-4bc1-a563-4e4346373680\"}",
+      "status": 200,
+      "response": {
+        "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+        "publication": {
+          "stage": "off",
+          "shareUrl": null,
+          "publishedRevision": 3,
+          "draftAheadOfLive": false,
+          "publishedAt": "2026-11-02T13:26:46.300Z",
+          "passwordEnabled": false
+        }
+      }
+    },
+    {
+      "url": "/api/actions/plan_get",
+      "body": "{}",
+      "status": 200,
+      "response": {
+        "plan": "free",
+        "lapse": "trial_ended",
+        "trialEndsAt": "2026-10-31T13:00:00.000Z",
+        "pastDue": false,
+        "livePages": {
+          "count": 2,
+          "limit": 3
+        }
+      }
+    },
+    {
+      "url": "/api/actions/pages_publish",
+      "body": "{\"pageId\":\"89c6022c-dbba-473e-8907-d3e748b2f367\",\"revision\":3}",
+      "status": 200,
+      "response": {
+        "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/tfk6wb",
+        "publishedRevision": 3
+      }
+    },
+    {
+      "url": "/api/actions/plan_get",
+      "body": "{}",
+      "status": 200,
+      "response": {
+        "plan": "free",
+        "lapse": "trial_ended",
+        "trialEndsAt": "2026-10-31T13:00:00.000Z",
+        "pastDue": false,
+        "livePages": {
+          "count": 3,
+          "limit": 3
+        }
+      }
+    },
+    {
+      "url": "/api/actions/plan_get",
+      "body": "{}",
+      "status": 200,
+      "response": {
+        "plan": "free",
+        "lapse": "trial_ended",
+        "trialEndsAt": "2026-10-31T13:00:00.000Z",
+        "pastDue": false,
+        "livePages": {
+          "count": 3,
+          "limit": 3
+        }
+      }
+    }
+  ],
+  "publishedRead": {
+    "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+    "revision": 3,
+    "title": "Recheck 1600 temporary 3",
+    "updatedAt": "2026-11-02T13:26:38.529Z",
+    "editorUrl": "https://pr-1600.clarity-video.workers.dev/edit/89c6022c-dbba-473e-8907-d3e748b2f367",
+    "publication": {
+      "stage": "live",
+      "shareUrl": "https://pr-1600.clarity-video.workers.dev/page/tfk6wb",
+      "publishedRevision": 3,
+      "draftAheadOfLive": false,
+      "publishedAt": "2026-11-02T13:28:21.105Z",
+      "passwordEnabled": false
+    },
+    "outline": {
+      "untrusted": true,
+      "source": "page",
+      "value": [
+        {
+          "blockId": "c8c698c6-8bfb-44ae-beb3-98412a015eb4",
+          "kind": "hero",
+          "label": "Mock recheck page"
+        },
+        {
+          "blockId": "5a5eb138-694f-45a4-a5e6-401fc1fc95c8",
+          "kind": "story",
+          "label": "story"
+        }
+      ]
+    },
+    "theme": {
+      "preset": "",
+      "base": "",
+      "font": "",
+      "scale": "s",
+      "shape": "round"
+    },
+    "generation": null,
+    "followedTitle": null
+  },
+  "proBefore": {
+    "plan": "pro",
+    "trialEndsAt": null,
+    "pastDue": false,
+    "proEndsAt": "2030-01-01T00:00:00.000Z",
+    "livePages": {
+      "count": 3,
+      "limit": null
+    }
+  },
+  "proAfter": {
+    "plan": "pro",
+    "trialEndsAt": null,
+    "pastDue": false,
+    "proEndsAt": "2030-01-01T00:00:00.000Z",
+    "livePages": {
+      "count": 4,
+      "limit": null
+    }
+  },
+  "deletes": [
+    {
+      "action": "pages_delete",
+      "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+      "status": 200,
+      "data": {
+        "deletedAt": "2026-11-02T13:30:02.882Z"
+      }
+    },
+    {
+      "action": "pages_delete",
+      "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+      "status": 200,
+      "data": {
+        "deletedAt": "2026-11-02T13:30:03.158Z"
+      }
+    },
+    {
+      "action": "pages_delete",
+      "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+      "status": 200,
+      "data": {
+        "deletedAt": "2026-11-02T13:30:03.444Z"
+      }
+    }
+  ],
+  "cleanup": {
+    "deleted": [
+      {
+        "pageId": "4a0e6c76-7b56-4ceb-af71-8c319713baa2",
+        "status": 404,
+        "data": {
+          "code": "not_found",
+          "message": "Journey Page was not found in D1"
+        }
+      },
+      {
+        "pageId": "5cf0faf9-764c-4bc1-a563-4e4346373680",
+        "status": 404,
+        "data": {
+          "code": "not_found",
+          "message": "Journey Page was not found in D1"
+        }
+      },
+      {
+        "pageId": "89c6022c-dbba-473e-8907-d3e748b2f367",
+        "status": 404,
+        "data": {
+          "code": "not_found",
+          "message": "Journey Page was not found in D1"
+        }
+      }
+    ],
+    "plan": {
+      "plan": "pro",
+      "trialEndsAt": null,
+      "pastDue": false,
+      "proEndsAt": "2030-01-01T00:00:00.000Z",
+      "livePages": {
+        "count": 1,
+        "limit": null
+      }
+    }
+  }
+}
