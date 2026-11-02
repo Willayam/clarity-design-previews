@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proof for PR 1641</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;color:#111}img{width:100%;border:1px solid #ccc;border-radius:8px}figure{margin:2rem 0}figcaption{margin-top:.5rem}</style>
+<h1>Proof for PR 1641</h1>
+<p>Recorder start on <a href="https://pr-1641.clarity-video.workers.dev">the PR preview</a> at head 3f43aff370bc3096320991ffa022e0e5f5301917. A throwaway script made the MediaRecorder constructor throw on its first call only. Mock account and fake camera only.</p>
+<p>There is no Before screenshot. The main preview no longer exists and staging is read-only, so the Before comes from the new test on the merge base, which fails because the failed attempt requests a grant.</p>
+<figure><img src="after-1-ctor-threw.png" alt="Recorder showing the failure message with Start recording enabled"><figcaption><b>After, first click.</b> The constructor threw. The rep sees the failure message and Start recording stays enabled. No request to start an upload, and the account's videos rows stayed at 0.</figcaption></figure>
+<figure><img src="after-2-retry-recording.png" alt="Recorder capturing with a running Stop button"><figcaption><b>After, second click.</b> The message is gone and capture runs.</figcaption></figure>
+<figure><img src="after-3-retry-stopped.png" alt="Recorder review state after Stop"><figcaption><b>After, Stop.</b> The take reached review. Its row reads kind recording, delivery ready, finished, duration 6.15 seconds.</figcaption></figure>
+</html>
