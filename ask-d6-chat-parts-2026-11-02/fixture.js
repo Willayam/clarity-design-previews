@@ -17210,8 +17210,9 @@
       {
         "data-slot": "composer-input",
         className: cn(
-          "max-h-72 min-h-22 w-full overflow-y-auto leading-6 whitespace-pre-wrap wrap-anywhere outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50",
+          "max-h-72 min-h-22 w-full overflow-y-auto whitespace-pre-wrap wrap-anywhere outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50",
           variant === "popover" ? "rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-disabled:bg-input/50 dark:bg-input/30 dark:data-disabled:bg-input/80" : variant === "floor" ? "px-4 pt-3 pb-0.5 text-base" : "px-3.5 py-3 text-sm",
+          "leading-6",
           className
         ),
         ...props
@@ -17223,7 +17224,7 @@
       "span",
       {
         "aria-hidden": "true",
-        className: cn("pointer-events-none absolute inset-px leading-6 text-muted-foreground", variant === "floor" ? "px-4 pt-3 text-base" : "px-3.5 py-3 text-sm"),
+        className: cn("pointer-events-none absolute inset-px text-muted-foreground", variant === "floor" ? "px-4 pt-3 text-base" : "px-3.5 py-3 text-sm", "leading-6"),
         ...props
       }
     );
@@ -17416,6 +17417,7 @@
     const pastedContextsRef = useLatestRef(pastedContexts);
     const initial = (0, import_react7.useRef)({ text, pastedContexts });
     const fileInputRef = (0, import_react7.useRef)(null);
+    const pickerCaretRef = (0, import_react7.useRef)(null);
     const generationRef = (0, import_react7.useRef)(0);
     (0, import_react7.useEffect)(() => {
       const el = composerRef.current;
@@ -17624,7 +17626,15 @@
               const files = Array.from(event.currentTarget.files ?? []);
               event.currentTarget.value = "";
               const el = composerRef.current;
-              if (el && !disabled) void attachFiles(el, files, () => el.focus());
+              if (el && !disabled) void attachFiles(el, files, () => {
+                el.focus();
+                const range = pickerCaretRef.current;
+                if (range && el.contains(range.startContainer)) {
+                  const selection = el.ownerDocument.defaultView?.getSelection();
+                  selection?.removeAllRanges();
+                  selection?.addRange(range);
+                }
+              });
             }
           }
         ),
@@ -17637,7 +17647,13 @@
             "aria-label": "Attach sources",
             "data-analytics-id": "ask_source_attach",
             disabled,
-            onClick: () => fileInputRef.current?.click(),
+            onMouseDown: (event) => event.preventDefault(),
+            onClick: () => {
+              const el = composerRef.current;
+              const selection = el?.ownerDocument.defaultView?.getSelection();
+              pickerCaretRef.current = selection?.rangeCount && el?.contains(selection.anchorNode) ? selection.getRangeAt(0).cloneRange() : null;
+              fileInputRef.current?.click();
+            },
             children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Paperclip, {})
           }
         )
@@ -18437,7 +18453,7 @@
       {
         "data-slot": "message-scroller-viewport",
         className: cn(
-          "size-full min-h-0 min-w-0 scroll-fade-b scrollbar-thin scrollbar-gutter-stable overflow-y-auto overscroll-contain contain-content data-autoscrolling:scrollbar-thumb-transparent data-autoscrolling:scrollbar-track-transparent data-pending-scroll:invisible",
+          "size-full min-h-0 min-w-0 scroll-fade-b overflow-y-auto overscroll-contain contain-content data-pending-scroll:invisible",
           className
         ),
         ...props
@@ -18468,7 +18484,7 @@
         "data-slot": "message-scroller-item",
         scrollAnchor,
         className: cn(
-          "min-w-0 shrink-0 content-visibility-auto contain-intrinsic-message",
+          "min-w-0 shrink-0",
           className
         ),
         ...props
@@ -18494,7 +18510,7 @@
         "data-size": size,
         direction,
         className: cn(
-          "absolute inset-s-1/2 -translate-x-1/2 transition-all duration-200 hover:bg-muted hover:text-foreground data-[active=false]:pointer-events-none data-[active=false]:scale-95 data-[active=false]:opacity-0 data-[active=false]:duration-400 data-[active=false]:ease-chat-exit data-[active=true]:translate-y-0 data-[active=true]:scale-100 data-[active=true]:opacity-100 data-[active=true]:ease-chat-enter data-[direction=end]:bottom-4 data-[direction=end]:data-[active=false]:translate-y-full data-[direction=start]:top-4 data-[direction=start]:data-[active=false]:-translate-y-full rtl:translate-x-1/2 data-[direction=start]:[&_svg]:rotate-180",
+          "absolute inset-s-1/2 -translate-x-1/2 transition-all duration-200 motion-reduce:transition-none hover:bg-muted hover:text-foreground data-[active=false]:pointer-events-none data-[active=false]:scale-95 data-[active=false]:opacity-0 data-[active=false]:duration-400 data-[active=false]:ease-chat-exit data-[active=true]:translate-y-0 data-[active=true]:scale-100 data-[active=true]:opacity-100 data-[active=true]:ease-chat-enter data-[direction=end]:bottom-4 data-[direction=end]:data-[active=false]:translate-y-full data-[direction=start]:top-4 data-[direction=start]:data-[active=false]:-translate-y-full rtl:translate-x-1/2 data-[direction=start]:[&_svg]:rotate-180",
           className
         ),
         render: render ?? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Button3, { "data-analytics-id": "ask_scroll_latest", variant, size }),
