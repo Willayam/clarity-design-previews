@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home banners release check</title>
+<style>
+body{font:16px/1.5 system-ui,-apple-system,sans-serif;max-width:980px;margin:0 auto;padding:24px;color:#111827;background:#fff}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 8px}
+.v{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:12px 16px;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#f9fafb}img{width:100%;border:1px solid #e5e7eb;border-radius:8px}figure{margin:16px 0}figcaption{font-size:14px;color:#4b5563;margin-top:4px}
+code{background:#f3f4f6;padding:1px 4px;border-radius:4px;font-size:14px}
+</style></head><body>
+<h1>Home banners release check</h1>
+<p>PR #1604, preview pass at head <code>2b076a2b3</code>, merged with main <code>a1a8b87b5</code> at release. Test accounts only.</p>
+<div class="v"><strong>VERIFIED.</strong> The first run and an independent run on GPT 6 Astra agree. After the deploy, nobody sees a banner until an admin publishes one.</div>
+<h2>Checks</h2>
+<table>
+<tr><th>Check</th><th>Result</th><th>Evidence</th></tr>
+<tr><td>Migration on a real database</td><td>Pass</td><td><code>0060_banners.sql</code> ran from scratch after <code>0061</code>. One row: <code>live-training</code>, status <code>draft</code>, history snapshot <code>draft</code>.</td></tr>
+<tr><td>Nobody sees a banner</td><td>Pass</td><td>Free, Pro and admin each got <code>{"banners":[]}</code> on a real Home load, with no card on Home or Help.</td></tr>
+<tr><td>A draft promises nothing</td><td>Pass</td><td>Skip and move open no review. Session rows say "Follows the Nov 5 session" and "Next is Nov 19." They name Home only once live.</td></tr>
+<tr><td>Save draft on the live training</td><td>Pass</td><td>Saves with no review, closes, persists after reload, and Undo restores it.</td></tr>
+<tr><td>Typed work is not lost</td><td>Pass</td><td>Save draft and Publish wait for a typed topic and say why. Unpublish keeps an editor with unsaved work open.</td></tr>
+<tr><td>Publishing later works</td><td>Pass</td><td>Review, Cancel writes nothing, publish reaches Free and Pro on Home and Help, and Undo and Unpublish each take it back off.</td></tr>
+<tr><td>Staff only</td><td>Pass</td><td>A Pro user is redirected from the admin page, and <code>staff_banners_list</code> answers 403.</td></tr>
+<tr><td>Rest of the admin page</td><td>Pass</td><td>10 browser flows: table, picker, editor, discard guard, What changes, order, sessions, Only admins, delete, dark, 390 px.</td></tr>
+<tr><td>Automated checks</td><td>Pass</td><td>Root <code>pnpm test</code> 75931 pass and 0 fail, typecheck, lint, security scan with one false positive, CI green.</td></tr>
+</table>
+<h2>Known and accepted</h2>
+<table>
+<tr><th>Item</th><th>Effect</th></tr>
+<tr><td>The Undo toast can cover the editor's footer buttons</td><td>Up to 10 seconds on short windows. It can be dismissed.</td></tr>
+<tr><td>A date in the inline Move form does not count as unsaved</td><td>Closing the editor drops that one date with no warning. Nothing reaches users. Follow-up.</td></tr>
+</table>
+<h2>What production looks like after the deploy</h2>
+<figure><img src="00-fresh-table.png" alt="Admin banners table with one draft"><figcaption>Admin &gt; Banners: the live training is the only row, in Drafts.</figcaption></figure>
+<figure><img src="00-home-userPro.png" alt="Pro user's Home with no banner"><figcaption>A Pro user's Home: no banner. Test account.</figcaption></figure>
+<figure><img src="00-home-affiliateAdmin.png" alt="Free user's Home with no banner"><figcaption>A Free user's Home: no banner. Test account.</figcaption></figure>
+<h2>When an admin is ready</h2>
+<figure><img src="00a-draft-series-editor.png" alt="Draft live training editor"><figcaption>The draft editor, with Save draft and Publish.</figcaption></figure>
+<figure><img src="00b-draft-skip.png" alt="A skipped session on a draft"><figcaption>Skipping on a draft opens no review and promises no Home change.</figcaption></figure>
+<figure><img src="00d-review-publish-series.png" alt="Publish review"><figcaption>Publish always goes through this review.</figcaption></figure>
+<figure><img src="00f-home-published-userPro.png" alt="Home with the published banner"><figcaption>Home after publishing, on the preview only.</figcaption></figure>
+</body></html>
