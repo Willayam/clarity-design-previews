@@ -1,0 +1,252 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stageshow audit of Clarity</title>
+<style>
+:root{--ink:#0f172a;--mute:#55627a;--line:#e2e8f0;--bg:#f7f9fc;--card:#fff;--a:#2563eb;--r:#dc2626;--o:#b45309;--g:#64748b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px}h2{font-size:22px;margin:48px 0 10px}h3{font-size:17px;line-height:1.35;margin:0}
+.sub{color:var(--mute);margin:0 0 24px;font-size:14px}p{margin:0 0 12px}code{font:13px ui-monospace,Menlo,monospace;background:#eef2f7;padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
+.lead{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}.lead p:last-child{margin:0}
+ol.top{padding-left:22px;margin:0}ol.top li{margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--g);border-radius:12px;padding:18px 20px;margin:0 0 16px}.card.s1{border-left-color:var(--r)}.card.s2{border-left-color:var(--o)}
+.card header{display:flex;gap:10px;align-items:baseline}.num{color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums;flex:none}
+.tags{margin:6px 0 12px;display:flex;flex-wrap:wrap;gap:6px}.tag,.sev{font-size:12px;line-height:1;padding:5px 8px;border-radius:999px;background:#eef2f7;color:#334155}.sev{font-weight:600}.s1 .sev{background:#fee2e2;color:#991b1b}.s2 .sev{background:#fef3c7;color:#92400e}
+.fix{background:#f1f5f9;border-radius:8px;padding:10px 12px}.rule{font-size:14px;color:var(--mute)}
+.media{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}figure{margin:0;min-width:0}figure.half{flex:1 1 300px;max-width:100%}figure.wide{flex:1 1 100%}figure.phone{flex:0 1 220px}figure.thumb{flex:0 1 160px}
+figure img,figure video{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--line);background:#fff}figcaption{font-size:13px;color:var(--mute);margin-top:5px;line-height:1.4}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 16px}table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:400}thead th{font-weight:600;color:var(--mute)}tbody th{font-weight:600}tr.pick{background:#eff6ff}tbody tr:last-child>*{border-bottom:0}
+ul{padding-left:20px;margin:0 0 12px}li{margin-bottom:6px}.small{font-size:14px;color:var(--mute)}
+</style></head><body><main>
+<h1>Stageshow audit of Clarity's main workflows</h1>
+<p class="sub">2 November 2026. Staging at 13fa9c5f3, PR 1610 preview at 86f09cf64, recorder designs round 3. Test accounts and test footage only.</p>
+
+<div class="lead">
+<p><strong>What this is.</strong> Stageshow builds faux product demos. It has no audit mode, and its film script opens a logged-out browser and needs a demo stage. So I loaded its check engine into a signed-in real browser, drove the real flows with a fake camera, and judged the frames against its craft and motion rules. Its demo-only rules, such as hero crops, filler bars and loops, do not apply to a real app, so I ignored them.</p>
+<p><strong>The verdict.</strong> The strongest moment is Stop. The finish screen keeps the picture exactly in place and the title lands in under 2 seconds, which is the flow Stageshow describes as one continuous object. The weakest stretches are the take itself, which still looks like setup, and the hand-off at Build page. I would pick v12 from Round 3, because it more than doubles the picture during a take, and fix its Stop button and its 96 px pop-out first. The independent reviewer preferred v13, for a reason worth taking seriously, so that call is yours. The <a href="#review">review section</a> has both sides.</p>
+</div>
+
+<h2>Fix these first</h2>
+<ol class="top">
+<li><a href="#f1">Start and Stop fall out of the window</a> on short laptops, and PR 1610 makes it worse.</li>
+<li><a href="#f2">Home calls a finished page Untitled Video</a>, under a thumbnail showing its real title.</li>
+<li><a href="#f15">Apply turns the picture black</a> in PR 1610 for the whole render.</li>
+<li><a href="#f18">v12's Stop is narrower than its Pause</a>, and <a href="#f19">its 96 px pop-out</a> puts a mis-click 6 px from ending the take.</li>
+<li><a href="#f4">Three of four layout tiles do nothing on a phone</a>.</li>
+</ol>
+
+<h2>The recorder designs</h2>
+<p>All three designs keep Start on screen on short windows. The scan flagged no jump in any of their start transitions, though frame coverage there was incomplete. v12 is the only one where the picture is the heaviest thing on screen during a take, with about twice the area of the other two. I measured these in the variants at 1440x900. My pick is v12, with the reviewer's objection fixed as described in <a href="#f18">finding 18</a>.</p>
+<div class="tw"><table><thead><tr><th>Design</th><th>Picture during a take</th><th>Area</th><th>Stop width</th><th>Start visible at 1366x660</th><th>Below the picture at setup</th></tr></thead><tbody><tr class=""><th scope="row">Today</th><td>880x495</td><td>436k</td><td>784 px</td><td>No, at 1366x660</td><td>n/a</td></tr><tr class=""><th scope="row">v11 Drawer stays</th><td>932x524</td><td>489k</td><td>224 px</td><td>Yes</td><td>306 px</td></tr><tr class="pick"><th scope="row">v12 Drawer steps aside</th><td>1300x731</td><td>951k</td><td>83 px</td><td>Yes</td><td>313 px</td></tr><tr class=""><th scope="row">v13 Drawer folds</th><td>928x522</td><td>484k</td><td>242 px</td><td>Yes</td><td>288 px</td></tr></tbody></table></div>
+<div class="media" style="margin-bottom:16px">
+<figure class="half"><a href="img/lab-v11-1440--02-recording.jpg"><img loading="lazy" src="img/lab-v11-1440--02-recording.jpg" alt="v11 during a take"></a><figcaption>v11 during a take.</figcaption></figure>
+<figure class="half"><a href="img/lab-v13-1440--02-recording.jpg"><img loading="lazy" src="img/lab-v13-1440--02-recording.jpg" alt="v13 during a take"></a><figcaption>v13 during a take.</figcaption></figure>
+<figure class="wide"><video src="clip/v12-start.mp4" controls muted playsinline preload="metadata"></video><figcaption>v12, Start recording at real speed. The drawer leaves and the picture grows. The clip is the mock, not the engine.</figcaption></figure>
+</div>
+<article class="card s1" id="f18">
+<header><span class="num">18</span><h3>In v12, Stop is narrower than Pause</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">Round 3 design</span></p>
+<p>Stop measures 83 px and Pause 116 px. Start was 346 px wide a second earlier. Stop is the action a rep most needs to find without looking, and it is the smallest thing in the bar. v11 gives Stop 224 px and v13 242 px.</p>
+<p class="fix"><strong>Fix.</strong> Use the design's own drawer Stop on the bar. It is 222 px wide, shows the time, and sits exactly where Start was. That keeps Stop under the rep's hand, which was the reviewer's objection to v12. Also swap the round record dot on Stop for the square production uses.</p>
+<p class="rule">Rule: one red record action, heaviest mark where the story is (craft.md).</p>
+<div class="media"><figure class="half"><a href="img/lab-v12-1440--02-recording.jpg"><img loading="lazy" src="img/lab-v12-1440--02-recording.jpg" alt="v12 during a take."></a><figcaption>v12 during a take.</figcaption></figure></div>
+</article><article class="card s1" id="f19">
+<header><span class="num">19</span><h3>The 360x96 pop-out cannot carry five tiles</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">Round 3 design</span></p>
+<p>The case for v12 on the board was that the same row of tiles works in the pop-out. At 360x260 it does. At 360x96 the tiles are 32 px wide with no labels, so Bubble, Cut-out and Camera are hard to tell apart, and the last tile is 6 px from a 71 px Stop. One slip while talking to a prospect in another window ends the take. v11 has an 8 px gap and v13 has 6 px, so all three share this.</p>
+<p class="fix"><strong>Fix.</strong> At 96 px tall, drop the tiles and keep the timer, Stop and Pause. Or show one tile for the current style, with a menu.</p>
+<p class="rule">Rule: "Can you read the important labels?" (teaching.md, Desktop at phone width).</p>
+<div class="media"><figure class="half"><a href="img/lab-v12-1440--03-popout.jpg"><img loading="lazy" src="img/lab-v12-1440--03-popout.jpg" alt="v12 pop-out at true size."></a><figcaption>v12 pop-out at true size.</figcaption></figure></div>
+</article><article class="card s2" id="f20">
+<header><span class="num">20</span><h3>After recording, Apply is live with nothing to apply</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Round 3 design</span></p>
+<p>With "As recorded" selected, Apply is enabled in all three designs (<code>disabled</code> false, opacity 1). In v12 it also shows solid blue while Build page is solid blue, so the screen has two primary actions, and it is not clear which one a rep should press next.</p>
+<p class="fix"><strong>Fix.</strong> Disable Apply until a change exists, and keep one blue action on screen at a time.</p>
+<p class="rule">Rule: your own lab rule on controls that do not change the picture.</p>
+<div class="media"><figure class="half"><a href="img/lab-v12-1440--04-style.jpg"><img loading="lazy" src="img/lab-v12-1440--04-style.jpg" alt="v12 after recording, nothing changed yet."></a><figcaption>v12 after recording, nothing changed yet.</figcaption></figure></div>
+</article><article class="card s3" id="f21">
+<header><span class="num">21</span><h3>The drawer says Style three levels deep</h3></header>
+<p class="tags"><span class="sev">Polish</span><span class="tag">Round 3 design</span></p>
+<p>Layout is the header, Style is the tab, and Style is the section heading 38 px below that tab. Stageshow's rule is "Say it once".</p>
+<p class="fix"><strong>Fix.</strong> Drop the section heading under the Style tab.</p>
+
+<div class="media"></div>
+</article><article class="card s2" id="f22">
+<header><span class="num">22</span><h3>Empty space at setup</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Round 3 design</span></p>
+<p>v12 leaves about 250 px empty under the device row, and a gap of about 240 px inside the drawer above Start. The picture is limited by width at 1440x900, so it cannot grow into the space. Moving the device pickers into the drawer fills one gap and lifts the other. v11 and v13 share this.</p>
+<p class="fix"><strong>Fix.</strong> Put the camera, microphone and Change screen in the drawer, and center the picture vertically.</p>
+<p class="rule">Rule: "A void under a list, an empty corner: unfinished, not calm" (SKILL.md).</p>
+<div class="media"><figure class="half"><a href="img/lab-v12-1440--01-recorder.jpg"><img loading="lazy" src="img/lab-v12-1440--01-recorder.jpg" alt="v12 before recording."></a><figcaption>v12 before recording.</figcaption></figure></div>
+</article><article class="card s2" id="f23">
+<header><span class="num">23</span><h3>The phone mock shows a state phones cannot reach</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Round 3 design</span></p>
+<p>v12 at 390 draws a landscape shared screen in a short picture, with about 430 px empty between the tiles and Stop, and no timer or recording status during the take. A real phone has no screen share and films in portrait, so the real picture fills most of the screen, as today's does. The brief says phones get "only camera, microphone, layout and record". The mock was probably reusing the desktop scene, so judge this round on desktop only.</p>
+<p class="fix"><strong>Fix.</strong> Redraw 390 from today's phone frame, with the portrait camera filling the height.</p>
+<p class="rule">Rule: "Compact is a second design, not a squeeze" (craft.md).</p>
+<div class="media"><figure class="phone"><a href="img/lab-v12-390--02-recording.jpg"><img loading="lazy" src="img/lab-v12-390--02-recording.jpg" alt="v12 at 390."></a><figcaption>v12 at 390.</figcaption></figure><figure class="phone"><a href="img/rec-main-phone--16-start-take-settled.jpg"><img loading="lazy" src="img/rec-main-phone--16-start-take-settled.jpg" alt="Today&#x27;s phone take. Portrait test footage."></a><figcaption>Today's phone take. Portrait test footage.</figcaption></figure></div>
+</article>
+
+<h2>Recording today</h2>
+<article class="card s1" id="f1">
+<header><span class="num">1</span><h3>Start and Stop fall out of the window on short laptops</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">Today, main</span><span class="tag">PR 1610</span></p>
+<p>With a screen layout on, Start ends at 678 px in a 660 px window at 1366x660. At 1280x600 it is off screen in every layout. PR 1610 adds a 48 px row, which cuts Start off at 1440x790 too, at 797 against 790. All numbers are measured in the running app.</p><p>1440x790 is my estimate of Chrome's inner window on a 13-inch MacBook Air. Stop sits in the same row as Start in every frame I filmed, so a rep mid-take would have to scroll to stop. That last part is inferred, since I measured Start and did not film a take at these sizes.</p>
+<p class="fix"><strong>Fix.</strong> Size the preview from the window height as well as the width. Every Round 3 design already keeps Start and Stop on screen at all three sizes, so porting one also fixes this.</p>
+<p class="rule">Rule: cut controls (craft.md). "Is anything cut that the eye needs whole?" (verify.md).</p>
+<div class="media"><figure class="half"><a href="img/short-1610-1440x790--01-inset.jpg"><img loading="lazy" src="img/short-1610-1440x790--01-inset.jpg" alt="PR 1610 at 1440x790. Start is cut by the window edge."></a><figcaption>PR 1610 at 1440x790. Start is cut by the window edge.</figcaption></figure><figure class="half"><a href="img/short-main-1366x660--01-inset.jpg"><img loading="lazy" src="img/short-main-1366x660--01-inset.jpg" alt="Main at 1366x660, Camera inset. Start is below the fold."></a><figcaption>Main at 1366x660, Camera inset. Start is below the fold.</figcaption></figure></div>
+</article><article class="card s1" id="f2">
+<header><span class="num">2</span><h3>Home calls a finished page Untitled Video</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">Today, main</span></p>
+<p>After the AI built the page, its title and the editor top bar both read "Turn a one-minute video into the next meeting", and they still did after a reload. Home lists the same page as Untitled Video, on desktop and phone. The card's own thumbnail shows the real title right above the wrong name.</p><p>I saw this on the one built page I checked. I did not trace the cause. The video itself does get its title, so this looks specific to the page's library name.</p>
+<p class="fix"><strong>Fix.</strong> When the page's library name is still the default, write the title to it, as the take title already does for the video.</p>
+<p class="rule">Rule: the payoff is visible and stays on screen (motion.md, Story). A rep's Home is the record of what they have sent.</p>
+<div class="media"><figure class="half"><a href="img/crop-home-name.jpg"><img loading="lazy" src="img/crop-home-name.jpg" alt="Home. The thumbnail says &quot;Turn a one-minute video&quot;. The name says Untitled Video."></a><figcaption>Home. The thumbnail says "Turn a one-minute video". The name says Untitled Video.</figcaption></figure></div>
+</article><article class="card s1" id="f3">
+<header><span class="num">3</span><h3>The live take still looks like setup</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">Today, main</span></p>
+<p>Once recording starts, the camera picker, microphone picker, four layout tiles and Change screen all stay on screen. The only change is that Start becomes Stop with a timer. The picture stays 880x495, and nothing on it says it is recording. Someone talking to camera gets the same screen they configured on.</p>
+<p class="fix"><strong>Fix.</strong> Port Round 3 v12. It more than doubles the picture and leaves one row of controls.</p>
+<p class="rule">Rule: the heaviest marks sit on what the story is about, and space follows the story (craft.md, Restraint).</p>
+<div class="media"><figure class="half"><a href="img/rec-main-desktop--16-start-take-settled.jpg"><img loading="lazy" src="img/rec-main-desktop--16-start-take-settled.jpg" alt="Main, 4 seconds into a take."></a><figcaption>Main, 4 seconds into a take.</figcaption></figure><figure class="half"><a href="img/lab-v12-1440--02-recording.jpg"><img loading="lazy" src="img/lab-v12-1440--02-recording.jpg" alt="Round 3 v12, same moment."></a><figcaption>Round 3 v12, same moment.</figcaption></figure></div>
+</article><article class="card s1" id="f4">
+<header><span class="num">4</span><h3>Three of the four layout tiles do nothing on a phone</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">Today, main</span><span class="tag">Round 3 design</span></p>
+<p>A phone has no screen share. Pressing 1/3 split leaves Camera selected and nothing changes, and the same holds for the other screen tiles, which look just as available. The tiles also have no labels at this width. v12 at 390 keeps Split and Screen tiles too.</p>
+<p class="fix"><strong>Fix.</strong> Hide the screen tiles when the browser has no getDisplayMedia. With one layout left, drop the row and give the height to the picture.</p>
+<p class="rule">Rule: your own lab rule, "A control that does not change the picture must not look available".</p>
+<div class="media"><figure class="phone"><a href="img/rec-main-phone--04-tile-1-3-split-settled.jpg"><img loading="lazy" src="img/rec-main-phone--04-tile-1-3-split-settled.jpg" alt="Just pressed 1/3 split. Camera is still selected. &quot;Choose microphone&quot; is my test mic, not a fault."></a><figcaption>Just pressed 1/3 split. Camera is still selected. "Choose microphone" is my test mic, not a fault.</figcaption></figure></div>
+</article><article class="card s2" id="f5">
+<header><span class="num">5</span><h3>"Record screen only" is a dead button on phones</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span></p>
+<p>I reproduced this at 390 wide with no getDisplayMedia and a camera that returns NotFoundError or OverconstrainedError. The app says "You can still record your screen" and offers the button. Pressing it changes nothing. NotReadableError shows Reload instead, so the trigger is fairly rare. Start recording also stays enabled here. The copy is at <code>RecorderStatusZone.tsx:35</code>.</p>
+<p class="fix"><strong>Fix.</strong> Show the button only when the browser can share a screen. On a phone, offer Reload or the camera picker.</p>
+<p class="rule">Rule: a control reads true. A rep with a broken camera has nothing else to try on this screen.</p>
+<div class="media"><figure class="phone"><a href="img/dead-NotFoundError--01-no-camera.jpg"><img loading="lazy" src="img/dead-NotFoundError--01-no-camera.jpg" alt="Phone with no camera. The offered way out cannot work."></a><figcaption>Phone with no camera. The offered way out cannot work.</figcaption></figure></div>
+</article><article class="card s2" id="f6">
+<header><span class="num">6</span><h3>A dark line and corner ticks on the video frame, on the page prospects see</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span></p>
+<p>On light footage, the public page shows a near-black line about 2 px tall along the top of the video, and gray arcs at the corners. The recorder preview, finish screen and editor show the arcs. Dark footage hides both, which is probably why this has survived. A screen recording of a white slide deck is common for reps (my guess at their usage).</p><p>I did not trace the cause. My guess is a dark backing behind the player showing through at the rounded corners, plus a rounding gap between the poster and the frame.</p>
+<p class="fix"><strong>Fix.</strong> Remove the dark backing once the poster has painted, or match it to the poster. Check at 1x on a white slide.</p>
+<p class="rule">Rule: "Zoom into edges and corners: rounded corners intact" (rehearse.md).</p>
+<div class="media"><figure class="half"><a href="img/zoom-public-top.jpg"><img loading="lazy" src="img/zoom-public-top.jpg" alt="Public page, top left of the video, 6x."></a><figcaption>Public page, top left of the video, 6x.</figcaption></figure><figure class="thumb"><a href="img/zoom-corner-recorder.jpg"><img loading="lazy" src="img/zoom-corner-recorder.jpg" alt="Recorder preview, top left corner, 6x."></a><figcaption>Recorder preview, top left corner, 6x.</figcaption></figure><figure class="half"><a href="img/public-desktop--03-public-full.jpg"><img loading="lazy" src="img/public-desktop--03-public-full.jpg" alt="Public page at actual size. The line is visible along the top of the video."></a><figcaption>Public page at actual size. The line is visible along the top of the video.</figcaption></figure></div>
+</article><article class="card s2" id="f7">
+<header><span class="num">7</span><h3>Arriving at the editor: black frame, covered title</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span></p>
+<p>After Build page, the video block is solid black for about 1.4 s (three frames of a coarse sheet), though the same poster was on screen a moment earlier. The composer then opens over the page title and cuts it at its edge. On a phone it covers the top half of the screen. The composer's own button is also called Build page, so the rep presses the same words twice.</p>
+<p class="fix"><strong>Fix.</strong> Carry the poster across the navigation. Open the composer where it covers nothing the rep is reading, such as below the video. Give the second button a label that says what it does next.</p>
+<p class="rule">Rule: "No holes or blank frames" (motion.md). "Space follows the story" (craft.md).</p>
+<div class="media"><figure class="wide"><video src="clip/build-page.mp4" controls muted playsinline preload="metadata"></video><figcaption>Finish screen to editor, real speed. Footage is test footage.</figcaption></figure><figure class="phone"><a href="img/rec-main-phone--35-build-page-settled.jpg"><img loading="lazy" src="img/rec-main-phone--35-build-page-settled.jpg" alt="Phone. The composer covers the title and the top of the video."></a><figcaption>Phone. The composer covers the title and the top of the video.</figcaption></figure><figure class="half"><a href="img/rec-main-desktop--35-build-page-settled.jpg"><img loading="lazy" src="img/rec-main-desktop--35-build-page-settled.jpg" alt="Desktop, with the composer open."></a><figcaption>Desktop, with the composer open.</figcaption></figure></div>
+</article><article class="card s2" id="f8">
+<header><span class="num">8</span><h3>The trim handles snap 0.7 s after Stop</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span></p>
+<p>Stageshow's jump scan caught this one. In this take the Auto trim landed in one frame, with the left handle jumping 68 px and the range shrinking 95 px, and the selector flipped from None to Auto around the same moment. This happens 0.7 s after Stop, while the rep is looking right at the strip. The scan also caught the action row drawing 116 px too high for a frame or two at Stop.</p>
+<p class="fix"><strong>Fix.</strong> Ease the handles from full range to the Auto range over about 250 ms, so the rep sees what the trim did. Reserve the editor's height before it mounts.</p>
+<p class="rule">Rule: "Every change moves" and "After motion nothing moves" (motion.md).</p>
+<div class="media"><figure class="wide"><video src="clip/stop-to-finish.mp4" controls muted playsinline preload="metadata"></video><figcaption>Stop to finish screen, real speed. The picture holds its place, which is right. The strip snaps, which is not.</figcaption></figure></div>
+</article><article class="card s2" id="f9">
+<header><span class="num">9</span><h3>Start moves 36 px the first time a screen is shared</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span><span class="tag">PR 1610</span></p>
+<p>Start goes from y 734 to 770 when Change screen appears, and it stays there even after going back to Camera. Change screen is a 28 px bar across the whole 880 px column, thinner than every other row in the stack.</p>
+<p class="fix"><strong>Fix.</strong> v12 puts Change screen in the device row, so this goes away with the port.</p>
+<p class="rule">Rule: your own lab rule, "Nothing shifts".</p>
+<div class="media"><figure class="wide"><video src="clip/first-share-jump.mp4" controls muted playsinline preload="metadata"></video><figcaption>First pick of a screen layout, real speed.</figcaption></figure></div>
+</article><article class="card s2" id="f10">
+<header><span class="num">10</span><h3>On a phone the finish buttons touch the filmstrip</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span></p>
+<p>Re-record, Build page and Copy link sit 0 px under the strip, measured by Stageshow's <code>tight control</code> check. A tap meant for a button can land on the strip (my guess at the effect).</p>
+<p class="fix"><strong>Fix.</strong> Add at least 8 px between the strip and the action row.</p>
+<p class="rule">Rule: "A button keeps 8px or more from the field, line or card edge above it" (craft.md).</p>
+<div class="media"><figure class="phone"><a href="img/rec-main-phone--23-finish-rest.jpg"><img loading="lazy" src="img/rec-main-phone--23-finish-rest.jpg" alt="Phone finish screen. The buttons touch the strip."></a><figcaption>Phone finish screen. The buttons touch the strip.</figcaption></figure></div>
+</article><article class="card s2" id="f11">
+<header><span class="num">11</span><h3>A paused take looks like a running one</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Today, main</span></p>
+<p>When paused, the red Stop bar and the setup rows stay as they were, and the timer simply stops. The only other change is a small pause icon turning into a play icon. Nothing says Paused. The independent reviewer raised this one, and the frame confirms it. A rep who glances back after answering a question cannot tell whether they are being recorded.</p>
+<p class="fix"><strong>Fix.</strong> Show "Paused" beside the timer and label the button Resume. v12 already labels it Resume, so this comes with the port if the timer gets the word too.</p>
+<p class="rule">Rule: "Status colors mean status" and "Change only what changed" (craft.md, motion.md).</p>
+<div class="media"><figure class="half"><a href="img/rec-main-desktop--18-pause-settled.jpg"><img loading="lazy" src="img/rec-main-desktop--18-pause-settled.jpg" alt="Main, paused at 00:04."></a><figcaption>Main, paused at 00:04.</figcaption></figure></div>
+</article><article class="card s3" id="f12">
+<header><span class="num">12</span><h3>Auto, Custom and None do not read as one control</h3></header>
+<p class="tags"><span class="sev">Polish</span><span class="tag">Today, main</span></p>
+<p>Trim and Thumbnail sit right beside Auto, Custom and None, with no label saying the second group is the trim mode. Custom is gray, so it looks disabled. None has no icon. Auto has a sparkle in the only orange in the product. The same sparkle family marks Build page and Edit with AI. Stageshow is blunt about this one and calls sparkles "AI shorthand" that say nothing about the feature. That part is your call.</p>
+<p class="fix"><strong>Fix.</strong> One treatment for all three options. If the sparkle goes, "Trim silence" says what Auto does.</p>
+<p class="rule">Rule: "AI features get no sparkle" (craft.md).</p>
+<div class="media"><figure class="half"><a href="img/rec-main-desktop--23-finish-rest.jpg"><img loading="lazy" src="img/rec-main-desktop--23-finish-rest.jpg" alt="Finish screen. Everything else here works."></a><figcaption>Finish screen. Everything else here works.</figcaption></figure></div>
+</article><article class="card s3" id="f13">
+<header><span class="num">13</span><h3>Dark mode: Start looks disabled, and the designs skip it</h3></header>
+<p class="tags"><span class="sev">Polish</span><span class="tag">Today, main</span><span class="tag">Round 3 design</span></p>
+<p>The app follows the OS setting (<code>use-theme.ts:16</code>), but the lab brief says "the product ships light", so no Round 3 design has a dark state. In dark mode, Start measures chroma of about 0.13 against 0.22 in light, with <code>disabled</code> false and opacity 1. It is live, but it reads as switched off.</p>
+<p class="fix"><strong>Fix.</strong> Add a dark pass to the chosen design before porting. Raise the record color's chroma in dark.</p>
+<p class="rule">Rule: "A light pass does not prove dark" (craft.md).</p>
+<div class="media"><figure class="half"><a href="img/dark-start--01-start-enabled.jpg"><img loading="lazy" src="img/dark-start--01-start-enabled.jpg" alt="Dark mode. This Start button is enabled."></a><figcaption>Dark mode. This Start button is enabled.</figcaption></figure></div>
+</article><article class="card s3" id="f14">
+<header><span class="num">14</span><h3>Two small copy slips</h3></header>
+<p class="tags"><span class="sev">Polish</span><span class="tag">Today, main</span></p>
+<p>The finish screen says "Untitled video" and the library says "Untitled Video" (<code>RecorderTitleField.tsx:104</code>, <code>recorder-take.ts:99</code>). The composer can say "Transcript ready, 1 words" (<code>EditorTopbar.tsx:426</code>). I saw that string on a run with a beeping test mic, so the count was a rig accident, but the plural is a real bug.</p>
+<p class="fix"><strong>Fix.</strong> One casing, and pluralize the count.</p>
+
+<div class="media"></div>
+</article>
+
+<h2>PR 1610, background looks and Style</h2>
+<article class="card s1" id="f15">
+<header><span class="num">15</span><h3>Apply turns the picture black</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">PR 1610</span></p>
+<p>As soon as Apply is pressed, the Style preview goes solid black. It stayed black for all 26 s I watched and was still black in the next frame after that. The rep sees "Rendering 34%" under a black rectangle. I stopped watching while it still said Processing, in headless Chromium. An earlier check on this PR measured 12 s for a 10 s take, so a longer take sits black for longer.</p>
+<p class="fix"><strong>Fix.</strong> Keep the last frame on screen, dimmed, with the progress over it.</p>
+<p class="rule">Rule: "No holes or blank frames" (motion.md).</p>
+<div class="media"><figure class="wide"><video src="clip/apply-black.mp4" controls muted playsinline preload="metadata"></video><figcaption>Apply, real speed, first 14 s.</figcaption></figure><figure class="half"><a href="img/rec-1610-desktop--42-style-applied.jpg"><img loading="lazy" src="img/rec-1610-desktop--42-style-applied.jpg" alt="After Apply. Selects are native and unlabeled."></a><figcaption>After Apply. Selects are native and unlabeled.</figcaption></figure></div>
+</article><article class="card s1" id="f16">
+<header><span class="num">16</span><h3>The Style tab fails your own decisions log</h3></header>
+<p class="tags"><span class="sev">Fix first</span><span class="tag">PR 1610</span></p>
+<p>The tab adds a second copy of the player, four native selects with no visible labels, and an Apply button below the fold at 1440x900. "Trim" also appears twice in a row, in Trim | Style and then in Trim | Thumbnail. The second player and the unlabeled selects are both on the Rejected list in DECISIONS.md, so none of this is news. This frame shows what ships if 1610 merges before the port.</p>
+<p class="fix"><strong>Fix.</strong> Do not merge this tab's UI to production ahead of the design port.</p>
+
+<div class="media"><figure class="half"><a href="img/rec-1610-desktop--39-style-tab-settled.jpg"><img loading="lazy" src="img/rec-1610-desktop--39-style-tab-settled.jpg" alt="Style tab at 1440x900."></a><figcaption>Style tab at 1440x900.</figcaption></figure></div>
+</article><article class="card s2" id="f17">
+<header><span class="num">17</span><h3>Cutout ends in a straight vertical edge</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">PR 1610</span></p>
+<p>In Camera inset with Cutout, the person's shoulder stops in a straight line 18 px short of the picture's right edge, cut in mid air. There is also a smear at the lower left, near the hand.</p>
+<p class="fix"><strong>Fix.</strong> Pin the cutout flush to the picture's edge, or fade the last 24 px of the camera frame.</p>
+<p class="rule">Rule: "Crops explain themselves: every edge fades, bleeds with intent, or is a real edge" (rehearse.md).</p>
+<div class="media"><figure class="half"><a href="img/rec-1610-desktop--20-look-cutout-settled.jpg"><img loading="lazy" src="img/rec-1610-desktop--20-look-cutout-settled.jpg" alt="Right side of the cutout. Slate also stays selected here though Cutout ignores it."></a><figcaption>Right side of the cutout. Slate also stays selected here though Cutout ignores it.</figcaption></figure></div>
+</article>
+
+<h2>The rest of the app</h2>
+<article class="card s2" id="f24">
+<header><span class="num">24</span><h3>Share buttons are the heaviest thing on Home</h3></header>
+<p class="tags"><span class="sev">Fix soon</span><span class="tag">Home</span></p>
+<p>Every card carries a near-black square Share button, always visible, twelve on the first screen. On a phone each card has two, Share and the menu, and together they cover the thumbnail's headline. Thumbnails are what a rep scans to find a page, and the darkest marks sit on top of them.</p><p>Home on this test account has 191 test pages, so I did not judge its density or order.</p>
+<p class="fix"><strong>Fix.</strong> Show the rail on hover on desktop. On phones, move the menu to the card's text row, off the thumbnail.</p>
+<p class="rule">Rule: "Flat: every object the same weight" and "Say it once" (SKILL.md, craft.md).</p>
+<div class="media"><figure class="phone"><a href="img/login-phone--06-home-after-login.jpg"><img loading="lazy" src="img/login-phone--06-home-after-login.jpg" alt="Home on a phone. Two buttons cover each headline."></a><figcaption>Home on a phone. Two buttons cover each headline.</figcaption></figure><figure class="half"><a href="img/home-desktop--02-home-rest.jpg"><img loading="lazy" src="img/home-desktop--02-home-rest.jpg" alt="Home on desktop. The consent card is first-run only."></a><figcaption>Home on desktop. The consent card is first-run only.</figcaption></figure></div>
+</article><article class="card s3" id="f25">
+<header><span class="num">25</span><h3>+ Add section is the odd one out in the editor</h3></header>
+<p class="tags"><span class="sev">Polish</span><span class="tag">Editor</span></p>
+<p>+ Add logo and + Add button are dashed outlines inside the content column. + Add section is a raised gray button floating in the left gutter, outside the column, with a band of page tint below the white page. It looks like it belongs to a different product.</p>
+<p class="fix"><strong>Fix.</strong> Give it the same dashed treatment and put it in the column.</p>
+<p class="rule">Rule: reuse the shared control (<code>docs/design-system/README.md</code>).</p>
+<div class="media"><figure class="half"><a href="img/rec-main-desktop--35-build-page-settled.jpg"><img loading="lazy" src="img/rec-main-desktop--35-build-page-settled.jpg" alt="Bottom left."></a><figcaption>Bottom left.</figcaption></figure></div>
+</article>
+<p><strong>Clean, nothing to send back.</strong> Sign-in on both widths. The share dialog, whose Live band says the stage plainly. The re-record dialog. The billing screen in Settings, the one Settings frame I read closely. The public page's first screen, which is title, video and call to action on both widths, apart from <a href="#f6">the line in finding 6</a>.</p>
+<div class="media">
+<figure class="half"><a href="img/rec-main-desktop--43-share-live.jpg"><img loading="lazy" src="img/rec-main-desktop--43-share-live.jpg" alt="Share dialog"></a><figcaption>Share dialog.</figcaption></figure>
+<figure class="phone"><a href="img/public-phone--02-public-rest.jpg"><img loading="lazy" src="img/public-phone--02-public-rest.jpg" alt="Public page on a phone"></a><figcaption>Public page on a phone.</figcaption></figure>
+</div>
+
+<h2 id="review">Independent review</h2>
+<p>Stageshow's last step is a fresh-eye review, by someone who has not seen the builder's reasons. I gave gpt-6-astra the 44 frames and Stageshow's review brief, and none of my findings. It did not change any file.</p>
+<p><strong>Where it agreed, unprompted.</strong> The black picture after Apply (<a href="#f15">finding 15</a>). The composer covering the title (<a href="#f7">7</a>). The black player on arrival (<a href="#f7">7</a>). The second player in the Style tab (<a href="#f16">16</a>). It also liked the same things, the share dialog and the re-record dialog.</p>
+<p><strong>What it added, and I kept.</strong> The paused state (<a href="#f11">11</a>), the unlabeled trim group (<a href="#f12">12</a>), the missing timer on v12's phone take (<a href="#f23">23</a>), and the round dot on Stop (<a href="#f18">18</a>). I checked each against its frame.</p>
+<p><strong>Where it disagreed: v13 over v12.</strong> Its argument is that v13 keeps the picture and Stop exactly where they were at setup, while v12 resizes the picture and moves the controls at the moment a rep starts talking. It also faults v13 for its mostly empty, full-height drawer. Both points hold up against the frames. Your own lab rule, "Nothing shifts", argues for v13. My case for v12 is that the picture is twice the size for the whole take, and the shift happens once, on a press, before the rep starts talking. Using v12's own 222 px Stop in Start's exact spot removes most of the objection. Neither of us has seen a real rep use either one, and a short take on each with a real camera would settle it better than this argument can.</p>
+<p><strong>What I set aside, and why.</strong> It flagged the generated page for telling the reader to send sales videos instead of addressing Dana at Northwind. That comes from my test fixture, whose speech is about sales videos, so the page summarized what it heard. It did mention Northwind. It also flagged that Copy link shows no lasting confirmation. The button does show "Copied" for about 2 s, and its still was simply taken after that. I checked that in the video.</p>
+
+
+<h2>How much to trust this</h2>
+<p><strong>What ran.</strong> 156 stills and 93 filmed transitions across sign-in, Home, recorder, finish screen, Build page, share, public page, settings, PR 1610 and the three designs, at 1440x900 and 390x844, with short windows at 1440x790, 1366x660 and 1280x600. The engine printed 1,743 still lines, 125 layout lines, 236 motion lines and 197 jump lines.</p>
+<p><strong>Most of those lines are noise on a real app.</strong> Many are one fault repeated across frames. The rest fire on things that are fine here: <code>loose list</code> on control rows, <code>uneven gutters</code> on page layout, the mic meter's <code>hard edge</code>, <code>touching</code> on screen-reader text, and <code>clipped</code> on Home's miniature page renders. <code>near-empty frames</code> on the Videos tab only meant fewer cards. I treated a line as a finding only after seeing it in a frame.</p>
+<p><strong>Who found what.</strong> Stageshow's checks found the trim snap, the 116 px flash and the phone's 0 px gap. Findings 1, 9, 13, 18, 19 and 20 are measurements from my own scripts. The rest came from reading frames against Stageshow's rules. So the rules did more for this audit than the checker did.</p>
+<p><strong>Sampling.</strong> 55 of the 93 filmed windows had complete frame coverage. 38 had gaps and count as inconclusive for motion, mostly on heavy pages, where the checks themselves slow the page. An absence of motion lines in those windows proves nothing.</p>
+<p><strong>Not checked.</strong> A real camera, a real screen share, a real phone, Safari or iOS, a live Document Picture in Picture window (only the designs' mock of it), keyboard focus, touch, reduced motion, and the look of a finished restyle. I also did not put the frames beside Stageshow's gold examples. Those are marketing scenes, and a comparison would not be fair to a working product.</p>
+<p><strong>Rig caveats.</strong> Audio capture on the test Mac stopped answering partway through the audit. The phone run used the repo's speech fixture through WebAudio instead, as <code>record-take</code> does, which is why phone frames say "Choose microphone". The designs are mocks, so their black side bars come from the mock screen image.</p>
+<p class="small">Footage: Ward Cunningham, Inventor of the Wiki, Wikimedia Commons. The shared screen is an invented mock. Stageshow by Benji Taylor, MIT licensed.</p>
+</main></body></html>
