@@ -1,0 +1,24 @@
+<!doctype html><meta name="viewport" content="width=device-width"><title>PR 1635 incomplete verification</title><style>body{max-width:850px;margin:24px;font:16px system-ui;white-space:pre-wrap;overflow-wrap:anywhere}</style>Verdict: BLOCKED. Proof incomplete.
+Head d2d46cb9f0a2d969f91b6531f1be3edfd985ef37.
+Issue #1552. Routing steer. No sign-off exists.
+Preview https://pr-1635.clarity-video.workers.dev
+
+Verified
+- Preview head and authenticated doctor passed.
+- Editor suites caption-player, block-rendering-parity and video-player-mux-video passed. Test Files 3 passed (3). Tests 63 passed (63).
+- Workspace-tree video-captions passed. Test Files 1 passed (1). Tests 15 passed (15).
+- Seeded complete mock words on the existing Mux fixture, rather than recording a new take.
+- Chromium owner track list exposed one subtitle, Swedish, mode disabled. Native DOM retained Mux English for fallback. The custom VTT reached readyState 2.
+- Signed-out public page requested its descriptor and revision-bearing VTT at playback time. Both returned 200 in Chromium and WebKit.
+- Chromium original playback advanced to 2.951698 seconds with the Swedish track loaded and disabled. This does not prove speech synchronization or caption visibility.
+- Saving a 2 to 4 second trim returned accepted=true and clipPending=true. The public caption request returned 404 while pending.
+
+Incomplete
+- WebKit launched and fetched captions, but play() rejected with NotSupportedError. Native HLS timing remains BLOCKED, not FAIL.
+- Owner captions-on screenshot and menu interaction, public captions-on screenshots at 1440 and 390, unknown-language track label, promoted-clip playback and VTT comparison, failed-VTT recovery, unpublished/password access, baseline PR 1590, byte-identical HTML comparison and script-size comparison remain unproven.
+- Follow-up browser runs encountered ERR_ADDRESS_UNREACHABLE. No before/after screenshots qualify as proof. No code defect established.
+
+Writes
+Only PR 1635 mock data was changed. Inserted one take_speech and one take_speech_chunks row for asset 6915648c-b29f-56d0-a9fe-53c6eb285cf7. Requested a 2 to 4 second trim through videos_edit, then reset_trim, which returned accepted=true and clipPending=false. This leaves normal edit/job history and may normalize the fixture legacy metadata. Scoped deletion of the two speech rows is recorded separately in the cleanup log. No PR 1590, staging or production writes.
+
+Waved through: none.
