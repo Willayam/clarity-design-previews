@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v05 Save button</title>
+<script type="application/json" id="lab-meta">
+{"id": "v05", "name": "Save button", "axis": "a filled button with a word", "idea": "The Save button from v01, now at the /page/ address.", "cost": "Two filled buttons in view. On a phone, Move here cuts todd-webinar to todd-we", "model": "opus", "round": 2, "parents": ["v01"], "recommended": false, "why": "", "baseline": false}
+</script>
+<script src="../kit/theme.js"></script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/link.css">
+<link rel="stylesheet" href="../kit/pencil.css">
+<style></style>
+</head>
+<body>
+<script src="../kit/buttons.js"></script>
+<script src="../kit/shell.js"></script>
+<script src="../kit/link.js"></script>
+<script src="../kit/pencil.js"></script>
+<script>
+  const disabled = (s) => (s.canSave ? '' : 'disabled');
+  PENCIL.page({ save: (s) => `<button type="button" class="${LINK.btn('default', 'sm')}" data-act="save" ${disabled(s)}>${s.label}</button>` });
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

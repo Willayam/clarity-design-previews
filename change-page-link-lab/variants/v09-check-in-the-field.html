@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v09 Check in the field</title>
+<script type="application/json" id="lab-meta">
+{"id": "v09", "name": "Check in the field", "axis": "the save control inside the input", "idea": "The check sits inside the field at its right end, next to the text it saves. The X stays outside.", "cost": "A button inside an input is less familiar, and it's easy to read as a validation tick", "model": "opus", "round": 2, "parents": ["v01"], "recommended": false, "why": "", "baseline": false}
+</script>
+<script src="../kit/theme.js"></script>
+<link rel="stylesheet" href="../kit/app.css">
+<link rel="stylesheet" href="../kit/link.css">
+<link rel="stylesheet" href="../kit/pencil.css">
+<style>.lk-field [data-act="save"] { flex: none; margin-right: 3px; } .lk-box [data-act="save"]:not(:disabled) { color: var(--primary); }</style>
+</head>
+<body>
+<script src="../kit/buttons.js"></script>
+<script src="../kit/shell.js"></script>
+<script src="../kit/link.js"></script>
+<script src="../kit/pencil.js"></script>
+<script>
+  const disabled = (s) => (s.canSave ? '' : 'disabled');
+  PENCIL.page({ inField: true, save: (s) => LINK.iconBtn('check', s.label, `data-act="save" ${disabled(s)}`) });
+</script>
+<script src="../_lab/runtime.js" data-lab-runtime defer></script></body>
+</html>

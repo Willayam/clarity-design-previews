@@ -16,6 +16,8 @@
   var state = blank();
   var store = "design-lab:" + location.pathname;
   var firstVisit = !readLocal("ui");
+  var phone = window.matchMedia("(max-width: 700px)");
+  var sysDark = window.matchMedia("(prefers-color-scheme: dark)");
   var ui = Object.assign({ view: "grid", width: 1440, cols: 3, round: "latest", screen: "", part: "", tall: false,
     theme: "auto", hideNo: false, yesOnly: false, focus: null, compare: false, controls: {} }, readLocal("ui") || {});
   var frames = [];
@@ -24,9 +26,9 @@
   var saveTimer = null;
   var dirty = false, lastSaved = "";
   var draft = null; // the comment being written: {key, text, part, selector, quote, tag, screen}
-  var renderedAt = 0, renderScroll = 0, userScrolled = false;
+  var renderedAt = 0, renderScroll = 0, userScrolled = false, listY = 0;
 
-  function blank() { return { variants: {}, comments: [], note: "", compose: {} }; }
+  function blank() { return { variants: {}, comments: [], compose: {} }; }
   function readLocal(k) { try { return JSON.parse(localStorage.getItem(store + ":" + k)); } catch (e) { return null; } }
   function writeLocal(k, v) { try { localStorage.setItem(store + ":" + k, JSON.stringify(v)); } catch (e) {} }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -50,10 +52,22 @@
   }
 
   var ICON = {
-    open: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>',
-    tab: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2.5h4.5V7M13.5 2.5L7 9M11.5 9.5v4h-9v-9h4"/></svg>',
-    x: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>'
+    previous: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>',
+    next: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>',
+    tab: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h6.5V10M12.5 3.5l-9 9"/></svg>',
+    x: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+    desktop: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/><path d="M5.5 14h5M8 11.5V14"/></svg>',
+    tablet: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1.5" width="11" height="13" rx="1.6"/><path d="M6.5 12.25h3"/></svg>',
+    phone: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="1.5" width="7" height="13" rx="1.6"/><path d="M7 12.25h2"/></svg>'
   };
+  var DEVICE = { desktop: "Desktop", tablet: "Tablet", phone: "Phone" };
+  function deviceOf(w) { return w >= 1200 ? "desktop" : w >= 700 ? "tablet" : "phone"; }
+
+  // The board's own colours follow the Theme setting. Auto follows the system, live.
+  function applyTheme() {
+    var dark = ui.theme === "dark" || (ui.theme !== "light" && sysDark.matches);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  }
 
   // ------------------------------------------------------------ data
 
@@ -142,10 +156,22 @@
 
   function latestRound() { var r = rounds(); return Math.max(r[r.length - 1] || 1, Number(data.lab.round) || 1); }
 
+  function roundOfKey(key) {
+    var parts = String(key).split(":");
+    var s = parts.length === 2 && slotById(parts[0]);
+    var list = parts.length === 2 ? (s ? s.variants : []) : data.variants;
+    var v = list.filter(function (x) { return x.id === parts[parts.length - 1]; })[0];
+    return Number(v && v.round || 1);
+  }
+
+  // Verdicts and comments carry the round they were made in, so Copy feedback sends only the
+  // latest round. Marks saved before rounds were stamped count for their variant's round.
+  function current(mark, key) { return (Number(mark.round) || roundOfKey(key)) === latestRound(); }
+
   function inRound(v, key) {
     var s = state.variants[key || v.id] || {};
     var r = Number(v.round || 1);
-    if (ui.round === "latest") return r === latestRound() || v.baseline || v.recommended || s.verdict === "yes";
+    if (ui.round === "latest") return !v.old && (r === latestRound() || v.baseline || v.recommended || s.verdict === "yes");
     return ui.round === "all" || String(r) === String(ui.round) || v.baseline;
   }
 
@@ -217,8 +243,20 @@
     if (screens.length && !screens.some(function (s) { return s.id === ui.screen; })) ui.screen = screens[0].id;
     if (!screens.length) ui.screen = "";
     var widths = lab.widths || [1440, 390];
+    // A phone renders designs at a phone width until the reviewer picks another width on that device.
+    if (!SHOT && phone.matches) {
+      var narrowest = Math.min.apply(Math, widths);
+      if (narrowest >= 700) widths = widths.concat([390]);
+      if (!ui.widthPicked) ui.width = narrowest < 700 ? narrowest : 390;
+    }
     if (widths.indexOf(Number(ui.width)) < 0) ui.width = widths[0];
-    $("#widths").innerHTML = widths.map(function (w) { return '<button data-w="' + w + '" title="' + w + ' px wide">' + (w >= 1200 ? "Desktop" : w >= 700 ? "Tablet" : "Phone") + "</button>"; }).join("");
+    // Each width is a glyph and its device name. Widths of the same kind are told apart by their px.
+    var kinds = widths.map(deviceOf), seen = {};
+    kinds.forEach(function (k) { seen[k] = (seen[k] || 0) + 1; });
+    $("#widths").innerHTML = widths.map(function (w, i) {
+      var k = kinds[i];
+      return '<button class="key" data-w="' + w + '" title="' + DEVICE[k] + ", " + w + ' px wide">' + ICON[k] + "<span>" + (seen[k] > 1 ? w : DEVICE[k]) + "</span></button>";
+    }).join("");
     var rs = rounds();
     $("#round").innerHTML = '<option value="latest">Latest round</option><option value="all">All rounds</option>' +
       rs.map(function (n) { return '<option value="' + n + '">Round ' + n + "</option>"; }).join("");
@@ -244,6 +282,7 @@
     var show = { grid: hasV, parts: hasV || hasS, flow: hasV && hasScreens, mix: hasS };
     if (ui.view !== "focus" && !show[ui.view]) ui.view = hasS && !hasV ? "mix" : "grid";
     if (ui.view === "focus" && !hasV) ui.view = "mix";
+    document.body.setAttribute("data-view", ui.view);
     $$("#views button").forEach(function (b) { b.style.display = show[b.dataset.v] ? "" : "none"; b.setAttribute("aria-pressed", String(b.dataset.v === ui.view)); });
     $$("#widths button").forEach(function (b) { b.setAttribute("aria-pressed", String(Number(b.dataset.w) === Number(ui.width))); });
     $$("#cols button").forEach(function (b) { b.setAttribute("aria-pressed", String(Number(b.dataset.c) === Number(ui.cols))); });
@@ -262,7 +301,15 @@
   }
 
   function bindControls() {
-    $("#widths").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { ui.width = Number(b.dataset.w); render(); } });
+    function placeWidths() {
+      if (SHOT) return;
+      if (phone.matches) $("#widthRow").appendChild($("#widths"));
+      else $("header.bar").insertBefore($("#widths"), $("#moreBtn"));
+    }
+    placeWidths();
+    phone.addListener(placeWidths);
+    sysDark.addListener(applyTheme);
+    $("#widths").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { ui.width = Number(b.dataset.w); ui.widthPicked = true; render(); } });
     $("#screen").addEventListener("change", function (e) {
       ui.screen = e.target.value;
       frames.forEach(function (f) { if (f.mode !== "flow") send(f, { type: "screen", hash: ui.screen }); });
@@ -277,16 +324,25 @@
     $("#controls").addEventListener("change", function (e) { var s = e.target.closest("select"); if (s) { ui.controls[s.dataset.ctl] = s.value; render(); } });
     $("#tall").addEventListener("change", function (e) { ui.tall = e.target.checked; render(); });
     $("#compare").addEventListener("change", function (e) { ui.compare = e.target.checked; render(); });
-    $("#theme").addEventListener("change", function (e) { ui.theme = e.target.value; frames.forEach(function (f) { send(f, { type: "theme", value: ui.theme }); }); writeLocal("ui", ui); });
+    $("#theme").addEventListener("change", function (e) { ui.theme = e.target.value; applyTheme(); frames.forEach(function (f) { send(f, { type: "theme", value: ui.theme }); }); writeLocal("ui", ui); });
     $("#hideNo").addEventListener("change", function (e) { ui.hideNo = e.target.checked; writeLocal("ui", ui); refreshMarks(); });
     $("#yesOnly").addEventListener("change", function (e) { ui.yesOnly = e.target.checked; writeLocal("ui", ui); refreshMarks(); });
-    $("#sendBtn").addEventListener("click", openSend);
+    $("#copyBtn").addEventListener("click", copyFeedback);
     document.addEventListener("click", function (e) {
       if (!$("#more").hidden && !e.target.closest("#more") && !e.target.closest("#moreBtn")) toggleMore(false);
     });
     ["wheel", "touchmove", "keydown"].forEach(function (t) { window.addEventListener(t, function () { userScrolled = true; }, { passive: true }); });
+    window.addEventListener("scroll", floatCopy, { passive: true });
     window.addEventListener("resize", function () { clearTimeout(window._rz); window._rz = setTimeout(layoutAll, 120); });
     document.addEventListener("keydown", function (e) { onKey(e.key, e.target, e.metaKey || e.ctrlKey || e.altKey, e); });
+  }
+
+  // Copy feedback sits in the header line and stays pinned at that spot once the page scrolls.
+  // Its slot keeps the width so nothing else in the line moves when it lifts out.
+  function floatCopy() {
+    var away = window.scrollY > 0;
+    $("#copySlot").style.width = away ? $("#copyBtn").offsetWidth + "px" : "";
+    document.body.classList.toggle("away", away);
   }
 
   function toggleMore(force) {
@@ -297,18 +353,26 @@
   }
 
   function setView(v) {
+    var from = ui.view;
     if (v !== "focus") ui.lastView = v;
     if (v === "focus" && !ui.focus) { var vis = visible(); ui.focus = vis.length ? vis[0].id : null; }
+    if (v === "focus" && from !== "focus") listY = window.scrollY;
     ui.view = v;
     toggleMore(false);
     render();
+    // Focus opens at the top of the page, so Back puts the list where it was.
+    if (from === "focus" && v !== "focus") {
+      layoutAll();
+      window.scrollTo(0, listY);
+      renderScroll = listY;
+    }
   }
 
   function typing(t) { return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable); }
 
   function onKey(k, target, mod, ev) {
     if (k === "Escape") {
-      if (!$("#sendSheet").hidden) closeSend();
+      if (!$("#copySheet").hidden) closeCopy();
       else if (draft) cancelDraft();
       else if (!$("#more").hidden) toggleMore(false);
       else if (ui.view === "focus") setView(ui.lastView || "grid");
@@ -316,7 +380,7 @@
       if (ev) ev.preventDefault();
       return;
     }
-    if (mod || typing(target) || !$("#sendSheet").hidden) return;
+    if (mod || typing(target) || !$("#copySheet").hidden) return;
     var vis = visible();
     var key = ui.focus;
     var lower = k.toLowerCase();
@@ -348,7 +412,7 @@
     iframe.title = key;
     var w = Number(opts.width || ui.width);
     var f = { iframe: iframe, wrap: wrap, vid: key, src: src, key: key + ":" + Math.random().toString(36).slice(2, 8), keys: opts.keys || [key],
-      owner: opts.owner || key, mode: opts.mode, part: opts.part, w: w, h: HEIGHTS[w] || Math.round(w * 0.65), docH: 0, measured: false, rect: null, ready: false };
+      owner: opts.owner || key, mode: opts.mode, part: opts.part, w: w, h: HEIGHTS[w] || Math.round(w * (w < 700 ? 2.17 : 0.65)), docH: 0, measured: false, rect: null, ready: false };
     iframe.src = src;
     iframe.addEventListener("load", function () {
       // A hash route inside a same-origin frame can scroll the board. Undo that until the user scrolls.
@@ -392,6 +456,19 @@
       return;
     }
     if (f.mode === "focus" || f.mode === "mix") {
+      // Focus gives the design the first screen, less the line under it and an open comment box.
+      // The idea and the comments follow below the fold.
+      // Side by side, both plates take the taller of the two lines so they end level. Stacked on a
+      // phone, each takes a whole screen.
+      if (f.mode === "focus") {
+        var box = f.wrap.parentNode.parentNode, below = 0;
+        $$(".focus-col", box).forEach(function (col) {
+          var h = 10;
+          $$(".th, .axes, .compose", col).forEach(function (el) { h += el.offsetHeight + (parseFloat(window.getComputedStyle(el).marginTop) || 0); });
+          below = Math.max(below, h);
+        });
+        f.wrap.style.setProperty("--chrome", Math.ceil(box.getBoundingClientRect().top + window.scrollY + below) + "px");
+      }
       var availH = f.wrap.clientHeight || (window.innerHeight - 160);
       s = Math.min(1, avail / w);
       f.iframe.style.height = Math.ceil(availH / s) + "px";
@@ -446,6 +523,8 @@
     userScrolled = false;
     var main = $("#main");
     main.innerHTML = "";
+    $("#vcap").innerHTML = "";
+    document.body.classList.remove("capup");
     syncChrome();
     refreshParts();
     var total = data.variants.length + data.slots.reduce(function (n, s) { return n + s.variants.length; }, 0);
@@ -472,27 +551,36 @@
     return v ? key + (v.name ? " " + v.name : "") : key;
   }
 
+  // The line under a plate: id and name, which open the variant large, its chips, the idea where
+  // it fits, Previous and Next in Focus, then the keys. Focus puts the name in the header instead.
   function header(v, key, opts) {
     var th = document.createElement("div");
     th.className = "th";
-    th.innerHTML = '<span class="id">' + esc(opts.label || v.id) + "</span>" +
-      '<span class="nm">' + esc(v.name || "") + "</span>" +
+    var label = '<span class="id">' + esc(opts.label || v.id) + '</span><span class="nm">' + esc(v.name || "") + "</span>";
+    var cap = (opts.open ? '<button class="name" data-open title="Open large (O)">' + label + "</button>" : '<span class="name" title="' + esc(nameOf(key)) + '">' + label + "</span>") +
       (v.baseline ? '<span class="chip">current</span>' : "") +
       (v.recommended ? '<span class="chip pick" title="' + esc(v.why || "") + '">agent pick</span>' : "") +
-      '<span class="sp"></span>' +
-      (opts.open ? '<button class="ico" data-open title="Open large (O)">' + ICON.open + "</button>" : "") +
-      (opts.href ? '<a class="ico" title="Open in a new tab" target="_blank" href="' + esc(opts.href) + '">' + ICON.tab + "</a>" : "");
+      (opts.gist && v.idea ? '<span class="gist" title="' + esc(v.idea) + '"><span>' + esc(v.idea) + "</span></span>" : "");
+    if (opts.capTo) { opts.capTo.innerHTML = cap; document.body.classList.add("capup"); }
+    th.innerHTML = (opts.capTo ? "" : '<div class="cap">' + cap + "</div>") +
+      (opts.count ? '<div class="nav"><button class="ico" data-focus-nav="ArrowLeft" aria-label="Previous" title="Previous (←)">' + ICON.previous +
+        '</button><span class="count">' + esc(opts.count) + '</span><button class="ico" data-focus-nav="ArrowRight" aria-label="Next" title="Next (→)">' + ICON.next + "</button></div>" : "");
+    th.appendChild(actions(key, opts.href));
     var b = $("[data-open]", th);
     if (b) b.addEventListener("click", function () { ui.focus = key; setView("focus"); });
+    $$("[data-focus-nav]", th).forEach(function (button) {
+      button.addEventListener("click", function () { onKey(button.dataset.focusNav, null, false, null); });
+    });
     return th;
   }
 
-  function actions(key) {
+  function actions(key, href) {
     var row = document.createElement("div");
     row.className = "acts";
     row.innerHTML = VERDICTS.map(function (v) {
-      return '<button class="act ' + v[0] + '" data-act="' + v[0] + '" aria-pressed="false"><kbd>' + v[1] + "</kbd>" + v[2] + "</button>";
-    }).join("") + '<button class="act comment" data-act="comment"><kbd>C</kbd>Comment</button>';
+      return '<button class="key act ' + v[0] + '" data-act="' + v[0] + '" aria-pressed="false" title="' + v[2] + " (" + v[1] + ')">' + v[2] + "</button>";
+    }).join("") + '<button class="key act comment" data-act="comment" title="Comment (C)">Comment</button>' +
+      (href ? '<a class="ico tab" title="Open in a new tab" target="_blank" href="' + esc(href) + '">' + ICON.tab + "</a>" : "");
     row.addEventListener("click", function (e) {
       var b = e.target.closest("[data-act]");
       if (!b) return;
@@ -503,22 +591,22 @@
     return row;
   }
 
-  // A tile is one variant: header, the design, Y/M/N/C, its comments, and the comment box when open.
+  // A tile is one variant: the design on its plate, the line under it with Y/M/N/C, the comment box
+  // when open, then the idea (in Focus) and the comments.
   function tile(v, key, frameOpts, headOpts) {
     var t = document.createElement("section");
     t.className = "tile";
     t.dataset.key = key;
     t._v = v;
     t.addEventListener("mouseenter", function () { ui.focus = key; $$(".tile.sel").forEach(function (x) { x.classList.remove("sel"); }); t.classList.add("sel"); });
+    var f = makeFrame(key, frameOpts.src, Object.assign({ owner: key }, frameOpts));
+    t.appendChild(f.wrap);
     t.appendChild(header(v, key, headOpts));
     var bar = frameOpts.mode !== "part" && axesBar(v, function () { f.iframe.src = f.src = srcFor(v, ui.screen); });
     if (bar) t.appendChild(bar);
-    var f = makeFrame(key, frameOpts.src, Object.assign({ owner: key }, frameOpts));
-    t.appendChild(f.wrap);
     var foot = document.createElement("div");
     foot.className = "tf";
-    foot.appendChild(actions(key));
-    if (v.idea) foot.insertAdjacentHTML("beforeend", '<p class="idea">' + esc(v.idea) + "</p>");
+    if (v.idea && !headOpts.gist) foot.insertAdjacentHTML("beforeend", '<p class="idea">' + esc(v.idea) + "</p>");
     var list = document.createElement("ol");
     list.className = "comments";
     foot.appendChild(list);
@@ -547,14 +635,16 @@
       var mine = state.comments.map(function (c, i) { return [c, i]; }).filter(function (x) { return x[0].key === key; });
       list.innerHTML = mine.map(function (x) {
         var c = x[0];
-        return '<li><span class="on">' + esc(c.part || (c.quote ? "“" + c.quote.slice(0, 40) + "”" : "")) + "</span> " + esc(c.text) +
+        return '<li><span class="tx" title="' + esc(c.text) + '"><span class="on">' + esc(c.part || (c.quote ? "“" + c.quote.slice(0, 40) + "”" : "")) + "</span> " + esc(c.text) + "</span>" +
           '<button class="ico del" data-i="' + x[1] + '" title="Delete comment">' + ICON.x + "</button></li>";
       }).join("");
       $$(".del", list).forEach(function (b) { b.addEventListener("click", function () { state.comments.splice(Number(b.dataset.i), 1); save(); refreshMarks(); }); });
     }
     var box = $(".compose", t);
-    if (draft && draft.key === key) { if (!box) t.appendChild(composeBox()); }
-    else if (box) box.remove();
+    if (draft && draft.key === key) {
+      var above = $(".axes", t) || $(".th", t);
+      if (!box) t.insertBefore(composeBox(), above.nextSibling);
+    } else if (box) box.remove();
   }
 
   function refreshMarks() {
@@ -601,7 +691,7 @@
     var g = gridEl();
     vis.forEach(function (v) {
       var src = srcFor(v, ui.screen);
-      g.appendChild(tile(v, v.id, { mode: "grid", src: src }, { open: true, href: src }));
+      g.appendChild(tile(v, v.id, { mode: "grid", src: src }, { open: true, href: src, gist: true }));
     });
     main.appendChild(g);
   }
@@ -615,12 +705,12 @@
         var key = slot.id + ":" + fr.id;
         var picks = {}; picks[slot.id] = fr.id;
         var src = pageSrc(picks, slot.id);
-        g.appendChild(tile(fr, key, { mode: "part", part: slot.id, src: src, keys: [key] }, { label: fr.id.toUpperCase(), href: src }));
+        g.appendChild(tile(fr, key, { mode: "part", part: slot.id, src: src, keys: [key] }, { label: fr.id.toUpperCase(), href: src, gist: true }));
       });
     } else {
       visible().forEach(function (v) {
         var src = srcFor(v, ui.screen);
-        g.appendChild(tile(v, v.id, { mode: "part", part: ui.part, src: src }, { open: true, href: src }));
+        g.appendChild(tile(v, v.id, { mode: "part", part: ui.part, src: src }, { open: true, href: src, gist: true }));
       });
     }
     main.appendChild(g);
@@ -635,19 +725,29 @@
     data.slots.forEach(function (s) {
       var row = document.createElement("div");
       row.className = "slot";
-      row.innerHTML = '<div class="slot-name">' + esc(s.label || s.id) + ((data.lab.locked || {})[s.id] ? ' <span class="chip">locked</span>' : "") + "</div>";
+      row.innerHTML = '<div class="slot-name"><span>' + esc(s.label || s.id) + "</span>" + ((data.lab.locked || {})[s.id] ? '<span class="chip">locked</span>' : "") + "</div>";
       var btns = document.createElement("div");
       btns.className = "slot-btns";
       ordered(s.variants.filter(function (f) { return inRound(f, s.id + ":" + f.id) || picks[s.id] === f.id; })).forEach(function (f) {
         var key = s.id + ":" + f.id;
         var st = state.variants[key] || {};
         var b = document.createElement("button");
-        b.textContent = f.id.toUpperCase();
+        b.innerHTML = esc(f.id.toUpperCase()) + (f.recommended ? '<i class="rec"></i>' : "");
         b.dataset.key = key;
-        b.className = (picks[s.id] === f.id ? "on " : "") + (f.recommended ? "rec " : "") + (st.verdict || "");
+        b.className = "key round " + (picks[s.id] === f.id ? "on " : "") + (st.verdict || "");
         b.title = [f.name, f.idea, f.recommended ? "Agent pick" : ""].filter(Boolean).join(". ");
         b.setAttribute("aria-pressed", String(picks[s.id] === f.id));
-        b.addEventListener("click", function () { state.compose[s.id] = f.id; save(); render(); });
+        b.addEventListener("click", function () {
+          state.compose[s.id] = f.id;
+          save();
+          render();
+          if (phone.matches) {
+            var picked = $('.mix .slot-btns button[data-key="' + cssEsc(key) + '"]');
+            var slot = picked.parentNode.parentNode;
+            var rail = slot.parentNode;
+            rail.scrollTop = Math.max(0, slot.getBoundingClientRect().bottom - rail.getBoundingClientRect().bottom);
+          }
+        });
         btns.appendChild(b);
       });
       row.appendChild(btns);
@@ -680,13 +780,17 @@
       t.className = "tile";
       t.dataset.key = v.id;
       t._v = v;
-      t.addEventListener("mouseenter", function () { ui.focus = v.id; });
-      t.appendChild(header(v, v.id, { open: true }));
+      t.addEventListener("mouseenter", function () { ui.focus = v.id; $$(".tile.sel").forEach(function (x) { x.classList.remove("sel"); }); t.classList.add("sel"); });
       var row = document.createElement("div");
       row.className = "row";
       row.style.gridTemplateColumns = cols;
       screens.forEach(function (s) {
         var cell = document.createElement("div");
+        var label = document.createElement("div");
+        label.className = "cellhead";
+        label.hidden = true;
+        label.textContent = s.label || s.id;
+        cell.appendChild(label);
         var f = makeFrame(v.id, srcFor(v, s.id), { mode: "flow", owner: v.id });
         var cover = document.createElement("div");
         cover.className = "cover";
@@ -697,9 +801,9 @@
         row.appendChild(cell);
       });
       t.appendChild(row);
+      t.appendChild(header(v, v.id, { open: true, gist: true }));
       var foot = document.createElement("div");
       foot.className = "tf";
-      foot.appendChild(actions(v.id));
       var list = document.createElement("ol");
       list.className = "comments";
       foot.appendChild(list);
@@ -719,11 +823,13 @@
     box.className = "focus" + (split ? " split" : "");
     [split ? base : null, v].filter(Boolean).forEach(function (item) {
       var src = srcFor(item, ui.screen);
-      var t = tile(item, item.id, { mode: "focus", src: src }, { href: src, label: item === v ? item.id + "  " + (vis.indexOf(v) + 1) + " of " + vis.length : item.id });
+      var t = tile(item, item.id, { mode: "focus", src: src }, { href: src, count: item === v ? (vis.indexOf(v) + 1) + " of " + vis.length : "", capTo: split ? null : $("#vcap") });
       t.classList.add("focus-col");
       box.appendChild(t);
     });
     main.appendChild(box);
+    renderScroll = 0;
+    window.scrollTo(0, 0);
   }
 
   // ------------------------------------------------------------ verdicts and comments
@@ -731,6 +837,7 @@
   function setVerdict(key, verdict) {
     var s = vstate(key);
     s.verdict = s.verdict === verdict ? null : verdict;
+    s.round = latestRound();
     save();
     refreshMarks();
   }
@@ -752,8 +859,8 @@
     var box = document.createElement("form");
     box.className = "compose";
     box.innerHTML = '<textarea rows="2" placeholder="Your comment"></textarea>' +
-      '<div class="crow"><span class="where"></span><span class="sp"></span>' +
-      '<button type="button" class="btn" data-cancel>Cancel</button><button type="submit" class="btn primary">Add</button></div>';
+      '<div class="crow"><span class="where"></span>' +
+      '<button type="button" class="key ghost" data-cancel>Cancel</button><button type="submit" class="key pill">Add</button></div>';
     var ta = $("textarea", box);
     ta.value = draft ? draft.text : "";
     ta.addEventListener("input", function () { if (draft) draft.text = ta.value; });
@@ -770,7 +877,7 @@
   function paintWhere(box) {
     var w = $(".where", box);
     if (!w || !draft) return;
-    w.textContent = draft.part || draft.quote ? "On " + (draft.part || "“" + draft.quote.slice(0, 40) + "”") : "Click the design to point at a spot";
+    w.textContent = draft.part || draft.quote ? "On " + (draft.part || "“" + draft.quote.slice(0, 40) + "”") : (window.matchMedia("(pointer: coarse)").matches ? "Tap" : "Click") + " the design to point at a spot";
   }
 
   function attachToDraft(f, m) {
@@ -793,7 +900,7 @@
     if (!draft) return;
     var text = (draft.text || "").trim();
     if (!text && !draft.part && !draft.quote) return cancelDraft();
-    state.comments.push({ key: draft.key, text: text, part: draft.part, selector: draft.selector, quote: draft.quote, tag: draft.tag, screen: draft.screen });
+    state.comments.push({ key: draft.key, text: text, part: draft.part, selector: draft.selector, quote: draft.quote, tag: draft.tag, screen: draft.screen, round: latestRound() });
     draft = null;
     stopPinning();
     save();
@@ -808,87 +915,86 @@
   }
 
   function updateCount() {
-    var n = Object.keys(state.variants).filter(function (k) { return state.variants[k].verdict; }).length + state.comments.length + (state.note ? 1 : 0);
+    var n = latestVerdicts().length + latestComments().length;
     $("#count").textContent = n ? String(n) : "";
+    if (document.body.classList.contains("away")) floatCopy();
   }
+
+  function latestVerdicts() { return Object.keys(state.variants).filter(function (k) { return state.variants[k].verdict && current(state.variants[k], k); }); }
+  function latestComments() { return state.comments.filter(function (c) { return current(c, c.key); }); }
 
   function compile() {
     var lines = ["Design lab feedback: " + (data.lab.title || "") + ", round " + latestRound()];
     if (data.dir) lines.push("Lab: " + data.dir);
     lines.push("");
     VERDICTS.forEach(function (v) {
-      var ids = Object.keys(state.variants).filter(function (k) { return state.variants[k].verdict === v[0]; });
+      var ids = latestVerdicts().filter(function (k) { return state.variants[k].verdict === v[0]; });
       if (ids.length) lines.push(v[2] + ": " + ids.map(nameOf).join("; "));
     });
     if (data.slots.length && Object.keys(state.compose).length) {
       var picks = currentPicks();
       lines.push("Page mix: " + data.slots.map(function (s) { return s.id + "=" + (picks[s.id] || "none"); }).join(", "));
     }
-    var withAxes = Object.keys(state.variants).filter(function (k) { return state.variants[k].axes; });
+    var withAxes = Object.keys(state.variants).filter(function (k) { return state.variants[k].axes && current(state.variants[k], k); });
     if (withAxes.length) {
       lines.push("", "Settings chosen:");
       withAxes.forEach(function (k) { var a = state.variants[k].axes; lines.push("- " + k + ": " + Object.keys(a).map(function (x) { return x + "=" + a[x]; }).join(", ")); });
     }
-    if (state.comments.length) {
+    var comments = latestComments();
+    if (comments.length) {
       lines.push("", "Comments:");
-      state.comments.forEach(function (c, i) {
+      comments.forEach(function (c, i) {
         lines.push((i + 1) + ". " + nameOf(c.key) + (c.part ? " › " + c.part : "") + (c.screen ? " (#" + c.screen + ")" : "") + ": " + (c.text || "(no text)"));
         if (c.selector) lines.push("   " + (c.quote ? '"' + c.quote.slice(0, 90) + '" ' : "") + "<" + (c.tag || "?") + "> " + c.selector);
       });
     }
-    if (state.note) lines.push("", "Anything else:", state.note);
     return lines.join("\n");
   }
 
-  function openSend() {
+  function copyFeedback() {
     toggleMore(false);
-    var sheet = $("#sendSheet");
-    $("pre", sheet).textContent = compile();
-    var ta = $("textarea", sheet);
-    ta.value = state.note || "";
-    $("#doSend", sheet).textContent = api ? "Send" : "Copy";
-    sheet.hidden = false;
-    ta.focus();
-  }
-
-  function closeSend() { $("#sendSheet").hidden = true; }
-
-  function bindSend() {
-    var sheet = $("#sendSheet");
-    var ta = $("textarea", sheet);
-    ta.addEventListener("input", function () { state.note = ta.value; save(); $("pre", sheet).textContent = compile(); });
-    $("#closeSend").addEventListener("click", closeSend);
-    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeSend(); });
-    $("#doSend").addEventListener("click", function () {
-      var btn = this;
-      if (btn.disabled) return;
-      var text = compile();
-      copy(text);
-      if (!api) { closeSend(); return toast("Copied. Paste it into the chat."); }
-      btn.disabled = true;
-      setTimeout(function () { btn.disabled = false; }, 1500);
-      clearTimeout(saveTimer);
-      dirty = false;
-      lastSaved = JSON.stringify(state);
-      fetch("_lab/api/send", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text, round: latestRound(), state: state }) })
-        .then(function (r) { return r.json(); })
-        .then(function (r) { closeSend(); toast(r.ok ? "Sent. It's also on your clipboard." : "Could not send: " + (r.error || ""), 4000); })
-        .catch(function () { toast("The lab server did not answer. The text is on your clipboard.", 4000); });
+    var text = compile();
+    copy(text).then(function (ok) {
+      if (ok) return toast("Copied. Paste it into the chat.");
+      var sheet = $("#copySheet");
+      var pre = $("pre", sheet);
+      pre.textContent = text;
+      sheet.hidden = false;
+      var range = document.createRange();
+      range.selectNodeContents(pre);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      pre.focus();
     });
   }
 
+  function closeCopy() { $("#copySheet").hidden = true; }
+
+  function bindCopy() {
+    var sheet = $("#copySheet");
+    $("#closeCopy").addEventListener("click", closeCopy);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeCopy(); });
+  }
+
+  // Resolves true when the text reached the clipboard. Plain http on the tailnet is not a
+  // secure context, so the Clipboard API is missing there and execCommand does the copy.
   function copy(text) {
     function fallback() {
       var t = document.createElement("textarea");
       t.value = text;
+      t.setAttribute("readonly", "");
+      t.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px";
       document.body.appendChild(t);
       t.select();
-      try { document.execCommand("copy"); } catch (e) {}
+      t.setSelectionRange(0, text.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
       t.remove();
+      return ok;
     }
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).catch(fallback);
-    else fallback();
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(function () { return true; }, fallback);
+    return Promise.resolve(fallback());
   }
 
   // ------------------------------------------------------------ boot
@@ -903,8 +1009,9 @@
   // A link can open a given view and part: ?view=parts&part=live
   if (!SHOT && params.get("view")) { ui.view = params.get("view"); firstVisit = false; }
   if (params.get("part")) ui.part = params.get("part");
+  applyTheme();
   bindControls();
-  bindSend();
+  bindCopy();
   load(true).then(function () {
     if (!SHOT && api) setInterval(function () { load(false).catch(function () {}); }, 3000);
   }).catch(function (e) {

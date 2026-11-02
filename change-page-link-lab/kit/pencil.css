@@ -1,0 +1,6 @@
+/* Round 2: the live dialog with the states that matter stacked under it, at true size. */
+.r2-column { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0; }
+.r2-rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.r2-card { padding: 14px 24px 12px; background: var(--popover); color: var(--popover-foreground); border-radius: 14px; box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 8%, transparent); }
+.r2-slot { display: contents; }
+@media (max-width: 760px) { .r2-card { padding: 12px 18px; } }

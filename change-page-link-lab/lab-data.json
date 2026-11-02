@@ -4,12 +4,17 @@
     "scope": "component",
     "fidelity": "native",
     "created": "2026-10-27 17:49",
-    "round": 1,
+    "round": 2,
     "rounds": [
       {
         "n": 1,
         "question": "Where does Todd change the link, and how much of the dialog moves when he does?",
         "note": "v01 is the pencil design from the chat. v00 is today's dialog."
+      },
+      {
+        "n": 2,
+        "question": "Which save control for the pencil design, now that links are clarity.video/page/<name>?",
+        "note": "Built from your comments on v01."
       }
     ],
     "widths": [
@@ -50,13 +55,14 @@
       "idea": "A pencil next to the copy icon turns the link row into a field with Save and Cancel. Nothing else in the dialog moves.",
       "cost": "The pencil is easy to miss",
       "model": "opus",
+      "old": true,
       "round": 1,
       "parents": [],
       "recommended": true,
       "why": "The smallest change that works. One icon, and the row it edits is the row that shows the link.",
       "baseline": false,
       "file": "variants/v01-pencil-on-the-link.html",
-      "mtime": 1793119990.9053962
+      "mtime": 1793623727.3014188
     },
     {
       "id": "v02",
@@ -80,13 +86,14 @@
       "idea": "A Change button in the link row opens a small popover under it with the field, the status line, Cancel and Save. The dialog under it never moves.",
       "cost": "A popover on a dialog is one more layer, and it covers the rows below while open",
       "model": "opus",
+      "old": true,
       "round": 1,
       "parents": [],
       "recommended": false,
       "why": "",
       "baseline": false,
       "file": "variants/v03-change-link-popover.html",
-      "mtime": 1793120711.8981988
+      "mtime": 1793623727.3017755
     },
     {
       "id": "v04",
@@ -95,13 +102,99 @@
       "idea": "A pencil opens Change link in the same dialog, with a full-width field and Save at the bottom.",
       "cost": "Changing the link takes another step and hides the sharing controls.",
       "model": "gpt-6-astra",
+      "old": true,
       "round": 1,
       "parents": [],
       "recommended": false,
       "why": "",
       "baseline": false,
       "file": "variants/v04-a-step-in-the-dialog.html",
-      "mtime": 1793120324.9759943
+      "mtime": 1793623747.0922735
+    },
+    {
+      "id": "v05",
+      "name": "Save button",
+      "axis": "a filled button with a word",
+      "idea": "The Save button from v01, now at the /page/ address.",
+      "cost": "Two filled buttons in view. On a phone, Move here cuts todd-webinar to todd-we",
+      "model": "opus",
+      "round": 2,
+      "parents": [
+        "v01"
+      ],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v05-save-button.html",
+      "mtime": 1793623856.7047737
+    },
+    {
+      "id": "v06",
+      "name": "Filled check",
+      "axis": "a filled button with an icon",
+      "idea": "A filled square with a check replaces the word Save.",
+      "cost": "Still two filled buttons in view. On another page, only the status line says it moves the name",
+      "model": "opus",
+      "round": 2,
+      "parents": [
+        "v01"
+      ],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v06-filled-check.html",
+      "mtime": 1793623727.3299956
+    },
+    {
+      "id": "v07",
+      "name": "Check and X in place",
+      "axis": "a quiet icon where the pencil was",
+      "idea": "The pencil and copy icons become a check and an X in the same spots, so the right end of the row never moves. The check turns blue when the name can be saved.",
+      "cost": "The quietest of the five, so the blue check has to carry the action",
+      "model": "opus",
+      "round": 2,
+      "parents": [
+        "v01"
+      ],
+      "recommended": true,
+      "why": "The whole name fits on a phone, nothing moves when editing starts, and Copy link stays the only filled button.",
+      "baseline": false,
+      "file": "variants/v07-check-and-x.html",
+      "mtime": 1793623856.704558
+    },
+    {
+      "id": "v08",
+      "name": "Quiet Save",
+      "axis": "an outlined button with a word",
+      "idea": "Save keeps its word but loses the fill, so Copy link stays the only filled button.",
+      "cost": "Reads as less of a next step. On a phone, Move here cuts todd-webinar to todd-we",
+      "model": "opus",
+      "round": 2,
+      "parents": [
+        "v01"
+      ],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v08-quiet-save.html",
+      "mtime": 1793623856.7051926
+    },
+    {
+      "id": "v09",
+      "name": "Check in the field",
+      "axis": "the save control inside the input",
+      "idea": "The check sits inside the field at its right end, next to the text it saves. The X stays outside.",
+      "cost": "A button inside an input is less familiar, and it's easy to read as a validation tick",
+      "model": "opus",
+      "round": 2,
+      "parents": [
+        "v01"
+      ],
+      "recommended": false,
+      "why": "",
+      "baseline": false,
+      "file": "variants/v09-check-in-the-field.html",
+      "mtime": 1793623727.337236
     }
   ],
   "slots": [],
