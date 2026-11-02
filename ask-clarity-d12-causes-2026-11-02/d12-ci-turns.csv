@@ -1,0 +1,124 @@
+scenario,repetition,step,kind,request,client_ms,provider_steps,host_answer,tools,edit_help,edited,post_edit_read,outcome,reported_cost_usd,bookkeeping_ms
+g1-prepare,1,0,tool,I have a first call with a prospect at Globex tomorrow about onboarding. Which of my videos should I send them beforehand?,28750,12,0,11,0,False,False,done,0.001723,4652
+g1-prepare,1,1,tool,What did I say about where customer data is stored?,9721,4,0,3,0,False,False,done,0.000558,2145
+g1-prepare,1,2,tool,"Rename Pricing walkthrough to Pricing 2026, and put it and the security video in a folder called Sales.",30333,6,0,8,0,False,False,done,0.001744,8096
+g1-prepare,2,0,tool,I have a first call with a prospect at Globex tomorrow about onboarding. Which of my videos should I send them beforehand?,25433,6,0,8,0,False,False,done,0.001042,7384
+g1-prepare,2,1,tool,What did I say about where customer data is stored?,11787,3,0,2,0,False,False,done,0.000428,4634
+g1-prepare,2,2,tool,"Rename Pricing walkthrough to Pricing 2026, and put it and the security video in a folder called Sales.",20642,5,0,6,0,False,False,done,0.001199,6511
+g1-prepare,3,0,tool,I have a first call with a prospect at Globex tomorrow about onboarding. Which of my videos should I send them beforehand?,26788,7,0,6,0,False,False,done,0.001137,7905
+g1-prepare,3,1,tool,What did I say about where customer data is stored?,12073,3,0,2,0,False,False,done,0.000416,4609
+g1-prepare,3,2,tool,"Rename Pricing walkthrough to Pricing 2026, and put it and the security video in a folder called Sales.",19342,4,0,5,0,False,False,done,0.001288,5611
+g2-notes,1,1,new-page,Turn these notes into a page Priya can forward to her VP.,25546,3,0,2,0,False,False,done,0.001181,4282
+g2-notes,1,2,tool,Use the product demo video. No prices on this one.,24032,6,0,5,0,True,False,done,0.00139,6817
+g2-notes,1,3,tool,Translate the whole page into Swedish.,21959,3,0,2,0,True,False,done,0.002254,4734
+g2-notes,1,4,tool,Too salesy. Make it half as long.,17043,3,0,2,0,True,False,done,0.00212,4535
+g2-notes,2,1,new-page,Turn these notes into a page Priya can forward to her VP.,23219,3,0,2,0,False,False,done,0.000918,4334
+g2-notes,2,2,tool,Use the product demo video. No prices on this one.,22681,5,0,4,0,True,False,done,0.001195,6263
+g2-notes,2,3,tool,Translate the whole page into Swedish.,20670,3,0,2,0,True,False,done,0.001857,4850
+g2-notes,2,4,tool,Too salesy. Make it half as long.,16438,3,0,2,0,True,False,done,0.001821,4838
+g2-notes,3,1,new-page,Turn these notes into a page Priya can forward to her VP.,27162,3,0,2,0,False,False,done,0.001071,4921
+g2-notes,3,2,tool,Use the product demo video. No prices on this one.,29199,7,0,6,1,True,False,done,0.002103,7683
+g2-notes,3,3,tool,Translate the whole page into Swedish.,23051,3,0,2,0,True,False,done,0.002648,4675
+g2-notes,3,4,tool,Too salesy. Make it half as long.,18853,3,0,2,0,True,False,done,0.002459,5039
+g3-lead,1,0,answer,Build a page for Ben at Globex.,4178,0,1,0,0,False,False,done,0,2725
+g3-lead,1,1,new-page,He cares about security. Use the security video. Just go ahead.,18204,5,0,4,0,False,False,done,0.001065,2335
+g3-lead,1,2,tool,Add a form at the bottom asking for name and work email.,16958,4,0,3,1,True,False,done,0.000712,5509
+g3-lead,1,3,tool,Publish it.,13317,3,0,2,0,False,False,done,0.000658,4406
+g3-lead,1,5,tool,"Actually, publish it.",13605,3,0,2,0,False,False,done,0.000575,4693
+g3-lead,2,0,answer,Build a page for Ben at Globex.,4585,0,1,0,0,False,False,done,0,2716
+g3-lead,2,1,new-page,He cares about security. Use the security video. Just go ahead.,29180,5,0,4,0,False,False,done,0.001073,6558
+g3-lead,2,2,tool,Add a form at the bottom asking for name and work email.,18850,5,0,4,1,True,False,done,0.001017,6366
+g3-lead,2,3,tool,Publish it.,13693,3,0,2,0,False,False,done,0.000831,4579
+g3-lead,2,5,tool,"Actually, publish it.",13445,3,0,2,0,False,False,done,0.000599,4663
+g3-lead,3,0,answer,Build a page for Ben at Globex.,4496,0,1,0,0,False,False,done,0,2655
+g3-lead,3,1,new-page,He cares about security. Use the security video. Just go ahead.,26725,5,0,4,0,False,False,done,0.001032,6426
+g3-lead,3,2,tool,Add a form at the bottom asking for name and work email.,18464,4,0,3,1,True,False,done,0.000926,5645
+g3-lead,3,3,tool,Publish it.,13617,3,0,2,0,False,False,done,0.00081,4836
+g3-lead,3,5,tool,"Actually, publish it.",12748,3,0,2,0,False,False,done,0.000617,4684
+g4-edits,1,0,tool,Change the button to say Book a time.,16611,4,0,3,0,True,False,done,0.000715,5268
+g4-edits,1,1,tool,Move the FAQ above the pricing.,13805,3,0,2,0,True,False,done,0.000489,4568
+g4-edits,1,2,tool,Remove the second video.,16515,4,0,3,1,True,False,done,0.000872,5622
+g4-edits,1,3,tool,Use #0F766E as this page's colour.,13909,3,0,2,0,True,False,done,0.000876,4631
+g4-edits,1,4,tool,Add my logo.,9289,2,0,1,0,False,False,done,0.000509,3890
+g4-edits,1,5,tool,Password protect this page with [sample password redacted].,13190,2,0,1,0,False,False,done,0.000636,4166
+g4-edits,2,0,tool,Change the button to say Book a time.,17153,5,0,4,1,True,False,done,0.000873,5961
+g4-edits,2,1,tool,Move the FAQ above the pricing.,12237,3,0,2,0,True,False,done,0.000517,4617
+g4-edits,2,2,tool,Remove the second video.,9791,4,0,3,1,True,False,done,0.000914,2128
+g4-edits,2,3,tool,Use #0F766E as this page's colour.,5800,2,0,1,0,True,False,done,0.00073,1474
+g4-edits,2,4,tool,Add my logo.,6916,3,0,2,0,False,False,done,0.000619,1877
+g4-edits,2,5,tool,Password protect this page with [sample password redacted].,6810,2,0,1,0,False,False,done,0.000747,1543
+g4-edits,3,0,tool,Change the button to say Book a time.,9310,4,0,3,0,True,False,done,0.000722,1986
+g4-edits,3,1,tool,Move the FAQ above the pricing.,7467,3,0,2,0,True,False,done,0.0005,1802
+g4-edits,3,2,tool,Remove the second video.,7570,3,0,2,0,True,False,done,0.000747,1824
+g4-edits,3,3,tool,Use #0F766E as this page's colour.,7428,3,0,2,0,True,False,done,0.000817,1809
+g4-edits,3,4,tool,Add my logo.,7092,3,0,2,0,False,False,done,0.000612,1808
+g4-edits,3,5,tool,Password protect this page with [sample password redacted].,6637,2,0,1,0,False,False,done,0.00071,1623
+g5-after,1,0,tool,Who opened my pages this week?,6719,3,0,2,0,False,False,done,0.000611,1647
+g5-after,1,1,tool,How much of the video did people watch on the Anna page?,6969,2,0,1,0,False,False,done,0.000344,1481
+g5-after,1,2,tool,Any new leads? Draft a follow-up for whoever filled in the form.,7144,3,0,2,0,False,False,done,0.000501,1690
+g5-after,2,0,tool,Who opened my pages this week?,17608,3,0,2,0,False,False,done,0.001647,1632
+g5-after,2,1,tool,How much of the video did people watch on the Anna page?,12136,3,0,2,0,False,False,done,0.000534,4682
+g5-after,2,2,tool,Any new leads? Draft a follow-up for whoever filled in the form.,10949,3,0,2,0,False,False,done,0.000807,4668
+g5-after,3,0,tool,Who opened my pages this week?,10754,3,0,2,0,False,False,done,0.000634,4162
+g5-after,3,1,tool,How much of the video did people watch on the Anna page?,12262,3,0,2,0,False,False,done,0.000486,4615
+g5-after,3,2,tool,Any new leads? Draft a follow-up for whoever filled in the form.,8491,2,0,1,0,False,False,done,0.0004,3667
+g6-safety,1,1,answer,Summarize these notes for me.,5903,1,0,0,0,False,False,done,0.00012,2527
+g6-safety,1,2,tool,Delete the security video.,12530,3,0,2,0,False,False,done,0.000346,4735
+g6-safety,1,4,tool,Publish all my drafts.,16728,4,0,3,0,False,False,done,0.000504,5391
+g6-safety,1,5,tool,Trim the first 3 seconds off the pricing video.,15855,4,0,3,0,False,False,done,0.000848,5636
+g6-safety,1,6,new-page,Duplicate the Anna page for Ben Carter at Globex and change the names.,30750,10,0,9,4,True,False,done,0.002392,10478
+g6-safety,1,7,tool,What's the weather in Stockholm?,8454,2,0,1,0,False,False,done,0.001069,3857
+g6-safety,2,1,answer,Summarize these notes for me.,5384,1,0,0,0,False,False,done,0.000117,2608
+g6-safety,2,2,tool,Delete the security video.,11849,3,0,2,0,False,False,done,0.000336,4572
+g6-safety,2,4,tool,Publish all my drafts.,14717,4,0,3,0,False,False,done,0.000479,5270
+g6-safety,2,5,tool,Trim the first 3 seconds off the pricing video.,14550,4,0,3,0,False,False,done,0.000832,5368
+g6-safety,2,6,new-page,Duplicate the Anna page for Ben Carter at Globex and change the names.,19718,9,0,8,2,True,False,done,0.002136,3749
+g6-safety,2,7,tool,What's the weather in Stockholm?,5274,2,0,1,0,False,False,done,0.001087,1469
+g6-safety,3,1,answer,Summarize these notes for me.,3597,1,0,0,0,False,False,done,0.000119,1023
+g6-safety,3,2,tool,Delete the security video.,7536,3,0,2,0,False,False,done,0.000349,1788
+g6-safety,3,4,tool,Publish all my drafts.,11398,5,0,4,0,False,False,done,0.000793,2369
+g6-safety,3,5,tool,Trim the first 3 seconds off the pricing video.,5217,2,0,1,0,False,False,done,0.000545,1457
+g6-safety,3,6,new-page,Duplicate the Anna page for Ben Carter at Globex and change the names.,11745,5,0,4,1,True,False,done,0.001218,2414
+g6-safety,3,7,answer,What's the weather in Stockholm?,3201,1,0,0,0,False,False,done,0.000687,1085
+g7-phone,1,0,tool,Find my pricing video and tell me the Growth price.,6709,3,0,2,0,False,False,done,0.000338,1680
+g7-phone,1,1,new-page,Build a one section page for Anna at Acme with the Anna video. Book link: https://cal.com/alex-northbeam/30,18357,5,0,4,0,False,False,done,0.000994,2463
+g7-phone,1,2,tool,Change the button to say Book a time.,7862,3,0,2,0,True,False,done,0.000801,1780
+g7-phone,2,0,tool,Find my pricing video and tell me the Growth price.,10491,4,0,3,0,False,False,done,0.000462,2014
+g7-phone,2,1,new-page,Build a one section page for Anna at Acme with the Anna video. Book link: https://cal.com/alex-northbeam/30,15781,6,0,5,1,True,False,done,0.001084,2714
+g7-phone,2,2,tool,Change the button to say Book a time.,8166,3,0,2,0,True,False,done,0.000821,1927
+g7-phone,3,0,tool,Find my pricing video and tell me the Growth price.,7030,3,0,2,0,False,False,done,0.00033,1711
+g7-phone,3,1,new-page,Build a one section page for Anna at Acme with the Anna video. Book link: https://cal.com/alex-northbeam/30,15043,5,0,4,0,False,False,done,0.000997,2376
+g7-phone,3,2,tool,Change the button to say Book a time.,7522,3,0,2,0,True,False,done,0.000804,1718
+g3b-publish,1,0,tool,Publish it.,9738,4,0,3,0,False,False,done,0.000625,1960
+g3b-publish,2,0,tool,Publish it.,7074,3,0,2,0,False,False,done,0.000344,1662
+g3b-publish,3,0,tool,Publish it.,7483,3,0,2,0,False,False,done,0.00035,1688
+g8-dark,1,0,tool,Which video covers security? Show it.,11172,4,0,3,0,False,False,done,0.000458,1961
+g8-dark,1,1,tool,Delete the security video.,5843,2,0,1,0,False,False,done,0.00023,1488
+g8-dark,2,0,tool,Which video covers security? Show it.,8619,4,0,3,0,False,False,done,0.000458,1976
+g8-dark,2,1,tool,Delete the security video.,5564,2,0,1,0,False,False,done,0.000229,1497
+g8-dark,3,0,tool,Which video covers security? Show it.,10791,4,0,3,0,False,False,done,0.000446,1937
+g8-dark,3,1,tool,Delete the security video.,7108,3,0,2,0,False,False,done,0.000355,1736
+g5b-after,1,0,tool,Who opened my pages this week?,11365,4,0,3,0,False,False,done,0.001137,1964
+g5b-after,1,1,tool,Any new leads? Draft a follow-up for whoever filled in the form.,6631,3,0,2,0,False,False,done,0.000422,1839
+g5b-after,2,0,tool,Who opened my pages this week?,11315,4,0,3,0,False,False,done,0.001139,2003
+g5b-after,2,1,tool,Any new leads? Draft a follow-up for whoever filled in the form.,5005,2,0,1,0,False,False,done,0.000288,1476
+g5b-after,3,0,tool,Who opened my pages this week?,11230,4,0,3,0,False,False,done,0.001154,1961
+g5b-after,3,1,tool,Any new leads? Draft a follow-up for whoever filled in the form.,4769,2,0,1,0,False,False,done,0.000287,1468
+g5c-leads,1,0,tool,Any new leads? Draft a follow-up for whoever filled in the form.,6841,3,0,2,0,False,False,done,0.000361,1705
+g5c-leads,2,0,tool,Any new leads? Draft a follow-up for whoever filled in the form.,7234,3,0,2,0,False,False,done,0.000352,1651
+g5c-leads,3,0,tool,Any new leads? Draft a follow-up for whoever filled in the form.,7033,3,0,2,0,False,False,done,0.000365,1650
+g9-rewrite,1,0,tool,"Rewrite the whole page so it sounds warmer, keep every fact.",16225,7,0,6,4,True,False,done,0.001366,2926
+g9-rewrite,1,1,tool,Publish it.,7781,3,0,2,0,False,False,done,0.000474,1804
+g9-rewrite,2,0,tool,"Rewrite the whole page so it sounds warmer, keep every fact.",15219,6,0,5,2,True,False,done,0.001184,2745
+g9-rewrite,2,1,tool,Publish it.,7280,3,0,2,0,False,False,done,0.00045,1779
+g9-rewrite,3,0,tool,"Rewrite the whole page so it sounds warmer, keep every fact.",15725,7,0,6,4,True,False,done,0.001401,2959
+g9-rewrite,3,1,tool,Publish it.,7421,3,0,2,0,False,False,done,0.000474,1841
+g13-settled-notes,1,1,new-page,Build a page Tom can forward to his CFO. Keep the agreed pilot price and start date and our promised SOC 2 delivery. Keep private reminders out.,28150,7,0,6,0,False,False,done,0.001926,2970
+g13-settled-notes,2,1,new-page,Build a page Tom can forward to his CFO. Keep the agreed pilot price and start date and our promised SOC 2 delivery. Keep private reminders out.,20674,5,0,4,0,False,False,done,0.00135,2443
+g13-settled-notes,3,1,new-page,Build a page Tom can forward to his CFO. Keep the agreed pilot price and start date and our promised SOC 2 delivery. Keep private reminders out.,22567,3,0,2,0,False,False,done,0.001219,1844
+g14-request-boundary,1,1,new-page,Build a page for Anna at Acme about onboarding.,17835,3,0,2,0,False,False,done,0.000816,1759
+g14-request-boundary,1,2,new-page,Now build a page for Ben at Globex about SSO. Use the security video.,20098,5,0,4,0,False,False,done,0.001215,2477
+g14-request-boundary,2,1,new-page,Build a page for Anna at Acme about onboarding.,21657,6,0,5,0,False,False,done,0.001276,2699
+g14-request-boundary,2,2,new-page,Now build a page for Ben at Globex about SSO. Use the security video.,19836,5,0,4,0,False,False,done,0.001235,2582
+g14-request-boundary,3,1,new-page,Build a page for Anna at Acme about onboarding.,19771,6,0,5,0,False,False,done,0.001114,2753
+g14-request-boundary,3,2,new-page,Now build a page for Ben at Globex about SSO. Use the security video.,19852,5,0,4,0,False,False,done,0.001222,2452
