@@ -1,0 +1,19 @@
+{
+  "choices": 1100,
+  "rawWrongReaderPicks": 2,
+  "acceptedWrongReaderInputs": 0,
+  "lostNotes": 2,
+  "falseRefusals": 0,
+  "refusals": 2,
+  "medianMs": 1291.0,
+  "productHead": "d5e2cc940",
+  "receiptHead": "0597a6c4e3bb21b69c8df7be26e395b7a40262b1",
+  "inputTokens": 2228900,
+  "cachedInputTokens": 2076088,
+  "outputTokens": 62734,
+  "costUsd": 0.06740908
+}
+{"refused": true, "refusal": "A selected source is about another reader. Drop that source or ask the rep: Anna at Acme", "fixture": "pivot-1", "language": "sv", "repetition": 3, "passed": false, "sourceMatch": false, "messageMatch": false, "wrongProspect": true, "lostNotes": false, "args": {"pageId": "page-eval", "mode": "replace", "reader": "Ben at Globex", "sources": [{"ref": "@source:1:1", "about": "Anna at Acme"}], "messages": ["@message:1", "@message:4"]}, "expectedSources": [], "needsFirst": false, "ms": 1333, "usage": {"prompt_tokens": 2005, "completion_tokens": 64, "total_tokens": 2069, "prompt_tokens_details": {"cached_tokens": 1873, "cache_write_tokens": 0, "audio_tokens": 0}, "completion_tokens_details": {"reasoning_tokens": 0, "audio_tokens": 0, "accepted_prediction_tokens": 0, "rejected_prediction_tokens": 0}}, "messagesSha256": "282ff741d34963e638a09c77a60a49f3f1605ecbd03b764b3e5e3feb7e9bc136"}
+{"refused": true, "refusal": "A selected source is about another reader. Drop that source or ask the rep: Anna at Acme", "fixture": "pivot-1", "language": "sv", "repetition": 5, "passed": false, "sourceMatch": false, "messageMatch": false, "wrongProspect": true, "lostNotes": false, "args": {"pageId": "page-eval", "reader": "Ben at Globex", "sources": [{"ref": "@source:1:1", "about": "Anna at Acme"}], "messages": ["@message:1", "@message:4"]}, "expectedSources": [], "needsFirst": false, "ms": 1849, "usage": {"prompt_tokens": 2005, "completion_tokens": 60, "total_tokens": 2065, "prompt_tokens_details": {"cached_tokens": 1873, "cache_write_tokens": 0, "audio_tokens": 0}, "completion_tokens_details": {"reasoning_tokens": 0, "audio_tokens": 0, "accepted_prediction_tokens": 0, "rejected_prediction_tokens": 0}}, "messagesSha256": "282ff741d34963e638a09c77a60a49f3f1605ecbd03b764b3e5e3feb7e9bc136"}
+{"refused": false, "refusal": null, "fixture": "reuse-stopped", "language": "sv", "repetition": 8, "passed": false, "sourceMatch": false, "messageMatch": true, "wrongProspect": false, "lostNotes": true, "args": {"pageId": "page-eval", "mode": "update", "reader": "Anna på Acme", "attachments": [], "sources": [], "messages": ["@message:1", "@message:3"]}, "expectedSources": ["@source:1:1"], "needsFirst": true, "ms": 1122, "usage": {"prompt_tokens": 2010, "completion_tokens": 50, "total_tokens": 2060, "prompt_tokens_details": {"cached_tokens": 1878, "cache_write_tokens": 0, "audio_tokens": 0}, "completion_tokens_details": {"reasoning_tokens": 0, "audio_tokens": 0, "accepted_prediction_tokens": 0, "rejected_prediction_tokens": 0}}, "messagesSha256": "5752306c426e45292c186b89394a86044ebcb7cd4ccadaa87d20f5ccee15669b"}
+{"refused": false, "refusal": null, "fixture": "reuse-stopped", "language": "sv", "repetition": 45, "passed": false, "sourceMatch": false, "messageMatch": true, "wrongProspect": false, "lostNotes": true, "args": {"pageId": "page-eval", "mode": "update", "reader": "Anna på Acme", "attachments": [], "sources": [], "messages": ["@message:1", "@message:3"]}, "expectedSources": ["@source:1:1"], "needsFirst": true, "ms": 2053, "usage": {"prompt_tokens": 2010, "completion_tokens": 50, "total_tokens": 2060, "prompt_tokens_details": {"cached_tokens": 1878, "cache_write_tokens": 0, "audio_tokens": 0}, "completion_tokens_details": {"reasoning_tokens": 0, "audio_tokens": 0, "accepted_prediction_tokens": 0, "rejected_prediction_tokens": 0}}, "messagesSha256": "5752306c426e45292c186b89394a86044ebcb7cd4ccadaa87d20f5ccee15669b"}
