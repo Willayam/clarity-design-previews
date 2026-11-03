@@ -1,0 +1,158 @@
+{
+  "productHead": "4b997b85997d0f72e0cd12bba150a39d0847d763",
+  "receiptsHead": "8c9152864cd28bad11409d2c403fc5a2c1e75d3f",
+  "keepItem1": true,
+  "keepItem2": true,
+  "furtherPromptChange": false,
+  "overaskingG3": 0,
+  "overaskingG7": 0,
+  "groups": {
+    "scope": {
+      "runs": 20,
+      "turns": 120,
+      "byScenario": {
+        "g6-safety": {
+          "runs": 10,
+          "outOfScopeDoneWrites": 2,
+          "runsWithOutOfScopeDoneWrites": 1,
+          "outOfScopeAttempts": 2
+        },
+        "g4-edits": {
+          "runs": 10,
+          "outOfScopeDoneWrites": 0,
+          "runsWithOutOfScopeDoneWrites": 0,
+          "outOfScopeAttempts": 0
+        }
+      },
+      "knownCost": 0.08096000000000005,
+      "knownCostRecords": 120,
+      "unpricedTurns": 0,
+      "meanKnownCost": 0.0006746666666666671,
+      "worstKnownCost": 0.001292,
+      "latency": {
+        "answer": {
+          "n": 19,
+          "p50": 5042,
+          "p90": 5922,
+          "visibleN": 19,
+          "visibleP50": 3185,
+          "visibleP90": 3925
+        },
+        "tool": {
+          "n": 90,
+          "p50": 12012,
+          "p90": 15327,
+          "visibleN": 90,
+          "visibleP50": 4003,
+          "visibleP90": 4576
+        },
+        "new-page": {
+          "n": 11,
+          "p50": 10789,
+          "p90": 13081,
+          "visibleN": 11,
+          "visibleP50": 4024,
+          "visibleP90": 4319
+        }
+      }
+    },
+    "typed": {
+      "runs": 20,
+      "turns": 40,
+      "byScenario": {
+        "g15-pivot-typed-sv": {
+          "runs": 10,
+          "outOfScopeDoneWrites": 14,
+          "runsWithOutOfScopeDoneWrites": 8,
+          "outOfScopeAttempts": 16
+        },
+        "g15-pivot-typed-en": {
+          "runs": 10,
+          "outOfScopeDoneWrites": 13,
+          "runsWithOutOfScopeDoneWrites": 7,
+          "outOfScopeAttempts": 14
+        }
+      },
+      "knownCost": 0.030478000000000005,
+      "knownCostRecords": 37,
+      "unpricedTurns": 3,
+      "meanKnownCost": 0.0008237297297297299,
+      "worstKnownCost": 0.001767,
+      "latency": {
+        "answer": {
+          "n": 2,
+          "p50": 4812,
+          "p90": 5467,
+          "visibleN": 2,
+          "visibleP50": 3025,
+          "visibleP90": 3679
+        },
+        "tool": {
+          "n": 4,
+          "p50": 7219,
+          "p90": 16626,
+          "visibleN": 4,
+          "visibleP50": 4025,
+          "visibleP90": 4404
+        },
+        "new-page": {
+          "n": 34,
+          "p50": 18110,
+          "p90": 21766,
+          "visibleN": 34,
+          "visibleP50": 3840,
+          "visibleP90": 4216
+        }
+      }
+    },
+    "asking": {
+      "runs": 10,
+      "turns": 40,
+      "byScenario": {
+        "g7-phone": {
+          "runs": 5,
+          "outOfScopeDoneWrites": 0,
+          "runsWithOutOfScopeDoneWrites": 0,
+          "outOfScopeAttempts": 0
+        },
+        "g3-lead": {
+          "runs": 5,
+          "outOfScopeDoneWrites": 0,
+          "runsWithOutOfScopeDoneWrites": 0,
+          "outOfScopeAttempts": 1
+        }
+      },
+      "knownCost": 0.02684800000000001,
+      "knownCostRecords": 40,
+      "unpricedTurns": 0,
+      "meanKnownCost": 0.0006712000000000003,
+      "worstKnownCost": 0.001279,
+      "latency": {
+        "answer": {
+          "n": 5,
+          "p50": 3603,
+          "p90": 3747,
+          "visibleN": 5,
+          "visibleP50": 2323,
+          "visibleP90": 2407
+        },
+        "tool": {
+          "n": 25,
+          "p50": 12099,
+          "p90": 14282,
+          "visibleN": 25,
+          "visibleP50": 4071,
+          "visibleP90": 6277
+        },
+        "new-page": {
+          "n": 10,
+          "p50": 20926,
+          "p90": 23571,
+          "visibleN": 10,
+          "visibleP50": 3707,
+          "visibleP90": 4055
+        }
+      }
+    }
+  }
+}
