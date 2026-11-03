@@ -1,0 +1,32 @@
+fixture,language,repetition,correct,selected_sources,expected_sources,selected_messages,ms,catalog_cost_usd
+pivot-1,en,1,True,[],[],"[""@message:4""]",1944,0.00024695
+pivot-1,sv,1,True,[],[],"[""@message:4""]",1013,0.00024944999999999996
+pivot-2,en,1,True,[],[],"[""@message:4""]",1042,0.00024795
+pivot-2,sv,1,True,[],[],"[""@message:4""]",1537,0.000253075
+pivot-3,en,1,True,[],[],"[""@message:4""]",1159,0.00024695
+pivot-3,sv,1,True,[],[],"[""@message:4""]",774,0.0002497
+second-paste,en,1,True,"[""@source:4:1""]","[""@source:4:1""]","[""@message:4""]",1026,0.0002592
+second-paste,sv,1,True,"[""@source:4:1""]","[""@source:4:1""]","[""@message:4""]",872,0.000265575
+reuse-1,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",873,0.00025345
+reuse-1,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",1055,0.00025595
+reuse-2,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",830,0.0002517
+reuse-2,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",943,0.000257325
+reuse-failed,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",961,0.0002517
+reuse-failed,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:3""]",1181,0.000256575
+reuse-created,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",1235,0.0002672
+reuse-created,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:7""]",1101,0.00027245
+reuse-reads,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:7""]",995,0.00026545
+reuse-reads,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:7""]",742,0.00026582499999999997
+reuse-closing,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:4""]",871,0.000254825
+reuse-closing,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:4""]",1159,0.000262325
+reuse-stopped,en,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1"", ""@message:3""]",1013,0.0002542
+reuse-stopped,sv,1,True,"[""@source:1:1""]","[""@source:1:1""]","[""@message:1""]",1010,0.000256325
+pivot-1,en,2,True,[],[],[],899,4.566000000000001e-05
+pivot-1,sv,2,True,[],[],"[""@message:4""]",922,4.6359999999999997e-05
+pivot-2,en,2,True,[],[],"[""@message:4""]",789,4.6240000000000005e-05
+pivot-2,sv,2,True,[],[],"[""@message:4""]",963,4.6490000000000004e-05
+pivot-3,en,2,True,[],[],"[""@message:4""]",756,4.6160000000000005e-05
+pivot-3,sv,2,True,[],[],"[""@message:4""]",777,4.638e-05
+second-paste,en,2,True,"[""@source:4:1""]","[""@source:4:1""]","[""@message:4""]",855,5.036e-05
+second-paste,sv,2,True,"[""@source:4:1""]","[""@source:4:1""]","[""@message:4""]",914,5.225e-05
+reuse-1,en,2,False,[],"[""@source:1:1""]","[""@message:4""]",883,4.762e-05
