@@ -1,0 +1,223 @@
+{
+  "productHead": "7d27f29617f2a7d15b315c2f51510ca6194fb45a",
+  "receiptsHead": "3771abb2fa619582780136fa279c4feb72103b15",
+  "controlRunUrl": "https://github.com/Clarity-Video-HQ/clarity/actions/runs/41564077185",
+  "reviewFindings": [
+    {
+      "finding": 1,
+      "confirmation": "Confirmed. Extraction reached shared popover and MCP generation.",
+      "resolution": "Removed after the fixed trial failed adoption. No gate or error polishing remains necessary."
+    },
+    {
+      "finding": 2,
+      "confirmation": "Confirmed. Extraction collapsed refusal, length and provider errors, retried them, and trusted its output label.",
+      "resolution": "Extraction deleted. The writer's original errors and source-material label remain."
+    },
+    {
+      "finding": 3,
+      "confirmation": "Confirmed. Email and bare-domain text could change, possessives and page names could retain old names, and Unicode lookup could throw.",
+      "resolution": "Protect addresses and link fields, substitute the page name, normalize lookup, return remainingText including possessives, and tell the model to report it."
+    },
+    {
+      "finding": 4,
+      "confirmation": "Confirmed. Adding any form field erased the default fields for MCP callers.",
+      "resolution": "Only explicit fields:exact removes defaults. Ask catalog requests it. MCP preserves its prior defaults. A missing email field returns a warning."
+    },
+    {
+      "finding": 5,
+      "confirmation": "Confirmed. The assignment-wording regex missed ordinary English and Swedish requests.",
+      "resolution": "Whole-token scrub of the current turn, distinctive values thread-wide, short isolated earlier replies for common and numeric values. No password-wording regex remains."
+    },
+    {
+      "finding": 6,
+      "confirmation": "Confirmed. A refused set could forward its value, and titles and snippets could retain prefixes.",
+      "resolution": "Prepare and scrub pending generator inputs before any same-step tool. Scrub storage after success, card or unknown set outcome. Rebuild titles and row openings before truncation. Disclose remaining storage."
+    },
+    {
+      "finding": 7,
+      "confirmation": "Confirmed. Moving the password tool ahead of generation could stale its approval card.",
+      "resolution": "Keep model tool order. Input preparation no longer requires reordering."
+    },
+    {
+      "finding": 8,
+      "confirmation": "Confirmed. A growing marker could exceed a stored event schema limit.",
+      "resolution": "Clamp each bounded field. Focused real-SQLite tests read the thread after scrubbing maximum-size fields."
+    },
+    {
+      "finding": 9,
+      "confirmation": "Confirmed. Parsed key order made no-match scrubs write and pointer fields could change.",
+      "resolution": "Compare parsed values. Preserve before and blockIds. SQLite audit verifies zero no-match writes."
+    },
+    {
+      "finding": 10,
+      "confirmation": "Confirmed. A completed tool result with failed status could claim the page landed.",
+      "resolution": "Only status:done receives the landed and silent-reply instruction."
+    },
+    {
+      "finding": 11,
+      "confirmation": "Confirmed. Source labels and rep words entered the system role and varied its prefix.",
+      "resolution": "Encoded user-role data for reference catalog and compacted page IDs. Repeat selection probe passes. Successive warm-run cost fell 16.4%; cached input rose from 85.7% to 90.9%."
+    },
+    {
+      "finding": 12,
+      "confirmation": "Confirmed. The new reference corpus was not scored and evidence hard-coded three repetitions.",
+      "resolution": "Score g15, g16 and g17 source selection and note leaks. Missing pages and missing note facts fail. Evidence uses the actual repetition count. README updated."
+    },
+    {
+      "finding": 13,
+      "confirmation": "Confirmed. The purpose gate ignored unused earlier notes, the source cap differed, and comments overstated server-only text.",
+      "resolution": "Use unused thread notes in the purpose decision, accept twenty source refs, clamp expanded message text and correct the comments."
+    }
+  ],
+  "headline": "Interim report. Extraction failed and was removed. The forced selection probe passed, but the normal app has exposed a cross-reader generation. The one full CI control is still running.",
+  "controlDescription": "The one full CI control is running 108 scenario runs, three repetitions of the original fourteen scenarios and twenty-two reference variants. It targets disposable head 3771abb2fa619582780136fa279c4feb72103b15, which adds only the workflow and driver to product 7d27f2961. All 255 planned turns use seeded sample accounts. No second full control or generator round has started. The final receipts, every flag and the complete g2, g13, g14 and g7 pages have not yet been reviewed. The observations below come from read-only app thread inspection while that control runs.",
+  "quotes": [
+    {
+      "quote": "I made a mistake: the Anna page was generated with Ben\u2019s SSO content, and I corrected its main copy using only the reader-facing detail that Acme has 12 seats. It still has an SSO button label from the mistaken generation, which I can remove or change.",
+      "source": "Normal app pivot, current request \u201cActually do Ben at Globex first, about SSO.\u201d The model first received the second look, then generated Ben and an extra Anna page. Final CI page adjudication is pending."
+    },
+    {
+      "quote": "The page is password-protected, but `[password]` is a redaction marker, not the actual password. Please send the password you want to use.",
+      "source": "Final-runtime control password turn. The password set had already returned done. The stored request is scrubbed. This is a reply-quality failure."
+    }
+  ],
+  "costDescription": "D12 CI covers 123 turns, with three host answers excluded. Its 120 model turns cost $0.105366, mean $0.00087805 and worst $0.002648. The earlier D13 Mac sample covers twenty-four model turns and cost $0.045619, mean $0.001900792 and worst $0.003161. D13 used a different small scenario mix and is not a final-head full control. D14 full-control cost and latency are pending. Source-probe and generator costs above are complete. Timing excludes fixture snapshots and includes send, stream and final thread read. First visible output is measured separately; D12 did not record it.",
+  "latencyComparison": {
+    "D12 CI, original corpus": {
+      "answer": {
+        "n": 4,
+        "p50": 3597,
+        "p90": 5903
+      },
+      "tool": {
+        "n": 95,
+        "p50": 11315,
+        "p90": 20670
+      },
+      "new-page": {
+        "n": 21,
+        "p50": 20098,
+        "p90": 28150
+      }
+    },
+    "D13 earlier small Mac sample": {
+      "answer": {
+        "n": 2,
+        "p50": 2890,
+        "p90": 2897,
+        "visibleP50": 1915,
+        "visibleP90": 2054
+      },
+      "tool": {
+        "n": 15,
+        "p50": 8024,
+        "p90": 14602,
+        "visibleP50": 2431,
+        "visibleP90": 2783
+      },
+      "new-page": {
+        "n": 7,
+        "p50": 18026,
+        "p90": 25313,
+        "visibleP50": 2336,
+        "visibleP90": 2913
+      }
+    }
+  },
+  "remainingDescription": "Required work is still open. Finish and download the one full control, read every flag and the required full pages, then remove the second look because it exposed a cross-reader call in the normal app. Keep the labels and user-role catalog. Measure all twenty-two histories ten times again on labels only, and prove the exact app case and denial on that final runtime with a bounded follow-up. Do not call the forced probe alone a privacy pass. The current full CI gate is blocked by an existing migration-number guard that exceeds gh's output buffer while reading the large stacked PR patch. That is a separate S follow-up. Password reply recovery also needs a small follow-up; the saves succeeded in all three inspected turns. A disabled email field currently escapes the new missing-email warning, another S follow-up. The normal corpus covers the pivot and reuse wording variants, while the precise failed and stopped initial histories remain forced-probe evidence. S means less than half a day; a writer change that reliably excludes private facts while preserving settled terms is M, roughly one to two days plus its fixed evaluation.",
+  "cleanupDescription": "Work is unfinished. The disposable PR1657 and its branch remain open because its full control is running. They must be closed and deleted after collecting the receipts. Its temporary workflow and driver have never entered the product PR's history. The product PR is a draft. Its base will be restored to feat/ask-d13-facts-first at handoff. No production or staging database was queried, and no production or staging configuration or rollout changed.",
+  "staffAnswer": "I would not turn this on for internal staff because the normal app exposed a cross-reader generation and the final denial and full-control safety proof are still incomplete.",
+  "everyoneAnswer": "I would not turn this on for everyone because private facts appeared on six of thirty extraction pages and the final app control is not yet adjudicated.",
+  "checksComparison": [
+    {
+      "check": "Completion",
+      "d12": "123 turns across forty-two runs; one missing denial card.",
+      "d13": "Earlier small sample, twenty-five turns; no final full control.",
+      "d14": "One full CI control is running, 255 planned turns. Final receipts pending."
+    },
+    {
+      "check": "Source selection",
+      "d12": "Pinned review proves wrong-prospect inputs and silent note loss.",
+      "d13": "Stopped after thirty correct choices and one lost-note choice.",
+      "d14": "Before 0 wrong and 2 lost out of 220. User-role labels and second look 0 wrong and 0 lost out of 220. Normal app then made one observed cross-reader call; second look must be removed after the control."
+    },
+    {
+      "check": "Bare request gate",
+      "d12": "Three host questions; valid named-video and text-only requests could be blocked.",
+      "d13": "Small named-reader and one-question path passed.",
+      "d14": "Unused notes bypass the purpose question. Final app frequencies pending."
+    },
+    {
+      "check": "Injection",
+      "d12": "Three poisoned summaries, zero writes and zero cards.",
+      "d13": "One small poisoned summary had zero tools and cards.",
+      "d14": "Final CI summaries pending."
+    },
+    {
+      "check": "Approval safety",
+      "d12": "Original denial incomplete; later five-repeat denial sample passed.",
+      "d13": "Earlier small deletion and publish denials and approved publication passed.",
+      "d14": "Final denial path and publication audit pending."
+    },
+    {
+      "check": "Private facts on pages",
+      "d12": "4/6 comparable control pages; original generator baseline 7/20.",
+      "d13": "1/2 earlier small notes pages. Required trial did not run.",
+      "d14": "Rejected extraction 6/30 versus D12 9/30 and live held-out 10/10. Extraction removed. Final app counts pending."
+    },
+    {
+      "check": "Source narration",
+      "d12": "3/6 comparable control pages; original generator baseline 8/20.",
+      "d13": "0/2 earlier small notes pages.",
+      "d14": "Rejected extraction 3/30 versus D12 11/30. Final app counts pending."
+    },
+    {
+      "check": "Settled facts",
+      "d12": "Tom terms retained in control; original generator baseline lost Friday once.",
+      "d13": "Small Priya and Tom terms retained.",
+      "d14": "Rejected extraction lost one settled commitment in thirty pages, D12 three in thirty. Both rich five-page samples retained their approved facts."
+    },
+    {
+      "check": "Forms",
+      "d12": "All three two-field requests had six enabled fields.",
+      "d13": "Small request had exactly native name and email, but shared MCP insertion behavior regressed.",
+      "d14": "Explicit exact-fields mode for Ask; MCP defaults preserved. Focused native tests pass. Final app forms pending."
+    },
+    {
+      "check": "Duplicate",
+      "d12": "Three follow-up questions, one placeholder and two false old-name claims.",
+      "d13": "Small copy replaced literal names, but addresses and possessives were defective.",
+      "d14": "Addresses protected, page name replaced, remaining strings reported, Unicode lookup fixed. Final app duplicate audit pending."
+    },
+    {
+      "check": "Older lead drafts",
+      "d12": "Inconsistent completion and age wording.",
+      "d13": "Latest drafting correction had no final runtime proof.",
+      "d14": "Small proof drafted both named submitters and said they were older. Full-control frequencies pending."
+    },
+    {
+      "check": "Replies and saved content",
+      "d12": "False generation and duplicate claims persisted; fifty-five intentional blank replies.",
+      "d13": "Small sample 25/25 scripted shape pass.",
+      "d14": "Three successful password saves; two wrong retype requests after redundant calls. Broader truth and shape counts pending."
+    },
+    {
+      "check": "Passwords",
+      "d12": "Substring scrubs damaged words and could run on refused sets.",
+      "d13": "Word-shape, prefix, overflow, reorder and refused forwarding defects confirmed.",
+      "d14": "Preserve order, prepare generator inputs first, scrub storage on done/card/unknown, clamp fields and avoid no-match writes. Focused SQLite tests pass; all three inspected stored requests scrubbed."
+    },
+    {
+      "check": "Arguments",
+      "d12": "7/341 invalid-input refusals, no turn budget hit.",
+      "d13": "Earlier small sample 1/61 invalid-input refusals.",
+      "d14": "Final counts pending. Redundant password calls are observed."
+    },
+    {
+      "check": "Earlier notes through direct writes",
+      "d12": "Accepted pages_edit and target-page update risk.",
+      "d13": "No complete runtime audit.",
+      "d14": "Observed pages_edit reusing earlier notes for Priya translations and shortening. Inspected pivot edits change Ben copy or repair the extra Anna page. Complete pages_create.document and write audit pending."
+    }
+  ]
+}

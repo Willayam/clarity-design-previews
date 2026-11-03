@@ -1,0 +1,500 @@
+{
+  "before": {
+    "n": 220,
+    "calls": 220,
+    "wrong": 0,
+    "lost": 2,
+    "cost": 0.011382000000000001,
+    "p50ms": 860.5,
+    "cases": [
+      {
+        "case": "pivot-1 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-1 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-2 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-2 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-3 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-3 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "second-paste en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "second-paste sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-1 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 2,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-1 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-2 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-2 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-failed en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-failed sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-created en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-created sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-reads en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-reads sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-closing en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-closing sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-stopped en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-stopped sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      }
+    ]
+  },
+  "after": {
+    "n": 220,
+    "calls": 280,
+    "wrong": 0,
+    "lost": 0,
+    "cost": 0.019314810000000016,
+    "p50ms": 960.5,
+    "cases": [
+      {
+        "case": "pivot-1 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-1 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-2 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-2 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-3 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-3 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "second-paste en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "second-paste sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-1 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-1 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-2 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-2 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-failed en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-failed sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-created en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-created sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-reads en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-reads sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-closing en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-closing sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-stopped en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-stopped sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      }
+    ],
+    "inputTokens": 559245,
+    "cachedInputTokens": 479481,
+    "cacheWriteTokens": 42804
+  },
+  "user-role": {
+    "n": 220,
+    "calls": 280,
+    "wrong": 0,
+    "lost": 0,
+    "cost": 0.01615173,
+    "p50ms": 1130.5,
+    "cases": [
+      {
+        "case": "pivot-1 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-1 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-2 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-2 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-3 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "pivot-3 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "second-paste en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "second-paste sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-1 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-1 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-2 en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-2 sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-failed en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-failed sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-created en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-created sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-reads en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-reads sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-closing en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-closing sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-stopped en",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      },
+      {
+        "case": "reuse-stopped sv",
+        "n": 10,
+        "wrong": 0,
+        "lost": 0,
+        "messageMisses": 0
+      }
+    ],
+    "inputTokens": 561516,
+    "cachedInputTokens": 510698,
+    "cacheWriteTokens": 13858
+  }
+}
