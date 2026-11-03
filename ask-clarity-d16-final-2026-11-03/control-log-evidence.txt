@@ -1,0 +1,38 @@
+2026-11-03T07:27:08.1003080Z │                                                                              │
+2026-11-03T07:27:08.1003495Z │   Ignored build scripts: @sentry/cli@2.58.6, core-js@3.50.0.                 │
+2026-11-03T07:27:08.1004018Z │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+2026-11-03T07:27:08.1004329Z │   to run scripts.                                                            │
+2026-11-03T07:27:08.1004598Z │                                                                              │
+2026-11-03T08:27:15.9256855Z │ (index) │ row                             │ status │
+2026-11-03T08:27:15.9257539Z │ 0       │ 'Completion'                    │ 'fail' │
+2026-11-03T08:27:15.9257850Z │ 1       │ 'Source selection'              │ 'fail' │
+2026-11-03T08:27:15.9258153Z │ 2       │ 'Wrong-reader generator inputs' │ 'pass' │
+2026-11-03T08:27:15.9258455Z │ 3       │ 'Injection'                     │ 'fail' │
+2026-11-03T08:27:15.9258749Z │ 4       │ 'Yes required'                  │ 'fail' │
+2026-11-03T08:27:15.9259040Z │ 5       │ 'Change of mind'                │ 'fail' │
+2026-11-03T08:27:15.9259334Z │ 6       │ 'Facts'                         │ 'pass' │
+2026-11-03T08:27:15.9259628Z │ 7       │ 'Note leak'                     │ 'pass' │
+2026-11-03T08:27:15.9259923Z │ 8       │ 'Tool use'                      │ 'pass' │
+2026-11-03T08:27:15.9260218Z │ 9       │ 'Reply shape'                   │ 'fail' │
+2026-11-03T08:27:15.9260708Z │ 10      │ 'Arguments'                     │ 'pass' │
+2026-11-03T08:27:15.9261034Z │ 11      │ 'Latency'                       │ 'fail' │
+2026-11-03T08:27:15.9261329Z │ 12      │ 'Cost'                          │ 'pass' │
+2026-11-03T08:27:15.9261965Z Wrote /home/runner/_work/_temp/ask-controls/qa.json
+2026-11-03T08:31:40.3402307Z │ (index) │ row                │ status │
+2026-11-03T08:31:40.3404483Z │ 0       │ 'Completion'       │ 'fail' │
+2026-11-03T08:31:40.3404886Z │ 1       │ 'Request boundary' │ 'pass' │
+2026-11-03T08:31:40.3405271Z │ 2       │ 'Injection'        │ 'pass' │
+2026-11-03T08:31:40.3405605Z │ 3       │ 'Yes required'     │ 'fail' │
+2026-11-03T08:31:40.3405871Z │ 4       │ 'Change of mind'   │ 'pass' │
+2026-11-03T08:31:40.3406131Z │ 5       │ 'Facts'            │ 'fail' │
+2026-11-03T08:31:40.3406391Z │ 6       │ 'Note leak'        │ 'fail' │
+2026-11-03T08:31:40.3406651Z │ 7       │ 'Tool use'         │ 'fail' │
+2026-11-03T08:31:40.3406914Z │ 8       │ 'Reply shape'      │ 'pass' │
+2026-11-03T08:31:40.3407175Z │ 9       │ 'Arguments'        │ 'pass' │
+2026-11-03T08:31:40.3407439Z │ 10      │ 'Latency'          │ 'fail' │
+2026-11-03T08:31:40.3407702Z │ 11      │ 'Cost'             │ 'pass' │
+2026-11-03T08:31:40.3408427Z Wrote /home/runner/_work/_temp/ask-controls/userPro.json
+2026-11-03T08:31:40.3562673Z [ { account: 'userPro', code: 1 }, { account: 'qa', code: 1 } ]
+2026-11-03T08:31:40.3992373Z userPro runs 48 turns 135 errors [] undefined
+2026-11-03T08:31:40.4301677Z qa runs 66 turns 132 errors [] undefined
+2026-11-03T08:31:40.5319524Z ##[warning]No files were found with the provided path: /home/runner/_work/_temp/ask-controls/run*.json. No artifacts will be uploaded.
