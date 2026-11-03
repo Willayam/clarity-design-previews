@@ -1,0 +1,34 @@
+{
+  "status": "Ask-only isolation failed",
+  "basePromptMatchesAskFile": true,
+  "basePromptSha256": "c2caa498d7c74b7885f431979e1d88200c63fd40f52f652f4d8cff8ba1ffe7eb",
+  "applicationCatalogTools": 34,
+  "extraTopLevelToolsObserved": [
+    "functions.exec",
+    "functions.wait",
+    "functions.request_user_input",
+    "functions.request_user_input_async",
+    "collaboration.followup_task",
+    "collaboration.interrupt_agent",
+    "collaboration.list_agents",
+    "collaboration.send_message",
+    "collaboration.spawn_agent",
+    "collaboration.wait_agent"
+  ],
+  "extraNestedToolsDeclared": [
+    "apply_patch",
+    "create_goal",
+    "get_goal",
+    "list_mcp_resource_templates",
+    "list_mcp_resources",
+    "read_mcp_resource",
+    "update_goal",
+    "view_image",
+    "clock__curr_time",
+    "image_gen__imagegen"
+  ],
+  "personalAgentsInstructionsPresent": true,
+  "multiAgentRoleInstructionsPresent": true,
+  "basis": "An actual non-ephemeral exec with the same settings, after debug prompt-input exposed additional tools. Diagnostic is excluded from model trial counts.",
+  "strongerControls": "Local catalog direct mode, null patch type, disabled native agents/images/goals/plugins removed most helpers. Resource and user-input discovery helpers remained. No Ask-only rerun was established."
+}
