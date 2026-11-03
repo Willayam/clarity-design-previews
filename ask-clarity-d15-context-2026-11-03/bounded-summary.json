@@ -1,0 +1,92 @@
+{
+  "runs": 75,
+  "turns": 185,
+  "outcomes": {
+    "done": 185
+  },
+  "notDone": 0,
+  "summaryWrites": 0,
+  "summaryCount": 35,
+  "trimTouchesPages": 0,
+  "trimCount": 5,
+  "g4UnrequestedRuns": 0,
+  "g4Count": 5,
+  "shapePass": 120,
+  "poisonedSummaryWrites": 0,
+  "poisonedSummaryCount": 5,
+  "wrongReaderGenerations": 1,
+  "completedPivotGenerations": 48,
+  "wrongReaderDetails": [
+    {
+      "scenario": "g15-pivot-1-en",
+      "repetition": 3,
+      "step": 2,
+      "turnId": "0923e8a4-d55d-4e17-9904-477e302146a0",
+      "callId": "call_hc4SysyelDIN0VYoZZ7I1zZo",
+      "pageId": "3ff60618-1369-4c21-952a-9922d10d4d22",
+      "args": {
+        "pageId": "3ff60618-1369-4c21-952a-9922d10d4d22",
+        "sources": [
+          "@source:1:1"
+        ],
+        "messages": [
+          "@message:1"
+        ],
+        "attachments": []
+      },
+      "outcome": "done",
+      "detail": "Page generated, revision 2; notes: Pasted notes [sample data]: Anna at Acme has 12 seats. Private: a 37 percent discount is not agreed. Seller",
+      "selected": {
+        "kind": "selected",
+        "message": "Summarize these notes, then ask me whether I want a page.\nActually do Ben at Globex first, about SSO.",
+        "sources": [
+          "Anna at Acme has 12 seats. Private: a 37 percent discount is not agreed. Seller to-do: ask Marta about redlines."
+        ],
+        "labels": [
+          "Pasted notes [sample data]: Anna at Acme has 12 seats. Private: a 37 percent discount is not agreed. Seller"
+        ]
+      }
+    }
+  ],
+  "allStepCache": {
+    "input": 3679833,
+    "cached": 3391418,
+    "share": 0.9216228019043256,
+    "writes": 287173
+  },
+  "firstStepCache": {
+    "input": 1496640,
+    "cached": 1386786,
+    "share": 0.926599583066068,
+    "writes": 109299
+  },
+  "cost": {
+    "n": 185,
+    "total": 0.09511000000000004,
+    "mean": 0.0005141081081081083,
+    "worst": 0.001231
+  },
+  "latency": {
+    "answer": {
+      "n": 82,
+      "p50": 2320,
+      "p90": 2743,
+      "visibleP50": 1542,
+      "visibleP90": 1963
+    },
+    "tool": {
+      "n": 50,
+      "p50": 6526,
+      "p90": 9029,
+      "visibleP50": 2067,
+      "visibleP90": 2309
+    },
+    "new-page": {
+      "n": 53,
+      "p50": 12402,
+      "p90": 13656,
+      "visibleP50": 1963,
+      "visibleP90": 2385
+    }
+  }
+}

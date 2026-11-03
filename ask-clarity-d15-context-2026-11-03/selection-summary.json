@@ -1,0 +1,172 @@
+{
+  "productHead": "08a0a56ab060e3e0cef241d6b3bcd6d5e154c4fd",
+  "receiptHead": "d4c7a5c8f61d5a75603b704550f7adabac9853ab",
+  "choices": 220,
+  "wrong": 1,
+  "lost": 0,
+  "tokens": {
+    "input": 425980,
+    "output": 9205,
+    "cached": 389418,
+    "write": 7522
+  },
+  "cachedShare": 0.914169679327668,
+  "cost": 0.01234093,
+  "medianMs": 983.0,
+  "groups": {
+    "pivot-1 en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "pivot-1 sv": {
+      "n": 10,
+      "wrong": 1,
+      "lost": 0
+    },
+    "pivot-2 en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "pivot-2 sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "pivot-3 en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "pivot-3 sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "second-paste en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "second-paste sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-1 en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-1 sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-2 en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-2 sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-failed en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-failed sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-created en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-created sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-reads en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-reads sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-closing en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-closing sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-stopped en": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    },
+    "reuse-stopped sv": {
+      "n": 10,
+      "wrong": 0,
+      "lost": 0
+    }
+  },
+  "failures": [
+    {
+      "fixture": "pivot-1",
+      "language": "sv",
+      "repetition": 5,
+      "passed": false,
+      "sourceMatch": false,
+      "messageMatch": false,
+      "wrongProspect": true,
+      "lostNotes": false,
+      "args": {
+        "pageId": "page-eval",
+        "mode": "replace",
+        "sources": [
+          "@source:1:1"
+        ],
+        "messages": [
+          "@message:1",
+          "@message:4"
+        ],
+        "attachments": []
+      },
+      "expectedSources": [],
+      "needsFirst": false,
+      "ms": 1141,
+      "usage": {
+        "prompt_tokens": 1915,
+        "completion_tokens": 50,
+        "total_tokens": 1965,
+        "prompt_tokens_details": {
+          "cached_tokens": 1783,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "messagesSha256": "4c5196724e7b5e4a5c4b809d21be8a37d7160c13d9a7251feacb03b471a28cee"
+    }
+  ]
+}
