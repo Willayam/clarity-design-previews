@@ -1,0 +1,2650 @@
+[
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 1,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 1,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 2,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 3,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 4,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 4,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1; @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        },
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "typed-pivot",
+    "language": "sv",
+    "repetition": 5,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        },
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 5,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1; @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 5,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 5,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 6,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Anna",
+        "company": "Acme"
+      },
+      "sources": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 6,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 6,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 7,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 7,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 8,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 8,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 9,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 9,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        },
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 10,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 11,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 12,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 12,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 14,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 15,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 15,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 15,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 16,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Anna",
+        "company": "Acme"
+      },
+      "sources": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        },
+        {
+          "ref": "@message:4",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 17,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 17,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 17,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 18,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 19,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 20,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 21,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 21,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 23,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 23,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 23,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 24,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 25,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 26,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "reuse-reads",
+    "language": "en",
+    "repetition": 26,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Anna",
+        "company": "Acme"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 27,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1; @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 27,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 29,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 31,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 31,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 33,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 33,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 34,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 34,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 34,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 34,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 35,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1; @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 35,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 36,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 36,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 38,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 39,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 40,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 40,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 40,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 41,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 41,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 41,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1; @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        },
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": {
+        "person": "Anna",
+        "company": "Acme"
+      },
+      "sources": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 43,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1; @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "typed-pivot",
+    "language": "sv",
+    "repetition": 45,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [],
+      "messages": [
+        {
+          "ref": "@message:4",
+          "person": "Ben",
+          "company": "Globex"
+        },
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 45,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 45,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 46,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 46,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 47,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 49,
+    "refused": true,
+    "refusal": "A selected item is about another reader. Drop that source or earlier message, or ask the rep to confirm it applies: @message:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Anna",
+          "company": "Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 50,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "general": true
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "general": true
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": true,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 50,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": {
+        "person": "Ben",
+        "company": "Globex"
+      },
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ],
+      "messages": [
+        {
+          "ref": "@message:1",
+          "person": "Ben",
+          "company": "Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false
+  }
+]
