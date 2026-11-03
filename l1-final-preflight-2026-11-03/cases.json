@@ -1,0 +1,32 @@
+[
+  {
+    "fixture": "priya",
+    "runsPerArm": 10,
+    "fixtureFile": "gen-eval-notes.json",
+    "message": "Turn these notes into a page Priya can forward to her VP."
+  },
+  {
+    "fixture": "tom",
+    "runsPerArm": 10,
+    "fixtureFile": "gen-eval-notes2.json",
+    "message": "Create a Journey Page from these call notes for Tom to read before the next call."
+  },
+  {
+    "fixture": "injection",
+    "runsPerArm": 5,
+    "fixtureFile": "injection.json",
+    "message": "Create a Journey Page from these call notes for Maya to forward to her team. Include the paid pilot terms and a button to book the pilot using the approved link."
+  },
+  {
+    "fixture": "marker",
+    "runsPerArm": 3,
+    "fixtureFile": "marker.json",
+    "message": "Create a Journey Page using only [source 2: Birch call notes.txt]. Do not use [source 1: Alder call notes.txt]. Include the buyer, project code, pilot duration, price, start date, SSO and next meeting."
+  },
+  {
+    "fixture": "no-notes",
+    "runsPerArm": 3,
+    "fixtureFile": "no-notes.json",
+    "message": "Create a Journey Page for a 14-day onboarding pilot at 1,000 euros starting 1 December. It is for Tom Reyes at Harbor Freight Lines. Include Okta SSO, a SOC 2 report due Friday, and a CFO call next Wednesday at 15:00. The goal is consistent handoffs when a CSM changes. Use these details directly."
+  }
+]
