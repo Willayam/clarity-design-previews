@@ -1,0 +1,62 @@
+{
+  "productHead": "b4e709e2106a1a4983d45bb3839bdecb526d34e3",
+  "runs": 60,
+  "turns": 120,
+  "generationAttempts": 79,
+  "generationOutcomes": {
+    "done": 65,
+    "refused": 14
+  },
+  "wrongPicksRefused": 2,
+  "acceptedWrongInputs": 0,
+  "otherReaderFactsOnPivotPage": 0,
+  "privatePageFlags": [
+    {
+      "scenario": "g15-pivot-typed-en",
+      "repetition": 5,
+      "step": 0,
+      "text": "#2563eb\nAnna at Acme has 12 seats. The possible 37% discount is not an agreed term, and the seller\u2019s internal follow-up is not part of the customer-facing summary.\nAnna at Acme: 12 Seats\n Summary: Acme has 12 seats. No other customer-facing details or agreed terms were provided.  Would you like me to create a page for Anna at Acme? \nWould You Like a Page?\nleft\nuser_01KSNENWMM5DQVRM6XDJWAF8X9\nstandard\nAnna at Acme \u2014 12 Seats\nuser_01KSNENWMM5DQVRM6XDJWAF8X9\n2"
+    },
+    {
+      "scenario": "g15-pivot-typed-sv",
+      "repetition": 1,
+      "step": 0,
+      "text": "#2563eb\nAcme has 12 seats. A 37% discount has not been agreed.\nAnna at Acme: 12 seats\nuser_01KSNENWMM5DQVRM6XDJWAF8X9\nstandard\nAnna p\u00e5 Acme \u2014 12 platser\nuser_01KSNENWMM5DQVRM6XDJWAF8X9\n2"
+    }
+  ],
+  "costTotal": 0.07258899999999999,
+  "costRecords": 119,
+  "costMean": 0.0006099915966386553,
+  "costWorst": 0.00196,
+  "latency": {
+    "answer": {
+      "n": 40,
+      "p50": 5453,
+      "p90": 6000,
+      "visibleN": 40,
+      "visibleP50": 3376,
+      "visibleP90": 3783
+    },
+    "tool": {
+      "n": 6,
+      "p50": 8056,
+      "p90": 12549,
+      "visibleN": 6,
+      "visibleP50": 4148,
+      "visibleP90": 4864
+    },
+    "new-page": {
+      "n": 74,
+      "p50": 19986,
+      "p90": 23554,
+      "visibleN": 74,
+      "visibleP50": 4369,
+      "visibleP90": 5077
+    }
+  },
+  "retainedOldInternalPageName": 1,
+  "finalBenGenerations": 51,
+  "note": "Zero wrong-reader content in visible blocks. One repurposed draft retains internal name Acme \u2014 12 seats. Six final generations blocked by quota. Two wrong picks refused. No required prior notes in these pivot requests, so lost-note rate is not applicable.",
+  "costTotalIsLowerBound": true,
+  "unknownCostTurns": 1
+}

@@ -1,0 +1,6014 @@
+[
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 1,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 1,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; product pricing and SSO details, not specific to Anna or Acme"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 1,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r produkten Growth: kostar 89 euro per anv\u00e4ndare och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 1,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 2,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 2,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna p\u00e5 Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 2,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 2,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista med uppgift om Growth-planens pris och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 2,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; the rep says the same terms in these notes apply to Ben"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 3,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 3,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list relevant to the requested SSO page"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 3,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "gemensam produktprislista med uppgifter om Growth och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 3,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "mode": "update"
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 4,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna p\u00e5 Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 4,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list, general product information"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 4,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Acme shared product price list, applicable as the requested shared price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 4,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 5,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": "Anna p\u00e5 Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 5,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Acme"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 5,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 5,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "mode": "replace",
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; anv\u00e4nd endast som k\u00e4lla f\u00f6r de villkor som repen uttryckligen s\u00e4ger g\u00e4ller \u00e4ven Ben p\u00e5 Globex"
+        }
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 6,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 6,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 6,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for Growth"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 6,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista f\u00f6r Growth-planen och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 7,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth plan price and included SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 7,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r Growth och SSO; materialet anger 89 euro per anv\u00e4ndare och m\u00e5nad och att Growth inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 7,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ],
+      "mode": "replace"
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 7,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 8,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 8,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for Growth, including SSO"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 8,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for the Growth plan, including SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 8,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; rep says the same terms in these notes apply to him"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 9,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme: 18 projects per month; agreed 14-day pilot costs 1200 euros. Exclude private unagreed discount and seller to-do."
+        },
+        {
+          "ref": "@message:4",
+          "about": "Rep says use the pricing video."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 9,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list, applicable product information"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 9,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Produktprislista gemensam f\u00f6r prospects; Growth kostar 89 euro per plats och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 9,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 10,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Anna at Acme",
+      "attachments": [
+        {
+          "assetId": "[price video]",
+          "kind": "video"
+        }
+      ],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ],
+      "waitSeconds": 0
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 10,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 10,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista; inneh\u00e5ller pris och information om SSO f\u00f6r Growth"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 10,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep explicitly says the same agreed terms apply to Ben at Globex."
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 11,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 11,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Delad prislista f\u00f6r Growth, relevanta detaljer om SSO och pris."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 11,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep explicitly says the same terms apply to Ben at Globex."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 11,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 12,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth costs 89 euros per seat per month and includes SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 12,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list, relevant to the requested SSO page"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "pivot-1",
+    "language": "en",
+    "repetition": 12,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 13,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme: 18 projects per month; agreed pilot for 14 days at \u20ac1,200. Exclude the private, unagreed 37% discount and the internal instruction to ask Marta about contract changes."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 14,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 14,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth plan details including SSO"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 14,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth costs 89 euros per seat per month and includes SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 14,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 15,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [
+        {
+          "assetId": "price-video",
+          "kind": "video"
+        }
+      ],
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 15,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 15,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 15,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 16,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 16,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r produkten Growth"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 16,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 17,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 17,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": "Anna p\u00e5 Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 17,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 17,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "gemensam produktprislista f\u00f6r Growth-planen; kostnad 89 euro per plats och m\u00e5nad, inkluderar SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 17,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 17,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 18,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "replace",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 18,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:1",
+          "about": "Anna at Acme; notes about 18 projects per month and an agreed 14-day pilot for \u20ac1,200"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 18,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "The shared Growth product price list, not specific to a prospect"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 18,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; the rep says the same terms apply to Ben."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 18,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; rep s\u00e4ger att samma villkor g\u00e4ller Ben p\u00e5 Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 19,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "attachments": [],
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@source:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 19,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for Growth plan"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 19,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista: Growth kostar 89 euro per licens och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 19,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "update",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; the rep says the same terms in the notes apply to him"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 20,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 20,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 20,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 20,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list with Growth plan pricing and SSO inclusion"
+        }
+      ],
+      "messages": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 20,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep confirmed the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 20,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; rep says the same agreed terms apply to Ben at Globex."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 21,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for Growth, including SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 21,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "General shared product price list, not specific to Anna or Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 21,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; the rep says the same terms apply to Ben"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 21,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 22,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "The shared product price list for Growth and SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 22,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Delad produktprislista f\u00f6r Growth och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 22,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; the rep explicitly says the same terms apply to Ben"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 22,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 23,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Acme pricing, shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 23,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista med Growth-pris och SSO-information"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 23,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same terms apply to Ben at Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 23,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 24,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "waitSeconds": 0
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 24,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 24,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 24,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemeensam produktprislista; priser och SSO-information, inte specifika f\u00f6r n\u00e5gon prospekt."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 24,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "pivot-1",
+    "language": "sv",
+    "repetition": 24,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; not for Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": true,
+    "privateWrongInput": true,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 25,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": "Anna p\u00e5 Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ],
+      "waitSeconds": 0
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 25,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 25,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 25,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 26,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 26,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 26,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list, Growth plan"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 26,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "update",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep explicitly says the same terms apply to Ben at Globex."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 27,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "attachments": [],
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 27,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth costs 89 euros per seat per month and includes SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 27,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep confirms the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 27,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; repen s\u00e4ger att samma villkor g\u00e4ller Ben p\u00e5 Globex."
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "pivot-1",
+    "language": "en",
+    "repetition": 27,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 28,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:price-video",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 28,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 28,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 28,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 28,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 29,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 29,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 29,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r Growth, pris och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 29,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep explicitly says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 29,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 30,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 30,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        },
+        {
+          "ref": "@message:4",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 30,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list, applicable pricing and SSO inclusion"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 30,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 31,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 31,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 31,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 31,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "The shared product price list, which says Growth costs 89 euros per seat per month and includes SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 31,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 32,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 32,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list with Growth pricing and SSO inclusion"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 32,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r Growth-planen och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 32,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 33,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 33,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 33,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista med uppgift om Growth och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 33,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 33,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben p\u00e5 Globex",
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; repen s\u00e4ger att samma villkor g\u00e4ller Ben p\u00e5 Globex"
+        }
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 34,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna p\u00e5 Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 34,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep confirms the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 34,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; anteckningarna s\u00e4ger att samma avtalade villkor g\u00e4ller Ben p\u00e5 Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 35,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 35,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [
+        {
+          "assetId": "video-price",
+          "kind": "video"
+        }
+      ],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 35,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for Growth pricing and SSO inclusion"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 35,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Delad produktprislista med information om Growth och SSO"
+        }
+      ],
+      "messages": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 35,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 36,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "mode": "update",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 36,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list for Growth plan"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 36,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 37,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Acme, from a shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 37,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says these same terms also apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 38,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Acme product price list; Growth includes SSO at \u20ac89 per seat per month"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 38,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme, with terms rep says also apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 38,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 39,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [
+        {
+          "assetId": "video-price",
+          "kind": "video"
+        }
+      ],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 39,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth plan costs 89 euros per seat per month and includes SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 39,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 39,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 40,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 40,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; general information about Growth pricing and SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 40,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Ben at Globex; the rep says the same terms apply to Ben"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 40,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "messages": [
+        "@message:4"
+      ],
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 41,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 41,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Produktprislista som g\u00e4ller generellt: Growth kostar 89 euro per plats och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 41,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna p\u00e5 Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list; Growth plan pricing and included SSO"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r Growth och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 42,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 43,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 43,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 43,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Delad produktprislista: Growth kostar 89 euro per plats och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 43,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep confirms the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 44,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ],
+      "attachments": [],
+      "mode": "update"
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 44,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna p\u00e5 Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 44,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; shared product price list"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 44,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista: Growth kostar 89 euro per plats och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 44,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 45,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "shared product price list; Growth pricing and SSO inclusion"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 45,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 45,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 46,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "The shared product price list for Growth"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 46,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r Growth-planen och SSO"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 46,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says these same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 46,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "mode": "update",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme, vars angivna villkor repen s\u00e4ger ocks\u00e5 g\u00e4ller Ben p\u00e5 Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 47,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "mode": "update",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 47,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 47,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 48,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Acme; shared Growth product price list"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 48,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam prislista f\u00f6r Growth: 89 euro per s\u00e4te och m\u00e5nad, inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 48,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep confirms the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 48,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "en",
+    "repetition": 49,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "attachments": [],
+      "reader": "Anna at Acme",
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 49,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list relevant to SSO"
+        }
+      ],
+      "messages": [],
+      "attachments": []
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "sv",
+    "repetition": 49,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "update",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Gemensam produktprislista: Growth kostar 89 euro per anv\u00e4ndare och m\u00e5nad och inkluderar SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 49,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "mode": "replace",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; the rep says the same agreed terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "typed-reuse",
+    "language": "sv",
+    "repetition": 50,
+    "refused": true,
+    "refusal": "Unknown thread reference. Choose only @message and @source references shown in this thread.",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Anna at Acme",
+      "attachments": [],
+      "sources": [
+        {
+          "ref": "@message:1",
+          "about": "Anna at Acme"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": true,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "general-price",
+    "language": "en",
+    "repetition": 50,
+    "refused": true,
+    "refusal": "A selected source is about another reader. Drop that source or ask the rep to paste it again with this request: @source:1:1",
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Shared product price list: Growth plan costs 89 euros per seat per month and includes SSO."
+        }
+      ],
+      "messages": [
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": false,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": true,
+    "notesNotDelivered": true,
+    "messageMatch": true,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": false
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "en",
+    "repetition": 50,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "reader": "Ben at Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna at Acme; rep confirms the same terms apply to Ben at Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  },
+  {
+    "fixture": "confirmed-source",
+    "language": "sv",
+    "repetition": 50,
+    "refused": false,
+    "refusal": null,
+    "args": {
+      "pageId": "page-eval",
+      "mode": "replace",
+      "reader": "Ben p\u00e5 Globex",
+      "sources": [
+        {
+          "ref": "@source:1:1",
+          "about": "Anna p\u00e5 Acme; repen anger att samma villkor g\u00e4ller Ben p\u00e5 Globex"
+        }
+      ],
+      "messages": [
+        "@message:1",
+        "@message:4"
+      ]
+    },
+    "adjudicatedWrong": true,
+    "invalidReferenceSlot": false,
+    "wrongGeneral": false,
+    "validReferenceRefusal": false,
+    "notesNotDelivered": false,
+    "messageMatch": false,
+    "privateWrongInput": false,
+    "obsoleteInstructionOnlyInput": true
+  }
+]
