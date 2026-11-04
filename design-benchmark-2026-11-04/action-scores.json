@@ -1,0 +1,114 @@
+{
+  "before_sha": "e9f7510a47f71de88502981ccf9196c897807083",
+  "after_sha": "2e8fd1600dd73e0891eee94f7c5096eb5bf17d36",
+  "method": "Same supported criteria across both phases and both reviewers per scope; sum(weight*score)/sum(weight). No cross-scope or full-product total.",
+  "independence_limit": "Both reviewers encountered older scores embedded in the allowed baseline report. Both disclose not reusing those scores.",
+  "scopes": [
+    {
+      "scope": "leads",
+      "label": "Leads listing",
+      "criterion_weight": 70,
+      "criteria": [
+        "task_clarity",
+        "hierarchy",
+        "typography",
+        "layout",
+        "color",
+        "consistency",
+        "responsive",
+        "trust_copy",
+        "brand_craft"
+      ],
+      "models": {
+        "GPT-6.1 Sol": {
+          "before": 6.8,
+          "after": 7.371428571428571
+        },
+        "Opus 5.5": {
+          "before": 5.942857142857143,
+          "after": 6.085714285714285
+        }
+      }
+    },
+    {
+      "scope": "recorder",
+      "label": "Recorder recovery",
+      "criterion_weight": 78,
+      "criteria": [
+        "task_clarity",
+        "hierarchy",
+        "typography",
+        "layout",
+        "color",
+        "consistency",
+        "states",
+        "responsive",
+        "trust_copy",
+        "brand_craft"
+      ],
+      "models": {
+        "GPT-6.1 Sol": {
+          "before": 5.538461538461538,
+          "after": 7.641025641025641
+        },
+        "Opus 5.5": {
+          "before": 5.17948717948718,
+          "after": 6.743589743589744
+        }
+      }
+    },
+    {
+      "scope": "editor",
+      "label": "Empty editor slot",
+      "criterion_weight": 78,
+      "criteria": [
+        "task_clarity",
+        "hierarchy",
+        "typography",
+        "layout",
+        "color",
+        "consistency",
+        "states",
+        "responsive",
+        "trust_copy",
+        "brand_craft"
+      ],
+      "models": {
+        "GPT-6.1 Sol": {
+          "before": 7.076923076923077,
+          "after": 7.076923076923077
+        },
+        "Opus 5.5": {
+          "before": 5.666666666666667,
+          "after": 6.0
+        }
+      }
+    },
+    {
+      "scope": "marketing",
+      "label": "Marketing header",
+      "criterion_weight": 70,
+      "criteria": [
+        "task_clarity",
+        "hierarchy",
+        "typography",
+        "layout",
+        "color",
+        "consistency",
+        "responsive",
+        "trust_copy",
+        "brand_craft"
+      ],
+      "models": {
+        "GPT-6.1 Sol": {
+          "before": 7.4,
+          "after": 7.771428571428571
+        },
+        "Opus 5.5": {
+          "before": 6.742857142857143,
+          "after": 7.3428571428571425
+        }
+      }
+    }
+  ]
+}
