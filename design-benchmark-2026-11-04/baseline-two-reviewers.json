@@ -1,0 +1,109 @@
+{
+  "scope": "Original marketing captures only. Not current Clarity, not signed-in product, not complete three-model panel.",
+  "criteria": [
+    "task_clarity",
+    "hierarchy",
+    "typography",
+    "layout",
+    "color",
+    "trust_copy",
+    "brand_craft"
+  ],
+  "criterion_weight": 52,
+  "model_weights": {
+    "gpt-6.1-sol": 0.5,
+    "claude-opus-5-5": 0.5
+  },
+  "rows": [
+    {
+      "product": "Clarity",
+      "gpt_numerator": 284,
+      "opus_numerator": 258,
+      "denominator": 52,
+      "gpt_score": 5.461538461538462,
+      "opus_score": 4.961538461538462,
+      "two_reviewer_mean": 5.211538461538462
+    },
+    {
+      "product": "Attio",
+      "gpt_numerator": 400,
+      "opus_numerator": 410,
+      "denominator": 52,
+      "gpt_score": 7.6923076923076925,
+      "opus_score": 7.884615384615385,
+      "two_reviewer_mean": 7.788461538461538
+    },
+    {
+      "product": "Supercut",
+      "gpt_numerator": 374,
+      "opus_numerator": 372,
+      "denominator": 52,
+      "gpt_score": 7.1923076923076925,
+      "opus_score": 7.153846153846154,
+      "two_reviewer_mean": 7.173076923076923
+    },
+    {
+      "product": "Tella",
+      "gpt_numerator": 426,
+      "opus_numerator": 374,
+      "denominator": 52,
+      "gpt_score": 8.192307692307692,
+      "opus_score": 7.1923076923076925,
+      "two_reviewer_mean": 7.6923076923076925
+    },
+    {
+      "product": "Screen Studio",
+      "gpt_numerator": 426,
+      "opus_numerator": 396,
+      "denominator": 52,
+      "gpt_score": 8.192307692307692,
+      "opus_score": 7.615384615384615,
+      "two_reviewer_mean": 7.903846153846154
+    },
+    {
+      "product": "Trumpet",
+      "gpt_numerator": 324,
+      "opus_numerator": 288,
+      "denominator": 52,
+      "gpt_score": 6.230769230769231,
+      "opus_score": 5.538461538461538,
+      "two_reviewer_mean": 5.884615384615385
+    },
+    {
+      "product": "Pitch",
+      "gpt_numerator": 382,
+      "opus_numerator": 352,
+      "denominator": 52,
+      "gpt_score": 7.346153846153846,
+      "opus_score": 6.769230769230769,
+      "two_reviewer_mean": 7.0576923076923075
+    },
+    {
+      "product": "Linear",
+      "gpt_numerator": 372,
+      "opus_numerator": 400,
+      "denominator": 52,
+      "gpt_score": 7.153846153846154,
+      "opus_score": 7.6923076923076925,
+      "two_reviewer_mean": 7.423076923076923
+    },
+    {
+      "product": "Papermark",
+      "gpt_numerator": 410,
+      "opus_numerator": 376,
+      "denominator": 52,
+      "gpt_score": 7.884615384615385,
+      "opus_score": 7.230769230769231,
+      "two_reviewer_mean": 7.5576923076923075
+    },
+    {
+      "product": "Framer",
+      "gpt_numerator": 426,
+      "opus_numerator": 404,
+      "denominator": 52,
+      "gpt_score": 8.192307692307692,
+      "opus_score": 7.769230769230769,
+      "two_reviewer_mean": 7.980769230769231
+    }
+  ]
+}
