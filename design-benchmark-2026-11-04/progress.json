@@ -1,5 +1,5 @@
 {
-  "head": "ae81edeb3d954168238f5ded72900f1fc07b2071",
+  "head": "2c4af7b4170b364345d6076e214ad67681f5bcb6",
   "complete_product_score": null,
   "reviewer": "gpt-6.1-sol",
   "status": "in progress",
@@ -92,5 +92,45 @@
     "whole_product_score": null,
     "ci": "Applicable checks pass; E2E and deployment jobs skipped.",
     "prior_smoke_head": "18221ec506ad71be1b033cea28a5cb3828158c06"
+  },
+  "latest_editor_start": {
+    "scope": "Empty editor starting hierarchy and optional media controls",
+    "criterion_weight": 86,
+    "criteria": [
+      "task_clarity",
+      "hierarchy",
+      "typography",
+      "layout",
+      "color",
+      "consistency",
+      "interaction",
+      "states",
+      "responsive",
+      "trust_copy",
+      "brand_craft"
+    ],
+    "models": [
+      {
+        "model": "GPT-6.1 Sol",
+        "before": 6.244186046511628,
+        "after": 7.127906976744186,
+        "exact": {
+          "before": "537/86",
+          "after": "613/86"
+        }
+      },
+      {
+        "model": "Opus 5.5",
+        "before": 5.441860465116279,
+        "after": 6.883720930232558,
+        "exact": {
+          "before": "234/43",
+          "after": "296/43"
+        }
+      }
+    ],
+    "before_sha": "ae81edeb3d954168238f5ded72900f1fc07b2071",
+    "after_sha": "2c4af7b4170b364345d6076e214ad67681f5bcb6",
+    "whole_product_score": null
   }
 }
