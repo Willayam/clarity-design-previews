@@ -1,0 +1,40 @@
+{
+  "scope": "Direct writing and compact empty-editor composition",
+  "before_sha": "2c4af7b4170b364345d6076e214ad67681f5bcb6",
+  "after_sha": "38a0ab840e6e496a3608bfd8d35d2ec03cf77554",
+  "criterion_weight": 86,
+  "criteria": [
+    "task_clarity",
+    "hierarchy",
+    "typography",
+    "layout",
+    "color",
+    "consistency",
+    "interaction",
+    "states",
+    "responsive",
+    "trust_copy",
+    "brand_craft"
+  ],
+  "models": [
+    {
+      "model": "GPT-6.1 Sol",
+      "before": 4.883720930232558,
+      "after": 7.27906976744186,
+      "exact": {
+        "before": "210/43",
+        "after": "313/43"
+      }
+    },
+    {
+      "model": "Opus 5.5",
+      "before": 4.906976744186046,
+      "after": 7.046511627906977,
+      "exact": {
+        "before": "211/43",
+        "after": "303/43"
+      }
+    }
+  ],
+  "whole_product_score": null
+}
