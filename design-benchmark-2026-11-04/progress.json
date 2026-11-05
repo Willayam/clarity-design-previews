@@ -1,5 +1,5 @@
 {
-  "head": "18221ec506ad71be1b033cea28a5cb3828158c06",
+  "head": "ae81edeb3d954168238f5ded72900f1fc07b2071",
   "complete_product_score": null,
   "reviewer": "gpt-6.1-sol",
   "status": "in progress",
@@ -47,7 +47,7 @@
   ],
   "action_emphasis": {
     "browser": "verified within practical coverage",
-    "design_scores": "pending",
+    "design_scores": "Independent GPT-6.1 Sol and Opus 5.5 matched results are published in action-scores.json.",
     "before_sha": "e9f7510a47f71de88502981ccf9196c897807083",
     "after_sha": "2e8fd1600dd73e0891eee94f7c5096eb5bf17d36"
   },
@@ -84,5 +84,13 @@
       }
     },
     "whole_product_score": null
+  },
+  "latest_runtime_verification": {
+    "scope": "Shared Dialog first-click opening after closed breakpoint change, open resize, dismissal, focus, Share and private draft review",
+    "head": "ae81edeb3d954168238f5ded72900f1fc07b2071",
+    "verdict": "verified",
+    "whole_product_score": null,
+    "ci": "Applicable checks pass; E2E and deployment jobs skipped.",
+    "prior_smoke_head": "18221ec506ad71be1b033cea28a5cb3828158c06"
   }
 }
