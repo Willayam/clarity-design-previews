@@ -1,9 +1,35 @@
 {
+  "head": "af4939c23",
   "baseline": "after2",
   "compared": 568,
-  "byteIdentical": 568,
+  "byteIdentical": 566,
   "missing": [],
-  "changes": [],
+  "changes": [
+    {
+      "name": "built-page--docked-1024--light.png",
+      "pixels": 60,
+      "significant": 0,
+      "maxChannel": 1,
+      "bounds": [
+        192,
+        72,
+        831,
+        522
+      ]
+    },
+    {
+      "name": "built-page--phone-390--light.png",
+      "pixels": 55,
+      "significant": 0,
+      "maxChannel": 1,
+      "bounds": [
+        16,
+        72,
+        373,
+        507
+      ]
+    }
+  ],
   "added": [
     "change-resized--docked-1024--dark.png",
     "change-resized--docked-1024--light.png",
@@ -117,12 +143,12 @@
     },
     {
       "name": "change-resized--fullscreen-1440--light.png",
-      "pixels": 9966,
-      "significant": 9774,
+      "pixels": 9977,
+      "significant": 9773,
       "maxChannel": 240,
       "bounds": [
         17,
-        401,
+        72,
         303,
         497
       ]
@@ -573,6 +599,44 @@
         543,
         364,
         688
+      ]
+    }
+  ],
+  "repeatDifferences": [
+    {
+      "name": "built-page--docked-1024--light.png",
+      "pixels": 60,
+      "significant": 0,
+      "maxChannel": 1,
+      "bounds": [
+        192,
+        72,
+        831,
+        522
+      ]
+    },
+    {
+      "name": "change-resized--fullscreen-1440--light.png",
+      "pixels": 18,
+      "significant": 0,
+      "maxChannel": 1,
+      "bounds": [
+        17,
+        72,
+        90,
+        426
+      ]
+    },
+    {
+      "name": "built-page--phone-390--light.png",
+      "pixels": 55,
+      "significant": 0,
+      "maxChannel": 1,
+      "bounds": [
+        16,
+        72,
+        373,
+        507
       ]
     }
   ]
