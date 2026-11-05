@@ -1,5 +1,5 @@
 {
-  "head": "163d5fa58411684792da638294eb84d87ee1ee4e",
+  "head": "468eea53df964b6647f572be7171d561d3f880c8",
   "complete_product_score": null,
   "reviewer": "gpt-6.1-sol",
   "status": "in progress",
@@ -206,6 +206,46 @@
         "exact": {
           "before": "29/6",
           "after": "6"
+        }
+      }
+    ],
+    "whole_product_score": null
+  },
+  "latest_alignment": {
+    "scope": "Heading alignment control during editing",
+    "before_sha": "163d5fa58411684792da638294eb84d87ee1ee4e",
+    "after_sha": "468eea53df964b6647f572be7171d561d3f880c8",
+    "criterion_weight": 86,
+    "criteria": [
+      "task_clarity",
+      "hierarchy",
+      "typography",
+      "layout",
+      "color",
+      "consistency",
+      "interaction",
+      "states",
+      "responsive",
+      "trust_copy",
+      "brand_craft"
+    ],
+    "models": [
+      {
+        "model": "GPT-6.1 Sol",
+        "before": 5.511627906976744,
+        "after": 7.372093023255814,
+        "exact": {
+          "before": "237/43",
+          "after": "317/43"
+        }
+      },
+      {
+        "model": "Opus 5.5",
+        "before": 4.511627906976744,
+        "after": 6.953488372093023,
+        "exact": {
+          "before": "194/43",
+          "after": "299/43"
         }
       }
     ],
