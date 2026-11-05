@@ -1,0 +1,40 @@
+{
+  "scope": "Journey Page identification, publication labels and actions in Library",
+  "before_sha": "468eea53df964b6647f572be7171d561d3f880c8",
+  "after_sha": "873b8d85cb12f8846a641c82186f0d02a7090208",
+  "criterion_weight": 86,
+  "criteria": [
+    "brand_craft",
+    "color",
+    "consistency",
+    "hierarchy",
+    "interaction",
+    "layout",
+    "responsive",
+    "states",
+    "task_clarity",
+    "trust_copy",
+    "typography"
+  ],
+  "models": [
+    {
+      "model": "GPT-6.1 Sol",
+      "before": 6.511627906976744,
+      "after": 6.930232558139535,
+      "before_numerator": 560,
+      "after_numerator": 596,
+      "denominator": 86,
+      "verdict": "keep"
+    },
+    {
+      "model": "Opus 5.5",
+      "before": 6.186046511627907,
+      "after": 6.325581395348837,
+      "before_numerator": 532,
+      "after_numerator": 544,
+      "denominator": 86,
+      "verdict": "iterate"
+    }
+  ],
+  "whole_product_score": null
+}
