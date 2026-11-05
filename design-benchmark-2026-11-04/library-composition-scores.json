@@ -1,0 +1,40 @@
+{
+  "scope": "Phone Journey Page row composition",
+  "criterion_weight": 78,
+  "criteria": [
+    "brand_craft",
+    "color",
+    "consistency",
+    "hierarchy",
+    "interaction",
+    "layout",
+    "responsive",
+    "task_clarity",
+    "trust_copy",
+    "typography"
+  ],
+  "before_sha": "873b8d85cb12f8846a641c82186f0d02a7090208",
+  "after_sha": "5e0475e224ace361b5e8b0f400c5f13f26aa4637",
+  "models": [
+    {
+      "model": "GPT-6.1 Sol",
+      "before": 6.743589743589744,
+      "after": 7.3076923076923075,
+      "before_numerator": 526,
+      "after_numerator": 570,
+      "denominator": 78,
+      "verdict": "keep"
+    },
+    {
+      "model": "Opus 5.5",
+      "before": 6.461538461538462,
+      "after": 6.833333333333333,
+      "before_numerator": 504.0,
+      "after_numerator": 533.0,
+      "denominator": 78,
+      "verdict": "keep"
+    }
+  ],
+  "whole_product_score": null,
+  "literal_acceptance": "NOT VERIFIED; documented measurement deviations accepted by both reviewers"
+}
