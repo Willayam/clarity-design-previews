@@ -1,5 +1,5 @@
 {
-  "head": "2e8fd1600dd73e0891eee94f7c5096eb5bf17d36",
+  "head": "18221ec506ad71be1b033cea28a5cb3828158c06",
   "complete_product_score": null,
   "reviewer": "gpt-6.1-sol",
   "status": "in progress",
@@ -50,5 +50,39 @@
     "design_scores": "pending",
     "before_sha": "e9f7510a47f71de88502981ccf9196c897807083",
     "after_sha": "2e8fd1600dd73e0891eee94f7c5096eb5bf17d36"
+  },
+  "reviewers": [
+    "gpt-6.1-sol",
+    "claude-opus-5-5"
+  ],
+  "latest_help_compact": {
+    "before_sha": "49906f4a75ef6226f8bf0f0bdacb84e22f674df6",
+    "after_sha": "18221ec506ad71be1b033cea28a5cb3828158c06",
+    "scope": "Help compact lesson selection and playback only",
+    "criterion_weight": 88,
+    "criteria": [
+      "task_clarity",
+      "hierarchy",
+      "typography",
+      "layout",
+      "color",
+      "consistency",
+      "interaction",
+      "accessibility",
+      "responsive",
+      "trust_copy",
+      "brand_craft"
+    ],
+    "models": {
+      "GPT-6.1 Sol": {
+        "before": 6.568181818181818,
+        "after": 7.568181818181818
+      },
+      "Opus 5.5": {
+        "before": 6.045454545454546,
+        "after": 7.363636363636363
+      }
+    },
+    "whole_product_score": null
   }
 }
