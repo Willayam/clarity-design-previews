@@ -1,0 +1,38 @@
+{
+  "scope": "Section-control placement during editing",
+  "before_sha": "38a0ab840e6e496a3608bfd8d35d2ec03cf77554",
+  "after_sha": "163d5fa58411684792da638294eb84d87ee1ee4e",
+  "criterion_weight": 72,
+  "criteria": [
+    "task_clarity",
+    "hierarchy",
+    "typography",
+    "layout",
+    "color",
+    "consistency",
+    "interaction",
+    "responsive",
+    "brand_craft"
+  ],
+  "models": [
+    {
+      "model": "GPT-6.1 Sol",
+      "before": 5.277777777777778,
+      "after": 6.777777777777778,
+      "exact": {
+        "before": "95/18",
+        "after": "61/9"
+      }
+    },
+    {
+      "model": "Opus 5.5",
+      "before": 4.833333333333333,
+      "after": 6.0,
+      "exact": {
+        "before": "29/6",
+        "after": "6"
+      }
+    }
+  ],
+  "whole_product_score": null
+}
