@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PR 1706 independent verification</title><style>body{max-width:800px;margin:40px auto;padding:0 20px;font:16px/1.6 system-ui;color:#152033}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}</style><main><pre>PASS
+
+Independent verification of https://github.com/Clarity-Video-HQ/clarity/pull/1706 at 8e4b5e99e11c1e10fbecb60b22b2018c3aee99a7, against main 8d8e4c521cc911ae7ec882fd5b2822b033f04555. Preview /__deploy-info matched both commits. Authentication was verified with the existing e2e Pro account. No P1, P2 or P3 defect found in the requested scope.
+
+## Source and tests
+
+Read the PR body, evidence comment and complete source diff. Cut-out uses the full camera crop, a height of 45% of the output, proportional width, a 2% right inset and y = output height minus camera height. The shared screen uses the existing contain policy. Its person layer uses the same destination for raw fallback and matte paint. It does not paint the stored room background. Mirror transforms apply to the final person image and raw fallback. An independent asymmetric red/green camera pixel check passed with mirror both off and on, including a transparent region showing the blue screen. The temporary check was deleted; mirror.log retains its result.
+
+needsMatte uses the chosen layout, so Cut-out starts loading before a screen arrives and when restored. The existing promise and model persist across background changes. Missing or failed model loading leaves a raw camera rectangle. Phone detection prevents loading and maps remembered Cut-out to Camera inset. The setup allowlist accepts Cut-out. The portrait take-source path still uses the camera&#x27;s own track with None and a composite with a painted background. Background availability reads the source chosen for the live take. Existing camera, split, inset and screen branches retain their previous geometry and paint behavior.
+
+The new tests assert geometry, compositing operations, fallback, model requests, remembered layout, device-row contents and actual source selection. After the clean root gates, temporarily restoring the old Background lock and removing Cut-out from needsMatte produced four targeted failures: the live Background test, the matte predicate test, and both picked/remembered model-load tests. All other 5,424 editor tests passed in that mutation run. Restored the original files and confirmed git status was clean. See mutation.log.
+
+## Root gates
+
+A separate detached checkout at a separate detached checkout was used. The bg-removal worktree was not changed. Node v22.23.1 was placed first on PATH.
+
+- pnpm install --frozen-lockfile passed. See install.log.
+- pnpm typecheck passed. See typecheck.log.
+- pnpm lint passed. See lint.log.
+- pnpm test passed. Worker suites passed 760 and 407 tests, the editor passed 5,428 tests, and root script tests reported 2,307 passed, one skipped, zero failures. See test.log.
+
+## Preview recordings
+
+Reused the supplied head.mjs login and fake-camera launch, cutcheck.mjs interaction patterns, and person.y4m. Screen capture was a deterministic moving canvas. Recorded real MediaRecorder takes against the PR preview, downloaded the finish-screen files for inspection, and discarded each through the app&#x27;s Discard and re-record flow. Seven takes were created and all seven discarded. No signup, PR edit, PR comment or PR branch push occurred.
+
+- Cut-out setup, recording and finish passed. The recorded 1920x1080 file showed screen RGB 245,247,251 inside the camera rectangle but outside the person; the chest remained visible. See cutout-setup.png, cutout-finish.png and cutout.webm.
+- Share playback passed on a second Cut-out take. The video reached 1.46461 seconds, readyState 4, paused false, 1920x1080, with no media error. See share-cold/runtime.json and share-cold/share-playing.png. Playback was started through the video element; the share-page play-button interaction itself was not tested.
+- During a take, switched Cut-out to split, inset, Cut-out, Screen and back to Cut-out. The downloaded recording contains each layout. See layouts.webm and layout-contact.png.
+- Reload retained the stored camera-cutout-screen value and selected Cut-out tile, then screen sharing resumed it. See runtime.json.
+- Blocking cdn.jsdelivr.net in a fresh browser context produced the intended raw camera rectangle and a playable finish recording. See blocked/blocked-setup.png, blocked/blocked-finish.png and blocked/blocked.webm.
+- Warm background changes during recording covered Blue, Blur, None, Blue, Blur and Blue. All 322 decoded frames retained substantial person pixels, with a minimum of 1,242 skin-colored pixels in the face region at 160x90. The contact sheet shows the expected blurred or unaltered room only when those choices were selected. No unexpected return to the room occurred between Blue states. See backgrounds.webm, background-contact.png and frame-analysis.json.
+- A separate cold take began with None, selected Blue after about 2.15 seconds, then Blur and Blue. Blue first appeared at 3.220267 seconds, consistent with the disclosed initial model-loading fallback of about one second. All 256 decoded frames retained person pixels, minimum 1,243. See share-cold/cold.webm and cold-frame-analysis.json. The pixel classifier checks complete person loss in this fixture; it is not a general segmentation-quality metric.
+- An 808x1080 camera fixture made from person.y4m recorded at 808x1080. Background was enabled before recording and locked during the None take. See portrait/runtime.json and portrait/portrait-locked.png.
+- Camera, Microphone and Background contents had exactly 0 px vertical offset at both 1440x900 and 1100x900. Screenshots inspected. See alignment-1440.png, alignment-1100.png and runtime.json.
+- An iPhone user agent at 390x844 showed four tiles, no Cut-out and no Background picker. Remembered Cut-out fell back to Camera inset. See blocked/phone.png and blocked/runtime.json. This verifies user-agent gating, not a physical phone&#x27;s capture behavior.
+
+No page errors were observed. Six connect-src blob CSP events in runtime.json came from the verification script fetching local blob recordings for download, not recorder requests.
+
+## Limits
+
+Verification used Chromium with fake camera/audio and canvas screen capture, not physical devices or slow-network simulation. Default-camera mirroring in the app is unchanged; the composition mirror branch was verified separately by pixels. Initial model loading can expose the room for about one second, as disclosed in the PR. No additional defect was established. Screenshots and recordings remain in the requested evidence directory; temporary verification scripts and fixtures were deleted after use.
+</pre></main></html>
