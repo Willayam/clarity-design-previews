@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activity plays</title>
+<style>
+:root { --bg: #f7f8fa; --fg: #111827; --muted: #6b7280; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0b0d12; --fg: #f3f4f6; --muted: #9ca3af; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 32px 0 8px; }
+p { margin: 0 0 12px; color: var(--muted); }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+figure { margin: 0; }
+img { display: block; width: 100%; height: auto; border-radius: 8px; }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.phones img { max-width: 390px; }
+</style></head>
+<body><main>
+<h1>Activity: one row per play</h1>
+<p>Sample data: a 12:49 video with five plays. One watched 99%, four left within seconds. Captured from the real components at 1280×720.</p>
+<h2>Page Activity</h2>
+<div class="pair">
+<figure><img src="1-page-before.jpg" alt="Page Activity before"><figcaption>Before: the curve takes the space, and the 99% play is scrolled out of sight.</figcaption></figure>
+<figure><img src="2-page-after.jpg" alt="Page Activity after"><figcaption>After: no curve. All five plays show, each with a full-width bar.</figcaption></figure>
+</div>
+<h2>Library video Activity</h2>
+<div class="pair">
+<figure><img src="3-library-before.jpg" alt="Library Activity before"><figcaption>Before</figcaption></figure>
+<figure><img src="4-library-after.jpg" alt="Library Activity after"><figcaption>After: the stats box matches the poster's height.</figcaption></figure>
+</div>
+<h2>Phone, 390 px</h2>
+<div class="pair phones">
+<figure><img src="phone-1-page-before.jpg" alt="Phone before"><figcaption>Before</figcaption></figure>
+<figure><img src="phone-2-page-after.jpg" alt="Phone after"><figcaption>After</figcaption></figure>
+</div>
+<h2>Light</h2>
+<div class="pair">
+<figure><img src="light-2-page-after.jpg" alt="Light page after"><figcaption>Page Activity</figcaption></figure>
+<figure><img src="light-4-library-after.jpg" alt="Light library after"><figcaption>Library video Activity</figcaption></figure>
+</div>
+</main></body></html>
